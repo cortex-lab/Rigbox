@@ -87,6 +87,7 @@ classdef MControl < handle
       
       try
           obj.AlyxInstance = alyx.getToken([], 'Experiment', '123');
+          obj.log('Connected to Alyx');
       catch ex
           obj.log('Warning: Could not connect to Alyx');
       end
@@ -424,7 +425,7 @@ classdef MControl < handle
               d.user = 'Experiment';
 
               alyx.postData(obj.AlyxInstance, 'weighings/', d);
-              obj.log('Warning: Alyx weight posting succeeded');
+              obj.log('Alyx weight posting succeeded');
           catch
               obj.log('Warning: Alyx weight posting failed');
           end
