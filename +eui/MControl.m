@@ -39,6 +39,7 @@ classdef MControl < handle
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
+    AlyxInstance
   end
   
   events
@@ -83,6 +84,13 @@ classdef MControl < handle
       catch ex
         obj.log('Warning: could not connect to weighing scales');
       end
+      
+      try
+          obj.AlyxInstance = alyx.getToken([], 'Experiment', '123');
+      catch ex
+          obj.log('Warning: Could not connect to Alyx');
+      end
+      
     end
     
     function delete(obj)
@@ -405,8 +413,23 @@ classdef MControl < handle
     function recordWeight(obj)
       subject = obj.LogSubject.Selected;
       grams = get(obj.WeightReadingPlot, 'YData');
-      dat.addLogEntry(subject, now, 'weight-grams', grams, '');
+      dat.addLogEntry(subject, now, 'weight-grams', grams, '');            
+      
       obj.log('Logged weight of %.1fg for ''%s''', grams, subject);
+      
+      if ~isempty(obj.AlyxInstance)
+          try
+              d.subject = subject; 
+              d.weight = grams;
+              d.user = 'Experiment';
+
+              alyx.postData(obj.AlyxInstance, 'weighings/', d);
+              obj.log('Warning: Alyx weight posting succeeded');
+          catch
+              obj.log('Warning: Alyx weight posting failed');
+          end
+      end
+      
       %refresh log entries so new weight reading is plotted
       obj.Log.setSubject(obj.LogSubject.Selected);
       obj.updateWeightPlot();
