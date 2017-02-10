@@ -12,7 +12,6 @@ quitKey = KbName('q');
 rewardToggleKey = KbName('w');
 rewardPulseKey = KbName('space');
 rewardCalibrationKey = KbName('m');
-gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 useTimeline = false;
 rewardId = 1;
@@ -63,9 +62,8 @@ rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
 
 fprintf('\n<q> quit, <w> toggle reward, <t> toggle timeline\n');
-fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
-  '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
-  KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
+fprintf('<%s> reward pulse, <%s> perform reward calibration\n',...
+  KbName(rewardPulseKey), KbName(rewardCalibrationKey));
 log('Started presentation server on port %i', listenPort);
 
 if nargin < 1 || isempty(useTimelineOverride)
@@ -121,12 +119,6 @@ while running
   if firstPress(rewardCalibrationKey) > 0
     log('Performing a reward delivery calibration');
     calibrateWaterDelivery();
-  end
-  
-  % check for gamma calibration
-  if firstPress(gammaCalibrationKey) > 0
-      log('Performing a gamma calibration');
-      calibrateGamma();
   end
   
   if firstPress(KbName('1')) > 0
@@ -264,31 +256,6 @@ ShowCursor();
     %apply the calibration to rewardcontroller
     %     rig.rewardController.MeasuredDeliveries = calibration;
     %     log('Measured deliveries for reward calibrations saved');
-  end
-
-  function calibrateGamma()
-        stimWindow = rig.stimWindow;
-        DaqDev = rig.daqController.DaqIds;
-        lightIn = 'ai0'; % defaults from hw.psy.Window
-        clockIn = 'ai1';
-        clockOut = 'port1/line0 (PFI4)';
-        log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-            'Press any key to contiue\n'],lightIn,clockIn,clockOut);
-        pause; % wait for keypress
-        stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-        pause(1);
-        saveGamma(stimWindow.Calibration);
-        stimWindow.applyCalibration(stimWindow.Calibration);
-        clear('lightIn','clockIn','clockOut','cal');
-        log('Gamma calibration complete');
-  end
-
-  function saveGamma(cal)
-      rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
-      stimWindow = load(rigHwFile,'stimWindow');
-      stimWindow = stimWindow.stimWindow;
-      stimWindow.Calibration = cal;
-      save(rigHwFile, 'stimWindow', '-append');
   end
 
   function log(varargin)
