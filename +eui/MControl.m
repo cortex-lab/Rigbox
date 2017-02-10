@@ -284,6 +284,19 @@ classdef MControl < handle
       if rig == obj.RemoteRigs.Selected
         set(obj.BeginExpButton, 'Enable', 'on');
       end
+      
+      % Alyx water reporting: indicate amount of water this mouse still needs      
+      if ~isempty(obj.AlyxInstance)
+          try              
+              subject = dat.parseExpRef(evt.Ref);
+              alyx.getData(obj.AlyxInstance, ...
+                  sprintf('subjects/%s');
+              obj.log(sprintf(
+          catch
+              subject = dat.parseExpRef(evt.Ref);
+              obj.log(sprintf('Warning: unable to query Alyx about %s''s water requirements', subject));
+          end
+      end
     end
     
     function rigConnected(obj, rig, evt)
