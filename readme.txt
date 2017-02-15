@@ -1,6 +1,6 @@
 In order to install on any computer:
 
-- Rigbox with containing cb-tools and cortexlab
+- Rigbox with some updated functions from cb-tools and cortexlab
  - cortexlab directory contains all default parameters and the main ChoiceWorld function
 - dat.paths must be changed
 
@@ -8,16 +8,9 @@ In order to install on any computer:
 
 - cb-tools/GUILayout: this is from the Matlab Central 'GUI Layout Toolbox'.  Installed newer version as toolbox.
 - Lay to rest the initialism 'MC'
-- exp.inferParameters in +eui\MControl line 70 doesn't seem to exist
-- Look into tall arrays
-- Fully initialize all objects with default constuctors (not always done, e.g. in ParamEditor)
+- Setting children with object arrays seems to take way longer than with numerical handles...
 
-Currently working on ParamEditor/buildGlobalUI
-Selector/buildUI: obj.Handle should have normalized Units, BorderType none
+To Do:
 
-Useful info:
-
-+eui/MControl/buildUI is where all major uicontainers are constructed (the main function for building the GUI)
-+bui/label simply places text labels in the GUI with uicontrol
-+bui/Selector produces a dropdown box, well documented
-
+- Experiment panel not checked
+- List cortexlab and burg-box functions that were changed
