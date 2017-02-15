@@ -14,3 +14,7 @@ To Do:
 
 - Experiment panel not checked
 - List cortexlab and burg-box functions that were changed
+
+Little fixes:
+
+- checkbox in param editor now functions correctly (added line 382 +eui.ParamEditor/addParamUI)
