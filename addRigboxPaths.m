@@ -2,21 +2,29 @@ function addRigboxPaths(savePaths)
 %ADDRIGBOXPATHS Adds the required paths for using Rigbox
 %
 %   Part of the Rigging toolbox
-
+% TODO: 
+% - Paths to 'cortexlab' and 'cb-tools' were incorrect
+% - Consider renaming above folder to something more informative 
+% - Remove GUILayout paths
+% - Ask user to install GUI Layout Toolbox
+% - Update to work as standalone install from GitHub
+%
 % 2014-01 CB
+% 2017-02 MW Updated to work with 2016b
 
 if nargin < 1
   savePaths = true;
 end
 
-rigboxPath = fileparts(mfilename('fullpath'));
+rigboxPath = fileparts(mfilename('fullpath')); 
 rootPath = fileparts(rigboxPath);
-cbToolsPath = fullfile(rootPath, 'cb-tools');
+cbToolsPath = fullfile(rootPath, 'cb-tools'); % Assumes 'cb-tools' in same 
+% directory as Rigbox, was not the case
 guiLayoutPath = fullfile(fullfile(cbToolsPath, 'GUILayout'));
 
-cortexLabAddonsPath = fullfile(rootPath, 'rigbox-cortexlab');
+cortexLabAddonsPath = fullfile(rootPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
 if ~isdir(cortexLabAddonsPath) % handle two possible alternative paths
-  cortexLabAddonsPath = fullfile(rootPath, 'cortexlab');
+  cortexLabAddonsPath = fullfile(rootPath, 'cortexlab'); % doesn't exist in Rigbox directory 2017-02-13
 end
 
 addpath(...

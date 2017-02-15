@@ -1,7 +1,8 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
 %   p = DAT.PATHS([RIG])
-%
+%   TODO:
+%   - p.rigbox should be same as AddRigBoxPaths (line 23)
 % Part of Rigbox
 
 % 2013-03 CB created
@@ -14,12 +15,13 @@ end
 
 server1Name = '\\zserver.cortexlab.net';
 server2Name = '\\zserver2.cortexlab.net';
-server3Name = '\\zserver3.cortexlab.net';
+% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-13 No longer used MW
 server4Name = '\\zserver4.cortexlab.net';
 
 %% defaults
 % path containing rigbox config folders
-p.rigbox = fullfile(server1Name, 'code', 'Rigging');
+% p.rigbox = fullfile(server1Name, 'code', 'Rigging'); % Potential conflict with AddRigBoxPaths
+p.rigbox = fullfile('C:\Users\Miles\Documents\GitHub\Rigbox');
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
 % for all data types, under the new system of having data grouped by mouse

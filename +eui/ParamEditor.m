@@ -33,7 +33,7 @@ classdef ParamEditor < handle
   
   methods
     function obj = ParamEditor(params, parent)
-      if nargin < 2
+      if nargin < 2 % Can call this function to display parameters is new window
         parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
           'Toolbar', 'none', 'Menubar', 'none');
       end
@@ -58,16 +58,16 @@ classdef ParamEditor < handle
   end
   
   methods %(Access = protected)
-    function build(obj, parent)
-      obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5);
+    function build(obj, parent) % Build parameters panel
+      obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5); % Add horizontal container for Global and Conditional panels
       
-      globalPanel = uiextras.Panel('Parent', obj.Root,...
+      globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
         'Title', 'Global', 'Padding', 5);
-      obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4);
-      obj.buildGlobalUI;
+      obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4); % Make grid for parameter fields
+      obj.buildGlobalUI; % Populate Global panel
       
       conditionPanel = uiextras.Panel('Parent', obj.Root,...
-        'Title', 'Conditional', 'Padding', 5);
+        'Title', 'Conditional', 'Padding', 5); % Make 'Conditional' parameters panel
       conditionVBox = uiextras.VBox('Parent', conditionPanel);
       obj.ConditionTable = uitable('Parent', conditionVBox,...
         'FontName', 'Consolas',...
@@ -99,23 +99,40 @@ classdef ParamEditor < handle
         obj.Root.Sizes = [sum(obj.GlobalGrid.ColumnSizes) + 10, -1];
     end
     
-    function buildGlobalUI(obj)
-      globalParams = obj.Parameters.assortForExperiment;
-      [editors, labels, buttons] = cellfun(...
-        @(n) obj.addParamUI(n), fieldnames(globalParams), 'UniformOutput', false);
-      editors = cell2mat(editors);
-      labels = cell2mat(labels);
-      buttons = cell2mat(buttons);
-      obj.GlobalControls = [labels, editors, buttons];
-      obj.GlobalGrid.Children = obj.GlobalControls(:);
-      obj.GlobalGrid.ColumnSizes = [180, 200, 40];
+    function buildGlobalUI(obj) % Function to essemble global parameters
+      globalParamNames = fieldnames(obj.Parameters.assortForExperiment); % assortForExperiment divides params into global and trial-specific parameter structures
+      obj.GlobalControls = gobjects(length(globalParamNames),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)  
+      for i=length(globalParamNames):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-14 MW
+          [obj.GlobalControls(i,1), obj.GlobalControls(i,2), obj.GlobalControls(i,3)]... % [editors, labels, buttons]
+              = obj.addParamUI(globalParamNames{i});
+      end
+      % Above code replaces the following as after 2014a, MATLAB doesn't no
+      % longer uses numrical handles but instead uses object arrays
+%       [editors, labels, buttons] = cellfun(...
+%         @(n) obj.addParamUI(n), fieldnames(globalParams), 'UniformOutput', false);
+%       editors = cell2mat(editors);
+%       labels = cell2mat(labels);
+%       buttons = cell2mat(buttons);
+%       obj.GlobalControls = [labels, editors, buttons];
+%       obj.GlobalGrid.Children = obj.GlobalControls(:);
+
+%       obj.GlobalGrid.Children =
+%       blah = cat(1,obj.GlobalControls(:,1),obj.GlobalControls(:,2),obj.GlobalControls(:,3));
+%       Doesn't work for some reason - MW 2017-02-15
+
+      child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
+      child_handles = [child_handles(1:3:end); child_handles(3:3:end); child_handles(2:3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
+      set(obj.GlobalGrid,'Children',child_handles); % Set children to new order (NB: worryingly slow!)
+
+      obj.GlobalGrid.ColumnSizes = [180, 200, 40]; % Set column sizes
       obj.GlobalGrid.Spacing = 1;
       obj.GlobalGrid.RowSizes = repmat(obj.GlobalVSpacing, 1, size(obj.GlobalControls, 1));
     end
     
-    function swapConditions(obj, idx1, idx2)
-%       params = obj.Parameters.trial
-    end
+%     function swapConditions(obj, idx1, idx2) % Function started, never
+%     finished - MW 2017-02-15
+% %       params = obj.Parameters.trial
+%     end
     
     function addEmptyConditionToParam(obj, name)
       assert(obj.Parameters.isTrialSpecific(name),...
@@ -181,11 +198,27 @@ classdef ParamEditor < handle
       arrayfun(@obj.globaliseParamAtCell, rows, cols);
       obj.fillConditionTable(); %refresh the table of conditions
       %now add global controls for parameters
-      [editors, labels, buttons] = cellfun(@obj.addParamUI, names);
-      obj.GlobalControls = [obj.GlobalControls;...
-        labels, editors, buttons];
-      obj.GlobalGrid.Children = obj.GlobalControls(:);
+      newGlobals = gobjects(length(names),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)  
+      for i=length(names):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-15 MW
+          [newGlobals(i,1), newGlobals(i,2), newGlobals(i,3)]... % [editors, labels, buttons]
+              = obj.addParamUI(names{i});
+      end
+
+%       [editors, labels, buttons] = arrayfun(@obj.addParamUI, names); %
+%       2017-02-15 MW can no longer use arrayfun with object outputs
+      idx = size(obj.GlobalControls, 1); % Calculate number of current Global params
+      new = numel(newGlobals);
+      obj.GlobalControls = [obj.GlobalControls; newGlobals]; % Add new globals to object
+      child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
+      child_handles = [child_handles(new+1:new+idx); child_handles(1:3:new);...
+          child_handles(new+idx+1:new+idx*2); child_handles(3:3:new);... 
+          child_handles(new+idx+1:new+idx*3); child_handles(2:3:new)]; % Reorder them so all labels come first, then ctrls, then buttons
+      set(obj.GlobalGrid,'Children',child_handles); % Set children to new order (NB: worryingly slow!)
+     
+      % Reset sizes
       obj.GlobalGrid.RowSizes = repmat(obj.GlobalVSpacing, 1, size(obj.GlobalControls, 1));
+      obj.GlobalGrid.ColumnSizes = [180, 200, 40]; 
+      obj.GlobalGrid.Spacing = 1;
     end
     
     function globaliseParamAtCell(obj, row, col)
@@ -297,7 +330,7 @@ classdef ParamEditor < handle
           % convert a function handle to it's string name
           data = func2str(data);
         case 'logical'
-          data = data ~= 0;
+          data = data ~= 0; % If logical do nothing, basically.
         otherwise
           if isnumeric(data)
             % format numeric types as string number list
@@ -327,22 +360,26 @@ classdef ParamEditor < handle
       obj.fillConditionTable();
     end
 
-    function [ctrl, label, buttons] = addParamUI(obj, name)
-      parent = obj.GlobalGrid;
+    function [ctrl, label, buttons] = addParamUI(obj, name) % Adds ui element for each parameter
+      parent = obj.GlobalGrid; % Made by build function above
       ctrl = [];
       label = [];
       buttons = [];
-      value = obj.paramValue2Control(obj.Parameters.Struct.(name));
+      if iscell(name) % 2017-02-14 MW function now called with arrayFun (instead of cellFun)
+        name = name{1,1}; 
+      end
+      value = obj.paramValue2Control(obj.Parameters.Struct.(name));  % convert from parameter value to control value (everything but logical values become strings)
       title = obj.Parameters.title(name);
       description = obj.Parameters.description(name);
       
-      if isnumeric(value)
-        value = num2str(value);
-      end
-      if islogical(value)
+%       if isnumeric(value) % Why? All this would do is convert logical values to char; everything else dealt with by paramValue2Control.  MW 2017-02-15
+%         value = num2str(value);
+%       end
+      if islogical(value) % If parameter is logical, make checkbox
         ctrl = uicontrol('Parent', parent,...
           'Style', 'checkbox',...
           'TooltipString', description,...
+          'Value', value,... % Added 2017-02-15 MW set checkbox to what ever the parameter value is
           'Callback', @(src, e) obj.updateGlobal(name, src));
       elseif ischar(value)
         ctrl = uicontrol('Parent', parent,...
@@ -366,19 +403,22 @@ classdef ParamEditor < handle
 %           'Callback', @(src, e) obj.updateGlobal(name, src));
       end
 
-      if ~isempty(ctrl)
+      if ~isempty(ctrl) % If control box is made, add label and conditional button
         label = uicontrol('Parent', parent,...
           'Style', 'text', 'String', title, 'HorizontalAlignment', 'left',...
-          'TooltipString', description);
-        bbox = uiextras.HBox('Parent', parent);
-        buttons = bbox.UIContainer;
-        uicontrol('Parent', bbox, 'Style', 'pushbutton',...
+          'TooltipString', description); % Why not use bui.label? MW 2017-02-15
+        bbox = uiextras.HBox('Parent', parent); % Make HBox for button
+        % UIContainer no longer present in GUILayoutToolbox, it used to
+        % call uipanel with the following args:  
+        % 'Units', 'Normalized'; 'BorderType', 'none')
+%         buttons = bbox.UIContainer; 
+        buttons = uicontrol('Parent', bbox, 'Style', 'pushbutton',... % Make 'conditional parameter' button
           'String', '[...]',...
           'TooltipString', sprintf(['Make this a condition parameter (i.e. vary by trial).\n'...
             'This will move it to the trial conditions table.']),...
           'FontSize', 7,...
           'Callback', @(~,~) obj.makeTrialSpecific(name, {ctrl, label, bbox}));
-        bbox.Sizes = [29];
+        bbox.Sizes = 29; % Resize button height to 29px
       end
     end
   end

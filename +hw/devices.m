@@ -75,7 +75,7 @@ if init
     rig.daqController.createDaqChannels();
     sg = rig.daqController.SignalGenerators(1);
     if isprop(sg,'Calibrations')
-      [newestDate, idx] = max([sg.Calibrations.dateTime]);
+      [newestDate, ~] = max([sg.Calibrations.dateTime]);
       fprintf('\nApplying reward calibration performed on %s\n', datestr(newestDate));
     end
   else
