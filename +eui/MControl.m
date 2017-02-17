@@ -311,7 +311,7 @@ classdef MControl < handle
       if ~isempty(rig) && strcmp(rig.Status, 'disconnected')
         %attempt to connect to rig
         try
-          rig.connect();
+          rig.connect(); % srv.StimulusControl/connect
         catch ex
           errmsg = ex.message;
           croplen = 200;
@@ -339,7 +339,7 @@ classdef MControl < handle
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
       obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef);
+      rig.startExperiment(expRef); % Tell rig to start experiment
       %update the parameter set label to indicate used for this experiment
       subject = dat.parseExpRef(expRef);
       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);

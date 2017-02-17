@@ -29,7 +29,7 @@ classdef ChoiceExpPanel < eui.ExpPanel
   methods
     function obj = ChoiceExpPanel(parent, ref, params, logEntry)
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
-      obj.InputSensorPos = nan(1000*60*60*2, 1);
+      obj.InputSensorPos = nan(1000*60*60*2, 1); % Initialize wheel position objects for wheel trace
       obj.InputSensorPosTime = nan(1000*60*60*2, 1);
       obj.InputSensorPosCount = 0;
     end

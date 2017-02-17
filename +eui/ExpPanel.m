@@ -38,16 +38,16 @@ classdef ExpPanel < handle
   
   methods (Static)
     function p = live(parent, ref, remoteRig, paramsStruct)
-      subject = dat.parseExpRef(ref);
+      subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
       try
-        logEntry = dat.addLogEntry(...
+        logEntry = dat.addLogEntry(... % Add new entry to log
           subject, now, 'experiment-info', struct('ref', ref), '');
       catch ex
         logEntry.comments = '';
         warning(ex.getReport());
       end
-      params = exp.Parameters(paramsStruct);
-      if isfield(params.Struct, 'expPanelFun')
+      params = exp.Parameters(paramsStruct); % Get parameters
+      if isfield(params.Struct, 'expPanelFun') % Can define your own experiment panel
         p = params.Struct.expPanelFun(parent, ref, params, logEntry);
       else
         switch params.Struct.type
@@ -75,7 +75,7 @@ classdef ExpPanel < handle
         @() remoteRig.quitExperiment(true),...
         @() set(p.StopButtons, 'Enable', 'off')));
       
-      p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name);
+      p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
@@ -275,11 +275,12 @@ classdef ExpPanel < handle
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
-      obj.InfoGrid.ColumnSizes = [100, -1];
+%       obj.InfoGrid.ColumnSizes = [100, -1]; % Error: Size of property 'Widths' must be no larger than size of contents.
+
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox);
       
-      bui.label('Comments', obj.MainVBox);
+      bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
       
       obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
         'Style', 'edit',... %text editor

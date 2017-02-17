@@ -17,14 +17,21 @@ if nargin < 1
 end
 
 rigboxPath = fileparts(mfilename('fullpath')); 
-rootPath = fileparts(rigboxPath);
-cbToolsPath = fullfile(rootPath, 'cb-tools'); % Assumes 'cb-tools' in same 
+cbToolsPath = fullfile(rigboxPath, 'cb-tools'); % Assumes 'cb-tools' in same 
 % directory as Rigbox, was not the case
-guiLayoutPath = fullfile(fullfile(cbToolsPath, 'GUILayout'));
-
-cortexLabAddonsPath = fullfile(rootPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
+% guiLayoutPath = fullfile(fullfile(cbToolsPath, 'GUILayout')); % MW
+% 2017-02-17 should be installed as matlab toolbox
+toolboxes = ver;
+isInstalled = strcmp('GUI Layout Toolbox', {toolboxes.Name});
+if any(isInstalled)
+    toolboxVer = toolboxes(isInstalled).Version;
+else
+    % Install GUI Layout Toolbox!
+end
+    
+cortexLabAddonsPath = fullfile(rigboxPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
 if ~isdir(cortexLabAddonsPath) % handle two possible alternative paths
-  cortexLabAddonsPath = fullfile(rootPath, 'cortexlab'); % doesn't exist in Rigbox directory 2017-02-13
+  cortexLabAddonsPath = fullfile(rigboxPath, 'cortexlab'); % doesn't exist in Rigbox directory 2017-02-13
 end
 
 addpath(...
@@ -34,12 +41,13 @@ addpath(...
   fullfile(cbToolsPath, 'burgbox'),... % Burgbox
   fullfile(cbToolsPath, 'jsonlab'),... % jsonlab for JSON encoding
   fullfile(cbToolsPath, 'urlread2'),... % urlread2 for http requests
-  fullfile(cbToolsPath, 'MercuryDialog'),... % tools to manage code versioning
-  guiLayoutPath,... % add GUI Layout toolbox
-  fullfile(guiLayoutPath, 'layout'),...
-  fullfile(guiLayoutPath, 'Patch'),...
-  fullfile(guiLayoutPath, 'layoutHelp')...
+  fullfile(cbToolsPath, 'MercuryDialog')... % tools to manage code versioning
   );
+%   guiLayoutPath,... % add GUI Layout toolbox
+%   fullfile(guiLayoutPath, 'layout'),...
+%   fullfile(guiLayoutPath, 'Patch'),...
+%   fullfile(guiLayoutPath, 'layoutHelp')...
+%   );
 
 if savePaths
   assert(savepath == 0, 'Failed to save changes to MATLAB path');
@@ -51,7 +59,7 @@ fid = fopen(javaclasspathfile, 'a+');
 fseek(fid, 0, 'bof');
 closeFile = onCleanup( @() fclose(fid) );
 javaclasspaths = first(textscan(fid,'%s', 'CommentStyle', '#',...
-  'Delimiter','')); % this will crash on 2014b
+  'Delimiter','')); % this will crash on 2014b, but not in 2016b
 cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
 
 if savePaths
