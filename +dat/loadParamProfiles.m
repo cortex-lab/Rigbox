@@ -5,6 +5,7 @@ function p = loadParamProfiles(expType)
 % Part of Rigbox
 
 % 2013-07 CB created
+% 2017-02 MW Param struct now sorted in ASCII dictionary order
 
 fn = 'parameterProfiles.mat';
 masterPath = fullfile(dat.reposPath('expInfo', 'master'), fn);
@@ -17,7 +18,7 @@ if file.exists(masterPath)
   loaded = load(masterPath, expType); %load profiles for specific experiment type
   warning(origState);
   if isfield(loaded, expType)
-    p = loaded.(expType); %extract those profiles to return
+    p = orderfields(loaded.(expType)); %extract those profiles to return
   end
 end
 

@@ -1,20 +1,21 @@
 In order to install on any computer:
 
-- Rigbox with some updated functions from cb-tools and cortexlab
- - cortexlab directory contains all default parameters and the main ChoiceWorld function
-- dat.paths must be changed
+- run the Rigbox/addRigboxPaths.m
+- install the GUI Layout Toolbox from here: https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox
+- double check that the added paths (including those to the Toolbox) are above the paths to zserver
 
-2016b quirks:
+Main changes:
 
-- cb-tools/GUILayout: this is from the Matlab Central 'GUI Layout Toolbox'.  Installed newer version as toolbox.
-- Lay to rest the initialism 'MC'
-- Setting children with object arrays seems to take way longer than with numerical handles...
-
-To Do:
-
-- Experiment panel not checked
-- List cortexlab and burg-box functions that were changed
+- handles to objects are no longer numerical
+- the UI is now using the most recent version of GUI Layout Toolbox
 
 Little fixes:
 
 - checkbox in param editor now functions correctly (added line 382 +eui.ParamEditor/addParamUI)
+- more documentation, particularly for the UI elements
+- saved parameters dropdown now ordered in mc
+
+To do:
+
+- make parameter panel scrollable
+- rename the cortexlab folder and move +exp to ExpDefinitions

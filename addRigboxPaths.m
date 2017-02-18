@@ -5,9 +5,6 @@ function addRigboxPaths(savePaths)
 % TODO: 
 % - Paths to 'cortexlab' and 'cb-tools' were incorrect
 % - Consider renaming above folder to something more informative 
-% - Remove GUILayout paths
-% - Ask user to install GUI Layout Toolbox
-% - Update to work as standalone install from GitHub
 %
 % 2014-01 CB
 % 2017-02 MW Updated to work with 2016b
@@ -19,15 +16,18 @@ end
 rigboxPath = fileparts(mfilename('fullpath')); 
 cbToolsPath = fullfile(rigboxPath, 'cb-tools'); % Assumes 'cb-tools' in same 
 % directory as Rigbox, was not the case
-% guiLayoutPath = fullfile(fullfile(cbToolsPath, 'GUILayout')); % MW
-% 2017-02-17 should be installed as matlab toolbox
+
+% 2017-02-17 GUI Layout Toolbox should be installed as matlab toolbox
 toolboxes = ver;
 isInstalled = strcmp('GUI Layout Toolbox', {toolboxes.Name});
 if any(isInstalled)
-    toolboxVer = toolboxes(isInstalled).Version;
+    fprintf('GUI Layout Toolbox version %s is currently installed\n', toolboxes(isInstalled).Version)
 else
-    % Install GUI Layout Toolbox!
+    warning('MC requires GUI Layout Toolbox v2.3 or higher to be installed')
 end
+
+% Check MATLAB 2016b is running
+assert(~verLessThan('matlab', '9.1'), 'Requires MATLAB 2016b');
     
 cortexLabAddonsPath = fullfile(rigboxPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
 if ~isdir(cortexLabAddonsPath) % handle two possible alternative paths

@@ -1,0 +1,21 @@
+Mercury Dialog
+==============
+
+Copyright 2010, The MathWorks, Inc.
+Author:  Thomas Maier-Komor
+E-mail:  thomas.maier-komor@mathworks.de
+License: BSD style license - see file license.txt
+
+
+Getting Started
+---------------
+
+To open Mercury Dialog, either execute "hgdlg" from the MATLAB
+command-line or select "Mercury Dialog" from the Tools menu of a
+Simulink model. 
+
+To open up the Mercury Simulink library, enter "Mercury" on the MATLAB
+command-line. This will bring up a small block library to support
+integration of Simulink models with the Mercurial version control
+system.
+

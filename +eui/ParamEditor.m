@@ -60,7 +60,6 @@ classdef ParamEditor < handle
   methods %(Access = protected)
     function build(obj, parent) % Build parameters panel
       obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5); % Add horizontal container for Global and Conditional panels
-      
       globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
         'Title', 'Global', 'Padding', 5);
       obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4); % Make grid for parameter fields

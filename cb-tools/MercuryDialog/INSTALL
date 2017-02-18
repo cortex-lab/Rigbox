@@ -1,0 +1,14 @@
+Installation Guide
+==================
+
+To install Mercury Dialog, add the directory where you have extracted
+this .zip file to your MATLAB path. To do this enter the directory in
+MATLAB and execute the following lines.
+
+>> addpath(pwd)
+>> savepath
+
+If you haven't installed Mercurial already, get it from
+http://mercurial.selenic.com
+and install it on your computer.
+

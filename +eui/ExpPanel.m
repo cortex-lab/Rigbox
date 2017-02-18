@@ -250,7 +250,7 @@ classdef ExpPanel < handle
       obj.InfoFields = [obj.InfoFields; fieldCtrl];
       %reorder the chilren on the grid since it expects controls to be
       %ordered in descending columns
-      obj.InfoGrid.Children = [obj.InfoLabels; obj.InfoFields];
+      obj.InfoGrid.Children = [obj.InfoFields; obj.InfoLabels];
       FieldHeight = 20; %default
       nRows = numel(obj.InfoLabels);
       obj.InfoGrid.RowSizes = repmat(FieldHeight, 1, nRows);
@@ -278,7 +278,7 @@ classdef ExpPanel < handle
 %       obj.InfoGrid.ColumnSizes = [100, -1]; % Error: Size of property 'Widths' must be no larger than size of contents.
 
       %panel for subclasses to add their own controls to
-      obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox);
+      obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox); % Custom Panel is where the live plots will go
       
       bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
       

@@ -1,8 +1,6 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
 %   p = DAT.PATHS([RIG])
-%   TODO:
-%   - p.rigbox should be same as AddRigBoxPaths (line 23)
 % Part of Rigbox
 
 % 2013-03 CB created
@@ -15,13 +13,14 @@ end
 
 server1Name = '\\zserver.cortexlab.net';
 server2Name = '\\zserver2.cortexlab.net';
-% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-13 No longer used MW
+% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
+% unused by Rigbox
 server4Name = '\\zserver4.cortexlab.net';
 
 %% defaults
 % path containing rigbox config folders
 % p.rigbox = fullfile(server1Name, 'code', 'Rigging'); % Potential conflict with AddRigBoxPaths
-p.rigbox = fullfile('C:\Users\Miles\Documents\GitHub\Rigbox');
+p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
 % for all data types, under the new system of having data grouped by mouse
@@ -39,8 +38,10 @@ p.eyeTrackingRepository = fullfile(server2Name, 'data', 'EyeCamera');
 % electrophys repositories
 p.lfpRepository = fullfile(server1Name, 'data', 'Cerebus');
 p.spikesRepository = fullfile(server1Name, 'data', 'multichanspikes');
-% directory for organisation-wide configuration files
-p.globalConfig = fullfile(p.rigbox, 'config');
+% directory for organisation-wide configuration files, for now these should
+% all remain on zserver
+% p.globalConfig = fullfile(p.rigbox, 'config');
+p.globalConfig = fullfile(server1Name, 'code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 

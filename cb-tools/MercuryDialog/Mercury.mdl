@@ -1,0 +1,416 @@
+Library {
+  Name			  "Mercury"
+  Version		  7.0
+  MdlSubVersion		  0
+  SavedCharacterEncoding  "windows-1252"
+  LibraryType		  "BlockLibrary"
+  SaveDefaultBlockParams  on
+  SampleTimeColors	  off
+  LibraryLinkDisplay	  "none"
+  WideLines		  off
+  ShowLineDimensions	  off
+  ShowPortDataTypes	  off
+  ShowLoopsOnError	  on
+  IgnoreBidirectionalLines off
+  ShowStorageClass	  off
+  ShowTestPointIcons	  on
+  ShowViewerIcons	  on
+  SortedOrder		  off
+  ExecutionContextIcon	  off
+  ShowLinearizationAnnotations on
+  ScopeRefreshTime	  0.035000
+  OverrideScopeRefreshTime on
+  DisableAllScopes	  off
+  BlockNameDataTip	  off
+  BlockParametersDataTip  off
+  BlockDescriptionStringDataTip	off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  Created		  "Wed Jul 08 12:52:58 2009"
+  Creator		  "tmaierko"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "tmaierko"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Tue Jun 15 13:43:38 2010"
+  RTWModifiedTimeStamp	  198510216
+  ModelVersionFormat	  "1.%<AutoIncrement:77>"
+  ConfigurationManager	  "None"
+  SimulationMode	  "normal"
+  LinearizationMsg	  "none"
+  Profile		  off
+  ParamWorkspaceSource	  "MATLABWorkspace"
+  CovSaveName		  "covdata"
+  CovMetricSettings	  "dw"
+  CovNameIncrementing	  off
+  CovHtmlReporting	  on
+  covSaveCumulativeToWorkspaceVar on
+  CovSaveSingleToWorkspaceVar on
+  CovCumulativeReport	  off
+  CovReportOnPause	  on
+  ExtModeBatchMode	  off
+  ExtModeEnableFloating	  on
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "normal"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigDurationFloating "auto"
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  on
+  ExtModeSkipDownloadWhenConnect off
+  ExtModeLogAll		  on
+  ExtModeAutoUpdateStatusClock on
+  ShowModelReferenceBlockVersion off
+  ShowModelReferenceBlockIO off
+  BlockDefaults {
+    Orientation		    "right"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+  }
+  BlockParameterDefaults {
+    Block {
+      BlockType		      SubSystem
+      ShowPortLabels	      "FromPortIcon"
+      Permissions	      "ReadWrite"
+      PermitHierarchicalResolution "All"
+      TreatAsAtomicUnit	      off
+      SystemSampleTime	      "-1"
+      RTWFcnNameOpts	      "Auto"
+      RTWFileNameOpts	      "Auto"
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      SimViewingDevice	      off
+      DataTypeOverride	      "UseLocalSettings"
+      MinMaxOverflowLogging   "UseLocalSettings"
+    }
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    UseDisplayTextAsClickCallback off
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  System {
+    Name		    "Mercury"
+    Location		    [663, 172, 1655, 658]
+    Open		    on
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "A4"
+    PaperUnits		    "centimeters"
+    TiledPaperMargins	    [1.270000, 1.270000, 1.270000, 1.270000]
+    TiledPageScale	    1
+    ShowPageBoundaries	    off
+    ZoomFactor		    "100"
+    ReportName		    "simulink-default.rpt"
+    Block {
+      BlockType		      SubSystem
+      Name		      "AutoCommit"
+      Ports		      []
+      Position		      [195, 29, 290, 71]
+      PostSaveFcn	      "hgia_postsave"
+      OpenFcn		      ";"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskType		      "AutoCommit"
+      MaskDescription	      "When this block is included into a Simulink model, the user\nwill be prompted for a commit message when saving the model.\nPressing 'Cancel' will save the model without committing."
+      MaskStyleString	      "edit"
+      MaskTunableValueString  "on"
+      MaskEnableString	      "on"
+      MaskVisibilityString    "on"
+      MaskToolTipString	      "on"
+      MaskVariables	      "ShowInLibBrowser=@1;"
+      MaskDisplay	      "fprintf('Auto Commit');"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "0"
+      System {
+	Name			"AutoCommit"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[1.270000, 1.270000, 1.270000, 1.270000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Mercury Dialog"
+      Ports		      []
+      Position		      [55, 29, 155, 71]
+      OpenFcn		      "hgdlg"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskPromptString	      "Mask Parameter 1:"
+      MaskStyleString	      "edit"
+      MaskTunableValueString  "on"
+      MaskEnableString	      "on"
+      MaskVisibilityString    "on"
+      MaskToolTipString	      "on"
+      MaskVariables	      "ShowInLibBrowser=@1;"
+      MaskDisplay	      "fprintf('Mercury\\nDialog');"
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "0"
+      System {
+	Name			"Mercury Dialog"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Model Log"
+      Ports		      []
+      Position		      [629, 245, 936, 402]
+      CopyFcn		      "set(gcbh,'log','')"
+      OpenFcn		      "hgmodellog(gcbh)"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskType		      "ModelLog"
+      MaskDescription	      "Display the commit messages related to the model where the \nblock is located. Double-click the block to update the \ninformation."
+      MaskPromptString	      "|Mask Parameter 2:|"
+      MaskStyleString	      "edit,edit,edit"
+      MaskTunableValueString  "off,off,on"
+      MaskCallbackString      "||"
+      MaskEnableString	      "off,off,on"
+      MaskVisibilityString    "off,off,on"
+      MaskToolTipString	      "on,on,on"
+      MaskVarAliasString      ",,"
+      MaskVariables	      "log=&1;r=&2;ShowInLibBrowser=@3;"
+      MaskInitialization      "if isempty(get(gcbh,'log'))\n    hgmodellog(gcbh);\nend"
+      MaskDisplay	      "fprintf('%s',get(gcbh,'log'))"
+      MaskSelfModifiable      on
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "[no hg repository]|0|0"
+      MaskRunInitForIconRedraw on
+      MaskTabNameString	      ",,"
+      System {
+	Name			"Model Log"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Repository Log"
+      Ports		      []
+      Position		      [49, 245, 376, 402]
+      CopyFcn		      "set(gcbh,'log','')"
+      OpenFcn		      "hgsblog(gcbh);"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskType		      "RepositoryLog"
+      MaskDescription	      "This block displays the last 10 commit messages of the local\nrepository. Double click the block to update the information."
+      MaskPromptString	      "|Mask Parameter 2:|Mask Parameter 3:"
+      MaskStyleString	      "edit,edit,edit"
+      MaskTunableValueString  "off,off,on"
+      MaskCallbackString      "||"
+      MaskEnableString	      "off,off,on"
+      MaskVisibilityString    "off,off,on"
+      MaskToolTipString	      "on,on,on"
+      MaskVarAliasString      ",,"
+      MaskVariables	      "log=&1;r=&2;ShowInLibBrowser=@3;"
+      MaskInitialization      "if isempty(get(gcbh,'log'))\n    hgsblog(gcbh);\nend"
+      MaskDisplay	      "fprintf('%s',get(gcbh,'log'))"
+      MaskSelfModifiable      on
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "no hg repository|0|0"
+      MaskRunInitForIconRedraw on
+      MaskTabNameString	      ",,"
+      System {
+	Name			"Repository Log"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Sandbox Status"
+      Description	      "no hg repository"
+      Ports		      []
+      Position		      [410, 245, 596, 400]
+      CopyFcn		      "set(gcbh,'status','')"
+      OpenFcn		      "hgsbstatus(gcbh)"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskType		      "SandboxStatus"
+      MaskDescription	      "Displays current status of the sandbox."
+      MaskPromptString	      "|Mask Parameter 2:|Hide clean files|Hide autosave files|"
+      MaskStyleString	      "edit,edit,checkbox,checkbox,edit"
+      MaskTunableValueString  "off,off,off,off,on"
+      MaskCallbackString      "||||"
+      MaskEnableString	      "on,off,on,on,on"
+      MaskVisibilityString    "off,off,on,on,on"
+      MaskToolTipString	      "on,on,on,on,on"
+      MaskVarAliasString      ",,,,"
+      MaskVariables	      "status=&1;r=&2;hide_clean=&3;hide_autosave=&4;ShowInLibBrowser=@5;"
+      MaskInitialization      "if isempty(get(gcbh,'status'))\n    hgsbstatus(gcbh);\nend"
+      MaskDisplay	      "fprintf('%s',get(gcbh,'status'))"
+      MaskSelfModifiable      on
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "no hg repository|0|on|on|0"
+      MaskRunInitForIconRedraw on
+      MaskTabNameString	      ",,,,"
+      System {
+	Name			"Sandbox Status"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+    Block {
+      BlockType		      SubSystem
+      Name		      "Tip Revision"
+      Ports		      []
+      Position		      [52, 120, 458, 205]
+      CopyFcn		      "set(gcbh,'tip','')"
+      OpenFcn		      "hgblktip(gcbh);"
+      MinAlgLoopOccurrences   off
+      RTWSystemCode	      "Auto"
+      FunctionWithSeparateData off
+      MaskType		      "TipRevision"
+      MaskDescription	      "This block displays the tip revision of the current sandbox.\nDouble-click this block to update the information."
+      MaskPromptString	      "Mask Parameter 1:|"
+      MaskStyleString	      "edit,edit"
+      MaskTunableValueString  "off,on"
+      MaskCallbackString      "|"
+      MaskEnableString	      "off,on"
+      MaskVisibilityString    "off,on"
+      MaskToolTipString	      "on,on"
+      MaskVarAliasString      ","
+      MaskVariables	      "tip=&1;ShowInLibBrowser=@2;"
+      MaskInitialization      "tip = get(gcbh,'tip');\nif isempty(tip) || strcmp(tip,'0')\n    hgblktip(gcbh);\nend\n"
+      MaskDisplay	      "fprintf('%s',get(gcbh,'tip'))"
+      MaskSelfModifiable      on
+      MaskIconFrame	      on
+      MaskIconOpaque	      on
+      MaskIconRotate	      "none"
+      MaskIconUnits	      "autoscale"
+      MaskValueString	      "[no hg repository]|0"
+      MaskRunInitForIconRedraw on
+      MaskTabNameString	      ","
+      System {
+	Name			"Tip Revision"
+	Location		[433, 403, 931, 703]
+	Open			off
+	ModelBrowserVisibility	off
+	ModelBrowserWidth	200
+	ScreenColor		"white"
+	PaperOrientation	"landscape"
+	PaperPositionMode	"auto"
+	PaperType		"A4"
+	PaperUnits		"centimeters"
+	TiledPaperMargins	[0.500000, 0.500000, 0.500000, 0.500000]
+	TiledPageScale		1
+	ShowPageBoundaries	off
+	ZoomFactor		"100"
+      }
+    }
+  }
+}
