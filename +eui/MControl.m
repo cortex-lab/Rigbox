@@ -112,7 +112,8 @@ classdef MControl < handle
     
     function expTypeChanged(obj)
       if strcmp(obj.NewExpType.Selected, '<custom...>')
-        defdir = fullfile(pick(dat.paths, 'rigbox'), 'ExpDefinitions');
+%         defdir = fullfile(pick(dat.paths, 'rigbox'), 'ExpDefinitions');
+        defdir = '\\zserver.cortexlab.net\code\Rigging\ExpDefinitions';
         [mfile, fpath] = uigetfile(...
           '*.m', 'Select the experiment definition function', defdir);
         if ~mfile

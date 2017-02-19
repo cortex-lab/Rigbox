@@ -1,6 +1,8 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
 %   p = DAT.PATHS([RIG])
+%   TODO:
+%    - Add specific path for ExpDefinitions
 % Part of Rigbox
 
 % 2013-03 CB created

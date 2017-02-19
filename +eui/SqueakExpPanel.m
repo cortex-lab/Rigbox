@@ -23,7 +23,12 @@ classdef SqueakExpPanel < eui.ExpPanel
     function update(obj)
       update@eui.ExpPanel(obj);
       processUpdates(obj); % update labels with latest signal values
-      labels = cell2mat(values(obj.LabelsMap))';
+%       labels = cell2mat(values(obj.LabelsMap))';
+      labelsMapVals = values(obj.LabelsMap)';
+      labels = gobjects(size(values(obj.LabelsMap)));
+      for i=length(labelsMapVals):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-14 MW
+          labels(i) = labelsMapVals{i};
+      end
       if ~isempty(labels) % colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
@@ -143,7 +148,7 @@ classdef SqueakExpPanel < eui.ExpPanel
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
-      obj.InfoGrid.ColumnSizes = [150, -1];
+%       obj.InfoGrid.ColumnSizes = [150, -1];
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox);
       

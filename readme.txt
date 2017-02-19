@@ -19,3 +19,4 @@ To do:
 
 - make parameter panel scrollable
 - rename the cortexlab folder and move +exp to ExpDefinitions
+- add specific path for ExpDefinitions in dat.paths (see line 115 in MControl)
