@@ -12,6 +12,8 @@ classdef MControl < handle
   
   % 2013-03 CB created
   % 2017-02 MW Updated to work with new GUILayoutToolbox
+  % 2017-02 MW Changed expFactory to allow loading of last params for the
+  % specific expDef that was selected
   
   properties (SetAccess = private)
     LogSubject %subject selector control
@@ -62,7 +64,7 @@ classdef MControl < handle
         {'GaborMapping'},...
         {'BarMapping'},...
         {'SurroundChoiceWorld'},...
-        {'custom'}},...
+        {'custom' ''}},...
         'defaultParamsFun',...
         {@exp.choiceWorldParams, @exp.discWorldParams,...
         @exp.gaborMappingParams,...
@@ -117,12 +119,13 @@ classdef MControl < handle
         [mfile, fpath] = uigetfile(...
           '*.m', 'Select the experiment definition function', defdir);
         if ~mfile
-          obj.NewExpType.SelectedIdx = 1;
+          obj.NewExpType.SelectedIdx = 1; % If no file selected, default back to ChoiceWorld
           return
         end
         custidx = strcmp({obj.NewExpFactory.label},'<custom...>');
         obj.NewExpFactory(custidx).defaultParamsFun = ...
-          @()exp.inferParameters(fullfile(fpath, mfile));
+          @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
+        obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
       end
       stdProfiles = {'<last for subject>'; '<defaults>'};
       
@@ -229,7 +232,12 @@ classdef MControl < handle
           % list of all subject's experiments, with most recent first
           refs = flipud(dat.listExps(subject));
           % function takes parameters and returns true if of selected type
-          matching = @(pars) any(strcmp(pick(pars, 'type', 'def', ''), matchTypes));
+          if any(strcmp(matchTypes, 'custom')) % If custom, find last parameter set for specific expDef
+            matching = @(pars) iff(isfield(pars, 'defFunction'),...
+                @()any(strcmp(pick(pars, 'defFunction'), matchTypes)), false);
+          else
+            matching = @(pars) any(strcmp(pick(pars, 'type', 'def', ''), matchTypes));
+          end
           % create a sequence of the parameters of each experiment
           paramsSeq = sequence(refs, @dat.expParams);
           % get the first (most recent) parameters whose type matches
