@@ -2,7 +2,7 @@ function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
 %   p = DAT.PATHS([RIG])
 %   TODO:
-%    - Add specific path for ExpDefinitions
+%    - Clean up expDefinitions directory
 % Part of Rigbox
 
 % 2013-03 CB created
@@ -46,6 +46,8 @@ p.spikesRepository = fullfile(server1Name, 'data', 'multichanspikes');
 p.globalConfig = fullfile(server1Name, 'code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
+% repository for all experiment definitions
+p.expDefinitions = fullfile(server1Name, 'code', 'Rigging', 'ExpDefinitions');
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
