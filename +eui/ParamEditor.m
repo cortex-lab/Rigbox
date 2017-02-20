@@ -101,7 +101,7 @@ classdef ParamEditor < handle
     function buildGlobalUI(obj) % Function to essemble global parameters
       globalParamNames = fieldnames(obj.Parameters.assortForExperiment); % assortForExperiment divides params into global and trial-specific parameter structures
       obj.GlobalControls = gobjects(length(globalParamNames),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)  
-      for i=length(globalParamNames):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-14 MW
+      for i=1:length(globalParamNames) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
           [obj.GlobalControls(i,1), obj.GlobalControls(i,2), obj.GlobalControls(i,3)]... % [editors, labels, buttons]
               = obj.addParamUI(globalParamNames{i});
       end

@@ -1,10 +1,11 @@
 function saveParamProfile(expType, profileName, params)
 %DAT.SAVEPARAMPROFILE Stores the named parameters for experiment type
 %   TODO
-%
+%     - Figure out how to save struct without for-loop in 2016b!
 % Part of Rigbox
 
 % 2013-07 CB created
+% 2017-02 MW adapted to work in 2016b
 
 %path to repositories
 fn = 'parameterProfiles.mat';
@@ -20,8 +21,18 @@ set.(expType) = profiles;
 
 %save the updated set of profiles to each repos
 %where files exist already, append
-cellfun(@(p) save(p, '-struct', 'set', '-append'), file.filterExists(repos, true));
+% cellfun(@(p) save(p, '-struct', 'set', '-append'),
+% file.filterExists(repos, true)); % Had to change her to a for loop, sorry
+% Chris!
+p = file.filterExists(repos, true);
+for i = 1:length(p)
+    save(p{i}, '-struct', 'set', '-append')
+end
 %and any that don't we should create from scratch
-cellfun(@(p) save(p, '-struct', 'set'), file.filterExists(repos, false));
+p = file.filterExists(repos, false);
+for i = 1:length(p)
+    save(p{i}, '-struct', 'set', '-append')
+end
+% cellfun(@(p) save(p, '-struct', 'set'), file.filterExists(repos, false));
 
 end

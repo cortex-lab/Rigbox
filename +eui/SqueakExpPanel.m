@@ -26,7 +26,7 @@ classdef SqueakExpPanel < eui.ExpPanel
 %       labels = cell2mat(values(obj.LabelsMap))';
       labelsMapVals = values(obj.LabelsMap)';
       labels = gobjects(size(values(obj.LabelsMap)));
-      for i=length(labelsMapVals):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-14 MW
+      for i=1:length(labelsMapVals) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
           labels(i) = labelsMapVals{i};
       end
       if ~isempty(labels) % colour decay by recency on labels
