@@ -30,24 +30,24 @@ p.localRepository = 'C:\LocalExpData';
 p.mainRepository = fullfile(server1Name, 'data', 'Subjects');
 % Repository for info about experiments, i.e. stimulus, behavioural,
 % Timeline etc
-p.expInfoRepository = fullfile(server1Name, 'data', 'expInfo');
+p.expInfoRepository = fullfile(server1Name, 'Data', 'expInfo');
 % Repository for storing two photon movies
-p.twoPhotonRepository = fullfile(server4Name, 'data', '2P');
+p.twoPhotonRepository = fullfile(server4Name, 'Data', '2P');
 % for calcium widefield imaging
-p.widefieldRepository = fullfile(server2Name, 'data', 'GCAMP');
+p.widefieldRepository = fullfile(server2Name, 'Data', 'GCAMP');
 % Repository for storing eye tracking movies
-p.eyeTrackingRepository = fullfile(server2Name, 'data', 'EyeCamera');
+p.eyeTrackingRepository = fullfile(server2Name, 'Data', 'EyeCamera');
 % electrophys repositories
-p.lfpRepository = fullfile(server1Name, 'data', 'Cerebus');
-p.spikesRepository = fullfile(server1Name, 'data', 'multichanspikes');
+p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
+p.spikesRepository = fullfile(server1Name, 'Data', 'multichanspikes');
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
 % p.globalConfig = fullfile(p.rigbox, 'config');
-p.globalConfig = fullfile(server1Name, 'code', 'Rigging', 'config');
+p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
-p.expDefinitions = fullfile(server1Name, 'code', 'Rigging', 'ExpDefinitions');
+p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');

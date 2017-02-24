@@ -245,9 +245,9 @@ classdef ExpPanel < handle
     end
     
     function [fieldCtrl] = addInfoField(obj, label, field)
-      obj.InfoLabels = [obj.InfoLabels; bui.label(label, obj.InfoGrid)];
+      obj.InfoLabels = [bui.label(label, obj.InfoGrid); obj.InfoLabels];
       fieldCtrl = bui.label(field, obj.InfoGrid);
-      obj.InfoFields = [obj.InfoFields; fieldCtrl];
+      obj.InfoFields = [fieldCtrl; obj.InfoFields];
       %reorder the chilren on the grid since it expects controls to be
       %ordered in descending columns
       obj.InfoGrid.Children = [obj.InfoFields; obj.InfoLabels];
