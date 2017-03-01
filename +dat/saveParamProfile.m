@@ -31,7 +31,7 @@ end
 %and any that don't we should create from scratch
 p = file.filterExists(repos, false);
 for i = 1:length(p)
-    save(p{i}, '-struct', 'set', '-append')
+    save(p{i}, '-struct', 'set')
 end
 % cellfun(@(p) save(p, '-struct', 'set'), file.filterExists(repos, false));
 
