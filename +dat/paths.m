@@ -33,10 +33,12 @@ p.mainRepository = fullfile(server1Name, 'data', 'Subjects');
 p.expInfoRepository = fullfile(server1Name, 'Data', 'expInfo');
 % Repository for storing two photon movies
 p.twoPhotonRepository = fullfile(server4Name, 'Data', '2P');
+
 % for calcium widefield imaging
-p.widefieldRepository = fullfile(server2Name, 'Data', 'GCAMP');
+p.widefieldRepository = fullfile(server1Name, 'data', 'GCAMP');
 % Repository for storing eye tracking movies
-p.eyeTrackingRepository = fullfile(server2Name, 'Data', 'EyeCamera');
+p.eyeTrackingRepository = fullfile(server1Name, 'data', 'EyeCamera');
+
 % electrophys repositories
 p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
 p.spikesRepository = fullfile(server1Name, 'Data', 'multichanspikes');
