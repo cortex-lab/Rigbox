@@ -547,7 +547,14 @@ classdef Window < hw.Window
       
       %% calculate inverse gamma table
       
-      pxDepthPerChannel = obj.PxDepth/4;
+      % Replaced by MW and NS on 2017-02-07 because sometimes obj.PxDepth
+      % is 24 (excluding alpha channel) which makes this all not work.
+      % However it's been assumed already in the lines right above this
+      % that pixel depth is 8 bits, so here we carry on with that
+      % assumption. The value is the hardware.mat file is not used by PTB
+      % anyway (see line 202).
+%       pxDepthPerChannel = obj.PxDepth/4;
+      pxDepthPerChannel = 8; 
       
       nguns = size(c.monitorGam,2);
       numEntries = 2^pxDepthPerChannel;
