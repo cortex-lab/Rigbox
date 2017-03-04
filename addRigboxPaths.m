@@ -27,7 +27,7 @@ else
 end
 
 % Check MATLAB 2016b is running
-assert(~verLessThan('matlab', '9.1'), 'Requires MATLAB 2016b');
+assert(~verLessThan('matlab', '8.4'), 'Requires MATLAB 2014b or later');
     
 cortexLabAddonsPath = fullfile(rigboxPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
 if ~isdir(cortexLabAddonsPath) % handle two possible alternative paths
