@@ -60,10 +60,14 @@ classdef ParamEditor < handle
   methods %(Access = protected)
     function build(obj, parent) % Build parameters panel
       obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5); % Add horizontal container for Global and Conditional panels
-      globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
-        'Title', 'Global', 'Padding', 5);
+%       globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
+%         'Title', 'Global', 'Padding', 5);
+      globalPanel = uix.ScrollingPanel('Parent', obj.Root,... % Make 'Global' parameters panel
+        'Padding', 5);
+      
       obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4); % Make grid for parameter fields
       obj.buildGlobalUI; % Populate Global panel
+      globalPanel.Heights = 850;
       
       conditionPanel = uiextras.Panel('Parent', obj.Root,...
         'Title', 'Conditional', 'Padding', 5); % Make 'Conditional' parameters panel
