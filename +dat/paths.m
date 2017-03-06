@@ -1,7 +1,8 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
 %   p = DAT.PATHS([RIG])
-%
+%   TODO:
+%    - Clean up expDefinitions directory
 % Part of Rigbox
 
 % 2013-03 CB created
@@ -14,12 +15,14 @@ end
 
 server1Name = '\\zserver.cortexlab.net';
 server2Name = '\\zserver2.cortexlab.net';
-server3Name = '\\zserver3.cortexlab.net';
+% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
+% unused by Rigbox
 server4Name = '\\zserver4.cortexlab.net';
 
 %% defaults
 % path containing rigbox config folders
-p.rigbox = fullfile(server1Name, 'code', 'Rigging');
+% p.rigbox = fullfile(server1Name, 'code', 'Rigging'); % Potential conflict with AddRigBoxPaths
+p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
 % for all data types, under the new system of having data grouped by mouse
@@ -27,20 +30,26 @@ p.localRepository = 'C:\LocalExpData';
 p.mainRepository = fullfile(server1Name, 'data', 'Subjects');
 % Repository for info about experiments, i.e. stimulus, behavioural,
 % Timeline etc
-p.expInfoRepository = fullfile(server1Name, 'data', 'expInfo');
+p.expInfoRepository = fullfile(server1Name, 'Data', 'expInfo');
 % Repository for storing two photon movies
-p.twoPhotonRepository = fullfile(server4Name, 'data', '2P');
+p.twoPhotonRepository = fullfile(server4Name, 'Data', '2P');
+
 % for calcium widefield imaging
 p.widefieldRepository = fullfile(server1Name, 'data', 'GCAMP');
 % Repository for storing eye tracking movies
 p.eyeTrackingRepository = fullfile(server1Name, 'data', 'EyeCamera');
+
 % electrophys repositories
-p.lfpRepository = fullfile(server1Name, 'data', 'Cerebus');
-p.spikesRepository = fullfile(server1Name, 'data', 'multichanspikes');
-% directory for organisation-wide configuration files
-p.globalConfig = fullfile(p.rigbox, 'config');
+p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
+p.spikesRepository = fullfile(server1Name, 'Data', 'multichanspikes');
+% directory for organisation-wide configuration files, for now these should
+% all remain on zserver
+% p.globalConfig = fullfile(p.rigbox, 'config');
+p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
+% repository for all experiment definitions
+p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');

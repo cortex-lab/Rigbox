@@ -157,7 +157,7 @@ classdef StimulusControl < handle
     
     function [sock, hSock] = webSocket(obj)
       % connect to a WebSocket client
-      sock = net.entropy_mill.websocket.Client(obj.Uri);
+      sock = net.entropy_mill.websocket.Client(obj.Uri); % cb-tools\java\net\entropy_mill\websocket\Client.class
       hSock = handle(sock, 'CallbackProperties');
       set(hSock,...
         'BinaryReceivedCallback', @obj.onWSReceived,...

@@ -1,7 +1,7 @@
 function delParamProfile(expType, profileName)
 %DAT.DELPARAMPROFILE Deletes the named parameter sets for experiment type
 %   TODO
-%
+%     - Figure out how to save struct without for-loop in 2016b!
 % Part of Rigbox
 
 % 2013-07 CB created
@@ -18,6 +18,15 @@ profiles = rmfield(profiles, profileName);
 set.(expType) = profiles;
 
 %save the updated set of profiles to each repos
-cellfun(@(p) save(p, '-struct', 'set', '-append'), repos);
+%where files exist already, append
+p = file.filterExists(repos, true);
+for i = 1:length(p)
+    save(p{i}, '-struct', 'set', '-append')
+end
+%and any that don't we should create from scratch
+p = file.filterExists(repos, false);
+for i = 1:length(p)
+    save(p{i}, '-struct', 'set')
+end
 
 end
