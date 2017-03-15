@@ -5,6 +5,8 @@ classdef ParamEditor < handle
   % Part of Rigbox
 
   % 2012-11 CB created  
+  % 2017-03 MW/NS Made global panel scrollable & improved performance of
+  % buildGlobalUI.
   
   properties
     GlobalVSpacing = 20
@@ -62,12 +64,14 @@ classdef ParamEditor < handle
       obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5); % Add horizontal container for Global and Conditional panels
 %       globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
 %         'Title', 'Global', 'Padding', 5);
-      globalPanel = uix.ScrollingPanel('Parent', obj.Root,... % Make 'Global' parameters panel
+      globPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
+        'Title', 'Global', 'Padding', 5);
+      globalPanel = uix.ScrollingPanel('Parent', globPanel,... % Make 'Global' scroll panel
         'Padding', 5);
       
       obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4); % Make grid for parameter fields
       obj.buildGlobalUI; % Populate Global panel
-      globalPanel.Heights = 850;
+      globalPanel.Heights = sum(obj.GlobalGrid.RowSizes)+45;
       
       conditionPanel = uiextras.Panel('Parent', obj.Root,...
         'Title', 'Conditional', 'Padding', 5); % Make 'Conditional' parameters panel
@@ -99,7 +103,7 @@ classdef ParamEditor < handle
          'Enable', 'off',...
          'Callback', @(~, ~) obj.globaliseSelectedParameters());
         
-        obj.Root.Sizes = [sum(obj.GlobalGrid.ColumnSizes) + 10, -1];
+        obj.Root.Sizes = [sum(obj.GlobalGrid.ColumnSizes) + 32, -1];
     end
     
     function buildGlobalUI(obj) % Function to essemble global parameters
@@ -124,8 +128,10 @@ classdef ParamEditor < handle
 %       Doesn't work for some reason - MW 2017-02-15
 
       child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
-      child_handles = [child_handles(1:3:end); child_handles(3:3:end); child_handles(2:3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
-      set(obj.GlobalGrid,'Children',child_handles); % Set children to new order (NB: worryingly slow!)
+      child_handles = [child_handles(end-1:-3:1); child_handles(end:-3:1); child_handles(end-2:-3:1)]; % Reorder them so all labels come first, then ctrls, then buttons
+%       child_handles = [child_handles(2:3:end); child_handles(3:3:end); child_handles(1:3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
+      obj.GlobalGrid.Contents = child_handles; % Set children to new order
+      % uistack
 
       obj.GlobalGrid.ColumnSizes = [180, 200, 40]; % Set column sizes
       obj.GlobalGrid.Spacing = 1;
@@ -212,14 +218,16 @@ classdef ParamEditor < handle
       idx = size(obj.GlobalControls, 1); % Calculate number of current Global params
       new = numel(newGlobals);
       obj.GlobalControls = [obj.GlobalControls; newGlobals]; % Add new globals to object
-      child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
-      child_handles = [child_handles(new+1:new+idx); child_handles(1:3:new);...
-          child_handles(new+idx+1:new+idx*2); child_handles(3:3:new);... 
-          child_handles(new+idx+1:new+idx*3); child_handles(2:3:new)]; % Reorder them so all labels come first, then ctrls, then buttons
-      set(obj.GlobalGrid,'Children',child_handles); % Set children to new order (NB: worryingly slow!)
+      ggHandles = obj.GlobalGrid.Contents;
+      ggHandles = [ggHandles(1:idx); ggHandles((end-new+2):3:end);...
+          ggHandles(idx+1:idx*2); ggHandles((end-new+1):3:end);... 
+          ggHandles(idx*2+1:idx*3); ggHandles((end-new+3):3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
+      obj.GlobalGrid.Contents = ggHandles; % Set children to new order
      
       % Reset sizes
       obj.GlobalGrid.RowSizes = repmat(obj.GlobalVSpacing, 1, size(obj.GlobalControls, 1));
+      set(get(obj.GlobalGrid, 'Parent'),...
+          'Heights', sum(obj.GlobalGrid.RowSizes)+45); % Reset height of globalPanel
       obj.GlobalGrid.ColumnSizes = [180, 200, 40]; 
       obj.GlobalGrid.Spacing = 1;
     end
@@ -361,6 +369,8 @@ classdef ParamEditor < handle
       obj.GlobalGrid.RowSizes(uirow) = [];
       obj.Parameters.makeTrialSpecific(paramName);
       obj.fillConditionTable();
+      set(get(obj.GlobalGrid, 'Parent'),...
+          'Heights', sum(obj.GlobalGrid.RowSizes)+45); % Reset height of globalPanel
     end
 
     function [ctrl, label, buttons] = addParamUI(obj, name) % Adds ui element for each parameter

@@ -233,7 +233,7 @@ classdef MControl < handle
           % function takes parameters and returns true if of selected type
           if any(strcmp(matchTypes, 'custom')) % If custom, find last parameter set for specific expDef
             matching = @(pars) iff(isfield(pars, 'defFunction'),...
-                @()any(strcmp(pick(pars, 'defFunction'), matchTypes)), false);
+                @()any(strcmpi(pick(pars, 'defFunction'), matchTypes)), false);
           else
             matching = @(pars) any(strcmp(pick(pars, 'type', 'def', ''), matchTypes));
           end
