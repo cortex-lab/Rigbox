@@ -25,6 +25,7 @@ classdef ParamEditor < handle
     NewConditionButton
     DeleteConditionButton
     MakeGlobalButton
+    SetValuesButton
     SelectedCells %[row, column;...] of each selected cell
     GlobalControls
   end
@@ -102,6 +103,12 @@ classdef ParamEditor < handle
             'This will move it to the global parameters section']),...
          'Enable', 'off',...
          'Callback', @(~, ~) obj.globaliseSelectedParameters());
+       obj.SetValuesButton = uicontrol('Parent', conditionButtonBox,...
+         'Style', 'pushbutton',...
+         'String', 'Set values',...
+         'TooltipString', sprintf('Set selected values to specified value, range or function'),...
+         'Enable', 'off',...
+         'Callback', @(~, ~) obj.setSelectedValues());
         
         obj.Root.Sizes = [sum(obj.GlobalGrid.ColumnSizes) + 32, -1];
     end
@@ -181,10 +188,12 @@ classdef ParamEditor < handle
         %cells selected, enable buttons
         set(obj.MakeGlobalButton, 'Enable', 'on');
         set(obj.DeleteConditionButton, 'Enable', 'on');
+        set(obj.SetValuesButton, 'Enable', 'on');
       else
         %nothing selected, disable buttons
         set(obj.MakeGlobalButton, 'Enable', 'off');
         set(obj.DeleteConditionButton, 'Enable', 'off');
+        set(obj.SetValuesButton, 'Enable', 'off');
       end
     end
     
@@ -236,6 +245,49 @@ classdef ParamEditor < handle
       name = obj.TableColumnParamNames{col};
       value = obj.Parameters.Struct.(name)(:,row);
       obj.Parameters.makeGlobal(name, value);
+    end
+    
+    function setSelectedValues(obj)
+      disp('updating table cells');
+      cols = obj.SelectedCells(:,2);
+      uCol = unique(obj.SelectedCells(:,2));
+      rows = obj.SelectedCells(:,1);
+      currVals = arrayfun(@(u)obj.ConditionTable.Data(rows(cols==u),u), uCol, 'UniformOutput', 0);
+      names = obj.TableColumnParamNames(uCol);
+      promt = cellfun(@(a,b) [a ' (' num2str(sum(cols==b)) ')'],...
+          names, num2cell(uCol), 'UniformOutput', 0);
+      defaultans = cellfun(@(c) c(1), currVals);
+      answer = inputdlg(promt,'Set values', 1, cellflat(defaultans));
+      cellfun(@(a,b,c) setNewVals(a,b,c), answer, currVals, names, 'UniformOutput', 0);
+        function newVals = setNewVals(userIn, currVals, paramName)
+            currVals = iff(size(currVals,1)>size(currVals,2),currVals',currVals);
+          if strStartsWith(userIn,'@')
+              func_h = str2func(userIn);
+              newVals = cellfun(@(a)feval(func_h), currVals, 'UniformOutput', 0);
+          elseif any(userIn==':')
+              arr = eval(userIn);
+              newVals = num2cell(arr)';
+          elseif any(userIn==','|userIn==';')
+            C = strsplit(userIn, ';');
+            newVals = cellfun(@(c)textscan(c, '%f',...
+            'ReturnOnError', false,...
+            'delimiter', {' ', ','}, 'MultipleDelimsAsOne', 1),...
+            C);
+          else
+              userIn = str2double(userIn);
+              newVals = num2cell(ones(size(currVals))*userIn);
+          end
+          
+          if length(newVals)>length(currVals)
+              newVals = newVals(1:length(currVals));
+          elseif length(newVals)<length(currVals)
+              newVals = [newVals; currVals(length(newVals):end)];
+          end
+         obj.Parameters.Struct.(paramName)(:,rows) = cell2mat(newVals);
+         obj.ConditionTable.Data(rows,strcmp(obj.TableColumnParamNames,names))...
+             = cellfun(@(a)obj.paramValue2Control(a), newVals', 'UniformOutput', 0);
+        end
+      notify(obj, 'Changed');
     end
     
     function cellEditCallback(obj, src, eventData)
