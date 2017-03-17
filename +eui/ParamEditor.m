@@ -7,6 +7,7 @@ classdef ParamEditor < handle
   % 2012-11 CB created  
   % 2017-03 MW/NS Made global panel scrollable & improved performance of
   % buildGlobalUI.
+  % 2017-03 MW Added set values button
   
   properties
     GlobalVSpacing = 20
@@ -247,44 +248,57 @@ classdef ParamEditor < handle
       obj.Parameters.makeGlobal(name, value);
     end
     
-    function setSelectedValues(obj)
+    function setSelectedValues(obj) % Set multiple fields in conditional table
       disp('updating table cells');
-      cols = obj.SelectedCells(:,2);
+      cols = obj.SelectedCells(:,2); % selected columns
       uCol = unique(obj.SelectedCells(:,2));
-      rows = obj.SelectedCells(:,1);
+      rows = obj.SelectedCells(:,1); % selected rows
+      % get current values of selected cells
       currVals = arrayfun(@(u)obj.ConditionTable.Data(rows(cols==u),u), uCol, 'UniformOutput', 0);
-      names = obj.TableColumnParamNames(uCol);
+      names = obj.TableColumnParamNames(uCol); % selected column names
       promt = cellfun(@(a,b) [a ' (' num2str(sum(cols==b)) ')'],...
-          names, num2cell(uCol), 'UniformOutput', 0);
+          names, num2cell(uCol), 'UniformOutput', 0); % names of columns & num selected rows
       defaultans = cellfun(@(c) c(1), currVals);
-      answer = inputdlg(promt,'Set values', 1, cellflat(defaultans));
-      cellfun(@(a,b,c) setNewVals(a,b,c), answer, currVals, names, 'UniformOutput', 0);
+      answer = inputdlg(promt,'Set values', 1, cellflat(defaultans)); % prompt for input
+      if isempty(answer) % if user presses cancel
+          return
+      end
+      % set values for each column
+      cellfun(@(a,b,c) setNewVals(a,b,c), answer, currVals, names, 'UniformOutput', 0); 
         function newVals = setNewVals(userIn, currVals, paramName)
+            % check array orientation
             currVals = iff(size(currVals,1)>size(currVals,2),currVals',currVals);
-          if strStartsWith(userIn,'@')
+          if strStartsWith(userIn,'@') % anon function
               func_h = str2func(userIn);
-              newVals = cellfun(@(a)feval(func_h), currVals, 'UniformOutput', 0);
-          elseif any(userIn==':')
+              % apply function to each cell
+              newVals = cellfun(@(a)feval(func_h), currVals, 'UniformOutput', 0); 
+          elseif any(userIn==':') % array syntax
               arr = eval(userIn);
-              newVals = num2cell(arr)';
-          elseif any(userIn==','|userIn==';')
+              newVals = num2cell(arr); % convert to cell array
+          elseif any(userIn==','|userIn==';') % 2D arrays
             C = strsplit(userIn, ';');
             newVals = cellfun(@(c)textscan(c, '%f',...
             'ReturnOnError', false,...
             'delimiter', {' ', ','}, 'MultipleDelimsAsOne', 1),...
             C);
-          else
-              userIn = str2double(userIn);
+          else % single value to copy across all cells
+              userIn = str2double(userIn); 
               newVals = num2cell(ones(size(currVals))*userIn);
           end
           
-          if length(newVals)>length(currVals)
-              newVals = newVals(1:length(currVals));
-          elseif length(newVals)<length(currVals)
-              newVals = [newVals; currVals(length(newVals):end)];
+          if length(newVals)>length(currVals) % too many new values
+              newVals = newVals(1:length(currVals)); % truncate new array 
+          elseif length(newVals)<length(currVals) % too few new values
+              % populate as many cells as possible
+              newVals = [newVals ...
+                  cellfun(@(a)obj.controlValue2Param(2,a),...
+                  currVals(length(newVals)+1:end),'UniformOutput',0)]; 
           end
-         obj.Parameters.Struct.(paramName)(:,rows) = cell2mat(newVals);
-         obj.ConditionTable.Data(rows,strcmp(obj.TableColumnParamNames,names))...
+         ic = strcmp(obj.TableColumnParamNames,paramName); % find edited param names
+         % update param struct
+         obj.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
+         % update condtion table with strings
+         obj.ConditionTable.Data(rows(cols==find(ic)),ic)...
              = cellfun(@(a)obj.paramValue2Control(a), newVals', 'UniformOutput', 0);
         end
       notify(obj, 'Changed');
