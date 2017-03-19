@@ -110,6 +110,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                       % there. 
                 newSubs = {'test', thisUserSubs{:}, otherUserSubs{:}};
                 obj.NewExpSubject.Option = newSubs;
+                obj.LogSubject.Option = newSubs; % these are the ones in the weighing tab
                 
                 % post any un-posted weighings 
                 if ~isempty(obj.weighingsUnpostedToAlyx)
@@ -142,6 +143,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             % return the subject selectors to their previous values 
             obj.NewExpSubject.Option = dat.listSubjects;
+            obj.LogSubject.Option = obj.NewExpSubject.Option;
         end
     end
 
@@ -190,10 +192,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                     set(waterReqText, 'String', sprintf('Subject %s not found in alyx', thisSubj));
                 end
                 
-            end
-            
-
-            
+            end            
         end
     end
 
