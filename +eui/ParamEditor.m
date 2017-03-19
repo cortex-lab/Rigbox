@@ -420,18 +420,18 @@ classdef ParamEditor < handle
         label = uicontrol('Parent', parent,...
           'Style', 'text', 'String', title, 'HorizontalAlignment', 'left',...
           'TooltipString', description); % Why not use bui.label? MW 2017-02-15
-        bbox = uiextras.HBox('Parent', parent); % Make HBox for button
+%         bbox = uiextras.HBox('Parent', parent); % Make HBox for button
         % UIContainer no longer present in GUILayoutToolbox, it used to
         % call uipanel with the following args:  
         % 'Units', 'Normalized'; 'BorderType', 'none')
 %         buttons = bbox.UIContainer; 
-        buttons = uicontrol('Parent', bbox, 'Style', 'pushbutton',... % Make 'conditional parameter' button
+        buttons = uicontrol('Parent', parent, 'Style', 'pushbutton',... % Make 'conditional parameter' button
           'String', '[...]',...
           'TooltipString', sprintf(['Make this a condition parameter (i.e. vary by trial).\n'...
             'This will move it to the trial conditions table.']),...
           'FontSize', 7,...
           'Callback', @(~,~) obj.makeTrialSpecific(name, {ctrl, label, bbox}));
-        bbox.Sizes = 29; % Resize button height to 29px
+%         bbox.Sizes = 29; % Resize button height to 29px
       end
     end
   end
