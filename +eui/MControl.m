@@ -15,6 +15,12 @@ classdef MControl < handle
   % 2017-02 MW Changed expFactory to allow loading of last params for the
   % specific expDef that was selected
   
+  properties
+      AlyxInstance = [];
+      AlyxUsername = [];
+      weighingsUnpostedToAlyx = {}; % holds weighings until someone logs in, to be posted
+  end
+  
   properties (SetAccess = private)
     LogSubject %subject selector control
     NewExpSubject
@@ -46,7 +52,6 @@ classdef MControl < handle
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
-    AlyxInstance
   end
   
   events
@@ -90,14 +95,7 @@ classdef MControl < handle
         end
       catch ex
         obj.log('Warning: could not connect to weighing scales');
-      end
-      
-      try
-          obj.AlyxInstance = alyx.getToken([], 'Experiment', '123');
-          obj.log('Connected to Alyx');
-      catch ex
-          obj.log('Warning: Could not connect to Alyx');
-      end
+      end      
       
     end
     
@@ -108,9 +106,11 @@ classdef MControl < handle
         delete(obj.RootContainer);
       end
     end
-  end
-  
-  methods (Access = protected)
+%   end
+%   
+%   methods (Access = protected) % test by NS - remove protection of these
+%   methods, so that alyxPanel can access them... not sure what is the
+%   tradeoff/danger
     function newScalesReading(obj, ~, ~)
       if obj.TabPanel.SelectedChild == 1 && obj.LogTabs.SelectedChild == 2
         obj.plotWeightReading(); %refresh weighing scale reading
@@ -297,7 +297,7 @@ classdef MControl < handle
         set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
       
-      % Alyx water reporting: indicate amount of water this mouse still needs      
+      % Alyx water reporting: indicate amount of water this mouse still needs     
       if ~isempty(obj.AlyxInstance)
           try              
               subject = dat.parseExpRef(evt.Ref);
@@ -446,17 +446,20 @@ classdef MControl < handle
       
       obj.log('Logged weight of %.1fg for ''%s''', grams, subject);
       
+      d.subject = subject;
+      d.weight = grams;
+      d.user = obj.AlyxUsername;
+      
       if ~isempty(obj.AlyxInstance)
           try
-              d.subject = subject; 
-              d.weight = grams;
-              d.user = 'Experiment';
-
               alyx.postData(obj.AlyxInstance, 'weighings/', d);
-              obj.log('Alyx weight posting succeeded');
+              obj.log('Alyx weight posting succeeded: %.2f for %s', weight, subject);
           catch
-              obj.log('Warning: Alyx weight posting failed');
+              obj.log('Warning: Alyx weight posting failed!');
           end
+      else
+          obj.weighingsUnpostedToAlyx{end+1} = d;
+          obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
       end
       
       %refresh log entries so new weight reading is plotted
@@ -514,8 +517,11 @@ classdef MControl < handle
       % a box on the first tab for new experiments
       newExpBox = uiextras.VBox('Parent', obj.ExpTabs, 'Padding', 5);
       
+      headerBox = uix.HBox('Parent', newExpBox); % new container to allow alyx to go to the right of the rest of the header
+      leftSideBox = uix.VBox('Parent', headerBox);      
+      
       % controls for subject, exp type
-      topgrid = uiextras.Grid('Parent', newExpBox); % grid for containing everything within the tab
+      topgrid = uiextras.Grid('Parent', leftSideBox); % grid for containing everything within the tab
       subjectLabel = bui.label('Subject', topgrid); % 'Subject' label
       bui.label('Type', topgrid); % 'Type' label
       obj.NewExpSubject = bui.Selector(topgrid, dat.listSubjects); % Subject dropdown box
@@ -529,7 +535,7 @@ classdef MControl < handle
       topgrid.RowSizes = [34, 24]; % " 
       
       %configure new exp control box
-      controlbox = uiextras.HBox('Parent', newExpBox);
+      controlbox = uiextras.HBox('Parent', leftSideBox);
       bui.label('Rig', controlbox); % 'Rig' label
       obj.RemoteRigs = bui.Selector(controlbox, srv.stimulusControllers); % Rig dropdown box
       obj.RemoteRigs.addlistener('SelectionChanged', @(src,~) obj.remoteRigChanged); % Add listener for rig selection change
@@ -558,6 +564,11 @@ classdef MControl < handle
         'Enable', 'off');
       controlbox.Sizes = [80 200 60 50 30 50 80]; % Resize the Rig and Delay boxes
       
+      leftSideBox.Heights = [55 22];
+      
+      % Create the Alyx panel
+      eui.AlyxPanel(obj, headerBox);
+      
       % a titled panel for the parameters editor
       param = uiextras.Panel('Parent', newExpBox, 'Title', 'Parameters', 'Padding', 5);
       obj.ParamPanel = uiextras.VBox('Parent', param, 'Padding', 5); % Make verticle container for parameters
@@ -585,7 +596,7 @@ classdef MControl < handle
       hbox.Sizes = [60 200 60 60 60]; % Set horizontal sizes for Sets dropdowns and buttons
       obj.ParamPanel.Sizes = [22 22]; % Set vertical size by changing obj.ParamPanel VBox size
       
-      newExpBox.Sizes = [58 22 -1]; % Set fixed pixel sizes for parameters panel, -1 = fill rest of space with 'Global' and 'Conditional' Panels
+      newExpBox.Sizes = [58+22 -1]; % Set fixed pixel sizes for parameters panel, -1 = fill rest of space with 'Global' and 'Conditional' Panels
       
       %a box on the second tab for running experiments
       runningExpBox = uiextras.VBox('Parent', obj.ExpTabs, 'Padding', 5);

@@ -1,9 +1,19 @@
 
 function AlyxPanel(obj, parent)
-
+% Makes a panel with some controls to interact with Alyx in basic ways.
+% Obj must be an eui.MControl object. 
+%
+% TODO:
+% - when making a session, put Headfix and Location in by default
+% - get subject page launcher working
+% - test "stored weighings" functionality
+% - replace queries on subject and session with ones that already do the
+% filtering as desired, for speed.
+% - what to do about a subject that is in the database but not in /expInfo?
+% Create its expInfo folder here?
 
 %%
-parent = figure; % for testing
+% parent = figure; % for testing
 
 alyxPanel = uix.Panel('Parent', parent, 'Title', 'Alyx');
 alyxbox = uiextras.VBox('Parent', alyxPanel);
@@ -27,11 +37,12 @@ refreshBtn = uicontrol('Parent', waterReqbox,...
 waterReqbox.Widths = [-1 75];
 
 waterbox = uix.HBox('Parent', alyxbox);
-dummy = bui.label('', waterbox); % to take up extra space, probably there is a better way to do this
+bui.label('', waterbox); % to take up extra space, probably there is a better way to do this
 isHydrogelChk = uicontrol('Parent', waterbox,...
     'Style', 'checkbox', ...
     'String', 'Hydrogel?', ...
     'HorizontalAlignment', 'right',...
+    'Value', true, ...
     'Enable', 'on');
 waterAmt = uicontrol('Parent', waterbox,...
     'Style', 'edit',...
@@ -64,7 +75,7 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
 % set a callback on MControl's subject selection so that we can show water
 % requirements for new mice as they are selected
 
-
+obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
 
 
 %%
@@ -76,14 +87,45 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
             if ~isempty(ai) % successful
                 obj.AlyxInstance = ai;
                 obj.AlyxUsername = username;
-                set(loginText, 'String', sprintf('You are logged in as %s', username));
-                set(subjectURLbtn, 'Enable', 'on');
+                set(loginText, 'String', sprintf('You are logged in as %s', obj.AlyxUsername));
+                set(subjectURLbtn, 'Enable', 'off'); % currently this doesn't work, it's disabled permanently
                 set(sessionURLbtn, 'Enable', 'on');
                 set(giveWater, 'Enable', 'on');
                 set(refreshBtn, 'Enable', 'on');
                 set(loginBtn, 'String', 'Logout');
-                dispWaterReq(obj);
+                
                 obj.log('Logged into Alyx successfully as %s', username);
+                
+                dispWaterReq(obj);
+                
+                % try updating the subject selectors in other panels
+                s = alyx.getData(ai, 'subjects');
+                living = logical(cell2mat(cellfun(@(x)x.alive, s, 'uni', false)));
+                respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
+                subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
+                thisUserSubs = sort(subjNames(living&strcmp(respUser, obj.AlyxUsername)));
+                otherUserSubs = sort(subjNames(living&~strcmp(respUser, 'charu'))); % excluding charu eliminates mice in stock. 
+                      % note that we leave this User's mice also in
+                      % otherUserSubs, in case they get confused and look
+                      % there. 
+                newSubs = {'test', thisUserSubs{:}, otherUserSubs{:}};
+                obj.NewExpSubject.Option = newSubs;
+                
+                % post any un-posted weighings 
+                if ~isempty(obj.weighingsUnpostedToAlyx)
+                    try
+                        for w = 1:length(obj.weighingsUnpostedToAlyx)
+                            d = obj.weighingsUnpostedToAlyx{w};
+                            alyx.postData(obj.AlyxInstance, 'weighings/', d);
+                            obj.log('Alyx weight posting succeeded: %.2f for %s', d.weight, d.subject);
+                        end
+                        obj.weighingsUnpostedToAlyx = {};                    
+                    catch me 
+                        obj.log('Failed to post stored weighings')
+                    end
+                end
+                
+                
             else
                 obj.log('Did not log into Alyx');
             end
@@ -95,16 +137,18 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
             set(sessionURLbtn, 'Enable', 'off');
             set(giveWater, 'Enable', 'off');
             set(refreshBtn, 'Enable', 'off');
-            set(loginBtn, 'String', 'Login');
-            selectMouse(obj)
+            set(loginBtn, 'String', 'Login');            
             obj.log('Logged out of Alyx');
+            
+            % return the subject selectors to their previous values 
+            obj.NewExpSubject.Option = dat.listSubjects;
         end
     end
 
     function giveWaterFcn(obj)
         ai = obj.AlyxInstance;
         thisSubj = obj.NewExpSubject.Selected;
-        thisDate = alyx.datestr(now);
+        thisDate = now;
         amount = str2double(get(waterAmt, 'String'));
         isHydrogel = logical(get(isHydrogelChk, 'Value'));
         
@@ -129,18 +173,27 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
             set(waterReqText, 'String', 'Log in to see water requirements');
         else
             thisSubj = obj.NewExpSubject.Selected;
-            s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj])); % struct with data about the subject
-            if isempty(s) % didn't get any data back, so subj doesn't exist
-                set(waterReqText, 'String', sprintf('Subject %s not found in alyx', thisSubj));
-            else
-                if isempty(s.water_requirement_remaining) % this field not being filled could probably represent multiple things...?
+            try
+                s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj])); % struct with data about the subject
+                
+                if s.water_requirement_total==0 % Need better method here: this also is non-zero for subjects that were one time on water restr
                     set(waterReqText, 'String', sprintf('Subject %s not on water restriction', thisSubj));
                 else
                     set(waterReqText, 'String', ...
                         sprintf('Subject %s requires %.2f of %.2f today', ...
-                        s.water_requirement_remaining, s.water_requirement_total, thisSubj));
+                        thisSubj, s.water_requirement_remaining, s.water_requirement_total));
                 end
+                
+            catch me 
+                d = loadjson(me.message);
+                if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')            
+                    set(waterReqText, 'String', sprintf('Subject %s not found in alyx', thisSubj));
+                end
+                
             end
+            
+
+            
         end
     end
 
@@ -150,18 +203,45 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
         thisDate = alyx.datestr(now);
         
         % determine whether there is a session for this subj and date
-        
+        ss = alyx.getData(ai, 'sessions'); % ideally should be able to query directly here for subject and date
+        subjectsPerSession = cellfun(@(x)x.subject, ss, 'uni', false);
+        datesPerSession = cellfun(@(x)floor(alyx.datenum(x.start_time)), ss, 'uni', false);
+        thisSessInd = find([datesPerSession{:}]==floor(now) & strcmp(subjectsPerSession, thisSubj));
+                
         % if not, create one
+        if isempty(thisSessInd)
+            clear d
+            d.subject = thisSubj;
+            d.start_time = alyx.datestr(now);
+            d.users = {obj.AlyxUsername};
+            try
+                thisSess = alyx.postData(ai, 'sessions', d);
+                obj.log('New session created for %s', thisSubj);
+            catch me
+                obj.log('Could not create new session - cannot launch page'); 
+                return
+            end
+            
+        else
+            thisSess = ss{thisSessInd};
+        end
         
-        % launch the website
-        web(sessAdminURL, '-browser');
+        % parse the uuid from the url in the session object
+        u = thisSess.url;
+        uuid = u(find(u=='/', 1, 'last')+1:end);
+        
+        % make the admin url
+        adminURL = fullfile(ai.baseURL, 'admin', 'actions', 'session', uuid, 'change');
+        
+        % launch the website        
+        web(adminURL, '-browser');
     end
 
     function launchSubjectURL(obj)
         ai = obj.AlyxInstance;
         if ~isempty(ai)
             thisSubj = obj.NewExpSubject.Selected;
-            subjURL = fullfile(ai.baseURL, 'admin', 'subject', thisSubj);
+            subjURL = fullfile(ai.baseURL, 'admin', 'subject', thisSubj); % this is wrong - need uuid
             web(subjURL, '-browser');
         end
     end
