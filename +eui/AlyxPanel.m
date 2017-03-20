@@ -103,6 +103,8 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 set(sessionURLbtn, 'Enable', 'on');
                 set(giveWater, 'Enable', 'on');
                 set(refreshBtn, 'Enable', 'on');
+                set(viewSubjectBtn, 'Enable', 'on');
+                set(viewAllSubjectBtn, 'Enable', 'off');
                 set(loginBtn, 'String', 'Logout');
                 
                 obj.log('Logged into Alyx successfully as %s', username);
@@ -120,8 +122,11 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                       % otherUserSubs, in case they get confused and look
                       % there. 
                 newSubs = {'default', thisUserSubs{:}, otherUserSubs{:}};
+                oldSubs = obj.NewExpSubject.Option;
                 obj.NewExpSubject.Option = newSubs;
                 obj.LogSubject.Option = newSubs; % these are the ones in the weighing tab
+                
+                
                 
                 % post any un-posted weighings 
                 if ~isempty(obj.weighingsUnpostedToAlyx)
@@ -149,7 +154,9 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             set(sessionURLbtn, 'Enable', 'off');
             set(giveWater, 'Enable', 'off');
             set(refreshBtn, 'Enable', 'off');
-            set(loginBtn, 'String', 'Login');            
+            set(loginBtn, 'String', 'Login');
+            set(viewSubjectBtn, 'Enable', 'off');
+            set(viewAllSubjectBtn, 'Enable', 'off');
             obj.log('Logged out of Alyx');
             
             % return the subject selectors to their previous values 
@@ -189,7 +196,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             try
                 s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj])); % struct with data about the subject
                 
-                if s.water_requirement_total==0 % Need better method here: this also is non-zero for subjects that were one time on water restr
+                if s.water_requirement_total==0 
                     set(waterReqText, 'String', sprintf('Subject %s not on water restriction', thisSubj));
                 else
                     set(waterReqText, 'String', ...
@@ -253,6 +260,51 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             thisSubj = obj.NewExpSubject.Selected;
             subjURL = fullfile(ai.baseURL, 'admin', 'subject', thisSubj); % this is wrong - need uuid
             web(subjURL, '-browser');
+        end
+    end
+
+    function viewSubjectHistory(obj)
+        
+        ai = obj.AlyxInstance;
+        if ~isempty(ai)
+            % collect the data for the table
+            thisSubj = obj.NewExpSubject.Selected;
+            s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj])); % struct with data about the subject
+            
+            weighingDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.weighings, 'uni', false)))';
+            weights = cell2mat(cellfun(@(x)x.weight, s.weighings, 'uni', false))';
+            
+            waterDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.water_administrations, 'uni', false)))';
+            waterAmounts = cell2mat(cellfun(@(x)x.water_administered, s.water_administrations, 'uni', false))';
+%             isHydrogel = cellfun(@(x)x.is_hydrogel, s.water_administrations, 'uni', false);
+            isHydrogel = false(size(waterAmounts));            
+
+            allDates = unique([weighingDates; waterDates]);
+            waterByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&~isHydrogel)), allDates, 'uni', false)); 
+            weightsByDate = arrayfun(@(x)weights(find(weighingDates==x,1)), allDates, 'uni', false); % just first weighing from each date
+            
+            % build the figure to show it
+            f = figure; % popup a new figure for this
+            set(f, 'Color', 'w');
+            histbox = uix.VBox('Parent', f, 'BackgroundColor', 'w');
+            
+            ax = axes('Parent', histbox);
+            plot(allDates(ismember(allDates,weighingDates)), [weightsByDate{ismember(allDates,weighingDates)}], '.-');
+            box off;
+            set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
+            ylabel('weight (g)');
+            
+            histTable = uitable('Parent', histbox,...
+            'FontName', 'Consolas',...
+            'RowName', [],...
+            'CellEditCallback', @()[],...
+            'CellSelectionCallback', @()[]);
+        
+            set(histTable, 'ColumnName', {'date', 'weight', 'water', 'hydrogel'}, ...
+                'Data', horzcat(arrayfun(@(x)datestr(x), allDates(end:-1:1), 'uni', false), weightsByDate(end:-1:1), mat2cell(waterByDate(end:-1:1), ones(size(waterByDate)))),...
+            'ColumnEditable', false(1,3));
+        
+            histbox.Heights = [350 -1];
         end
     end
 end
