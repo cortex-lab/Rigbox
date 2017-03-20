@@ -104,7 +104,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 set(giveWater, 'Enable', 'on');
                 set(refreshBtn, 'Enable', 'on');
                 set(viewSubjectBtn, 'Enable', 'on');
-                set(viewAllSubjectBtn, 'Enable', 'off');
+                set(viewAllSubjectBtn, 'Enable', 'on');
                 set(loginBtn, 'String', 'Logout');
                 
                 obj.log('Logged into Alyx successfully as %s', username);
@@ -294,7 +294,6 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             % build the figure to show it
             f = figure; % popup a new figure for this
-            set(f, 'Color', 'w');
             histbox = uix.VBox('Parent', f, 'BackgroundColor', 'w');
             
             ax = axes('Parent', histbox);
@@ -305,15 +304,53 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             histTable = uitable('Parent', histbox,...
             'FontName', 'Consolas',...
-            'RowName', [],...
-            'CellEditCallback', @()[],...
-            'CellSelectionCallback', @()[]);
+            'RowName', []);
         
             set(histTable, 'ColumnName', {'date', 'weight', 'water', 'hydrogel'}, ...
                 'Data', horzcat(arrayfun(@(x)datestr(x), allDates(end:-1:1), 'uni', false), weightsByDate(end:-1:1), mat2cell(waterByDate(end:-1:1), ones(size(waterByDate)))),...
-            'ColumnEditable', false(1,3));
+            'ColumnEditable', false(1,4));
         
             histbox.Heights = [350 -1];
         end
     end
+
+    function viewAllSubjects(obj)
+        ai = obj.AlyxInstance;
+        if ~isempty(ai)
+            % subjects to check for being on water restriction are those in
+            % the dropdown (we already did the searching for which are
+            % alive and not in stock)
+            subjs = obj.NewExpSubject.Option;
+            subjs = unique(subjs(~strcmp(subjs, 'default')));
+            subjDetails = cellfun(@(x)alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' x])), subjs, 'uni', false);
+            
+            waterReqTotal = cellfun(@(x)x.water_requirement_total, subjDetails, 'uni', false);
+            waterReqRemain = cellfun(@(x)x.water_requirement_remaining, subjDetails, 'uni', false);
+            
+            isOnRestriction = logical(cell2mat(cellfun(@(x)x>0, waterReqTotal, 'uni', false)));
+            
+            % build a figure to show it
+            f = figure; % popup a new figure for this
+            wrBox = uix.VBox('Parent', f);
+            wrTable = uitable('Parent', wrBox,...
+            'FontName', 'Consolas',...
+            'RowName', []);
+        
+            htmlColor = @(colorNum)reshape(dec2hex(round(colorNum'*255),2)',1,6);
+%             colorgen = @(colorNum,text) ['<html><table border=0 width=400 bgcolor=#',htmlColor(colorNum),'><TR><TD>',text,'</TD></TR> </table></html>'];
+            colorgen = @(colorNum,text) ['<html><body bgcolor=#',htmlColor(colorNum),'>',text,'</body></html>'];
+        
+            wr = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3], sprintf('%.2f',x)), waterReqRemain(isOnRestriction), 'uni', false);
+            
+            set(wrTable, 'ColumnName', {'Name', 'Water Required', 'Remaining Requirement'}, ...
+                'Data', horzcat(subjs(isOnRestriction)', ...
+                cellfun(@(x)sprintf('%.2f',x),waterReqTotal(isOnRestriction)', 'uni', false), ...
+                wr'), ... 
+            'ColumnEditable', false(1,3));
+            
+            
+        end
+    end
+
+
 end
