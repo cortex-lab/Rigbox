@@ -126,7 +126,16 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 obj.NewExpSubject.Option = newSubs;
                 obj.LogSubject.Option = newSubs; % these are the ones in the weighing tab
                 
-                
+                % any database subjects that weren't in the old list of
+                % subjects will need a folder in expInfo.
+                firstTimeSubs = newSubs(~ismember(newSubs, oldSubs));
+                for fts = 1:length(firstTimeSubs)
+                    thisDir = fullfile(dat.reposPath('expInfo', 'master'), firstTimeSubs{fts});
+                    if ~exist(thisDir, 'dir')
+                        fprintf(1, 'making expInfo directory for %s\n', firstTimeSubs{fts});
+                        mkdir(thisDir);
+                    end
+                end
                 
                 % post any un-posted weighings 
                 if ~isempty(obj.weighingsUnpostedToAlyx)
