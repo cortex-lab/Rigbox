@@ -71,7 +71,6 @@ classdef MControl < handle
         @exp.barMappingParams, @()exp.choiceWorldParams('Surround'),...
         @exp.inferParameters}); % in signals/ this function returns a struct of parameters
       obj.buildUI(parent);
-      obj.NewExpSubject.Selected = 'test'; % Make default selected subject 'test'
       set(obj.RootContainer, 'Visible', 'on');
       %obj.LogSubject.Selected = '';
       %obj.NewExpSubject.Selected = '';
@@ -125,8 +124,9 @@ classdef MControl < handle
         obj.NewExpFactory(custidx).defaultParamsFun = ...
           @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
         obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
+      else
+          stdProfiles = {'<last for subject>'; '<defaults>'};
       end
-      stdProfiles = {'<last for subject>'; '<defaults>'};
       
       if strcmp(obj.NewExpType.Selected, '<custom...>')
         type = 'custom';
@@ -136,7 +136,8 @@ classdef MControl < handle
       
       savedProfiles = fieldnames(dat.loadParamProfiles(type));
       obj.NewExpParamProfile.Option = [stdProfiles; savedProfiles];
-      obj.loadParamProfile('<last for subject>');
+      str = iff(strcmp('default', obj.NewExpSubject.Selected),...
+      obj.loadParamProfile(str);
     end
     
     function delParamProfile(obj) % Called when 'Delete...' button is pressed next to saved sets
