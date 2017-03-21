@@ -1,14 +1,19 @@
-function [samples, t] = pureTone(freq, duration, sampleRate, rampDuration)
+function [samples, t] = pureTone(freq, duration, sampleRate, rampDuration, nAudChannels)
 %AUD.PURETONE Generates samples for pure tone sound with ramps
 %   TODO
 %
 % Part of Burgbox
 
 % 2013-05 CB created
+% 2017-03 MW added number of audio channels as input
 
 if nargin < 4
   rampDuration = [];
 end
+if nargin < 5
+  nAudChannels = 1;
+end
+
 
 % time points for the sinusoid
 nSoundSamples = round(duration*sampleRate);
@@ -27,5 +32,7 @@ if ~isempty(rampDuration)
   samples = modulation.*samples;
 end
 
+% repeat samples across all channels
+samples = repmat(samples, nAudChannels, 1);
 end
 
