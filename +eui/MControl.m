@@ -73,7 +73,7 @@ classdef MControl < handle
       obj.buildUI(parent);
       set(obj.RootContainer, 'Visible', 'on');
       %obj.LogSubject.Selected = '';
-      %obj.NewExpSubject.Selected = '';
+      obj.NewExpSubject.Selected = 'default'; % Make default selected subject 'default'
       %obj.expTypeChanged();
       rig = hw.devices([], false);
       obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
@@ -137,6 +137,7 @@ classdef MControl < handle
       savedProfiles = fieldnames(dat.loadParamProfiles(type));
       obj.NewExpParamProfile.Option = [stdProfiles; savedProfiles];
       str = iff(strcmp('default', obj.NewExpSubject.Selected),...
+          '<defaults>','<last for subject>');
       obj.loadParamProfile(str);
     end
     
