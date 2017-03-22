@@ -142,8 +142,8 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                     try
                         for w = 1:length(obj.weighingsUnpostedToAlyx)
                             d = obj.weighingsUnpostedToAlyx{w};
-                            alyx.postData(obj.AlyxInstance, 'weighings/', d);
-                            obj.log('Alyx weight posting succeeded: %.2f for %s', d.weight, d.subject);
+                            wobj = alyx.postData(obj.AlyxInstance, 'weighings/', d);
+                            obj.log('Alyx weight posting succeeded: %.2f for %s', wobj.weight, wobj.subject);
                         end
                         obj.weighingsUnpostedToAlyx = {};                    
                     catch me 

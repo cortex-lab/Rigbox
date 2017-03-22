@@ -452,8 +452,8 @@ classdef MControl < handle
       
       if ~isempty(obj.AlyxInstance)
           try
-              alyx.postData(obj.AlyxInstance, 'weighings/', d);
-              obj.log('Alyx weight posting succeeded: %.2f for %s', weight, subject);
+              w = alyx.postData(obj.AlyxInstance, 'weighings/', d);
+              obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
           catch
               obj.log('Warning: Alyx weight posting failed!');
           end
