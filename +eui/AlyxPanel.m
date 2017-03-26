@@ -124,7 +124,9 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 newSubs = {'default', thisUserSubs{:}, otherUserSubs{:}};
                 oldSubs = obj.NewExpSubject.Option;
                 obj.NewExpSubject.Option = newSubs;
-                obj.LogSubject.Option = newSubs; % these are the ones in the weighing tab
+                if isprop(obj, 'LogSubject')
+                    obj.LogSubject.Option = newSubs; % these are the ones in the weighing tab
+                end
                 
                 % any database subjects that weren't in the old list of
                 % subjects will need a folder in expInfo.
@@ -170,7 +172,10 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             % return the subject selectors to their previous values 
             obj.NewExpSubject.Option = dat.listSubjects;
-            obj.LogSubject.Option = obj.NewExpSubject.Option;
+            
+            if isprop(obj, 'LogSubject')
+                obj.LogSubject.Option = obj.NewExpSubject.Option;
+            end
         end
     end
 
