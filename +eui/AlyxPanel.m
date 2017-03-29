@@ -112,15 +112,22 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 dispWaterReq(obj);
                 
                 % try updating the subject selectors in other panels
-                s = alyx.getData(ai, 'subjects');
-                living = logical(cell2mat(cellfun(@(x)x.alive, s, 'uni', false)));
+%                 s = alyx.getData(ai, 'subjects');
+                s = alyx.getData(ai, 'subjects?stock=False&alive=True');
+                
+%                 living = logical(cell2mat(cellfun(@(x)x.alive, s, 'uni', false)));                
                 respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
                 subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
-                thisUserSubs = sort(subjNames(living&strcmp(respUser, obj.AlyxUsername)));
-                otherUserSubs = sort(subjNames(living&~strcmp(respUser, 'charu'))); % excluding charu eliminates mice in stock. 
+                
+%                 thisUserSubs = sort(subjNames(living&strcmp(respUser, obj.AlyxUsername)));
+%                 otherUserSubs = sort(subjNames(living&~strcmp(respUser, 'charu'))); % excluding charu eliminates mice in stock. 
                       % note that we leave this User's mice also in
                       % otherUserSubs, in case they get confused and look
                       % there. 
+                      
+                thisUserSubs = sort(subjNames(strcmp(respUser, obj.AlyxUsername)));
+                otherUserSubs = sort(subjNames); % excluding charu eliminates mice in stock.       
+                      
                 newSubs = {'default', thisUserSubs{:}, otherUserSubs{:}};
                 oldSubs = obj.NewExpSubject.Option;
                 obj.NewExpSubject.Option = newSubs;
