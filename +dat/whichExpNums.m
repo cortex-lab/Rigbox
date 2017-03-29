@@ -15,6 +15,8 @@ hasBlock = false(size(expNums));
 isMpep = false(size(expNums));
 hasTimeline = false(size(expNums));
 
+blocks = {}; pars = {}; tl = {};
+
 for e = 1:length(expNums)
     % if block, load block and get stimWindowUpdateTimes
     dBlock = dat.expFilePath(mouseName, thisDate, expNums(e), 'block', 'master');
