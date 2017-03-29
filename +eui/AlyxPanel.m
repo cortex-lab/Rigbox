@@ -5,12 +5,8 @@ function AlyxPanel(obj, parent)
 %
 % TODO:
 % - when making a session, put Headfix and Location in by default
-% - get subject page launcher working
 % - test "stored weighings" functionality
-% - replace queries on subject and session with ones that already do the
-% filtering as desired, for speed.
-% - what to do about a subject that is in the database but not in /expInfo?
-% Create its expInfo folder here?
+ 
 
 %%
 % parent = figure; % for testing
@@ -99,7 +95,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 obj.AlyxInstance = ai;
                 obj.AlyxUsername = username;
                 set(loginText, 'String', sprintf('You are logged in as %s', obj.AlyxUsername));
-                set(subjectURLbtn, 'Enable', 'off'); % currently this doesn't work, it's disabled permanently
+                set(subjectURLbtn, 'Enable', 'on'); 
                 set(sessionURLbtn, 'Enable', 'on');
                 set(giveWater, 'Enable', 'on');
                 set(refreshBtn, 'Enable', 'on');
@@ -112,21 +108,16 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 dispWaterReq(obj);
                 
                 % try updating the subject selectors in other panels
-%                 s = alyx.getData(ai, 'subjects');
                 s = alyx.getData(ai, 'subjects?stock=False&alive=True');
                 
-%                 living = logical(cell2mat(cellfun(@(x)x.alive, s, 'uni', false)));                
                 respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
-                subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
-                
-%                 thisUserSubs = sort(subjNames(living&strcmp(respUser, obj.AlyxUsername)));
-%                 otherUserSubs = sort(subjNames(living&~strcmp(respUser, 'charu'))); % excluding charu eliminates mice in stock. 
+                subjNames = cellfun(@(x)x.nickname, s, 'uni', false);                
+                      
+                thisUserSubs = sort(subjNames(strcmp(respUser, obj.AlyxUsername)));
+                otherUserSubs = sort(subjNames); 
                       % note that we leave this User's mice also in
                       % otherUserSubs, in case they get confused and look
                       % there. 
-                      
-                thisUserSubs = sort(subjNames(strcmp(respUser, obj.AlyxUsername)));
-                otherUserSubs = sort(subjNames); % excluding charu eliminates mice in stock.       
                       
                 newSubs = {'default', thisUserSubs{:}, otherUserSubs{:}};
                 oldSubs = obj.NewExpSubject.Option;
@@ -241,13 +232,10 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
         thisDate = alyx.datestr(now);
         
         % determine whether there is a session for this subj and date
-        ss = alyx.getData(ai, 'sessions'); % ideally should be able to query directly here for subject and date
-        subjectsPerSession = cellfun(@(x)x.subject, ss, 'uni', false);
-        datesPerSession = cellfun(@(x)floor(alyx.datenum(x.start_time)), ss, 'uni', false);
-        thisSessInd = find([datesPerSession{:}]==floor(now) & strcmp(subjectsPerSession, thisSubj));
-                
+        ss = alyx.getData(ai, ['sessions?subject=' thisSubj '&start_date=' datestr(now, 'yyyy-mm-dd')]);                         
+        
         % if not, create one
-        if isempty(thisSessInd)
+        if isempty(ss)
             clear d
             d.subject = thisSubj;
             d.start_time = alyx.datestr(now);
@@ -261,7 +249,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             end
             
         else
-            thisSess = ss{thisSessInd};
+            thisSess = ss{1};
         end
         
         % parse the uuid from the url in the session object
@@ -279,7 +267,8 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
         ai = obj.AlyxInstance;
         if ~isempty(ai)
             thisSubj = obj.NewExpSubject.Selected;
-            subjURL = fullfile(ai.baseURL, 'admin', 'subject', thisSubj); % this is wrong - need uuid
+            s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj]));
+            subjURL = fullfile(ai.baseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
             web(subjURL, '-browser');
         end
     end
@@ -297,11 +286,11 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             waterDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.water_administrations, 'uni', false)))';
             waterAmounts = cell2mat(cellfun(@(x)x.water_administered, s.water_administrations, 'uni', false))';
-%             isHydrogel = cellfun(@(x)x.is_hydrogel, s.water_administrations, 'uni', false);
-            isHydrogel = false(size(waterAmounts));            
+            isHydrogel = cell2mat(cellfun(@(x)logical(x.hydrogel), s.water_administrations, 'uni', false))';
 
             allDates = unique([weighingDates; waterDates]);
             waterByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&~isHydrogel)), allDates, 'uni', false)); 
+            hydrogelByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&isHydrogel)), allDates, 'uni', false)); 
             weightsByDate = arrayfun(@(x)weights(find(weighingDates==x,1)), allDates, 'uni', false); % just first weighing from each date
             
             % build the figure to show it
@@ -318,9 +307,14 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             'FontName', 'Consolas',...
             'RowName', []);
         
-            set(histTable, 'ColumnName', {'date', 'weight', 'water', 'hydrogel'}, ...
-                'Data', horzcat(arrayfun(@(x)datestr(x), allDates(end:-1:1), 'uni', false), weightsByDate(end:-1:1), mat2cell(waterByDate(end:-1:1), ones(size(waterByDate)))),...
-            'ColumnEditable', false(1,4));
+            dat = horzcat(...
+                    arrayfun(@(x)datestr(x), allDates, 'uni', false), ...
+                    weightsByDate, ...
+                    num2cell(horzcat(waterByDate, hydrogelByDate, waterByDate+hydrogelByDate)));            
+        
+            set(histTable, 'ColumnName', {'date', 'weight', 'water', 'hydrogel', 'total'}, ...
+                'Data', dat(end:-1:1,:),...
+            'ColumnEditable', false(1,5));
         
             histbox.Heights = [350 -1];
         end
@@ -329,18 +323,13 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
     function viewAllSubjects(obj)
         ai = obj.AlyxInstance;
         if ~isempty(ai)
-            % subjects to check for being on water restriction are those in
-            % the dropdown (we already did the searching for which are
-            % alive and not in stock)
-            subjs = obj.NewExpSubject.Option;
-            subjs = unique(subjs(~strcmp(subjs, 'default')));
-            subjDetails = cellfun(@(x)alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' x])), subjs, 'uni', false);
+
+            wr = alyx.getData(ai, alyx.makeEndpoint(ai, 'water-restricted-subjects'));
             
-            waterReqTotal = cellfun(@(x)x.water_requirement_total, subjDetails, 'uni', false);
-            waterReqRemain = cellfun(@(x)x.water_requirement_remaining, subjDetails, 'uni', false);
-            
-            isOnRestriction = logical(cell2mat(cellfun(@(x)x>0, waterReqTotal, 'uni', false)));
-            
+            subjs = cellfun(@(x)x.nickname, wr, 'uni', false);
+            waterReqTotal = cellfun(@(x)x.water_requirement_total, wr, 'uni', false);
+            waterReqRemain = cellfun(@(x)x.water_requirement_remaining, wr, 'uni', false);
+                        
             % build a figure to show it
             f = figure; % popup a new figure for this
             wrBox = uix.VBox('Parent', f);
@@ -352,12 +341,12 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
 %             colorgen = @(colorNum,text) ['<html><table border=0 width=400 bgcolor=#',htmlColor(colorNum),'><TR><TD>',text,'</TD></TR> </table></html>'];
             colorgen = @(colorNum,text) ['<html><body bgcolor=#',htmlColor(colorNum),'>',text,'</body></html>'];
         
-            wr = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3], sprintf('%.2f',x)), waterReqRemain(isOnRestriction), 'uni', false);
+            wrdat = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3], sprintf('%.2f',x)), waterReqRemain, 'uni', false);
             
             set(wrTable, 'ColumnName', {'Name', 'Water Required', 'Remaining Requirement'}, ...
-                'Data', horzcat(subjs(isOnRestriction)', ...
-                cellfun(@(x)sprintf('%.2f',x),waterReqTotal(isOnRestriction)', 'uni', false), ...
-                wr'), ... 
+                'Data', horzcat(subjs', ...
+                cellfun(@(x)sprintf('%.2f',x),waterReqTotal', 'uni', false), ...
+                wrdat'), ... 
             'ColumnEditable', false(1,3));
             
             
