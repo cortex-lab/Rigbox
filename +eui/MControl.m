@@ -137,7 +137,8 @@ classdef MControl < handle
       
       savedProfiles = fieldnames(dat.loadParamProfiles(type));
       obj.NewExpParamProfile.Option = [stdProfiles; savedProfiles];
-      str = iff(strcmp('default', obj.NewExpSubject.Selected),...
+      str = iff(strcmp('default', obj.NewExpSubject.Selected) &...
+          ~strcmp(obj.NewExpType.Selected, '<custom...>'),...
           '<defaults>','<last for subject>');
       obj.loadParamProfile(str);
     end
