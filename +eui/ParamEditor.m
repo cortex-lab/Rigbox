@@ -160,16 +160,21 @@ classdef ParamEditor < handle
             % as necessary. Re-sizing isn't necessary here because it'll
             % happen when filling the controls
             
-            globalParamNames = fieldnames(obj.Parameters.assortForExperiment); % assortForExperiment divides params into global and trial-specific parameter structures
-            obj.GlobalControls = gobjects(length(globalParamNames),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)
-            for i=1:length(globalParamNames)
-                [obj.GlobalControls(i,1), obj.GlobalControls(i,2), obj.GlobalControls(i,3)]... % [editors, labels, buttons]
-                    = obj.addParamUI(globalParamNames{i});
-            end
+            fprintf(1, 'creating %d global controls\n', nNew)
             
-            child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
-            child_handles = [child_handles(end-1:-3:1); child_handles(end:-3:1); child_handles(end-2:-3:1)]; % Reorder them so all labels come first, then ctrls, then buttons
-            obj.GlobalGrid.Contents = child_handles; % Set children to new order
+            oldControls = obj.GlobalControls;
+            nOld = size(oldControls,1);
+            obj.GlobalControls = gobjects(nOld+nNew,3);
+            obj.GlobalControls(1:nOld,:) = oldControls;
+            
+            for i = nOld+1:nOld+nNew
+                [obj.GlobalControls(i,1), obj.GlobalControls(i,2), obj.GlobalControls(i,3)]... % [editors, labels, buttons]
+                    = obj.addParamUI();
+            end                        
+            fprintf(1, '  done\n', nNew)
+%             child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
+%             child_handles = [child_handles(end-1:-3:1); child_handles(end:-3:1); child_handles(end-2:-3:1)]; % Reorder them so all labels come first, then ctrls, then buttons
+%             obj.GlobalGrid.Contents = child_handles; % Set children to new order
                         
         end
         
@@ -418,21 +423,23 @@ classdef ParamEditor < handle
 %                 'Heights', sum(obj.GlobalGrid.RowSizes)+45); % Reset height of globalPanel
         end
         
-        function [ctrl, label, buttons] = addParamUI(obj, name)
+        function [ctrl, label, buttons] = addParamUI(obj)
             % This function now creates an empty and invisible param UI, that
             % will be updated with appropriate values later.
             
             parent = obj.GlobalGrid; % Made by build function above
             ctrl = uicontrol('Parent', parent,...
                 'Style', 'edit', ...
+                'Tag', 'ctrl', ... % will use this for proper ordering later
                 'TooltipString', '',...
                 'Value', [],...
                 'Visible', 'off', ...
                 'HorizontalAlignment', 'left',...
-                'Callback', @(src, e) obj.updateGlobal(name, src));
+                'Callback', @(src, e) obj.updateGlobal('', src));
             
             label = uicontrol('Parent', parent,...
                 'Style', 'text', ...
+                'Tag', 'label', ...
                 'String', '', ...
                 'HorizontalAlignment', 'left',...
                 'Visible', 'off', ...
@@ -441,11 +448,12 @@ classdef ParamEditor < handle
             % 'Make parameter conditional' button
             buttons = uicontrol('Parent', parent, 'Style', 'pushbutton',...
                 'String', '[...]',...
+                'Tag', 'button', ...
                 'TooltipString', sprintf(['Make this a condition parameter (i.e. vary by trial).\n'...
                 'This will move it to the trial conditions table.']),...
                 'FontSize', 7,...
                 'Visible', 'off', ...
-                'Callback', @(~,~) obj.makeTrialSpecific(name, {ctrl, label, bbox}));
+                'Callback', @(~,~) obj.makeTrialSpecific('', {ctrl, label, bbox}));
         end
         
         function fillGlobalControls(obj)
@@ -453,7 +461,19 @@ classdef ParamEditor < handle
             % fill the corresponding UI elements, and set the grid sizing
             % appropriately
         
-            %TODO
+            globalParamNames = fieldnames(obj.Parameters.assortForExperiment);
+            ctrls = obj.GlobalControls(strcmp(get(obj.GlobalControls, 'Tag'), 'ctrl'));
+            labels = obj.GlobalControls(strcmp(get(obj.GlobalControls, 'Tag'), 'label'));
+            buttons = obj.GlobalControls(strcmp(get(obj.GlobalControls, 'Tag'), 'button'));
+            
+            assert(length(globalParamNames)<=length(ctrls), 'Should have made enough controls by here\n');
+            
+            for p = 1:length(globalParamNames)
+                % STOPPED HERE: pass buttons also to updateParamUI, set
+                % callbacks properly there
+                obj.updateParamUI(globalParamNames{p}, ctrls(p), labels(p));
+                
+            end
             
             obj.GlobalGrid.ColumnSizes = [180, 200, 40]; % Set column sizes
             obj.GlobalGrid.Spacing = 1;
@@ -479,7 +499,8 @@ classdef ParamEditor < handle
                     'TooltipString', description,...
                     'Value', value,...
                     'UserData', name,...
-                    'Visible', 'on');
+                    'Visible', 'on',...
+                    'Callback', @(src, e) obj.updateGlobal(name, src));
                 didSet = true;
             elseif ischar(value)
                 set(ctrl, 'Style', 'edit', ...
