@@ -36,14 +36,19 @@ waterbox = uix.HBox('Parent', alyxbox);
 
 viewSubjectBtn = uicontrol('Parent', waterbox,...
     'Style', 'pushbutton', ...
-    'String', 'View subject''s history', ...
+    'String', 'Subject history', ...
     'Enable', 'off',...
     'Callback', @(src, evt)viewSubjectHistory(obj));
 viewAllSubjectBtn = uicontrol('Parent', waterbox,...
     'Style', 'pushbutton', ...
-    'String', 'View all WR subjects', ...
+    'String', 'All WR subjects', ...
     'Enable', 'off',...
     'Callback', @(src, evt)viewAllSubjects(obj));
+manualWeightBtn = uicontrol('Parent', waterbox,...
+    'Style', 'pushbutton', ...
+    'String', 'Manual weighing', ...
+    'Enable', 'off',...
+    'Callback', @(src, evt)manualWeightLog(obj));
 bui.label('', waterbox); % to take up empty space
 isHydrogelChk = uicontrol('Parent', waterbox,...
     'Style', 'checkbox', ...
@@ -56,13 +61,15 @@ waterAmt = uicontrol('Parent', waterbox,...
     'BackgroundColor', [1 1 1],...
     'HorizontalAlignment', 'right',...
     'Enable', 'on',...
-    'String', '0.00');
+    'String', '0.00', ...
+    'Callback', @(src, evt)changeWaterText(src, evt, obj));
 giveWater = uicontrol('Parent', waterbox,...
     'Style', 'pushbutton', ...
     'String', 'Give water', ...
     'Enable', 'off',...
     'Callback', @(src, evt)giveWaterFcn(obj));
-waterbox.Widths = [150 150 -1 75 75 75];
+waterLeftText = bui.label('[]', waterbox);
+waterbox.Widths = [100 100 100 -1 75 75 75 75];
 
 launchbox = uix.HBox('Parent', alyxbox);
 subjectURLbtn = uicontrol('Parent', launchbox,...
@@ -76,7 +83,6 @@ sessionURLbtn = uicontrol('Parent', launchbox,...
     'String', 'Launch webpage for Session', ...
     'Enable', 'off',...
     'Callback', @(src, evt)launchSessionURL(obj));
-
 
 
 % set a callback on MControl's subject selection so that we can show water
@@ -101,6 +107,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 set(refreshBtn, 'Enable', 'on');
                 set(viewSubjectBtn, 'Enable', 'on');
                 set(viewAllSubjectBtn, 'Enable', 'on');
+                set(manualWeightBtn, 'Enable', 'on');
                 set(loginBtn, 'String', 'Logout');
                 
                 obj.log('Logged into Alyx successfully as %s', username);
@@ -166,6 +173,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             set(loginBtn, 'String', 'Login');
             set(viewSubjectBtn, 'Enable', 'off');
             set(viewAllSubjectBtn, 'Enable', 'off');
+            set(manualWeightBtn, 'Enable', 'off');
             obj.log('Logged out of Alyx');
             
             % return the subject selectors to their previous values 
@@ -214,6 +222,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                     set(waterReqText, 'String', ...
                         sprintf('Subject %s requires %.2f of %.2f today', ...
                         thisSubj, s.water_requirement_remaining, s.water_requirement_total));
+                    obj.AlyxInstance.water_requirement_remaining = s.water_requirement_remaining;
                 end
                 
             catch me 
@@ -223,6 +232,46 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 end
                 
             end            
+        end
+    end
+
+    function changeWaterText(src, evt, obj)
+        ai = obj.AlyxInstance;
+        if ~isempty(ai) && isfield(ai, 'water_requirement_remaining') && ~isempty(ai.water_requirement_remaining)
+            rem = ai.water_requirement_remaining;
+            curr = str2double(src.String);
+            set(waterLeftText, 'String', sprintf('(%.2f)', rem-curr));
+        end    
+    end
+
+    function manualWeightLog(obj)
+        ai = obj.AlyxInstance;
+        if ~isempty(ai)            
+            subj = obj.NewExpSubject.Selected;
+            prompt = {sprintf('weight of %s:', subj)};
+            dlg_title = 'Manual weight logging';
+            num_lines = 1;
+            defaultans = {'',''};
+            answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+            
+            if isempty(answer)
+                % this happens if you click cancel
+                return;
+            end
+            
+            clear d
+            d.subject = subj;
+            d.weight = str2double(answer);
+            d.user = ai.username;
+            
+          try
+              w = alyx.postData(ai, 'weighings/', d);
+              obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
+          catch
+              obj.log('Warning: Alyx weight posting failed!');
+          end
+        
+          
         end
     end
 
