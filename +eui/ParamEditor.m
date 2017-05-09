@@ -271,7 +271,8 @@ classdef ParamEditor < handle
           if strStartsWith(userIn,'@') % anon function
               func_h = str2func(userIn);
               % apply function to each cell
-              newVals = cellfun(@(a)feval(func_h), currVals, 'UniformOutput', 0); 
+              currVals = cellfun(@str2double,currVals, 'UniformOutput', 0); % convert from char
+              newVals = cellfun(func_h, currVals, 'UniformOutput', 0); 
           elseif any(userIn==':') % array syntax
               arr = eval(userIn);
               newVals = num2cell(arr); % convert to cell array
