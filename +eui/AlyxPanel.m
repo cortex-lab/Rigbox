@@ -335,7 +335,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             waterDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.water_administrations, 'uni', false)))';
             waterAmounts = cell2mat(cellfun(@(x)x.water_administered, s.water_administrations, 'uni', false))';
-            isHydrogel = cell2mat(cellfun(@(x)logical(x.hydrogel), s.water_administrations, 'uni', false))';
+            isHydrogel = cell2mat(cellfun(@(x)hydrogelVal(x.hydrogel), s.water_administrations, 'uni', false))';
 
             allDates = unique([weighingDates; waterDates]);
             waterByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&~isHydrogel)), allDates, 'uni', false)); 
@@ -366,6 +366,14 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             'ColumnEditable', false(1,5));
         
             histbox.Heights = [350 -1];
+        end
+    end
+
+    function val = hydrogelVal(x)
+        if isempty(x)
+            val = false;
+        else
+            val = logical(x);
         end
     end
 
