@@ -11,6 +11,7 @@ classdef ExpPanel < handle
     %log entry pertaining to this experiment
     LogEntry
     Listeners
+    Alyx
   end
   
   properties (Access = protected)
@@ -37,7 +38,7 @@ classdef ExpPanel < handle
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct)
+    function p = live(parent, ref, remoteRig, paramsStruct, Alyx)
       subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
       try
         logEntry = dat.addLogEntry(... % Add new entry to log
@@ -85,6 +86,7 @@ classdef ExpPanel < handle
 %       p.ElapsedTimer = timer('Period', 0.9, 'ExecutionMode', 'fixedSpacing',...
 %         'TimerFcn', @(~,~) set(p.DurationLabel, 'String',...
 %         sprintf('%i:%02.0f', floor(p.elapsed/60), mod(p.elapsed, 60))));
+     p.Alyx = Alyx;
     end
   end
   
@@ -194,6 +196,38 @@ classdef ExpPanel < handle
       %stop listening to further rig events
       obj.Listeners = [];
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
+      %post water to Alyx
+      ai = obj.Alyx.AlyxInstance;
+      if ~isempty(ai)
+          subject = obj.SubjectRef;
+          switch class(obj)
+              case 'eui.SqueakExpPanel'
+                  infoFields = {obj.InfoFields.String};
+                  inc = cellfun(@(x) any(strfind(x,'µl')), {obj.InfoFields.String});
+                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
+                  amount = iff(isempty(reward),0,@()reward);
+              case 'eui.ChoiceExpPanel'
+                  if ~isfield(obj.Block.trial,'feedbackType'); return; end
+                  if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume'))
+                      condition = [obj.Block.trial.condition];
+                      reward = [condition.rewardVolume];
+                      amount = sum(reward([obj.Block.trial.feedbackType]==1));
+                  else
+                      amount = obj.Parameters.Struct.rewardVolume*...
+                          sum([obj.Block.trial.feedbackType]==1);
+                  end
+                  if numel(amount)>1; amount = amount(1); end
+              otherwise
+                  return
+          end
+          if ~any(amount); return; end
+          try
+            alyx.postWater(ai, subject, amount*0.001, now, false);
+          catch
+              log('Water administration of %.2f for %s failed to post to alyx', amount, subject);
+          end
+     end
+
     end
     
     function expUpdate(obj, rig, evt)
