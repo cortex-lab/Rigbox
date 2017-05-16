@@ -371,7 +371,7 @@ classdef MControl < handle
       obj.Parameters.set('services', rig.Services(:),...
         'List of experiment services to use during the experiment');
       expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
-      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
+      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct, obj);
       obj.LastExpPanel = panel;
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
