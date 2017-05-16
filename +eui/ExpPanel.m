@@ -211,7 +211,7 @@ classdef ExpPanel < handle
                   if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume'))
                       condition = [obj.Block.trial.condition];
                       reward = [condition.rewardVolume];
-                      amount = sum(reward([obj.Block.trial.feedbackType]==1));
+                      amount = sum(reward([obj.Block.trial.feedbackType]==1), 2);
                   else
                       amount = obj.Parameters.Struct.rewardVolume*...
                           sum([obj.Block.trial.feedbackType]==1);
