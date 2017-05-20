@@ -203,24 +203,24 @@ classdef ExpPanel < handle
           switch class(obj)
               case 'eui.SqueakExpPanel'
                   infoFields = {obj.InfoFields.String};
-                  inc = cellfun(@(x) any(strfind(x,'µl')), {obj.InfoFields.String});
+                  inc = cellfun(@(x) any(strfind(x,'µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
                   reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
                   amount = iff(isempty(reward),0,@()reward);
               case 'eui.ChoiceExpPanel'
-                  if ~isfield(obj.Block.trial,'feedbackType'); return; end
-                  if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume'))
+                  if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
+                  if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
                       condition = [obj.Block.trial.condition];
                       reward = [condition.rewardVolume];
-                      amount = sum(reward([obj.Block.trial.feedbackType]==1));
-                  else
-                      amount = obj.Parameters.Struct.rewardVolume*...
+                      amount = sum(reward(:,[obj.Block.trial.feedbackType]==1), 2);
+                  else % Global reward x positive feedback
+                      amount = obj.Parameters.Struct.rewardVolume(1)*...
                           sum([obj.Block.trial.feedbackType]==1);
                   end
-                  if numel(amount)>1; amount = amount(1); end
+                  if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
               otherwise
                   return
           end
-          if ~any(amount); return; end
+          if ~any(amount); return; end % Return if no water was given
           try
             alyx.postWater(ai, subject, amount*0.001, now, false);
           catch
