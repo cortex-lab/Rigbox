@@ -343,7 +343,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             weightsByDate = arrayfun(@(x)weights(find(weighingDates==x,1)), allDates, 'uni', false); % just first weighing from each date
             
             % build the figure to show it
-            f = figure; % popup a new figure for this
+            f = figure('Name', thisSubj, 'NumberTitle', 'off'); % popup a new figure for this
             histbox = uix.VBox('Parent', f, 'BackgroundColor', 'w');
             
             ax = axes('Parent', histbox);

@@ -198,8 +198,8 @@ classdef ExpPanel < handle
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
       %post water to Alyx
       ai = obj.Alyx.AlyxInstance;
-      if ~isempty(ai)
-          subject = obj.SubjectRef;
+      subject = obj.SubjectRef;
+      if ~isempty(ai)&&~strcmp(subject,'default')
           switch class(obj)
               case 'eui.SqueakExpPanel'
                   infoFields = {obj.InfoFields.String};
