@@ -328,44 +328,82 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
         if ~isempty(ai)
             % collect the data for the table
             thisSubj = obj.NewExpSubject.Selected;
-            s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' thisSubj])); % struct with data about the subject
+            endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', thisSubj, datestr(now, 'yyyy-mm-dd'));
+            wr = alyx.getData(ai, endpnt); 
             
-            weighingDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.weighings, 'uni', false)))';
-            weights = cell2mat(cellfun(@(x)x.weight, s.weighings, 'uni', false))';
-            
-            waterDates = floor(cell2mat(cellfun(@(x)alyx.datenum(x.date_time), s.water_administrations, 'uni', false)))';
-            waterAmounts = cell2mat(cellfun(@(x)x.water_administered, s.water_administrations, 'uni', false))';
-            isHydrogel = cell2mat(cellfun(@(x)hydrogelVal(x.hydrogel), s.water_administrations, 'uni', false))';
-
-            allDates = unique([weighingDates; waterDates]);
-            waterByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&~isHydrogel)), allDates, 'uni', false)); 
-            hydrogelByDate = cell2mat(arrayfun(@(x)sum(waterAmounts(waterDates==x&isHydrogel)), allDates, 'uni', false)); 
-            weightsByDate = arrayfun(@(x)weights(find(weighingDates==x,1)), allDates, 'uni', false); % just first weighing from each date
+            hydrogelAmts = cellfun(@(x)x.hydrogel_given, wr.records);
+            waterAmts = cellfun(@(x)x.water_given, wr.records);
+            waterExp = cellfun(@(x)x.water_expected, wr.records);
+            hasWeighing = cellfun(@(x)isfield(x, 'weight_measured'), wr.records);
+            weight = cellfun(@(x)x.weight_measured, wr.records(hasWeighing));
+            weightExp = cellfun(@(x)x.weight_expected, wr.records);
+            dates = cellfun(@(x)datenum(x.date), wr.records);
             
             % build the figure to show it
             f = figure('Name', thisSubj, 'NumberTitle', 'off'); % popup a new figure for this
-            histbox = uix.VBox('Parent', f, 'BackgroundColor', 'w');
+            histbox = uix.HBox('Parent', f, 'BackgroundColor', 'w');
             
-            ax = axes('Parent', histbox);
-            plot(allDates(ismember(allDates,weighingDates)), [weightsByDate{ismember(allDates,weighingDates)}], '.-');
+            plotBox = uix.VBox('Parent', histbox, 'BackgroundColor', 'w');
+            
+            ax = axes('Parent', plotBox);
+            plot(dates(hasWeighing), weight, '.-');
+            hold on;
+            plot(dates, weightExp*0.7, 'r', 'LineWidth', 2.0);
+            plot(dates, weightExp*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
             box off;
-            set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
+            xlim([min(dates) max(dates)]);
+            set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))            
             ylabel('weight (g)');
+            
+            
+            ax = axes('Parent', plotBox);
+            plot(dates(hasWeighing), weight./weightExp(hasWeighing), '.-');
+            hold on; 
+            plot(dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
+            plot(dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+            box off;
+            xlim([min(dates) max(dates)]);
+            set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))            
+            ylabel('weight as pct (%)');
+            
+            axWater = axes('Parent',plotBox);
+            plot(dates, waterAmts+hydrogelAmts, '.-');
+            hold on;
+            plot(dates, hydrogelAmts, '.-');
+            plot(dates, waterAmts, '.-');
+            plot(dates, waterExp, 'r', 'LineWidth', 2.0);
+            box off;
+            xlim([min(dates) max(dates)]);
+            set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
+            ylabel('water/hydrogel (mL)');
+            
             
             histTable = uitable('Parent', histbox,...
             'FontName', 'Consolas',...
             'RowName', []);
         
+            weightsByDate = cell([length(dates),1]);
+            weightsByDate(hasWeighing) = num2cell(weight);
+            weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
+            weightPctByDate = cell([length(dates),1]);            
+            weightPctByDate(hasWeighing) = num2cell(weight./weightExp(hasWeighing));
+            weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
+
             dat = horzcat(...
-                    arrayfun(@(x)datestr(x), allDates, 'uni', false), ...
-                    weightsByDate, ...
-                    num2cell(horzcat(waterByDate, hydrogelByDate, waterByDate+hydrogelByDate)));            
-        
-            set(histTable, 'ColumnName', {'date', 'weight', 'water', 'hydrogel', 'total'}, ...
+                    arrayfun(@(x)datestr(x), dates', 'uni', false), ...
+                    weightsByDate, ...       
+                    arrayfun(@(x)sprintf('%.1f', x), weightExp', 'uni', false), ...
+                    weightPctByDate);
+            waterDat = (...    
+                    num2cell(horzcat(waterAmts', hydrogelAmts', ...
+                    waterAmts'+hydrogelAmts', waterExp', waterAmts'+hydrogelAmts'-waterExp')));            
+            waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
+            dat = horzcat(dat, waterDat);
+            
+            set(histTable, 'ColumnName', {'date', 'meas. weight', 'min. weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
                 'Data', dat(end:-1:1,:),...
             'ColumnEditable', false(1,5));
         
-            histbox.Heights = [350 -1];
         end
     end
 
