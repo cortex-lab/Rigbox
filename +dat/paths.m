@@ -13,11 +13,7 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
-server1Name = '\\zserver.cortexlab.net';
-server2Name = '\\zserver2.cortexlab.net';
-% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
-% unused by Rigbox
-server4Name = '\\zserver4.cortexlab.net';
+serverName = '\\zserver.cortexlab.net';
 
 %% defaults
 % path containing rigbox config folders
@@ -27,29 +23,22 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 p.localRepository = 'C:\LocalExpData';
 % for all data types, under the new system of having data grouped by mouse
 % rather than data type
-p.mainRepository = fullfile(server1Name, 'data', 'Subjects');
+p.mainRepository = fullfile(serverName, 'data', 'Subjects');
 % Repository for info about experiments, i.e. stimulus, behavioural,
 % Timeline etc
-p.expInfoRepository = fullfile(server1Name, 'Data', 'expInfo');
-% Repository for storing two photon movies
-p.twoPhotonRepository = fullfile(server4Name, 'Data', '2P');
+p.expInfoRepository = fullfile(serverName, 'data', 'expInfo');
 
-% for calcium widefield imaging
-p.widefieldRepository = fullfile(server1Name, 'data', 'GCAMP');
 % Repository for storing eye tracking movies
-p.eyeTrackingRepository = fullfile(server1Name, 'data', 'EyeCamera');
+p.eyeTrackingRepository = fullfile(serverName, 'data', 'EyeCamera');
 
-% electrophys repositories
-p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
-p.spikesRepository = fullfile(server1Name, 'Data', 'multichanspikes');
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
 % p.globalConfig = fullfile(p.rigbox, 'config');
-p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
+p.globalConfig = fullfile(serverName, 'code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
-p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
+p.expDefinitions = fullfile(serverName, 'code', 'Rigging', 'ExpDefinitions');
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');

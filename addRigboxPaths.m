@@ -25,9 +25,6 @@ if any(isInstalled)
 else
     warning('MC requires GUI Layout Toolbox v2.3 or higher to be installed')
 end
-
-% Check MATLAB 2016b is running
-assert(~verLessThan('matlab', '8.4'), 'Requires MATLAB 2014b or later');
     
 cortexLabAddonsPath = fullfile(rigboxPath, 'rigbox-cortexlab'); % doesn't exist 2017-02-13
 if ~isdir(cortexLabAddonsPath) % handle two possible alternative paths
@@ -40,14 +37,8 @@ addpath(...
   cbToolsPath,... % add cb-tools root dir
   fullfile(cbToolsPath, 'burgbox'),... % Burgbox
   fullfile(cbToolsPath, 'jsonlab'),... % jsonlab for JSON encoding
-  fullfile(cbToolsPath, 'urlread2'),... % urlread2 for http requests
-  fullfile(cbToolsPath, 'MercuryDialog')... % tools to manage code versioning
+  fullfile(cbToolsPath, 'urlread2')... % urlread2 for http requests
   );
-%   guiLayoutPath,... % add GUI Layout toolbox
-%   fullfile(guiLayoutPath, 'layout'),...
-%   fullfile(guiLayoutPath, 'Patch'),...
-%   fullfile(guiLayoutPath, 'layoutHelp')...
-%   );
 
 if savePaths
   assert(savepath == 0, 'Failed to save changes to MATLAB path');

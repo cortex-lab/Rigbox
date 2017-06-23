@@ -14,13 +14,7 @@ classdef MControl < handle
   % 2017-02 MW Updated to work with new GUILayoutToolbox
   % 2017-02 MW Changed expFactory to allow loading of last params for the
   % specific expDef that was selected
-  
-  properties
-      AlyxInstance = [];
-      AlyxUsername = [];
-      weighingsUnpostedToAlyx = {}; % holds weighings until someone logs in, to be posted
-  end
-  
+    
   properties (SetAccess = private)
     LogSubject %subject selector control
     NewExpSubject
@@ -63,18 +57,11 @@ classdef MControl < handle
       obj.Parameters = exp.Parameters;
       obj.NewExpFactory = struct(...
         'label',...
-        {'ChoiceWorld' 'DiscWorld' 'GaborMapping' ...
-        'BarMapping' 'SurroundChoiceWorld' '<custom...>'},...
+        {'ChoiceWorld' '<custom...>'},...
         'matchTypes', {{'ChoiceWorld' 'SingleTargetChoiceWorld'},...
-        {'DiscWorld'},...
-        {'GaborMapping'},...
-        {'BarMapping'},...
-        {'SurroundChoiceWorld'},...
         {'custom' ''}},...
         'defaultParamsFun',...
-        {@exp.choiceWorldParams, @exp.discWorldParams,...
-        @exp.gaborMappingParams,...
-        @exp.barMappingParams, @()exp.choiceWorldParams('Surround'),...
+        {@exp.choiceWorldParams,...
         @exp.inferParameters}); % in signals/ this function returns a struct of parameters
       obj.buildUI(parent);
       set(obj.RootContainer, 'Visible', 'on');
@@ -300,24 +287,8 @@ classdef MControl < handle
       if rig == obj.RemoteRigs.Selected
         set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
-      
-      % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(obj.AlyxInstance)
-          try              
-              subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(obj.AlyxInstance, ...
-                  sprintf('subjects/%s', subject));
-              obj.log(sprintf(...
-                  'Water requirement remaining for %s: %.2f (%.2f already given)', ...
-                  subject, sd.water_requirement_remaining, ...
-                  sd.water_requirement_total-sd.water_requirement_remaining));
-          catch
-              subject = dat.parseExpRef(evt.Ref);
-              obj.log(sprintf('Warning: unable to query Alyx about %s''s water requirements', subject));
-          end
-      end
     end
-    
+          
     function rigConnected(obj, rig, evt) % If rig is connected...
       obj.log('Connected to ''%s''', rig.Name); % Say so in the log box
       if rig == obj.RemoteRigs.Selected
@@ -449,23 +420,7 @@ classdef MControl < handle
       dat.addLogEntry(subject, now, 'weight-grams', grams, '');            
       
       obj.log('Logged weight of %.1fg for ''%s''', grams, subject);
-      
-      d.subject = subject;
-      d.weight = grams;
-      d.user = obj.AlyxUsername;
-      
-      if ~isempty(obj.AlyxInstance)
-          try
-              w = alyx.postData(obj.AlyxInstance, 'weighings/', d);
-              obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
-          catch
-              obj.log('Warning: Alyx weight posting failed!');
-          end
-      else
-          obj.weighingsUnpostedToAlyx{end+1} = d;
-          obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
-      end
-      
+                  
       %refresh log entries so new weight reading is plotted
       obj.Log.setSubject(obj.LogSubject.Selected);
       obj.updateWeightPlot();
@@ -569,10 +524,7 @@ classdef MControl < handle
       controlbox.Sizes = [80 200 60 50 30 50 80]; % Resize the Rig and Delay boxes
       
       leftSideBox.Heights = [55 22];
-      
-      % Create the Alyx panel
-      eui.AlyxPanel(obj, headerBox);
-      
+            
       % a titled panel for the parameters editor
       param = uiextras.Panel('Parent', newExpBox, 'Title', 'Parameters', 'Padding', 5);
       obj.ParamPanel = uiextras.VBox('Parent', param, 'Padding', 5); % Make verticle container for parameters
@@ -613,7 +565,6 @@ classdef MControl < handle
       obj.ExpTabs.TabNames = {'New' 'Current'};
       obj.ExpTabs.SelectedChild = 1;
     end
-  end
-  
+ end
 end
 
