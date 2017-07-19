@@ -29,7 +29,7 @@ classdef ChoiceExpPanel < eui.ExpPanel
   methods
     function obj = ChoiceExpPanel(parent, ref, params, logEntry)
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
-      obj.InputSensorPos = nan(1000*60*60*2, 1); % Initialize wheel position objects for wheel trace
+      obj.InputSensorPos = nan(1000*60*60*2, 1);
       obj.InputSensorPosTime = nan(1000*60*60*2, 1);
       obj.InputSensorPosCount = 0;
     end
@@ -49,14 +49,23 @@ classdef ChoiceExpPanel < eui.ExpPanel
         nonRepeatTrials = [conds.repeatNum] == 1;
         %'performance' trials are those which aren't predictable repeats
         % (e.g. due to the animal getting the last incorrect), and non-blanks
-        perfTrials = abs(contrasts) > 0 & nonRepeatTrials;
+        if (isfield(obj.Parameters.Struct,'responseWindow')&&isfinite(obj.Parameters.Struct.responseWindow))||...
+                (~any(abs(contrasts))&&isfield(conds, 'targetOrientation'))
+            perfTrials = nonRepeatTrials;
+        else
+            perfTrials = abs(contrasts) > 0 & nonRepeatTrials;
+        end
         pc = mean([trials(perfTrials).feedbackType] > 0);
         set(obj.PerformanceLabel, 'String', ...
           iff(isfinite(pc), sprintf('%.1f%%', 100*pc), 'N/A'));
         % TODO: need to handle single data point cases better
         
         if obj.Block.numCompletedTrials > 0
-          psy.plot2ADC(obj.PsychometricAxes.Handle, obj.Block);
+            if ~any(abs(contrasts))&&isfield(conds, 'targetOrientation')
+                psy.plot2ADCwithOri(obj.PsychometricAxes.Handle, obj.Block);
+            else
+                psy.plot2ADC(obj.PsychometricAxes.Handle, obj.Block);
+            end
           %           [pRight, n, cond] = psy.responseByCondition(obj.Block);
           %           %compute sigmoid fit parameters & plot
           %           [gam, mu, sig, n, c] = psy.fit(obj.Block);
@@ -101,9 +110,15 @@ classdef ChoiceExpPanel < eui.ExpPanel
         end
         set(obj.ConditionLabel, 'String', conditionId);
       end
-      conDiff = diff(condition.visCueContrast);
-      obj.PsychometricAxes.plot(conDiff*[100 100], [-10 110], 'k:',...
+      if ~any(diff(condition.visCueContrast))&&isfield(condition, 'targetOrientation')
+        oriDiff = diff(condition.targetOrientation);
+        obj.PsychometricAxes.plot(oriDiff*[1 1], [-10 110], 'k:',...
         'LineWidth', 3);
+      else
+        conDiff = diff(condition.visCueContrast);
+        obj.PsychometricAxes.plot(conDiff*[100 100], [-10 110], 'k:',...
+        'LineWidth', 3);
+      end
     end
     
     function trialCompleted(obj, num, data)
@@ -121,10 +136,7 @@ classdef ChoiceExpPanel < eui.ExpPanel
           %create a new thresholds plot with contrast response boundaries
           condition = obj.Block.trial(end).condition;
           contrast = condition.visCueContrast;
-          if numel(contrast) > 1
-            leftColour = (1 - contrast(1))*[1 1 1];
-            rightColour = (1 - contrast(2))*[1 1 1];
-          elseif numel(contrast) == 1
+          if numel(contrast) == 1
             baseColour = min(max((1 - contrast)*[1 1 1], 0), 1);
             ori = sign(condition.cueOrientation);
             if ori > 0 
@@ -134,6 +146,13 @@ classdef ChoiceExpPanel < eui.ExpPanel
               leftColour = baseColour;
               rightColour = [1 1 1];
             end
+          elseif numel(contrast)>1&&~any(abs(contrast))&&isfield(condition, 'targetOrientation')
+            ori = condition.targetOrientation;
+            leftColour = iff(abs(ori(1)/45)>1,[1 1 1],abs(ori(1)/45)*[1 1 1]);
+            rightColour = iff(abs(ori(2)/45)>1,[1 1 1],abs(ori(2)/45)*[1 1 1]);
+          else
+            leftColour = (1 - contrast(1))*[1 1 1];
+            rightColour = (1 - contrast(2))*[1 1 1];
           end
           leftColour = min(max(leftColour, 0), 1);
           rightColour = min(max(rightColour, 0), 1);
