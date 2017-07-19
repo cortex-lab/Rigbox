@@ -108,7 +108,7 @@ experiment.calibrateInputGain();
 %% 'Reward' at stimulus
 if isfield(params.Struct, 'rewardOnStimulus') && any(params.Struct.rewardOnStimulus(:) > 0)
   % or 'onsetToneSoundPlayed' 'stimulusCueStarted'
-  stimRewardHandler = exp.EventHandler('onsetToneSoundPlayed');
+  stimRewardHandler = exp.EventHandler('stimulusCueStarted');
   stimRewardHandler.addAction(exp.DeliverReward('rewardOnStimulus'));
   experiment.addEventHandler(stimRewardHandler);
   terminationHandler = exp.EventHandler('responseMade');
