@@ -203,7 +203,7 @@ classdef ExpPanel < handle
           switch class(obj)
               case 'eui.SqueakExpPanel'
                   infoFields = {obj.InfoFields.String};
-                  inc = cellfun(@(x) any(strfind(x(:),'µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
+                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
                   reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
                   amount = iff(isempty(reward),0,@()reward);
               case 'eui.ChoiceExpPanel'
