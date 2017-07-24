@@ -34,7 +34,7 @@ oldPpaVerbosity = PsychPortAudio('Verbosity', 2);
 Priority(1); % increase thread priority level
 
 % OpenGL
-InitializeMatlabOpenGL;
+% InitializeMatlabOpenGL; % Moved to wrapper function due to bug 2017-07
 
 % listen to keyboard events
 KbQueueCreate();
@@ -53,7 +53,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+% HideCursor(); Commented out for debugging
 
 if nargin < 2
   bgColour = 127*[1 1 1]; % mid gray by default
