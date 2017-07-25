@@ -783,7 +783,6 @@ classdef Experiment < handle
                     d.water_administered = rewardTotal/1000; %units of mL
                     d.user = 'Experiment';
                     d.date_time = datestr(obj.Data.endDateTime, 'yyyy-mm-ddTHH:MM:SS');
-                    alyx.postData(ai, 'water-administrations/', d);
                 end
             end
         end
