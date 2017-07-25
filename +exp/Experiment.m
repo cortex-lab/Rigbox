@@ -778,7 +778,6 @@ classdef Experiment < handle
                 %fprintf(1, '%d: %.2f for %s\n', b, rewardTotals(b), expRefs{b});
                 
                 if rewardTotal>0
-                    ai = alyx.getToken([], 'Experiment', '123');
                     clear d
                     d.subject = dat.parseExpRef(obj.Data.expRef);
                     d.water_administered = rewardTotal/1000; %units of mL

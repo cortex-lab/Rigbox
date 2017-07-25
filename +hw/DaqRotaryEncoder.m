@@ -141,7 +141,6 @@ classdef DaqRotaryEncoder < hw.PositionSensor
       end
       preTime = obj.Clock.now;
       daqVal = inputSingleScan(obj.DaqSession);
-      disp(daqVal);
       x = decodeDaq(obj, daqVal(obj.DaqInputChannelIdx));
       postTime = obj.Clock.now;
       time = 0.5*(preTime + postTime); % time is mean of before & after
