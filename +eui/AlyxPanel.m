@@ -49,7 +49,13 @@ manualWeightBtn = uicontrol('Parent', waterbox,...
     'String', 'Manual weighing', ...
     'Enable', 'off',...
     'Callback', @(src, evt)manualWeightLog(obj));
-bui.label('', waterbox); % to take up empty space
+futureGelBtn = uicontrol('Parent', waterbox,...
+    'Style', 'pushbutton', ...
+    'String', 'Give gel in future', ...
+    'Enable', 'off',...
+    'Callback', @(src, evt)giveFutureGelFcn(obj));
+
+% bui.label('', waterbox); % to take up empty space
 isHydrogelChk = uicontrol('Parent', waterbox,...
     'Style', 'checkbox', ...
     'String', 'Hydrogel?', ...
@@ -108,6 +114,8 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
                 set(viewSubjectBtn, 'Enable', 'on');
                 set(viewAllSubjectBtn, 'Enable', 'on');
                 set(manualWeightBtn, 'Enable', 'on');
+                set(futureGelBtn, 'Enable', 'on');
+
                 set(loginBtn, 'String', 'Logout');
                 
                 obj.log('Logged into Alyx successfully as %s', username);
@@ -205,6 +213,30 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
         end
         
         dispWaterReq(obj);
+    end
+
+    
+    function giveFutureGelFcn(obj)
+        ai = obj.AlyxInstance;
+        thisSubj = obj.NewExpSubject.Selected;
+        thisDate = now;
+
+        prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter 0 to skip a day');
+        
+        answer = inputdlg(prompt,'Future Gel Amounts', [1 50]);
+        amount = str2num(answer{:}); 
+        
+        weekendDates = thisDate + (1:length(amount));
+
+        if ~isempty(ai)
+            for d = 1:length(weekendDates)
+                if amount(d)>0
+                    wa = alyx.postWater(ai, thisSubj, amount(d), weekendDates(d), 1);
+                    obj.log(['Hydrogel administration of %.2f for %s posted successfully to alyx for ' datestr(weekendDates(d))], amount(d), thisSubj);
+                end
+            end
+        end
+        
     end
 
     function dispWaterReq(obj)
@@ -341,6 +373,8 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             
             % build the figure to show it
             f = figure('Name', thisSubj, 'NumberTitle', 'off'); % popup a new figure for this
+            p = get(f, 'Position');
+            set(f, 'Position', [p(1) p(2) 1100 p(4)]);
             histbox = uix.HBox('Parent', f, 'BackgroundColor', 'w');
             
             plotBox = uix.VBox('Parent', histbox, 'BackgroundColor', 'w');
@@ -403,7 +437,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
             set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
                 'Data', dat(end:-1:1,:),...
             'ColumnEditable', false(1,5));
-        
+            histbox.Widths = [ -1 725];
         end
     end
 
