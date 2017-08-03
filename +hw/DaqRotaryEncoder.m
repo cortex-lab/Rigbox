@@ -81,7 +81,7 @@ classdef DaqRotaryEncoder < hw.PositionSensor
       [ch, idx] = obj.DaqSession.addCounterInputChannel(obj.DaqId, obj.DaqChannelId, 'Position');
       % quadrature encoding where each pulse from the channel updates
       % the counter - ie. maximum resolution (see http://www.ni.com/white-paper/7109/en)
-%       ch.EncoderType = 'X4';  In later versions this causes issues.
+      ch.EncoderType = 'X4'; % In later versions this causes issues.
       obj.DaqChannelIdx = idx; % record the index of the channel
       %initialise LastDaqValue with current counter value
       daqValue = obj.DaqSession.inputSingleScan();
