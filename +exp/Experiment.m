@@ -761,31 +761,6 @@ classdef Experiment < handle
         % save the data to the appropriate locations indicated by expRef
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
-        
-        % Writing to Alyx, added by NS 2017-02
-        if strcmp(obj.Data.endStatus, 'aborted')
-            % in this case, don't write anything to alyx (or even delete?)
-        elseif strcmp(obj.Data.endStatus, 'quit')
-            if isfield(obj.Data, 'rewardDeliveredSizes')
-                rew = obj.Data.rewardDeliveredSizes;
-                rewardTotal = 0;
-                if size(rew,2)==1
-                    rewardTotal = sum(rew);
-                elseif size(rew,2)==2 %laser and water "rewards"
-                    % assume water is first
-                    rewardTotal = sum(rew(:,1));
-                end
-                %fprintf(1, '%d: %.2f for %s\n', b, rewardTotals(b), expRefs{b});
-                
-                if rewardTotal>0
-                    clear d
-                    d.subject = dat.parseExpRef(obj.Data.expRef);
-                    d.water_administered = rewardTotal/1000; %units of mL
-                    d.user = 'Experiment';
-                    d.date_time = datestr(obj.Data.endDateTime, 'yyyy-mm-ddTHH:MM:SS');
-                end
-            end
-        end
     end
   end
   
