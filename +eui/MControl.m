@@ -67,7 +67,7 @@ classdef MControl < handle
       set(obj.RootContainer, 'Visible', 'on');
       %obj.LogSubject.Selected = '';
       obj.NewExpSubject.Selected = 'default'; % Make default selected subject 'default'
-      %obj.expTypeChanged();
+      obj.expTypeChanged();
       rig = hw.devices([], false);
       obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
         'TimerFcn', @(~,~)notify(obj, 'Refresh'));

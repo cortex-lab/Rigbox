@@ -9,7 +9,7 @@ wheel = in.wheel.skipRepeats();
 
 nAudChannels = p.nAudChannels;
 onsetToneFreq = p.onsetToneFrequency; % e.g. 3300?
-audDev = p.audDevIdx; % Windows' audio device index (default is 1?)
+p.audDevIdx; % Windows' audio device index (default is 1)
 audSampleRate = 44100; % Check PTB Snd('DefaultRate'); previously: 96kHz
 contrastLeft = p.targetContrast(1);
 contrastRight = p.targetContrast(2);
@@ -87,17 +87,16 @@ targetRight.show = stimulusOn.to(stimulusOff);
 vs.targetRight = targetRight; % store target in visual stimuli set
 
 %% misc
-% nextCondition = feedback > 0;
-nextCondition = feedback > 0 | p.repeatIncorrect == false;
+nextCondition = feedback > 0 | p.repeatIncorrect == false; 
 
 % we want to save these signals so we put them in events with appropriate names
 evts.stimulusOn = stimulusOn;
 % evts.stimulusOff = stimulusOff;
-evts.contrast = p.targetContrast.map(@diff);
+evts.contrast = p.targetContrast.map(@diff); % save the contrasts as a difference between left and right
 evts.azimuth = azimuth;
 evts.response = response;
 evts.feedback = feedback;
-evts.totalReward = reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
+evts.totalReward = reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl')); % Accumulate reward signals and append microlitre units
 evts.endTrial = nextCondition.at(stimulusOff).delay(p.interTrialDelay);
 end
 

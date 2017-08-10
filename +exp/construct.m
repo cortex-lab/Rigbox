@@ -206,16 +206,9 @@ end
     ul = [calibration.volumeMicroLitres];
     log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
     
-    %     rigData = load(fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat'));
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
-    %     disp('TODO: implement saving');
-    %save the updated rewardCalibrations struct
-    %     save(, 'rewardCalibrations', '-append');
-    %apply the calibration to rewardcontroller
-    %     rig.rewardController.MeasuredDeliveries = calibration;
-    %     log('Measured deliveries for reward calibrations saved');
   end
 
   function log(varargin)
