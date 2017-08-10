@@ -92,11 +92,9 @@ classdef MControl < handle
         delete(obj.RootContainer);
       end
     end
-%   end
+  end
 %   
-%   methods (Access = protected) % test by NS - remove protection of these
-%   methods, so that alyxPanel can access them... not sure what is the
-%   tradeoff/danger
+methods (Access = protected) 
     function newScalesReading(obj, ~, ~)
       if obj.TabPanel.SelectedChild == 1 && obj.LogTabs.SelectedChild == 2
         obj.plotWeightReading(); %refresh weighing scale reading
@@ -563,6 +561,7 @@ classdef MControl < handle
       obj.ExpTabs.TabNames = {'New' 'Current'};
       obj.ExpTabs.SelectedChild = 1;
     end
- end
+  end
 end
+
 
