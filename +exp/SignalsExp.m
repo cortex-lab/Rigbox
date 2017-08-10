@@ -21,7 +21,7 @@ classdef SignalsExp < handle
     
     %Key for terminating an experiment whilst running. Shoud be a
     %Psychtoolbox keyscan code (see PTB KbName function).
-    QuitKey = KbName('esc')
+    QuitKey = KbName('q')
     
     PauseKey = KbName('esc') %Key for pausing an experiment
     
@@ -186,7 +186,7 @@ classdef SignalsExp < handle
     end
     
     function useRig(obj, rig)
-      obj.Clock = clock;
+      obj.Clock = rig.clock;
       obj.Data.rigName = rig.name;
       obj.SyncBounds = rig.stimWindow.SyncBounds;
       obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
