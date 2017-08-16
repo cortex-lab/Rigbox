@@ -203,11 +203,23 @@ classdef SignalsExp < handle
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
       end
-      if ~isempty(obj.DaqController.SignalGenerators) && isfield(obj.Outputs, 'reward')
-        obj.Listeners = [obj.Listeners
-          obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
-          obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
-          ];
+      if ~isempty(obj.DaqController.SignalGenerators)
+          outputNames = fieldnames(obj.Outputs);
+          for m = 1:length(outputNames)
+              id = find(strcmp(outputNames{m},...
+                  obj.DaqController.ChannelNames));
+              if id
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.(outputNames{id}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v]))
+                    obj.Outputs.(outputNames{id}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    ];   
+              elseif strcmp(outputNames{m}, 'reward')
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
+                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
+                    ];   
+              end
+          end
       end
     end
 
