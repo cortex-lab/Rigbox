@@ -210,8 +210,8 @@ classdef SignalsExp < handle
                   obj.DaqController.ChannelNames));
               if id
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{id}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v]))
-                    obj.Outputs.(outputNames{id}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v]))
+                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
               elseif strcmp(outputNames{m}, 'reward')
                   obj.Listeners = [obj.Listeners
