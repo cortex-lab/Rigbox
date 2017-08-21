@@ -40,8 +40,7 @@ addpath(...
   cbToolsPath,... % add cb-tools root dir
   fullfile(cbToolsPath, 'burgbox'),... % Burgbox
   fullfile(cbToolsPath, 'jsonlab'),... % jsonlab for JSON encoding
-  fullfile(cbToolsPath, 'urlread2'),... % urlread2 for http requests
-  fullfile(cbToolsPath, 'MercuryDialog')... % tools to manage code versioning
+  fullfile(cbToolsPath, 'urlread2')... % urlread2 for http requests
   );
 %   guiLayoutPath,... % add GUI Layout toolbox
 %   fullfile(guiLayoutPath, 'layout'),...

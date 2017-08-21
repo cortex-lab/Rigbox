@@ -7,6 +7,7 @@ function expServer(useTimelineOverride, bgColour)
 % 2013-06 CB created
 
 %% Parameters
+global AGL GL GLU
 listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');

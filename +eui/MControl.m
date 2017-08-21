@@ -134,6 +134,7 @@ classdef MControl < handle
           @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
         obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
       end
+      stdProfiles = {'<last for subject>'; '<defaults>'};
       
       if strcmp(obj.NewExpType.Selected, '<custom...>')
         type = 'custom';
@@ -527,14 +528,14 @@ classdef MControl < handle
       subjectLabel = bui.label('Subject', topgrid); % 'Subject' label
       bui.label('Type', topgrid); % 'Type' label
       obj.NewExpSubject = bui.Selector(topgrid, dat.listSubjects); % Subject dropdown box
-      set(subjectLabel, 'FontSize', 12); % Make 'Subject' label larger
-      set(obj.NewExpSubject.UIControl, 'FontSize', 12); % Make dropdown box text larger
+      set(subjectLabel, 'FontSize', 11); % Make 'Subject' label larger
+      set(obj.NewExpSubject.UIControl, 'FontSize', 11); % Make dropdown box text larger
       obj.NewExpSubject.addlistener('SelectionChanged', @(~,~) obj.expSubjectChanged()); % Add listener for subject selection
       obj.NewExpType = bui.Selector(topgrid, {obj.NewExpFactory.label}); % Make experiment type dropdown box
       obj.NewExpType.addlistener('SelectionChanged', @(~,~) obj.expTypeChanged()); % Add listener for experiment type change
       
       topgrid.ColumnSizes = [80, 200]; % Set size of topgrig (containing Subject and Type dropdowns)
-      topgrid.RowSizes = [34, 24]; % " 
+      topgrid.RowSizes = [30, 24]; % " 
       
       %configure new exp control box
       controlbox = uiextras.HBox('Parent', leftSideBox);

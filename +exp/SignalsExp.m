@@ -21,7 +21,7 @@ classdef SignalsExp < handle
     
     %Key for terminating an experiment whilst running. Shoud be a
     %Psychtoolbox keyscan code (see PTB KbName function).
-    QuitKey = KbName('esc')
+    QuitKey = KbName('q')
     
     PauseKey = KbName('esc') %Key for pausing an experiment
     
@@ -186,7 +186,7 @@ classdef SignalsExp < handle
     end
     
     function useRig(obj, rig)
-      obj.Clock = clock;
+      obj.Clock = rig.clock;
       obj.Data.rigName = rig.name;
       obj.SyncBounds = rig.stimWindow.SyncBounds;
       obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
@@ -203,11 +203,23 @@ classdef SignalsExp < handle
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
       end
-      if ~isempty(obj.DaqController.SignalGenerators) && isfield(obj.Outputs, 'reward')
-        obj.Listeners = [obj.Listeners
-          obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
-          obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
-          ];
+      if ~isempty(obj.DaqController.SignalGenerators)
+          outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
+          for m = 1:length(outputNames)
+              id = find(strcmp(outputNames{m},...
+                  obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
+              if id % if the output is present, create callback 
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    ];   
+              elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
+                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
+                    ];   
+              end
+          end
       end
     end
 
