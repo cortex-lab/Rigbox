@@ -8,6 +8,7 @@ Main changes:
 
 - handles to objects are no longer numerical
 - the UI is now using the most recent version of GUI Layout Toolbox
+- all code now works in the latest version of MATLAB
 
 Little fixes:
 
@@ -17,6 +18,5 @@ Little fixes:
 
 To do:
 
-- make parameter panel scrollable
 - rename the cortexlab folder and move +exp to ExpDefinitions
 - add specific path for ExpDefinitions in dat.paths (see line 115 in MControl)
