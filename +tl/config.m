@@ -89,6 +89,37 @@ useInputs = {... % default set of inputs to use
 %   or DAQ channel IDs for inputOptions:
 % inputOptions(inputByName('syncEcho')).daqChannelID = 'ai2';
 switch rig
+    case 'zym1'
+        inputOptions = [inputOptions ...
+            input('TTL', 'ai1', volts, 'SingleEnded')];
+        
+        inputOptions(inputByName('photoDiode')).daqChannelID = 'ai13';
+        inputOptions(inputByName('rotaryEncoder')).daqChannelID = 'ctr0';
+        
+        
+        useInputs = {'chrono', 'photoDiode', 'TTL','rotaryEncoder'};
+        hw.daqDevice = 'Dev1';
+        
+        hw.chronoOutDaqChannelID = 'port1/line0'; % for sending timing pulse out
+        hw.acqLiveDaqChannelID = 'port1/line1'; % output for acquisition live signal
+        hw.clockOutputChannelID = 'ctr1'; % on zoolander's DAQ ctr3 output is PFI15
+        
+    case 'zym2'
+        inputOptions = [inputOptions ...
+            input('TTL', 'ai1', volts, 'SingleEnded')];
+        
+        inputOptions(inputByName('photoDiode')).daqChannelID = 'ai13';
+        inputOptions(inputByName('rotaryEncoder')).daqChannelID = 'ctr0';
+        
+        
+        useInputs = {'chrono', 'photoDiode', 'TTL','rotaryEncoder'};
+        hw.daqDevice = 'Dev1';
+        
+        hw.chronoOutDaqChannelID = 'port1/line0'; % for sending timing pulse out
+        hw.acqLiveDaqChannelID = 'port1/line1'; % output for acquisition live signal
+        hw.clockOutputChannelID = 'ctr1'; % on zoolander's DAQ ctr3 output is PFI15
+        
+        
   case 'zoolander'
     inputOptions = [inputOptions... % add to existing options
       input('ephysVoltage', 'ai6', volts, 'SingleEnded')]; % ephys
