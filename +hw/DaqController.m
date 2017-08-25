@@ -1,6 +1,14 @@
 classdef DaqController < handle
-  %HW.DAQCONTROLLER Summary of this class goes here
-  %   Detailed explanation goes here
+  %HW.DAQCONTROLLER The main class for organizing DAQ outputs
+  %   This class deals with creating DAQ sessions, assigning output
+  %   channels and generating the relevant waveforms to output to each
+  %   channel. 
+  % 
+  %   TODO:
+  %    * Currently can not deal with having no analogue channels
+  %    * The digital channels must be output only (no support for
+  %      bi-directional digital channels
+  %    * Untested with multiple devices
   
   properties
     ChannelNames = {} % name to refer to each channel
@@ -12,7 +20,7 @@ classdef DaqController < handle
   end
   
   properties (Transient)
-    DaqSession % should be a DAQ session containing only analogue output channels
+    DaqSession % should be a DAQ session containing at least one analogue output channel
     DigitalDaqSession % a DAQ session containing only digital output channels
   end
   
