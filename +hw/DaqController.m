@@ -12,12 +12,14 @@ classdef DaqController < handle
   end
   
   properties (Transient)
-    DaqSession % should be a DAQ session containing just one output channel
+    DaqSession % should be a DAQ session containing only analogue output channels
+    DigitalDaqSession % a DAQ session containing only digital output channels
   end
   
   properties (Dependent)
     Value %The current voltage on each DAQ channel
     NumChannels %Number of channels controlled
+    AnalogueChannelsIdx %Logical array of analogue channel IDs
   end
   
   properties (Access = private, Transient)
@@ -29,6 +31,9 @@ classdef DaqController < handle
       if isempty(obj.DaqSession)
         obj.DaqSession = daq.createSession('ni');
       end
+      if isempty(obj.DigitalDaqSession)&&any(~obj.AnalogueChannelsIdx)
+        obj.DigitalDaqSession = daq.createSession('ni');
+      end
       n = obj.NumChannels;
       if n > 0
         for ii = 1:n
@@ -37,11 +42,17 @@ classdef DaqController < handle
           else
             daqid = obj.DaqIds;
           end
-          obj.DaqSession.addAnalogOutputChannel(...
-            daqid, obj.DaqChannelIds{ii}, 'Voltage');
+          if obj.AnalogueChannelsIdx(ii) % is channal analogue?
+            obj.DaqSession.addAnalogOutputChannel(...
+              daqid, obj.DaqChannelIds{ii}, 'Voltage');
+          else % assume digital, always output only
+            obj.DigitalDaqSession.addDigitalChannel(...
+              daqid, obj.DaqChannelIds{ii}, 'OutputOnly');
+          end
         end
         v = [obj.SignalGenerators.DefaultValue];
-        obj.DaqSession.outputSingleScan(v);
+        obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
+        obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
         obj.CurrValue = v;
       else
         obj.CurrValue = [];
@@ -103,11 +114,23 @@ classdef DaqController < handle
           % to the default value
           reset(obj);
         end
-        queue(obj, obj.ChannelNames(1:n), waveforms);
-        if foreground
-          startForeground(obj.DaqSession);
-        else
-          startBackground(obj.DaqSession);
+        channelNames = obj.ChannelNames(1:n);
+        analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
+        if any(analogueChannelsIdx)&&any(values(analogueChannelsIdx)~=0)
+          queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
+          if foreground
+            startForeground(obj.DaqSession);
+          else
+            startBackground(obj.DaqSession);
+          end
+        elseif any(~analogueChannelsIdx)
+            waveforms = waveforms(~analogueChannelsIdx);
+            for n = 1:length(waveforms)
+              digitalValues = waveforms{n};
+              for m = 1:length(digitalValues)
+                obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
+              end
+            end
         end
       end
     end
@@ -116,20 +139,27 @@ classdef DaqController < handle
       v = numel(obj.DaqChannelIds);
     end
     
+    function v = get.AnalogueChannelsIdx(obj)
+      v = cellfun(@(ch) any(lower(ch=='a')), obj.DaqChannelIds);
+    end
+    
     function v = get.Value(obj)
       v = obj.CurrValue;
     end
     
     function set.Value(obj, v)
       readyWait(obj);
-      obj.DaqSession.outputSingleScan(v);
+      obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
+      obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
       obj.CurrValue = v;
     end
     
     function reset(obj)
       stop(obj.DaqSession);
+      stop(obj.DigitalDaqSession);
       v = [obj.SignalGenerators.DefaultValue];
-      outputSingleScan(obj.DaqSession, v);
+      outputSingleScan(obj.DaqSession, v(obj.AnalogueChannelsIdx));
+      outputSingleScan(obj.DigitalDaqSession, v(~obj.AnalogueChannelsIdx));
       obj.CurrValue = v;
     end
   end
@@ -157,6 +187,9 @@ classdef DaqController < handle
     function readyWait(obj)
       if obj.DaqSession.IsRunning
         obj.DaqSession.wait();
+      end
+      if obj.DigitalDaqSession.IsRunning
+        obj.DigitalDaqSession.wait();
       end
     end
   end
