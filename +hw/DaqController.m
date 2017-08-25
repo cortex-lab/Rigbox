@@ -52,7 +52,9 @@ classdef DaqController < handle
         end
         v = [obj.SignalGenerators.DefaultValue];
         obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
-        obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+        if any(~obj.AnalogueChannelsIdx)
+          obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+        end
         obj.CurrValue = v;
       else
         obj.CurrValue = [];
@@ -150,16 +152,22 @@ classdef DaqController < handle
     function set.Value(obj, v)
       readyWait(obj);
       obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
-      obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+      if any(~obj.AnalogueChannelsIdx)
+        obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+      end
       obj.CurrValue = v;
     end
     
     function reset(obj)
       stop(obj.DaqSession);
-      stop(obj.DigitalDaqSession);
+      if ~isempty(obj.DigitalDaqSession)
+        stop(obj.DigitalDaqSession);
+      end
       v = [obj.SignalGenerators.DefaultValue];
       outputSingleScan(obj.DaqSession, v(obj.AnalogueChannelsIdx));
-      outputSingleScan(obj.DigitalDaqSession, v(~obj.AnalogueChannelsIdx));
+      if any(~obj.AnalogueChannelsIdx)
+        outputSingleScan(obj.DigitalDaqSession, v(~obj.AnalogueChannelsIdx));
+      end
       obj.CurrValue = v;
     end
   end
