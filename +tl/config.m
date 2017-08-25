@@ -101,8 +101,8 @@ switch rig
         hw.daqDevice = 'Dev1';
         
         hw.chronoOutDaqChannelID = 'port1/line0'; % for sending timing pulse out
-        hw.acqLiveDaqChannelID = 'port1/line1'; % output for acquisition live signal
         hw.clockOutputChannelID = 'ctr1'; % on zoolander's DAQ ctr3 output is PFI15
+        hw.acqLiveDaqChannelID = 'port1/line3';
         
     case 'zym2'
         inputOptions = [inputOptions ...
@@ -116,9 +116,8 @@ switch rig
         hw.daqDevice = 'Dev1';
         
         hw.chronoOutDaqChannelID = 'port1/line0'; % for sending timing pulse out
-        hw.acqLiveDaqChannelID = 'port1/line1'; % output for acquisition live signal
         hw.clockOutputChannelID = 'ctr1'; % on zoolander's DAQ ctr3 output is PFI15
-        
+        hw.acqLiveDaqChannelID = 'port1/line3';
         
   case 'zoolander'
     inputOptions = [inputOptions... % add to existing options

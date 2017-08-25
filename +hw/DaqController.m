@@ -171,7 +171,8 @@ classdef DaqController < handle
       assert(numel(names) == numel(waveforms),...
         'Number of channel names and waveforms not equal');
       len = cellfun(@numel, waveforms);
-      samples = repmat([obj.SignalGenerators.DefaultValue], max(len), 1);
+      defaultValues = [obj.SignalGenerators.DefaultValue];
+      samples = repmat(defaultValues(obj.AnalogueChannelsIdx), max(len), 1);
       for ii = 1:numel(waveforms)
         cidx = strcmp(names{ii}, obj.ChannelNames);
         assert(sum(cidx) == 1, 'Channel name mismatch');
