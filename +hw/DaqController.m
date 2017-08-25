@@ -197,7 +197,7 @@ classdef DaqController < handle
       if obj.DaqSession.IsRunning
         obj.DaqSession.wait();
       end
-      if obj.DigitalDaqSession.IsRunning
+      if ~isempty(obj.DigitalDaqSession)&&obj.DigitalDaqSession.IsRunning
         obj.DigitalDaqSession.wait();
       end
     end
