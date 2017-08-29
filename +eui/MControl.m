@@ -134,7 +134,6 @@ classdef MControl < handle
           @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
         obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
       end
-      stdProfiles = {'<last for subject>'; '<defaults>'};
       
       if strcmp(obj.NewExpType.Selected, '<custom...>')
         type = 'custom';
