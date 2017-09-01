@@ -82,6 +82,9 @@ classdef SignalsExp < handle
     
     NextSyncIdx %index into SyncColourCycle for next sync colour
 %     Audio = aud.AudioRegistry
+
+    %AlyxToken from client
+    AlyxInstance = []
   end
   
   properties (SetAccess = protected)     
@@ -101,6 +104,7 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    
   end
   
   properties (Access = protected)
@@ -334,6 +338,12 @@ classdef SignalsExp < handle
         % start the experiment loop
         mainLoop(obj);
         
+        %post comms notification with event name and time
+        if isempty(obj.AlyxInstance)
+          post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
+          pause(0.2) 
+        end
+        
         %Trigger the 'experimentCleanup' event so any handlers will be called
         cleanupInfo = exp.EventInfo('experimentCleanup', obj.Clock.now, obj);
         fireEvent(obj, cleanupInfo);
@@ -343,7 +353,7 @@ classdef SignalsExp < handle
         
         %return the data structure that has been built up
         data = obj.Data;
-        
+                
         if ~isempty(ref)
           saveData(obj); %save the data
         end
@@ -803,6 +813,7 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
+      if isempty(obj.AlyxInstance); warning('No Alyx token set'); end
       % save the data to the appropriate locations indicated by expRef
       savepaths = dat.expFilePath(obj.Data.expRef, 'block');
       superSave(savepaths, struct('block', obj.Data));

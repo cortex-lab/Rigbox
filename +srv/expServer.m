@@ -54,7 +54,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+% HideCursor();
 
 if nargin < 2
   bgColour = 127*[1 1 1]; % mid gray by default
@@ -186,16 +186,26 @@ ShowCursor();
         case 'quit'
           if ~isempty(experiment)
             immediately = args{1};
+            AlyxInstance = args{2};
             if immediately
               log('Aborting experiment');
             else
               log('Ending experiment');
+            end
+            if ~isempty(AlyxInstance)
+              experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
             send(communicator, id, []);
           else
             log('Quit message received but no experiment is running\n');
           end
+        case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
+            AlyxInstance = args{1}; %get struct
+            if ~isempty(AlyxInstance)
+              experiment.AlyxInstance = AlyxInstance; %set property for current experiment
+            end
+            send(communicator, id, []); %notify Stimulus Controllor of success
       end
     end
   end

@@ -44,6 +44,7 @@ classdef StimulusControl < handle
     ExpStarted
     ExpStopped
     ExpUpdate
+    AlyxRequest
   end
   
   methods (Static)
@@ -87,11 +88,17 @@ classdef StimulusControl < handle
       end
     end
     
-    function quitExperiment(obj, immediately)
+    function setAlyxInstance(obj, AlyxInstance)
+      % send AlyxInstance to experiment server
+      r = obj.exchange({'updateAlyxInstance', AlyxInstance});
+      obj.errorOnFail(r);
+    end
+    
+    function quitExperiment(obj, immediately, Alyx)
       if nargin < 2
         immediately = false;
       end
-      r = obj.exchange({'quit', immediately});
+      r = obj.exchange({'quit', immediately, Alyx.AlyxInstance});
       obj.errorOnFail(r);
     end
     
@@ -204,6 +211,10 @@ classdef StimulusControl < handle
 %                   obj.LogTimes(obj.LogCount,:) = [trec tsent];
 %                 end
             end
+          case 'AlyxRequest'
+            ref = data; % expRef
+            % notify listeners i.e. ExpPanel of request for AlyxInstance
+            notify(obj, 'AlyxRequest', srv.ExpEvent('AlyxRequest', ref));
         end
       end
     end

@@ -69,24 +69,24 @@ classdef ExpPanel < handle
       
       set(p.StopButtons(1), 'Callback',...
         @(src, ~) fun.run(true,...
-        @() remoteRig.quitExperiment(false),...
+        @() remoteRig.quitExperiment(false, Alyx),...
         @() set(src, 'Enable', 'off')));
       set(p.StopButtons(2), 'Callback',...
         @(src, ~) fun.run(true,...
-        @() remoteRig.quitExperiment(true),...
+        @() remoteRig.quitExperiment(true, Alyx),...
         @() set(p.StopButtons, 'Enable', 'off')));
-      
+      p.Alyx = Alyx;
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
         event.listener(remoteRig, 'ExpStarted', @p.expStarted)
         event.listener(remoteRig, 'ExpStopped', @p.expStopped)
-        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate)];
+        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate);
+        event.listener(remoteRig, 'AlyxRequest', @p.AlyxRequest)]; % request from expServer for Alyx Instance
 %       p.ElapsedTimer = timer('Period', 0.9, 'ExecutionMode', 'fixedSpacing',...
 %         'TimerFcn', @(~,~) set(p.DurationLabel, 'String',...
 %         sprintf('%i:%02.0f', floor(p.elapsed/60), mod(p.elapsed, 60))));
-     p.Alyx = Alyx;
     end
   end
   
@@ -252,6 +252,13 @@ classdef ExpPanel < handle
 %           disp(evt.Data);
           obj.event(evt.Data{2}, evt.Data{3});
       end
+    end
+    
+    function AlyxRequest(obj, rig, evt)
+        ref = evt.Data; % expRef
+        try rig.setAlyxInstance(obj.Alyx.AlyxInstance); % StimulusControl obj
+        catch %log(['Failed to submit Alyx token for' ref ' to ' rig.Name]);
+        end
     end
     
     function mergeTrialData(obj, idx, data)

@@ -68,6 +68,9 @@ classdef Experiment < handle
     PostDelay = 0
     
     IsPaused = false %flag indicating whether the experiment is paused
+    
+    %AlyxToken from client
+    AlyxInstance
   end
   
   properties (SetAccess = protected)
@@ -87,6 +90,7 @@ classdef Experiment < handle
     
     %Data from the currently running experiment, if any.
     Data
+    
   end
   
   properties (Access = protected)
@@ -440,7 +444,7 @@ classdef Experiment < handle
         %but still shut down with usual cleanup delays etc
         obj.Data.endStatus = 'quit';
       end
-
+      
       if immediately || obj.PostDelay == 0
         %unset looping flag now
         stopLooping(obj);
