@@ -813,10 +813,17 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
-      if isempty(obj.AlyxInstance); warning('No Alyx token set'); end
-      % save the data to the appropriate locations indicated by expRef
-      savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-      superSave(savepaths, struct('block', obj.Data));
+        % save the data to the appropriate locations indicated by expRef
+        savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+        superSave(savepaths, struct('block', obj.Data));
+        
+        if isempty(obj.AlyxInstance)
+            warning('No Alyx token set');
+        else
+            [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+            alyx.registerFile(subject,[],'Block',savepaths{2},'zserver',alyxInstance)
+        end
+
     end
   end
   
