@@ -291,6 +291,30 @@ classdef MControl < handle
     
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
       obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
+      ai = obj.AlyxInstance;
+      if isempty(ai); return; end
+      thisSubj = obj.NewExpSubject.Selected;
+      thisDate = alyx.datestr(now);
+      ss = alyx.getData(ai, ['sessions?subject=' thisSubj '&start_date=' datestr(now, 'yyyy-mm-dd')]);                         
+
+      % if not, create one
+      if isempty(ss)
+          clear d
+          d.subject = thisSubj;
+          d.start_time = alyx.datestr(now); % inconsistent time?
+          d.users = {obj.AlyxUsername};
+          try
+              thisSess = alyx.postData(ai, 'sessions', d);
+              obj.log('New session created for %s', thisSubj);
+          catch me
+              obj.log('Could not create new session - cannot launch page'); 
+              return
+          end
+
+      else
+          thisSess = ss{1};
+      end
+        
     end
     
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
