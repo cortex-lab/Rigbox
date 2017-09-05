@@ -290,30 +290,46 @@ classdef MControl < handle
     end
     
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
-      obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
-      ai = obj.AlyxInstance;
-      if isempty(ai); return; end
-      thisSubj = obj.NewExpSubject.Selected;
-      thisDate = alyx.datestr(now);
-      ss = alyx.getData(ai, ['sessions?subject=' thisSubj '&start_date=' datestr(now, 'yyyy-mm-dd')]);                         
+        obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
+        
+        ai = obj.AlyxInstance;
+        if ~isempty(ai) %Find/create BASE session, then create subsession
+            thisSubj = obj.NewExpSubject.Selected;
+            thisDate = alyx.datestr(now);
+            
+            sessions = alyx.getData(alyxInstance, ['sessions?type=Base&subject=' thisSubj]);
+            latest_base = sessions{end};
+            
+            %If the date of this latest base session is not the same date as
+            %today, then create a new base session for today
+            if ~strcmp(latest_base.start_time(1:10), thisDate(1:10))
+                d = struct;
+                d.subject = thisSubj;
+                d.procedures = {'Behavior training/tasks'};
+                d.narrative = 'auto-generated session';
+                d.start_time = thisDate;
+                d.type = 'Base';
+                latest_base = alyx.postData(ai, 'sessions', d);
+                
+                obj.log('Created new session (base) in Alyx');
+            end
+            
+            
+            %Now create a new SUBSESSION, using the same experiment number
+            [~,~,thisExpNum] = dat.parseExpRef(evt.Ref);
 
-      % if not, create one
-      if isempty(ss)
-          clear d
-          d.subject = thisSubj;
-          d.start_time = alyx.datestr(now); % inconsistent time?
-          d.users = {obj.AlyxUsername};
-          try
-              thisSess = alyx.postData(ai, 'sessions', d);
-              obj.log('New session created for %s', thisSubj);
-          catch me
-              obj.log('Could not create new session - cannot launch page'); 
-              return
-          end
-
-      else
-          thisSess = ss{1};
-      end
+            d = struct;
+            d.subject = thisSubj;
+            d.procedures = {'Behavior training/tasks'};
+            d.narrative = 'auto-generated session';
+            d.start_time = thisDate;
+            d.type = 'Experiment';
+            d.parent_session = latest_base.url;
+            d.number = thisExpNum;
+            subsession = alyx.postData(alyxInstance, 'sessions', d);
+            obj.log('Created new session (Experiment) in Alyx');
+            
+        end
         
     end
     
