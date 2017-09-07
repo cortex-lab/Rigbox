@@ -285,9 +285,16 @@ classdef Experiment < handle
       
       % start the experiment loop
       mainLoop(obj);
+      
       % last flip, if needed
       if obj.StimWindow.Invalid
         flip(obj.StimWindow);
+      end
+      
+        %post comms notification with event name and time
+      if isempty(obj.AlyxInstance)
+        post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
+        pause(0.2) 
       end
       try
         %Trigger the 'experimentCleanup' event so any handlers will be called
@@ -765,6 +772,14 @@ classdef Experiment < handle
         % save the data to the appropriate locations indicated by expRef
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
+        
+        if isempty(obj.AlyxInstance)
+            warning('No Alyx token set');
+        else
+            [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+            if strcmp(subject,'default'); return; end
+            alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+        end
     end
   end
   

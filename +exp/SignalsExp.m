@@ -821,7 +821,8 @@ classdef SignalsExp < handle
             warning('No Alyx token set');
         else
             [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
-            alyx.registerFile(subject,[],'Block',savepaths{2},'zserver',alyxInstance)
+            if strcmp(subject,'default'); return; end
+            alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
         end
 
     end

@@ -295,14 +295,14 @@ classdef MControl < handle
         ai = obj.AlyxInstance;
         if ~isempty(ai) %Find/create BASE session, then create subsession
             thisSubj = obj.NewExpSubject.Selected;
-            thisDate = alyx.datestr(now);
             
-            sessions = alyx.getData(alyxInstance, ['sessions?type=Base&subject=' thisSubj]);
-            latest_base = sessions{end};
+            if strcmp(thisSubj,'default'); return; end
+            thisDate = alyx.datestr(now);
+            sessions = alyx.getData(ai, ['sessions?type=Base&subject=' thisSubj]);            
             
             %If the date of this latest base session is not the same date as
             %today, then create a new base session for today
-            if ~strcmp(latest_base.start_time(1:10), thisDate(1:10))
+            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
                 d = struct;
                 d.subject = thisSubj;
                 d.procedures = {'Behavior training/tasks'};
@@ -312,6 +312,8 @@ classdef MControl < handle
                 latest_base = alyx.postData(ai, 'sessions', d);
                 
                 obj.log('Created new session (base) in Alyx');
+            else
+                latest_base = sessions{end};
             end
             
             
@@ -326,7 +328,7 @@ classdef MControl < handle
             d.type = 'Experiment';
             d.parent_session = latest_base.url;
             d.number = thisExpNum;
-            subsession = alyx.postData(alyxInstance, 'sessions', d);
+            subsession = alyx.postData(ai, 'sessions', d);
             obj.log('Created new session (Experiment) in Alyx');
             
         end
