@@ -15,6 +15,7 @@ rewardPulseKey = KbName('space');
 rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
+toggleBackground = KbName('b');
 useTimeline = false;
 rewardId = 1;
 
@@ -128,6 +129,11 @@ while running
   if firstPress(gammaCalibrationKey) > 0
       log('Performing a gamma calibration');
       calibrateGamma();
+  end
+  
+  if firstPress(toggleBackground) > 0
+      log('Changing background to white');
+      whiteScreen();
   end
   
   if firstPress(KbName('1')) > 0
@@ -275,6 +281,30 @@ ShowCursor();
     %apply the calibration to rewardcontroller
     %     rig.rewardController.MeasuredDeliveries = calibration;
     %     log('Measured deliveries for reward calibrations saved');
+  end
+
+   function whiteScreen()
+%       stimWindow = rig.stimWindow;
+%       set.BackgroundColour(stimWindow, stimWindow.White);
+rig.stimWindow.BackgroundColour = 255;
+rig.stimWindow.flip();
+rig.stimWindow.BackgroundColour = bgColour;
+%       stimWindow.pBackgroundColour = stimWindow.White;
+%       if stimWindow.PtbHandle > -1
+        % performing a ptb FillRect will set the new background colour
+%         Screen('FillRect', stimWindow.PtbHandle, 255);
+%       end
+%       pause(30);
+%       rig.stimWindow.flip();
+%       set.BackgroundColour(stimWindow, stimWindow.White);
+%       rig.stimWindow.BackgroundColour = bgColour;
+% rig.stimWindow.flip();
+%       stimWindow.pBackgroundColour = bgColour;
+%       if stimWindow.PtbHandle > -1
+        % performing a ptb FillRect will set the new background colour
+%         Screen('FillRect', stimWindow.PtbHandle, bgColour);
+%       end
+
   end
 
   function calibrateGamma()
