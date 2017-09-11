@@ -200,7 +200,7 @@ obj.NewExpSubject.addlistener('SelectionChanged', @(~,~)dispWaterReq(obj));
         amount = str2double(get(waterAmt, 'String'));
         isHydrogel = logical(get(isHydrogelChk, 'Value'));
         
-        if ~isempty(ai)
+        if ~isempty(ai)&&amount~=0
             wa = alyx.postWater(ai, thisSubj, amount, thisDate, isHydrogel);
             if ~isempty(wa) % returned us a created water administration object successfully
                 if isHydrogel
