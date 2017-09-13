@@ -170,13 +170,13 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay] = args{:};
+          [expRef, preDelay, postDelay, ai] = args{:};
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay);
+              runExp(expRef, preDelay, postDelay, ai);
               log('Experiment ''%s'' completed', expRef);
               communicator.send('status', {'completed', expRef});
             catch runEx
@@ -198,7 +198,7 @@ ShowCursor();
             else
               log('Ending experiment');
             end
-            if ~isempty(AlyxInstance)
+            if ~isempty(AlyxInstance)&&isempty(experiment.AlyxInstance)
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
@@ -216,7 +216,7 @@ ShowCursor();
     end
   end
 
-  function runExp(expRef, preDelay, postDelay)
+  function runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -242,6 +242,7 @@ ShowCursor();
     experiment = srv.prepareExp(params, rig, preDelay, postDelay,...
       communicator);
     communicator.EventMode = true; % use event-based callback mode
+    experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
     % clear the active experiment var

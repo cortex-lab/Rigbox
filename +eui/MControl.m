@@ -328,7 +328,7 @@ classdef MControl < handle
             d.type = 'Experiment';
             d.parent_session = latest_base.url;
             d.number = thisExpNum;
-            subsession = alyx.postData(ai, 'sessions', d);
+            alyx.postData(ai, 'sessions', d);
             obj.log('Created new session (Experiment) in Alyx');
             
         end
@@ -416,7 +416,7 @@ classdef MControl < handle
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
       obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef); % Tell rig to start experiment
+      rig.startExperiment(expRef, obj.AlyxInstance); % Tell rig to start experiment
       %update the parameter set label to indicate used for this experiment
       subject = dat.parseExpRef(expRef);
       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);

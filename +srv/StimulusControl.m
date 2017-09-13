@@ -94,15 +94,15 @@ classdef StimulusControl < handle
       obj.errorOnFail(r);
     end
     
-    function quitExperiment(obj, immediately, Alyx)
+    function quitExperiment(obj, immediately, ai)
       if nargin < 2
         immediately = false;
       end
-      r = obj.exchange({'quit', immediately, Alyx.AlyxInstance});
+      r = obj.exchange({'quit', immediately, ai.AlyxInstance});
       obj.errorOnFail(r);
     end
     
-    function startExperiment(obj, expRef)
+    function startExperiment(obj, expRef, ai)
       %startExperiment
       %Ensure the experiment ref exists
       assert(dat.expExists(expRef), 'Experiment ref ''%s'' does not exist', expRef);
@@ -110,7 +110,7 @@ classdef StimulusControl < handle
       preDelay = obj.ExpPreDelay;
       postDelay = obj.ExpPostDelay;
       
-      r = obj.exchange({'run', expRef, preDelay, postDelay});
+      r = obj.exchange({'run', expRef, preDelay, postDelay, ai});
       obj.errorOnFail(r);
     end
     
