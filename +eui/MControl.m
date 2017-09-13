@@ -292,9 +292,10 @@ classdef MControl < handle
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
         obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
         
+        [thisSubj,~,thisExpNum] = dat.parseExpRef(evt.Ref);
+        
         ai = obj.AlyxInstance;
         if ~isempty(ai) %Find/create BASE session, then create subsession
-            thisSubj = obj.NewExpSubject.Selected;
             
             if strcmp(thisSubj,'default'); return; end
             thisDate = alyx.datestr(now);
@@ -318,8 +319,6 @@ classdef MControl < handle
             
             
             %Now create a new SUBSESSION, using the same experiment number
-            [~,~,thisExpNum] = dat.parseExpRef(evt.Ref);
-
             d = struct;
             d.subject = thisSubj;
             d.procedures = {'Behavior training/tasks'};
