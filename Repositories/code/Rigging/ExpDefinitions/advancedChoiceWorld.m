@@ -7,9 +7,8 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
 
 nAudChannels = 2;
-onsetToneFreq = p.onsetToneFrequency; % e.g. 1200?
-p.audDevIdx; % Windows' audio device index (default is 1)
-audSampleRate = 44100; % Check PTB Snd('DefaultRate'); previously: 96kHz
+% p.audDevIdx; % Windows' audio device index (default is 1)
+audSampleRate = 96000; % Check PTB Snd('DefaultRate');
 contrastLeft = p.stimulusContrast(1);
 contrastRight = p.stimulusContrast(2);
 
@@ -18,7 +17,7 @@ stimulusOn = evts.newTrial; % stimulus should come on at the start of a new tria
 interactiveOn = stimulusOn.delay(p.interactiveDelay); % the closed-loop period starts when the stimulus comes on, plus an 'interactive delay'
 
 onsetToneSamples = p.onsetToneAmplitude*...
-    mapn(onsetToneFreq, 0.1, audSampleRate, 0.02, nAudChannels, @aud.pureTone); % aud.pureTone(freq, duration, samprate, "ramp duration", nAudChannels)
+    mapn(p.onsetToneFrequency, 0.1, audSampleRate, 0.02, nAudChannels, @aud.pureTone); % aud.pureTone(freq, duration, samprate, "ramp duration", nAudChannels)
 audio.onsetTone = onsetToneSamples.at(interactiveOn); % At the time of 'interative on', send samples to audio device and log as 'onsetTone'
 
 %% wheel position to stimulus displacement
@@ -70,7 +69,7 @@ leftStimulus = vis.grating(t, 'sinusoid', 'gaussian'); % create a Gabor grating
 leftStimulus.orientation = p.stimulusOrientation;
 leftStimulus.altitude = 0;
 leftStimulus.sigma = [9,9]; % in visual degrees
-leftStimulus.spatialFrequency = p.spatialFrequency; % in cylces per degree
+leftStimulus.spatialFreq = p.spatialFrequency; % in cylces per degree
 leftStimulus.phase = 2*pi*evts.newTrial.map(@(v)rand);   % phase randomly changes each trial
 leftStimulus.contrast = contrastLeft;
 leftStimulus.azimuth = -p.stimulusAzimuth + azimuth;
@@ -84,7 +83,7 @@ rightStimulus = vis.grating(t, 'sinusoid', 'gaussian');
 rightStimulus.orientation = p.stimulusOrientation;
 rightStimulus.altitude = 0;
 rightStimulus.sigma = [9,9];
-rightStimulus.spatialFrequency = p.spatialFrequency;
+rightStimulus.spatialFreq = p.spatialFrequency;
 rightStimulus.phase = 2*pi*evts.newTrial.map(@(v)rand);
 rightStimulus.contrast = contrastRight;
 rightStimulus.azimuth = p.stimulusAzimuth + azimuth;
@@ -131,7 +130,7 @@ p.stimulusOrientation = 0;
 p.spatialFrequency = 0.19; % Prusky & Douglas, 2004
 p.interTrialDelay = 0.5;
 p.wheelGain = 0.2;
-p.audDevIdx = 1;
+% p.audDevIdx = 1;
 catch
 end
 end
