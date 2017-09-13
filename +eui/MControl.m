@@ -317,6 +317,7 @@ classdef MControl < handle
                 catch ex
                     obj.log(['Failed to create new session in Alyx for: ' thisSubj]);
                     obj.log(ex.identifier);
+                    disp(d);
                 end
             else
                 latest_base = sessions{end};
@@ -338,6 +339,7 @@ classdef MControl < handle
             catch ex
                 obj.log(['Failed to create new sub-session in Alyx for: ' thisSubj]);
                 obj.log(ex.identifier);
+                disp(d);
             end
             
         end
