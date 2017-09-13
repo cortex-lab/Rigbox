@@ -101,6 +101,7 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    
   end
   
   properties (Access = protected)
@@ -137,6 +138,7 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -333,7 +335,7 @@ classdef SignalsExp < handle
       try
         % start the experiment loop
         mainLoop(obj);
-        
+
         %Trigger the 'experimentCleanup' event so any handlers will be called
         cleanupInfo = exp.EventInfo('experimentCleanup', obj.Clock.now, obj);
         fireEvent(obj, cleanupInfo);
@@ -343,7 +345,7 @@ classdef SignalsExp < handle
         
         %return the data structure that has been built up
         data = obj.Data;
-        
+                
         if ~isempty(ref)
           saveData(obj); %save the data
         end
@@ -619,7 +621,6 @@ classdef SignalsExp < handle
       %set looping flag
       obj.IsLooping = true;
       % begin the loop
-      nChars = 0;
       while obj.IsLooping
         %% create a list of handlers that have become due
         dueIdx = find([obj.Pending.dueTime] <= now(obj.Clock));
@@ -708,6 +709,13 @@ classdef SignalsExp < handle
             resume(obj);
           else
             pause(obj);
+          end
+        else
+%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
+%               keysPressed~=obj.PauseKey,1,'first'));
+          key = KbName(keysPressed);
+          if ~isempty(key)
+            post(obj.Inputs.keyboard, key(1));
           end
         end
       end
@@ -803,9 +811,9 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
-      % save the data to the appropriate locations indicated by expRef
-      savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-      superSave(savepaths, struct('block', obj.Data));
+        % save the data to the appropriate locations indicated by expRef
+        savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+        superSave(savepaths, struct('block', obj.Data));
     end
   end
   

@@ -53,7 +53,8 @@ noiseBurstSamples = p.noiseBurstAmp*...
     mapn(nAudChannels, p.noiseBurstDur*audSampleRate, @randn);
 audio.noiseBurst = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
-reward = p.rewardSize.at(feedback > 0); % only update when feedback changes to greater than 0
+reward = p.rewardSize.at(feedback > 0 |...
+    in.keyboard.strcmp(p.rewardKey) > 0);% only update when feedback changes to greater than 0, or 'r' key is pressed
 out.reward = reward; % output this signal to the reward controller
 
 %% stimulus azimuth
@@ -112,6 +113,27 @@ evts.totalReward = reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
 % parameters are used for the next trial, if evts.endTrial updates to true, 
 % the next set of randowmly picked conditional parameters is used
 evts.endTrial = nextCondition.at(stimulusOff).delay(p.interTrialDelay); 
+
+%% Parameter defaults
+try  
+p.onsetToneFrequency = 8000;
+p.stimulusContrast = [1;0];
+p.repeatIncorrect = true;
+p.interactiveDelay = 0.4;
+p.onsetToneAmplitude = 0.2;
+p.responseWindow = Inf;
+p.stimulusAzimuth = 90;
+p.noiseBurstAmp = 0.01;
+p.noiseBurstDur = 0.5;
+p.rewardSize = 3;
+p.rewardKey = 'r';
+p.stimulusOrientation = 0;
+p.spatialFrequency = 0.19; % Prusky & Douglas, 2004
+p.interTrialDelay = 0.5;
+p.wheelGain = 0.2;
+p.audDevIdx = 1;
+catch
+end
 end
 
 
