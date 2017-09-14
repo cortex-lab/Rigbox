@@ -53,7 +53,7 @@ noiseBurstSamples = p.noiseBurstAmp*...
 audio.noiseBurst = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
 reward = p.rewardSize.at(feedback > 0 |...
-    in.keyboard.strcmp(p.rewardKey) > 0);% only update when feedback changes to greater than 0, or 'r' key is pressed
+    evts.keyboard.strcmp(p.rewardKey) > 0);% only update when feedback changes to greater than 0, or 'r' key is pressed
 out.reward = reward; % output this signal to the reward controller
 
 %% stimulus azimuth
