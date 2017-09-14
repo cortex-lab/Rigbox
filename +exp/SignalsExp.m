@@ -101,7 +101,6 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
-    
   end
   
   properties (Access = protected)
@@ -137,8 +136,8 @@ classdef SignalsExp < handle
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
+      obj.Events.keyboard = net.origin('keyboard');
       obj.Inputs.wheel = net.origin('wheel');
-      obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -335,7 +334,7 @@ classdef SignalsExp < handle
       try
         % start the experiment loop
         mainLoop(obj);
-
+        
         %Trigger the 'experimentCleanup' event so any handlers will be called
         cleanupInfo = exp.EventInfo('experimentCleanup', obj.Clock.now, obj);
         fireEvent(obj, cleanupInfo);
@@ -345,7 +344,7 @@ classdef SignalsExp < handle
         
         %return the data structure that has been built up
         data = obj.Data;
-                
+        
         if ~isempty(ref)
           saveData(obj); %save the data
         end
@@ -553,6 +552,8 @@ classdef SignalsExp < handle
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
+      post(obj.Events.keyboard, '') % initialize keyboard signal
+      runSchedule(obj.Net)
     end
     
     function cleanup(obj)
@@ -711,11 +712,9 @@ classdef SignalsExp < handle
             pause(obj);
           end
         else
-%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
-%               keysPressed~=obj.PauseKey,1,'first'));
           key = KbName(keysPressed);
           if ~isempty(key)
-            post(obj.Inputs.keyboard, key(1));
+            post(obj.Events.keyboard, key(1));
           end
         end
       end
@@ -811,9 +810,9 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
-        % save the data to the appropriate locations indicated by expRef
-        savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-        superSave(savepaths, struct('block', obj.Data));
+      % save the data to the appropriate locations indicated by expRef
+      savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+      superSave(savepaths, struct('block', obj.Data));
     end
   end
   
