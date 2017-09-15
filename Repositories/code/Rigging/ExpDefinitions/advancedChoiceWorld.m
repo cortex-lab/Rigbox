@@ -5,7 +5,7 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 
 %% parameters
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
-
+rewardKeyPressed = evts.keyboard.strcmp(p.rewardKey); % true each time the reward key is pressed
 nAudChannels = 2;
 % p.audDevIdx; % Windows' audio device index (default is 1)
 audSampleRate = 96000; % Check PTB Snd('DefaultRate');
@@ -52,8 +52,7 @@ noiseBurstSamples = p.noiseBurstAmp*...
     mapn(nAudChannels, p.noiseBurstDur*audSampleRate, @randn);
 audio.noiseBurst = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
-reward = p.rewardSize.at(feedback > 0 |...
-    evts.keyboard.strcmp(p.rewardKey) > 0);% only update when feedback changes to greater than 0, or 'r' key is pressed
+reward = p.rewardSize.at(feedback > 0 | rewardKeyPressed);% only update when feedback changes to greater than 0, or 'r' key is pressed
 out.reward = reward; % output this signal to the reward controller
 
 %% stimulus azimuth
@@ -114,9 +113,9 @@ evts.totalReward = reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
 evts.endTrial = nextCondition.at(stimulusOff).delay(p.interTrialDelay); 
 
 %% Parameter defaults
-try  
+try
 p.onsetToneFrequency = 8000;
-p.stimulusContrast = [1;0];
+p.stimulusContrast = [1 0;0 1;0.5 0;0 0.5]'; % conditional parameters have ncols > 1
 p.repeatIncorrect = true;
 p.interactiveDelay = 0.4;
 p.onsetToneAmplitude = 0.2;
