@@ -310,17 +310,17 @@ classdef MControl < handle
                 d.narrative = 'auto-generated session';
                 d.start_time = thisDate;
                 d.type = 'Base';
-                
-                try
-                    latest_base = alyx.postData(ai, 'sessions', d);
-                    obj.log(['Created new session in Alyx for: ' thisSubj]);
-                catch ex
+
+                latest_base = alyx.postData(ai, 'sessions', d);
+                if ~isfield(latest_base,'subject')
                     obj.log(['Failed to create new session in Alyx for: ' thisSubj]);
-                    obj.log(ex.identifier);
                     disp(d);
                 end
+                obj.log(['Created new session in Alyx for: ' thisSubj]);
+                
             else
                 latest_base = sessions{end};
+                obj.log(['Using existing session in Alyx for ' thisSubj]);
             end
             
             
@@ -333,15 +333,14 @@ classdef MControl < handle
             d.type = 'Experiment';
             d.parent_session = latest_base.url;
             d.number = thisExpNum;
-            try
-                subsession = alyx.postData(ai, 'sessions', d);
-                obj.log(['Created new sub-session in Alyx for: ', thisSubj]);
-            catch ex
+
+            subsession = alyx.postData(ai, 'sessions', d);
+            if ~isfield(subsession,'subject')
                 obj.log(['Failed to create new sub-session in Alyx for: ' thisSubj]);
-                obj.log(ex.identifier);
                 disp(d);
             end
-            
+            obj.log(['Created new sub-session in Alyx for: ', thisSubj]);
+
         end
         
     end
