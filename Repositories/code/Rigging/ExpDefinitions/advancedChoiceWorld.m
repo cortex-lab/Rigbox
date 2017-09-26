@@ -2,11 +2,11 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 %% advancedChoiceWorld
 % Burgess 2AUFC task with contrast discrimination
 % 2017-03-25 Added contrast discrimination MW
-% 2017-09-15 Reward key not yet functional
 
 %% parameters
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
-% rewardKeyPressed = evts.keyboard.strcmp(p.rewardKey); % true each time the reward key is pressed
+rewardKey = p.rewardKey.at(evts.expStarted); % get value of rewardKey at experiemnt start, otherwise it will take the same value each new trial
+rewardKeyPressed = in.keyboard.strcmp(rewardKey); % true each time the reward key is pressed
 nAudChannels = 2;
 % p.audDevIdx; % Windows' audio device index (default is 1)
 audSampleRate = 96000; % Check PTB Snd('DefaultRate');
@@ -53,9 +53,8 @@ noiseBurstSamples = p.noiseBurstAmp*...
     mapn(nAudChannels, p.noiseBurstDur*audSampleRate, @randn);
 audio.noiseBurst = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
-reward = p.rewardSize.at(feedback > 0);% only update when feedback changes to greater than 0
-% reward = p.rewardSize.at(feedback > 0 | rewardKeyPressed);% only update when feedback changes to greater than 0, or 'r' key is pressed
-out.reward = reward; % output this signal to the reward controller
+reward = merge(rewardKeyPressed, feedback > 0);% only update when feedback changes to greater than 0, or reward key is pressed
+out.reward = p.rewardSize.at(reward); % output this signal to the reward controller
 
 %% stimulus azimuth
 azimuth = cond(...
@@ -126,7 +125,7 @@ p.stimulusAzimuth = 90;
 p.noiseBurstAmp = 0.01;
 p.noiseBurstDur = 0.5;
 p.rewardSize = 3;
-p.rewardKey = 'r'; % not yet fully functional
+p.rewardKey = 'r';
 p.stimulusOrientation = 0;
 p.spatialFrequency = 0.19; % Prusky & Douglas, 2004
 p.interTrialDelay = 0.5;
@@ -135,7 +134,3 @@ p.wheelGain = 0.2;
 catch
 end
 end
-
-
-
-
