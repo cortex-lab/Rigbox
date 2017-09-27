@@ -562,8 +562,6 @@ classdef SignalsExp < handle
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
-      post(obj.Inputs.keyboard, '') % initialize keyboard signal
-      runSchedule(obj.Net)
     end
     
     function cleanup(obj)
