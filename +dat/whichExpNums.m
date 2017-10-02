@@ -1,4 +1,3 @@
-
 function [expNums, blocks, hasBlock, pars, isMpep, tl, hasTimeline] = ...
     whichExpNums(mouseName, thisDate)
 

@@ -38,7 +38,8 @@ try
   for i = 1:size(paramNames,1)
       parsStruct.(paramNames{i}) = paramValues{i}.Node.CurrValue;
   end
-  sz = structfun(@(a)size(a,2), parsStruct); % get number of columns
+  sz = iff(isempty(fieldnames(parsStruct)), 1,... % if there are no paramters sz = 1
+      structfun(@(a)size(a,2), parsStruct)); % otherwise get number of columns
   parsStruct.numRepeats = ones(1,max(sz)); % add 'numRepeats' parameter
   parsStruct.defFunction = expdef;
   parsStruct.type = 'custom';
