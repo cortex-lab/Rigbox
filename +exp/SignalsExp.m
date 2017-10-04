@@ -141,6 +141,7 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -629,7 +630,6 @@ classdef SignalsExp < handle
       %set looping flag
       obj.IsLooping = true;
       % begin the loop
-      nChars = 0;
       while obj.IsLooping
         %% create a list of handlers that have become due
         dueIdx = find([obj.Pending.dueTime] <= now(obj.Clock));
@@ -718,6 +718,13 @@ classdef SignalsExp < handle
             resume(obj);
           else
             pause(obj);
+          end
+        else
+%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
+%               keysPressed~=obj.PauseKey,1,'first'));
+          key = KbName(keysPressed);
+          if ~isempty(key)
+            post(obj.Inputs.keyboard, key(1));
           end
         end
       end
@@ -820,9 +827,13 @@ classdef SignalsExp < handle
         if isempty(obj.AlyxInstance)
             warning('No Alyx token set');
         else
-            [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
-            if strcmp(subject,'default'); return; end
-            alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+            try
+                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject,'default'); return; end
+                alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+            catch
+                warning('couldnt register files to alyx because no subsession found');
+            end
         end
 
     end
