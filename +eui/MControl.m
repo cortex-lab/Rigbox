@@ -292,9 +292,10 @@ classdef MControl < handle
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
         obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
         
+        [thisSubj,~,thisExpNum] = dat.parseExpRef(evt.Ref);
+        
         ai = obj.AlyxInstance;
         if ~isempty(ai) %Find/create BASE session, then create subsession
-            thisSubj = obj.NewExpSubject.Selected;
             
             if strcmp(thisSubj,'default'); return; end
             thisDate = alyx.datestr(now);
@@ -309,17 +310,21 @@ classdef MControl < handle
                 d.narrative = 'auto-generated session';
                 d.start_time = thisDate;
                 d.type = 'Base';
+
                 latest_base = alyx.postData(ai, 'sessions', d);
+                if ~isfield(latest_base,'subject')
+                    obj.log(['Failed to create new session in Alyx for: ' thisSubj]);
+                    disp(d);
+                end
+                obj.log(['Created new session in Alyx for: ' thisSubj]);
                 
-                obj.log('Created new session (base) in Alyx');
             else
                 latest_base = sessions{end};
+                obj.log(['Using existing session in Alyx for ' thisSubj]);
             end
             
             
             %Now create a new SUBSESSION, using the same experiment number
-            [~,~,thisExpNum] = dat.parseExpRef(evt.Ref);
-
             d = struct;
             d.subject = thisSubj;
             d.procedures = {'Behavior training/tasks'};
@@ -328,9 +333,14 @@ classdef MControl < handle
             d.type = 'Experiment';
             d.parent_session = latest_base.url;
             d.number = thisExpNum;
-            alyx.postData(ai, 'sessions', d);
-            obj.log('Created new session (Experiment) in Alyx');
-            
+
+            subsession = alyx.postData(ai, 'sessions', d);
+            if ~isfield(subsession,'subject')
+                obj.log(['Failed to create new sub-session in Alyx for: ' thisSubj]);
+                disp(d);
+            end
+            obj.log(['Created new sub-session in Alyx for: ', thisSubj]);
+
         end
         
     end
@@ -416,7 +426,7 @@ classdef MControl < handle
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
       obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef, obj.AlyxInstance); % Tell rig to start experiment
+      rig.startExperiment(expRef); % Tell rig to start experiment
       %update the parameter set label to indicate used for this experiment
       subject = dat.parseExpRef(expRef);
       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
