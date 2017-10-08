@@ -1,6 +1,6 @@
 function [services] = basicServices(timelineHost, neuralImgHost, eyeTrackingHost)
 %SRV.BASICSERVICES Returns all available experiment services
-%   TODO. See also EXP.SERVICE, EXP.FINDSERVICE.
+%   TODO. See also SRV.SERVICE, SRV.FINDSERVICE.
 %
 % Part of Rigbox
 
@@ -20,26 +20,26 @@ if nargin < 3
 end
 
 %% Configure timeline service
-timeline = srv.PrimativeUDPService(timelineHost);
+timeline = srv.PrimitiveUDPService(timelineHost);
 timeline.Title = sprintf('Timeline on %s', timelineHost);
 timeline.Id = 'timeline';
 timeline.ResponseTimeout = 5;
 
 %% Configure scanimage/neural acquisition service
-neuralImg = srv.PrimativeUDPService(neuralImgHost);
+neuralImg = srv.PrimitiveUDPService(neuralImgHost);
 % neuralImg.StartMessageFun = @(ref) ['GOGO' ref '*' hostname];
 neuralImg.Title = 'Neural imaging';
 neuralImg.Id = 'neural-imaging';
 neuralImg.ResponseTimeout = 5;
 
 %% configure eye-tracking acquisition service
-eyeTracking = srv.PrimativeUDPService(eyeTrackingHost, 10000, 10001);
+eyeTracking = srv.PrimitiveUDPService(eyeTrackingHost, 10000, 10001);
 % eyeTracking.StartMessageFun = @(ref) ['YOYO' ref '*' hostname];
 eyeTracking.Title = 'Eye-tracking';
 eyeTracking.Id = 'eye-tracking';
 eyeTracking.ResponseTimeout = 5; %cos it's so slow!
 % 
-% timeline = srv.PrimativeUDPService('zoolander');
+% timeline = srv.PrimitiveUDPService('zoolander');
 % timeline.StartMessageFun = @(ref) ['YOYO' ref '*' hostname];
 % timeline.Title = 'Timeline';
 % timeline.Id = 'timeline';

@@ -2,7 +2,8 @@ classdef StartServices < exp.Action
   %EXP.STARTSERVICES Starts experiment services
   %   Convenience action for use with an EventHandler. This will start the
   %   associated services, by calling start(ref) on them, where 'ref' is
-  %   taken from the Experiment's reference. See also SRV.SERVICE.
+  %   taken from the Experiment's reference and the current instance of
+  %   Alyx (if any). See also SRV.SERVICE.
   %
   % Part of Rigbox
 
@@ -27,7 +28,8 @@ classdef StartServices < exp.Action
     end
 
     function perform(obj, eventInfo, dueTime)
-      ref = eventInfo.Experiment.Data.expRef;
+      ref = dat.parseAlyxInstance(eventInfo.Experiment.AlyxInstance,...
+          eventInfo.Experiment.Data.expRef);
       n = numel(obj.Services);
       for i = 1:n
         try

@@ -1,6 +1,12 @@
-classdef PrimativeUDPService < srv.Service
-  %SRV.PRIMATIVEUDPSERVICE Interface to a dumb UDP-based service
-  %   TODO. See also IO.COMMUNICATOR.
+classdef PrimitiveUDPService < srv.Service
+  %SRV.PRIMITIVEUDPSERVICE Interface to a dumb UDP-based service
+  %   A simple UDP interface object powered by pnet which comes with
+  %   PsychToolbox. Starting this service with an expRef as an input string
+  %   causes it to broadcast the message GOGOexpRef*hostname to a specified
+  %   romotehost, and await the message to be echoed back.  This can be
+  %   used to trigger remote acquisition hosts and likewise to stop them.
+  %   Note: this service blocks the command line whilst awaiting a response
+  %   See also IO.COMMUNICATOR, SRV.SIMPLEUDPSERVICE & PNET.
   %
   % Part of Rigbox
   
@@ -35,7 +41,7 @@ classdef PrimativeUDPService < srv.Service
       end
     end
     
-    function obj = PrimativeUDPService(remoteHost, remotePort, listenPort)
+    function obj = PrimitiveUDPService(remoteHost, remotePort, listenPort)
       obj.RemoteIP = ipaddress(remoteHost);
       if nargin >= 3
         obj.ListenPort = listenPort;
@@ -94,8 +100,10 @@ classdef PrimativeUDPService < srv.Service
     
     function confirmedSend(obj, msg)
       sendUDP(obj, msg)
+      disp(['message: ' msg])
       % check response back was confirmatory echo
       response = receiveUDP(obj);
+      disp(['response: ' response])
       if ~strcmp(response, msg)
         error('Rigbox:srv:unexpectedUDPResponse',...
           'Unexpected UDP response ''%s''', response);

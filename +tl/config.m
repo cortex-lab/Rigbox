@@ -89,6 +89,16 @@ useInputs = {... % default set of inputs to use
 %   or DAQ channel IDs for inputOptions:
 % inputOptions(inputByName('syncEcho')).daqChannelID = 'ai2';
 switch rig
+    case 'zbit'
+        useInputs = {'chrono','rotaryEncoder'};
+        hw.daqDevice = 'Dev3';
+        
+        inputOptions(inputByName('chrono')).daqChannelID = 'ai2';
+        inputOptions(inputByName('rotaryEncoder')).daqChannelID = 'ctr0';
+        hw.chronoOutDaqChannelID = 'port1/line0'; % for sending timing pulse out
+        hw.clockOutputChannelID = 'ctr1'; % on zoolander's DAQ ctr3 output is PFI15
+        hw.acqLiveDaqChannelID = 'port1/line3';
+        
     case 'zym1'
         inputOptions = [inputOptions ...
             input('TTL', 'ai1', volts, 'SingleEnded')];
