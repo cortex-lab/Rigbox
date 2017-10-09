@@ -5,7 +5,7 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 
 %% parameters
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
-rewardKey = p.rewardKey.at(evts.expStarted); % get value of rewardKey at experiemnt start, otherwise it will take the same value each new trial
+rewardKey = p.rewardKey.at(evts.expStart); % get value of rewardKey at experiemnt start, otherwise it will take the same value each new trial
 rewardKeyPressed = in.keyboard.strcmp(rewardKey); % true each time the reward key is pressed
 nAudChannels = 2;
 % p.audDevIdx; % Windows' audio device index (default is 1)
