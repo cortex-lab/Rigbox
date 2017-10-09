@@ -28,6 +28,8 @@ classdef (Sealed) Timeline < handle
 %   reliable system time (see GetSecs() and GetSecsTest()).  NB: both the
 %   system time and the DAQ times can (and do) drift.
 %
+%   TODO fix for AlyxInstance ref
+%
 %   Part of Rigbox
 %   2014-01 CB created
 %   2017-10 MW updated
@@ -282,7 +284,7 @@ classdef (Sealed) Timeline < handle
             %TL.STOP Stops Timeline data acquisition
             %   TL.STOP() Deletes the listener, saves the aquired data,
             %   stops all running DAQ sessions 
-            % TODO return arrayColumn to -1
+            % 
             if ~obj.IsRunning
                 warning('Nothing to do, Timeline is not running!')
                 return
@@ -315,8 +317,29 @@ classdef (Sealed) Timeline < handle
                 release(obj.Sessions(name));
             end
             
-            % save tl to all paths
+            % generate timestamps in seconds for the samples
+            obj.Data.rawDAQTimestamps = ...
+                obj.SamplingInterval*(0:obj.Data.rawDAQSampleCount - 1);
+            
+            % replicate old tl data struct for legacy code
+            idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
+            arrayChronoColumn = obj.Inputs(idx).arrayColumn;
             savePaths = dat.expFilePath(obj.Ref, 'timeline'); %TODO fix for AlyxInstance ref
+            obj.Data.hw = struct('daqVendor', obj.DaqVendor, 'daqDevice', obj.DaqIds,...
+                'daqSampleRate', obj.DaqSampleRate, 'daqSamplesPerNotify', obj.DaqSamplesPerNotify,...
+                'chronoOutDaqChannelID', obj.Outputs(1).daqChannelID, 'acqLiveOutDaqChannelID', obj.Outputs(2).daqChannelID,...
+                'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency ', obj.ClockOutputFrequency,...
+                'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
+                'inputs', obj.Inputs, 'arrayChronoColumn', arrayChronoColumn);
+            obj.Data.expRef = obj.Ref; %TODO fix for AlyxInstance ref
+            obj.Data.savePaths = savePaths;
+            obj.Data.isRunning = obj.IsRunning;
+            obj.Data.nextChronoSign = obj.NextChronoSign;
+            obj.Data.lastTimestamp = obj.LastTimestamp;
+            obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
+            obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
+            
+            % save tl to all paths
             superSave(savePaths, struct('Timeline', obj.Data)); % TODO replicate old tl struct
             
             % reset arrayColumn fields
