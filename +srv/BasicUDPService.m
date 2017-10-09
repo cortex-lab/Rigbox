@@ -17,7 +17,7 @@ classdef BasicUDPService < srv.Service
   % 2017-10 MW created
   
   properties (GetObservable, SetAccess = protected)
-    RemoteStatus % Status of remote service
+    Status % Status of remote service
   end
   
   properties
@@ -87,7 +87,7 @@ classdef BasicUDPService < srv.Service
       obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
         'PostSet',@obj.update);
       % Add listener for when the remote service's status is requested
-      obj.addlistener('RemoteStatus', 'PreGet', @obj.requestStatus);
+      obj.addlistener('Status', 'PreGet', @obj.requestStatus);
     end
     
     function update(obj, evt, ~)
@@ -174,7 +174,7 @@ classdef BasicUDPService < srv.Service
       switch obj.LastReceivedMessage(1:4)
         case 'GOGO'
           if obj.AwaitingConfirmation
-            obj.RemoteStatus = 'running';
+            obj.Status = 'running';
             disp(['Service on ' obj.RemoteHost ' running'])
           else
             disp('Received start request')
@@ -183,7 +183,7 @@ classdef BasicUDPService < srv.Service
           end
         case 'STOP'
           if obj.AwaitingConfirmation
-            obj.RemoteStatus = 'stopped';
+            obj.Status = 'stopped';
             disp(['Service on ' obj.RemoteHost ' stopped'])
           else
             disp('Received stop request')
@@ -199,12 +199,12 @@ classdef BasicUDPService < srv.Service
                 'Received UDP message ID did not match sent');
               switch parsed.update
                 case {'running' 'starting'}
-                  obj.RemoteStatus = 'running';
+                  obj.Status = 'running';
                 otherwise
-                  obj.RemoteStatus = 'idle';
+                  obj.Status = 'idle';
               end
             catch
-              obj.RemoteStatus = 'unavailable';
+              obj.Status = 'unavailable';
             end
           else % Received status request NB: Currently no way of determining status
              obj.sendUDP([parsed.status parsed.id obj.LocalStatus])
