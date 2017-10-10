@@ -101,11 +101,11 @@ classdef StimulusControl < handle
       obj.errorOnFail(r);
     end
     
-    function quitExperiment(obj, immediately, Alyx)
+    function quitExperiment(obj, immediately)
       if nargin < 2
         immediately = false;
       end
-      r = obj.exchange({'quit', immediately, Alyx.AlyxInstance});
+      r = obj.exchange({'quit', immediately});
       obj.errorOnFail(r);
     end
     
