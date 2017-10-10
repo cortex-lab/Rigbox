@@ -136,7 +136,7 @@ classdef SignalsExp < handle
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
-      obj.Events.keyboard = net.origin('keyboard');
+      obj.Inputs.wheel = net.origin('keyboard');
       obj.Inputs.wheel = net.origin('wheel');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -552,7 +552,7 @@ classdef SignalsExp < handle
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
-      post(obj.Events.keyboard, '') % initialize keyboard signal
+      post(obj.Inputs.wheel, '') % initialize keyboard signal
       runSchedule(obj.Net)
     end
     
@@ -714,7 +714,7 @@ classdef SignalsExp < handle
         else
           key = KbName(keysPressed);
           if ~isempty(key)
-            post(obj.Events.keyboard, key(1));
+            post(obj.Inputs.wheel, key(1));
           end
         end
       end
