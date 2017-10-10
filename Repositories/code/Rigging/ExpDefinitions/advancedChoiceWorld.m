@@ -1,7 +1,10 @@
 function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 %% advancedChoiceWorld
-% Burgess 2AUFC task with contrast discrimination
+% Burgess 2AUFC task with contrast discrimination and baited equal contrast
+% trial conditions.  
 % 2017-03-25 Added contrast discrimination MW
+% 2017-08    Added baited trials (thanks PZH)
+% 2017-09-26 Added manual reward key presses
 
 %% parameters
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
