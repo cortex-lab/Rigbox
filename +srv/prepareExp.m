@@ -17,8 +17,8 @@ experiment.Communicator = comm;
 
 %configure actions to start and stop services
 if isfield(params, 'services') && ~isempty(params.services)
-%   services = srv.findService(params.services);
-  services = srv.loadService(params.services);
+  services = srv.findService(params.services); % Uses basicServices
+%   services = srv.loadService(params.services); % Loads BasicUDPService objects
   startServices = exp.StartServices(services);
   stopServices = exp.StopServices(services);
   experiment.addEventHandler(...
