@@ -170,13 +170,13 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay, ai] = args{:};
+          [expRef, preDelay, postDelay, Alyx] = args{:};
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay, ai);
+              runExp(expRef, preDelay, postDelay, Alyx);
               log('Experiment ''%s'' completed', expRef);
               communicator.send('status', {'completed', expRef});
             catch runEx
