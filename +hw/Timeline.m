@@ -1,4 +1,4 @@
-classdef (Sealed) Timeline < handle
+classdef Timeline < handle
 % HW.TIMELINE Returns an object that generate and aquires clocking pulses
 %   Timeline (tl) manages the aquisition and generation of experimental
 %   timing data using an NI data aquisition device.  The main timing signal
@@ -53,9 +53,10 @@ classdef (Sealed) Timeline < handle
         ClockOutputDutyCycle = 0.2 % if using 'clock' output, this specifies the duty cycle (as a fraction)
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
+        LivePlot = false % if true the data are plotted as the data are aquired
     end
     
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped, see tl.process and tl.stop
     end
     
@@ -63,7 +64,7 @@ classdef (Sealed) Timeline < handle
         SamplingInterval % defined as 1/DaqSampleRate
     end
         
-    properties (Transient, Access = private)
+    properties (Transient, Access = protected)
         Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
         Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
         CurrSysTimeTimelineOffset % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
@@ -72,10 +73,11 @@ classdef (Sealed) Timeline < handle
         NextChronoSign = 1 % the value to output on the chrono channel, the sign is changed each 'DataAvailable' event (DaqSamplesPerNotify)
         Ref % the expRef string, concatenated with the AlyxInstance used when timeline was started (if user was logged in).  See tl.start()
         Data % A structure containing timeline data
+        Axes % A figure handle for plotting the aquired data as it's processed
     end
     
     methods
-        function obj = Timeline()
+        function obj = Timeline(hw)
             % Constructor method
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
@@ -85,6 +87,18 @@ classdef (Sealed) Timeline < handle
                 'OutputOnly', 'OutputOnly', 'PulseGeneration'; % default output type
                 0, 0, 0}; % the initial delay (useful for ensure all systems are ready)
             obj.Outputs = cell2struct(defaultOutputs, {'name', 'daqChannelID', 'type', 'initialDelay'});
+            if nargin % if old tl hardware struct provided, use these to populate properties
+                obj.Inputs = hw.inputs;
+                obj.DaqVendor = hw.daqVendor;
+                obj.DaqIds = hw.daqDevice;
+                obj.DaqSampleRate = hw.daqSampleRate;
+                obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
+                obj.Outputs(1).daqChannelID = hw.chronoOutDaqChannelID;
+                obj.Outputs(2).daqChannelID = hw.acqLiveDaqChannelID;
+                obj.Outputs(3).daqChannelID = hw.clockOutputDaqChannelID;
+                obj.ClockOutputFrequency = hw.clockOutputFrequency;
+                obj.ClockOutputDutyCycle = hw.clockOutputDutyCycle;
+            end
         end
         
         function start(obj, expRef, varargin)
@@ -116,6 +130,9 @@ classdef (Sealed) Timeline < handle
                 'The clocking pulse test could not be read back');
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
+            if obj.LivePlot
+                obj.Listener(end+1) = obj.Sessions('main').addlistener('DataAvailable', @obj.livePlot);
+            end
             
             % initialise daq data array
             numSamples = obj.DaqSampleRate*obj.MaxExpectedDuration;
@@ -328,7 +345,7 @@ classdef (Sealed) Timeline < handle
             obj.Data.hw = struct('daqVendor', obj.DaqVendor, 'daqDevice', obj.DaqIds,...
                 'daqSampleRate', obj.DaqSampleRate, 'daqSamplesPerNotify', obj.DaqSamplesPerNotify,...
                 'chronoOutDaqChannelID', obj.Outputs(1).daqChannelID, 'acqLiveOutDaqChannelID', obj.Outputs(2).daqChannelID,...
-                'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency ', obj.ClockOutputFrequency,...
+                'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency', obj.ClockOutputFrequency,...
                 'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
                 'inputs', obj.Inputs, 'arrayChronoColumn', arrayChronoColumn);
             obj.Data.expRef = obj.Ref; %TODO fix for AlyxInstance ref
@@ -458,5 +475,61 @@ classdef (Sealed) Timeline < handle
             obj.LastTimestamp = event.TimeStamps(end);
         end
         
+        function livePlot(obj, ~, event)
+            % Plot the data scans as they're aquired
+            %   TL.LIVEPLOT(source, event) plots the data aquired by the
+            %   DAQ while the PlotLive property is true.
+            if isempty(obj.Axes) && obj.LivePlot
+                figure_handle = figure(); % create a figure for plotting aquired data
+                obj.Axes = gca; % store a handle to the axes
+                set(figure_handle, 'Position', [21 81 1033 1726]); % set the figure position
+            end
+            
+            nSamps = size(event.Data,1);
+            nChans = size(event.Data,2);
+            traceSep = 7;
+            
+            offsets = (1:nChans)*traceSep;
+            scales = ones(1, nChans);
+            if length(scales)<nChans
+                sc = ones(1,nChans);
+                sc(1:length(scales)) = scales;
+                scales = sc; clear sc;
+            end
+            
+            % fprintf(1, 'updating plot\n');
+            % fprintf(1, 'data is size %d x %d\n', nSamps, nChans);
+            
+            % ax = get(figHandle, 'Children'); % required to have one child, the axis
+            
+            traces = get(ax, 'Children');
+            
+            if isempty(traces)
+                plot((1:Fs*10)/Fs, zeros(Fs*10, length(names))+repmat(offsets, Fs*10, 1));
+                traces = get(ax, 'Children');
+                set(ax, 'YTick', offsets);
+                set(ax, 'YTickLabel', names);
+            end
+            
+            for t = 1:length(traces)
+                
+                if strcmp(obj.Inputs.measurement{t}, 'Position')
+                    if any(event.Data(:,t)>2^31)
+                        event.Data(event.Data(:,t)>2^31,t) = event.Data(event.Data(:,t)>2^31,t)-2^32;
+                    end
+                    event.Data(:,t) = event.Data(:,t)-event.Data(1,t);
+                end
+                
+                yy = get(traces(end-t+1), 'YData');
+                yy(1:end-nSamps) = yy(nSamps+1:end);
+                if strcmp(obj.Inputs.measurement{t}, 'Position')
+                    yy(end-nSamps+1:end) = conv(diff([event.Data(1,t); event.Data(:,t)]), gausswin(50)./sum(gausswin(50)), 'same')*scales(t) + offsets(t);
+                else
+                    yy(end-nSamps+1:end) = event.Data(:,t)*scales(t)+offsets(t);
+                end
+                set(traces(end-t+1), 'YData', yy);
+                % plot(ax, 1:size(newData,1), newData+repmat(offsets, nSamps, 1));
+            end
+        end
     end
 end
