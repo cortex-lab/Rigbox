@@ -1,6 +1,7 @@
 function s = findService(id, varargin)
 %SRV.FINDSERVICE Returns experiment service(s) with specified id(s)
-%   TODO. See also EXP.SERVICE, EXP.BASICSERVICES.
+%   This and EXP.BASICSERVICES has been replaced by SRV.LOADSERVICE. See
+%   also SRV.SERVICE, SRV.LOADSERVICE, SRV.BASICSERVICES.
 %
 % Part of Rigbox
 

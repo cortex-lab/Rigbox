@@ -1,6 +1,8 @@
 classdef RemoteRig < handle
   %SRV.REMOTERIG Interface to, and info about a remote rig setup
-  %   Detailed explanation goes here
+  %   No Longer used by srv.expServer.  This class uses the
+  %   io.TCPCommunicator as its interface (which creates java web sockets).
+  %   Replaced by SRV.STIMULUSCONTROL
   %
   % Part of Rigbox
 
