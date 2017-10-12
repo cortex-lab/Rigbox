@@ -130,9 +130,9 @@ classdef Timeline < handle
                 'The clocking pulse test could not be read back');
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
-            if obj.LivePlot
-                obj.Listener(end+1) = obj.Sessions('main').addlistener('DataAvailable', @obj.livePlot);
-            end
+%             if obj.LivePlot
+%                 obj.Listener(end+1) = obj.Sessions('main').addlistener('DataAvailable', @obj.livePlot);
+%             end
             
             % initialise daq data array
             numSamples = obj.DaqSampleRate*obj.MaxExpectedDuration;
@@ -473,22 +473,25 @@ classdef Timeline < handle
             
             %Update continuity timestamp for next check
             obj.LastTimestamp = event.TimeStamps(end);
+            % if plotting the channels live, plot the new data
+            if obj.LivePlot; obj.livePlot(event.Data); end
         end
         
-        function livePlot(obj, ~, event)
+        function livePlot(obj, data)
             % Plot the data scans as they're aquired
             %   TL.LIVEPLOT(source, event) plots the data aquired by the
             %   DAQ while the PlotLive property is true.
-            if isempty(obj.Axes) && obj.LivePlot
-                figure_handle = figure(); % create a figure for plotting aquired data
+            if isempty(obj.Axes)
+                figure(); % create a figure for plotting aquired data
                 obj.Axes = gca; % store a handle to the axes
-                set(figure_handle, 'Position', [21 81 1033 1726]); % set the figure position
+%                 set(figure_handle, 'Position', [21 81 1033 1726]); % set the figure position
             end
             
-            nSamps = size(event.Data,1);
-            nChans = size(event.Data,2);
-            traceSep = 7;
-            
+            % get the names of the inputs being recorded
+            names = pick({obj.Inputs.name}, find([obj.Inputs.arrayColumn] > -1), 'cell');
+            nSamps = size(data,1); % Get the number of samples in this chunck
+            nChans = size(data,2); % Get the number of channels
+            traceSep = 7; % ???
             offsets = (1:nChans)*traceSep;
             scales = ones(1, nChans);
             if length(scales)<nChans
@@ -497,38 +500,32 @@ classdef Timeline < handle
                 scales = sc; clear sc;
             end
             
-            % fprintf(1, 'updating plot\n');
-            % fprintf(1, 'data is size %d x %d\n', nSamps, nChans);
-            
-            % ax = get(figHandle, 'Children'); % required to have one child, the axis
-            
-            traces = get(ax, 'Children');
-            
+            traces = get(obj.Axes, 'Children'); 
             if isempty(traces)
+                Fs = obj.DaqSampleRate;
                 plot((1:Fs*10)/Fs, zeros(Fs*10, length(names))+repmat(offsets, Fs*10, 1));
-                traces = get(ax, 'Children');
-                set(ax, 'YTick', offsets);
-                set(ax, 'YTickLabel', names);
+                traces = get(obj.Axes, 'Children');
+                set(obj.Axes, 'YTick', offsets);
+                set(obj.Axes, 'YTickLabel', names);
             end
             
             for t = 1:length(traces)
-                
-                if strcmp(obj.Inputs.measurement{t}, 'Position')
-                    if any(event.Data(:,t)>2^31)
-                        event.Data(event.Data(:,t)>2^31,t) = event.Data(event.Data(:,t)>2^31,t)-2^32;
-                    end
-                    event.Data(:,t) = event.Data(:,t)-event.Data(1,t);
+                if strcmp(obj.Inputs(t).measurement, 'Position')
+                    % if a position sensor (i.e. rotary encoder) scale
+                    % by the first point and allow negative values
+                    if any(data(:,t)>2^31); data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; end
+                    data(:,t) = data(:,t)-data(1,t);
                 end
-                
-                yy = get(traces(end-t+1), 'YData');
-                yy(1:end-nSamps) = yy(nSamps+1:end);
-                if strcmp(obj.Inputs.measurement{t}, 'Position')
-                    yy(end-nSamps+1:end) = conv(diff([event.Data(1,t); event.Data(:,t)]), gausswin(50)./sum(gausswin(50)), 'same')*scales(t) + offsets(t);
+                yy = get(traces(end-t+1), 'YData'); % get current data for trace
+                yy(1:end-nSamps) = yy(nSamps+1:end); % add the new chuck for channel
+                % scale and offset the traces
+                if strcmp(obj.Inputs(t).measurement, 'Position')
+                    yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
+                        gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
                 else
-                    yy(end-nSamps+1:end) = event.Data(:,t)*scales(t)+offsets(t);
+                    yy(end-nSamps+1:end) = data(:,t)*scales(t)+offsets(t);
                 end
-                set(traces(end-t+1), 'YData', yy);
-                % plot(ax, 1:size(newData,1), newData+repmat(offsets, nSamps, 1));
+                set(traces(end-t+1), 'YData', yy); % replot with the new data
             end
         end
     end
