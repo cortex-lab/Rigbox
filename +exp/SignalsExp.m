@@ -599,8 +599,8 @@ classdef SignalsExp < handle
       KbQueueRelease();
       
       % delete cached experiment definition function from memory
-      exp_func = regexp(obj.Data.expDef, '[^\\]+(?=\.m)', 'match');
-      clear(exp_func{1})
+      [~, exp_func] = fileparts(obj.Data.expDef);
+      clear(exp_func)
     end
     
     function deleteGlTextures(obj)
