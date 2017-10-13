@@ -29,7 +29,8 @@ classdef Timeline < handle
 %   system time and the DAQ times can (and do) drift.  It also requires the
 %   Data Aquisition Toolbox and the JSONlab add-on.
 %
-%   TODO fix for AlyxInstance ref.  Saving in JSON
+%   TODO fix for AlyxInstance ref.  Write directly to disk in npy format by
+%   default.  Saving in JSON.
 %
 %   Part of Rigbox
 %   2014-01 CB created
@@ -55,7 +56,7 @@ classdef Timeline < handle
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
-        WriteToJSON = false % if true the data are written to a JSON file during acquisition.  This can be used as a failsafe option if MATLAB crashes.
+        WriteToDisk = false % if true the data are written to disk as they're aquired NB: in the future this will happen by default
     end
     
     properties (SetAccess = protected)
@@ -76,6 +77,7 @@ classdef Timeline < handle
         Ref % the expRef string, concatenated with the AlyxInstance used when timeline was started (if user was logged in).  See tl.start()
         Data % A structure containing timeline data
         Axes % A figure handle for plotting the aquired data as it's processed
+        DataFID % The data file ID for writing aquired data directly to disk
     end
     
     methods
@@ -122,14 +124,6 @@ classdef Timeline < handle
             obj.Ref = expRef; % set the current experiment ref
             init(obj, disregardInputs); % start the relevent sessions and add channels
             
-            % write data to a JASON file during aqusition as a failsafe
-            if obj.WriteToJSON
-                toolboxes = ver;
-                assert(strcmp('JSONlab Toolbox', {toolboxes.Name}),...
-                    'Unable to save JSON files: JSONlab Toolbox not found'); % JSONlab doesn't show up anyway!!
-                obj.WriteToJSON = false;
-            end
-            
             %%Send a test pulse low, then high to clocking channel & check we read it back
             idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
             outputSingleScan(obj.Sessions('chrono'), false)
@@ -145,11 +139,26 @@ classdef Timeline < handle
             numSamples = obj.DaqSampleRate*obj.MaxExpectedDuration;
             channelDirs = io.daqSessionChannelDirections(obj.Sessions('main'));
             numInputChannels = sum(strcmp(channelDirs, 'Input'));
+
+            obj.Data.savePaths = dat.expFilePath(obj.Ref, 'timeline'); %TODO fix for AlyxInstance ref
+            %find the local path to save the data to file during aquisition
+            if obj.WriteToDisk
+                fprintf(1, 'opening binary file for writing\n');
+                localPath = dat.expFilePath(obj.Ref, 'timeline', 'local'); % get the local exp data path
+                if ~dat.expExists(obj.Ref); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
+                obj.DataFID = fopen([localPath(1:end-4) '.dat'], 'w'); % open a binary data file
+                % save params now so if things crash later you at least have this record of the data type and size so you can load the dat
+                parfid = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
+                fprintf(parfid, 'type = %s\n', obj.AquiredDataType); % record the data type
+                fprintf(parfid, 'nChannels = %d\n', numInputChannels); % record the number of channels
+                fprintf(parfid, 'Fs = %d\n', obj.DaqSampleRate); % record the DAQ sample date
+                fclose(parfid); % close the file
+            end
+
             obj.Data.rawDAQData = zeros(numSamples, numInputChannels, obj.AquiredDataType);
             obj.Data.rawDAQSampleCount = 0;
             obj.Data.startDateTime = now;
             obj.Data.startDateTimeStr = datestr(obj.Data.startDateTime);
-            
             
             %%Start the DAQ acquiring
             outputSingleScan(obj.Sessions('chrono'), false) % make sure chrono is low
@@ -348,7 +357,6 @@ classdef Timeline < handle
             % replicate old tl data struct for legacy code
             idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
             arrayChronoColumn = obj.Inputs(idx).arrayColumn;
-            savePaths = dat.expFilePath(obj.Ref, 'timeline'); %TODO fix for AlyxInstance ref
             obj.Data.hw = struct('daqVendor', obj.DaqVendor, 'daqDevice', obj.DaqIds,...
                 'daqSampleRate', obj.DaqSampleRate, 'daqSamplesPerNotify', obj.DaqSamplesPerNotify,...
                 'chronoOutDaqChannelID', obj.Outputs(1).daqChannelID, 'acqLiveOutDaqChannelID', obj.Outputs(2).daqChannelID,...
@@ -356,18 +364,33 @@ classdef Timeline < handle
                 'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
                 'inputs', obj.Inputs, 'arrayChronoColumn', arrayChronoColumn);
             obj.Data.expRef = obj.Ref; %TODO fix for AlyxInstance ref
-            obj.Data.savePaths = savePaths;
             obj.Data.isRunning = obj.IsRunning;
             obj.Data.nextChronoSign = obj.NextChronoSign;
             obj.Data.lastTimestamp = obj.LastTimestamp;
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
             
+            % write hardware info to a JSON file for compatibility with database
+            if exist('savejson', 'file')
+                savejson('hw', obj.Data.hw, fullfile(obj.Data.savePaths, 'TimelineHW.json'));
+            else
+                warning('JSONlab not found - hardware information not saved to ALF')
+            end
+            
             % save tl to all paths
-            superSave(savePaths, struct('Timeline', obj.Data)); % TODO replicate old tl struct
+            superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
+            
+            % Save each recorded vector into the correct format in Timeline timebase
+            % and optionally into universal timebase if conversion is provided
+            if ~isempty(which('alf.timelineToALF'))
+                alf.timelineToALF(obj.Data, [], obj.Data.savePaths{2})
+            end
             
             % reset arrayColumn fields
             [obj.Inputs.arrayColumn] = deal(-1);
+            
+            % delete the figure axes, if necessary
+            if obj.LivePlot; close(get(obj.Axes, 'Parent')); obj.Axes = []; end
             
             % Report successful stop
             fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
@@ -480,6 +503,11 @@ classdef Timeline < handle
             
             %Update continuity timestamp for next check
             obj.LastTimestamp = event.TimeStamps(end);
+            % if writing to binary file, save data there
+            if obj.WriteToDisk && ~isempty(obj.DataFID)
+                datToWrite = cast(event.Data, obj.AquiredDataType); % Ensure data are the correct type
+                fwrite(obj.DataFID, datToWrite', obj.AquiredDataType); % Write to file
+            end
             % if plotting the channels live, plot the new data
             if obj.LivePlot; obj.livePlot(event.Data); end
         end
