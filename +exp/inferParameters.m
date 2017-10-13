@@ -49,7 +49,9 @@ try
   ExpPanel_name = [name 'ExpPanel'];
   ExpPanel_fn = [path filesep ExpPanel_name ext];
   if exist(ExpPanel_fn,'file')
-      parsStruct.expPanelFun = str2func(ExpPanel_fn);
+      cd(path)
+      parsStruct.expPanelFun = str2func(ExpPanel_name);
+%       parsStruct.expPanelFun = fileFunction(ExpPanel_fn);
   end
 catch ex
   net.delete();
