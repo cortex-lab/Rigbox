@@ -26,9 +26,10 @@ classdef Timeline < handle
 %
 %   Timeline uses the PsychToolbox function GetSecs() to get the most
 %   reliable system time (see GetSecs() and GetSecsTest()).  NB: both the
-%   system time and the DAQ times can (and do) drift.
+%   system time and the DAQ times can (and do) drift.  It also requires the
+%   Data Aquisition Toolbox and the JSONlab add-on.
 %
-%   TODO fix for AlyxInstance ref
+%   TODO fix for AlyxInstance ref.  Saving in JSON
 %
 %   Part of Rigbox
 %   2014-01 CB created
@@ -54,6 +55,7 @@ classdef Timeline < handle
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
+        WriteToJSON = false % if true the data are written to a JSON file during acquisition.  This can be used as a failsafe option if MATLAB crashes.
     end
     
     properties (SetAccess = protected)
@@ -120,6 +122,14 @@ classdef Timeline < handle
             obj.Ref = expRef; % set the current experiment ref
             init(obj, disregardInputs); % start the relevent sessions and add channels
             
+            % write data to a JASON file during aqusition as a failsafe
+            if obj.WriteToJSON
+                toolboxes = ver;
+                assert(strcmp('JSONlab Toolbox', {toolboxes.Name}),...
+                    'Unable to save JSON files: JSONlab Toolbox not found'); % JSONlab doesn't show up anyway!!
+                obj.WriteToJSON = false;
+            end
+            
             %%Send a test pulse low, then high to clocking channel & check we read it back
             idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
             outputSingleScan(obj.Sessions('chrono'), false)
@@ -130,9 +140,6 @@ classdef Timeline < handle
                 'The clocking pulse test could not be read back');
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
-%             if obj.LivePlot
-%                 obj.Listener(end+1) = obj.Sessions('main').addlistener('DataAvailable', @obj.livePlot);
-%             end
             
             % initialise daq data array
             numSamples = obj.DaqSampleRate*obj.MaxExpectedDuration;
