@@ -269,12 +269,10 @@ classdef MControl < handle
           paramStruct.type = typeNameFinal; % override type name with preferred
       end
       set(obj.ParamProfileLabel, 'String', label, 'ForegroundColor', [0 0 0]);
-      if isfield(paramStruct, 'services')&&isempty(obj.RemoteRigs.Selected.Services)
+      if isfield(paramStruct, 'services')
         %remove the services field since this application will specifically
         %set that field
         paramStruct = rmfield(paramStruct, 'services');
-%       elseif ~isempty(obj.RemoteRigs.Selected.Services)
-%           paramStruct.services = strjoin(obj.RemoteRigs.Selected.Services,', ');
       end
       obj.Parameters.Struct = paramStruct;
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
