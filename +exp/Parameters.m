@@ -183,7 +183,7 @@ classdef Parameters < handle
       % concatenate trial parameter
       trialParamValues = cat(1, trialParamValues{:});
       if isempty(trialParamValues)
-        trialParamValues = {};
+        trialParamValues = {1};
       end
       trialParams = cell2struct(trialParamValues, trialParamNames, 1)';
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);

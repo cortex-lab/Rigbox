@@ -16,6 +16,7 @@ classdef StimulusControl < handle
   properties
     Uri
     Services = {}  % List of remote services that are to be interfaced with during an experiment.  Should be a list of string ids or hostnames
+    SelectedServices % Logical array the size of Services, indicating which services to use (set by eui.MControl)
     Name
     ExpPreDelay = 0
     ExpPostDelay = 0
