@@ -28,8 +28,8 @@ classdef StartServices < exp.Action
     end
 
     function perform(obj, eventInfo, dueTime)
-      ref = dat.parseAlyxInstance(eventInfo.Experiment.AlyxInstance,...
-          eventInfo.Experiment.Data.expRef);
+      ref = dat.parseAlyxInstance(eventInfo.Experiment.Data.expRef,...
+          eventInfo.Experiment.AlyxInstance);
       n = numel(obj.Services);
       for i = 1:n
         try
