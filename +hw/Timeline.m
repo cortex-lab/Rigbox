@@ -30,7 +30,7 @@ classdef Timeline < handle
 %   Data Aquisition Toolbox and the JSONlab add-on.
 %
 %   TODO:
-%     - Fix for AlyxInstance ref
+%     - Register files to Alyx
 %     - Comment livePlot function
 %     - In future could implement option to only write to disk to avoid
 %     memory limitations when aquiring a lot of data
@@ -108,9 +108,9 @@ classdef Timeline < handle
             end
         end
         
-        function start(obj, expRef, varargin)
+        function start(obj, ref, varargin)
             % Starts tl data acquisition
-            %   TL.START(obj, expRef, [disregardInputs]) starts all DAQ
+            %   TL.START(obj, ref, [disregardInputs]) starts all DAQ
             %   sessions and adds the relevent output and input channels.
             %   'disregardInputs' is a cell array of input names (e.g.
             %   'rotaryEncoder' that temporarily not aquired if used by
@@ -124,7 +124,7 @@ classdef Timeline < handle
                 disp('Timeline already running, stopping first');
                 obj.stop();
             end
-            obj.Ref = expRef; % set the current experiment ref
+            obj.Ref = ref; % set the current experiment ref
             init(obj, disregardInputs); % start the relevent sessions and add channels
             
             %%Send a test pulse low, then high to clocking channel & check we read it back
@@ -142,13 +142,14 @@ classdef Timeline < handle
             numSamples = obj.DaqSampleRate*obj.MaxExpectedDuration;
             channelDirs = io.daqSessionChannelDirections(obj.Sessions('main'));
             numInputChannels = sum(strcmp(channelDirs, 'Input'));
-
-            obj.Data.savePaths = dat.expFilePath(obj.Ref, 'timeline'); %TODO fix for AlyxInstance ref
+            
+            expRef = dat.parseAlyxInstance(obj.Ref); % extract experiment reference from ref string (i.e. remove Alyx instance)
+            obj.Data.savePaths = dat.expFilePath(expRef, 'timeline');
             %find the local path to save the data to file during aquisition
             if obj.WriteToDisk
                 fprintf(1, 'opening binary file for writing\n');
-                localPath = dat.expFilePath(obj.Ref, 'timeline', 'local'); % get the local exp data path
-                if ~dat.expExists(obj.Ref); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
+                localPath = dat.expFilePath(expRef, 'timeline', 'local'); % get the local exp data path
+                if ~dat.expExists(expRef); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
                 obj.DataFID = fopen([localPath(1:end-4) '.dat'], 'w'); % open a binary data file
                 % save params now so if things crash later you at least have this record of the data type and size so you can load the dat
                 parfid = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
@@ -366,7 +367,7 @@ classdef Timeline < handle
                 'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency', obj.ClockOutputFrequency,...
                 'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
                 'inputs', obj.Inputs, 'arrayChronoColumn', arrayChronoColumn);
-            obj.Data.expRef = obj.Ref; %TODO fix for AlyxInstance ref
+            obj.Data.expRef = dat.parseAlyxInstance(obj.Ref); % save experiment ref
             obj.Data.isRunning = obj.IsRunning;
             obj.Data.nextChronoSign = obj.NextChronoSign;
             obj.Data.lastTimestamp = obj.LastTimestamp;
@@ -386,12 +387,18 @@ classdef Timeline < handle
                 warning('JSONlab not found - hardware information not saved to ALF')
             end
             
-            % Save each recorded vector into the correct format in Timeline
+            % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
             % conversion is provided
             if ~isempty(which('alf.timelineToALF'))
                 alf.timelineToALF(obj.Data, [],...
-                    fileparts(dat.expFilePath(obj.Ref, 'timeline', 'master')))
+                    fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
+            end
+            
+            % register files to Alyx database
+            [~, AlyxInstance] = dat.parseAlyxInstance(obj.Ref);
+            if ~isempty(AlyxInstance)
+                %TODO register files
             end
             
             % reset arrayColumn fields
@@ -404,7 +411,7 @@ classdef Timeline < handle
             if ~isempty(obj.DataFID); fclose(obj.DataFID); end
             
             % Report successful stop
-            fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
+            fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Data.expRef);
         end
     end
     

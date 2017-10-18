@@ -1,6 +1,7 @@
-function varargout = parseAlyxInstance(varargin)
+function [ref, AlyxInstance] = parseAlyxInstance(varargin)
 %DATA.PARSEALYXINSTANCE Converts input to string for UDP message and back
-%   [UDP_string] = DATA.PARSEALYXINSTANCE(AlyxInstance, ref)
+%   [UDP_string] = DATA.PARSEALYXINSTANCE(ref, AlyxInstance)
+%   [ref, AlyxInstance] = DATA.PARSEALYXINSTANCE(UDP_string)
 %
 %   The pattern for 'ref' should be '{date}_{seq#}_{subject}', with two
 %   date formats accepted, either 'yyyy-mm-dd' or 'yyyymmdd'.
@@ -12,17 +13,19 @@ function varargout = parseAlyxInstance(varargin)
 
 % 2017-10 MW created
 
-if nargin > 1 % in [AlyxInstance, ref]
-  ai = varargin{1}; % extract AlyxInstance struct
-  ref = varargin(2); % extract expRef
+if nargin > 1 % in [ref, AlyxInstance]
+  ref = varargin{1}; % extract expRef
+  ai = varargin{2}; % extract AlyxInstance struct
   if isstruct(ai) % if there is an AlyxInstance
     c = cellfun(@(fn) ai.(fn), fieldnames(ai), 'UniformOutput', false); % get fieldnames
-    varargout = strjoin([c; ref],'\'); % join into single string for UDP
-  else % otherwise just output the expRef
-    varargout = ref;
+    ref = strjoin([ref; c],'\'); % join into single string for UDP, otherwise just output the expRef
   end
 else % in [UDP_string]
   C = strsplit(varargin{1},'\'); % split string
-  varargout{1} = struct('baseURL', C{1}, 'token', C{2}, 'username', C{3}); % reconstruct AlyxInstance
-  varargout{2} = C{4}; % output expRef
+  ref = C{1}; % output expRef
+  if numel(C)>1 % if UDP string included AlyxInstance
+    AlyxInstance = struct('baseURL', C{2}, 'token', C{3}, 'username', C{4}); % reconstruct AlyxInstance
+  else
+    AlyxInstance = []; % if input was just an expRef, output empty AlyxInstance
+  end
 end
