@@ -29,8 +29,11 @@ classdef Timeline < handle
 %   system time and the DAQ times can (and do) drift.  It also requires the
 %   Data Aquisition Toolbox and the JSONlab add-on.
 %
-%   TODO fix for AlyxInstance ref.  Write directly to disk in npy format by
-%   default.  Saving in JSON.
+%   TODO:
+%     - Fix for AlyxInstance ref
+%     - Comment livePlot function
+%     - In future could implement option to only write to disk to avoid
+%     memory limitations when aquiring a lot of data
 %
 %   Part of Rigbox
 %   2014-01 CB created
@@ -370,20 +373,25 @@ classdef Timeline < handle
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
             
-            % write hardware info to a JSON file for compatibility with database
+            % save tl to all paths
+            superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
+                        
+            %  write hardware info to a JSON file for compatibility with database
             if exist('savejson', 'file')
-                savejson('hw', obj.Data.hw, fullfile(obj.Data.savePaths, 'TimelineHW.json'));
+                % save local copy
+                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json')); 
+                % save server copy
+                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json'));
             else
                 warning('JSONlab not found - hardware information not saved to ALF')
             end
             
-            % save tl to all paths
-            superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
-            
-            % Save each recorded vector into the correct format in Timeline timebase
-            % and optionally into universal timebase if conversion is provided
+            % Save each recorded vector into the correct format in Timeline
+            % timebase for Alyx and optionally into universal timebase if
+            % conversion is provided
             if ~isempty(which('alf.timelineToALF'))
-                alf.timelineToALF(obj.Data, [], obj.Data.savePaths{2})
+                alf.timelineToALF(obj.Data, [],...
+                    fileparts(dat.expFilePath(obj.Ref, 'timeline', 'master')))
             end
             
             % reset arrayColumn fields
@@ -391,6 +399,9 @@ classdef Timeline < handle
             
             % delete the figure axes, if necessary
             if obj.LivePlot; close(get(obj.Axes, 'Parent')); obj.Axes = []; end
+            
+            % close binary file, if necessary
+            if ~isempty(obj.DataFID); fclose(obj.DataFID); end
             
             % Report successful stop
             fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
