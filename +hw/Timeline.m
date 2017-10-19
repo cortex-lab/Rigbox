@@ -246,7 +246,7 @@ classdef Timeline < handle
             %   if true, this function will fail if Timeline is not running. If false,
             %   it will just return the time using Psychtoolbox GetSecs if it's not
             %   running. See also TL.PTBSECSTOTIMELINE().
-            if nargin < 1; strict = true; end
+            if nargin < 2; strict = true; end
             if obj.IsRunning
                 secs = GetSecs - obj.CurrSysTimeTimelineOffset;
             elseif strict
@@ -499,13 +499,27 @@ classdef Timeline < handle
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
             
+            %%% The chrono "out" value is flipped at a recorded time, and
+            %%% the sample index that this flip is measured is noted
+            % First, find the index of the flip in the latest chunk of data
+            idx = elementByName(obj.Inputs, 'chrono');
+            clockChangeIdx = find(sign(event.Data(:,obj.Inputs(idx).arrayColumn) - 2.5) == obj.NextChronoSign, 1);
+            
+            %Ensure the clocking pulse was detected
+            if ~isempty(clockChangeIdx)
+                clockChangeTimestamp = event.TimeStamps(clockChangeIdx);
+                obj.CurrSysTimeTimelineOffset = obj.LastClockSentSysTime - clockChangeTimestamp;
+            else
+                warning('Rigging:Timeline:timing', 'clocking pulse not detected - probably lagging more than one data chunk');
+            end
+
             %Now send the next clock pulse
             obj.NextChronoSign = -obj.NextChronoSign; % flip next chrono
             t = GetSecs; % system time before output
             outputSingleScan(obj.Sessions('chrono'), obj.NextChronoSign > 0); % send next chrono flip
             obj.LastClockSentSysTime = (t + GetSecs)/2; % record mean before/after system time
             
-            %%Store new samples into the timeline array
+            %%% Store new samples into the timeline array
             prevSampleCount = obj.Data.rawDAQSampleCount;
             newSampleCount = prevSampleCount + size(event.Data, 1);
             

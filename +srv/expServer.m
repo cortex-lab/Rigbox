@@ -16,7 +16,6 @@ rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
-useTimeline = false;
 rewardId = 1;
 
 %% Initialisation
@@ -72,7 +71,7 @@ log('Started presentation server on port %i', listenPort);
 
 if nargin < 1 || isempty(useTimelineOverride)
   % toggle use of timeline according to rig default setting
-  toggleTimeline(rig.useTimeline);
+  toggleTimeline(rig.timeline.UseTimeline);
 else
   toggleTimeline(useTimelineOverride);
 end
@@ -222,16 +221,19 @@ ShowCursor();
     
     rig.stimWindow.flip(); % clear the screen before
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %start the timeline system
-      if isfield(rig, 'disregardTimelineInputs')
-        disregardInputs = rig.disregardTimelineInputs;
+      if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
+        [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
+        rig.timeline.UseInputs(idx) = [];
+%         disregardInputs = rig.disregardTimelineInputs;
       else
         % turn off rotary encoder recording in timeline by default so
         % experiment can access it
-        disregardInputs = {'rotaryEncoder'};
+        idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+        rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      tl.start(expRef, disregardInputs);
+      rig.timeline.start(expRef);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -249,9 +251,9 @@ ShowCursor();
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %stop the timeline system
-      tl.stop();
+      rig.timeline.stop();
     end
     
     % re-enable ptb keyboard listening
@@ -346,20 +348,20 @@ rig.stimWindow.BackgroundColour = bgColour;
 
   function t = toggleTimeline(enable)
     if nargin < 1
-      enable = ~useTimeline;
+      enable = ~rig.timeline.UseTimeline;
     end
     if ~enable
-      useTimeline = false;
+      rig.timeline.UseTimeline = false;
       clock = hw.ptb.Clock; % use psychtoolbox clock
     else
-      useTimeline = true;
-      clock = hw.TimelineClock; % use timeline clock
+      rig.timeline.UseTimeline = true;
+      clock = hw.TimelineClock(rig.timeline); % use timeline clock
     end
     rig.clock = clock;
     cellfun(@(user) setClock(user, clock),...
       {'mouseInput', 'rewardController', 'lickDetector'});
     
-    t = useTimeline;
+    t = rig.timeline.UseTimeline;
     if enable
       log('Use of timeline enabled');
     else
