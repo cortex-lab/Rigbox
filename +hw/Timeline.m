@@ -34,7 +34,7 @@ classdef Timeline < handle
 %     - Comment livePlot function
 %     - In future could implement option to only write to disk to avoid
 %     memory limitations when aquiring a lot of data
-%     - Delete buffer once timeline has successfully save to zserver
+%     - Delete local binary files once timeline has successfully saved to zserver?
 %
 %   Part of Rigbox
 %   2014-01 CB created
@@ -63,12 +63,9 @@ classdef Timeline < handle
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
     
-    properties (SetAccess = protected)
-        IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped, see tl.process and tl.stop
-    end
-    
     properties (Dependent)
         SamplingInterval % defined as 1/DaqSampleRate
+        IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped (and everything saved), see tl.process and tl.stop
     end
         
     properties (Transient, Access = protected)
@@ -319,6 +316,19 @@ classdef Timeline < handle
             v = 1/obj.DaqSampleRate;
         end
         
+        function bool = get.IsRunning(obj)
+            % TL.ISRUNNING Determine whether tl is running.
+            %   timeline is officially 'running' when first acquisition
+            %   samples are in, i.e. the raw sample count is greater than 0
+            if isfield(obj.Data, 'rawDAQSampleCount')&&...
+                    obj.Data.rawDAQSampleCount > 0
+                % obj.Data.rawDAQSampleCount is greater than 0 during the first call to tl.process
+                bool = true; 
+            else % obj.Data is cleared in tl.stop, after all data are saved
+                bool = false; 
+            end
+        end
+        
         function stop(obj)
             %TL.STOP Stops Timeline data acquisition
             %   TL.STOP() Deletes the listener, saves the aquired data,
@@ -345,10 +355,7 @@ classdef Timeline < handle
             % collected
             pause(1.5);
             delete(obj.Listener) % now delete the data listener
-            
-            % turn off the timeline running flag
-            obj.IsRunning = false;
-            
+                        
             % release hardware resources
             sessions = keys(obj.Sessions); % find names of all current sessions
             for i = 1:length(sessions)
@@ -402,6 +409,9 @@ classdef Timeline < handle
                 %TODO register files
             end
             
+            % delete data from memory, tl is now officially no longer running
+            obj.Data = [];
+            
             % reset arrayColumn fields
             [obj.Inputs.arrayColumn] = deal(-1);
             
@@ -412,7 +422,7 @@ classdef Timeline < handle
             if ~isempty(obj.DataFID); fclose(obj.DataFID); end
             
             % Report successful stop
-            fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Data.expRef);
+            fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
         end
     end
     
@@ -491,9 +501,6 @@ classdef Timeline < handle
             %   LastTimestamp is the time of the last scan in the previous
             %   data chunk, and is used to ensure no data samples have been
             %   lost.
-
-            % timeline is officially 'running' when first acquisition samples are in
-            if ~obj.IsRunning; obj.IsRunning = true; end
             
             % assert continuity of this data from previous
             assert(abs(event.TimeStamps(1) - obj.LastTimestamp - obj.SamplingInterval) < 1e-8,...
