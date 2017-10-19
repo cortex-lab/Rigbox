@@ -233,7 +233,7 @@ ShowCursor();
         idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      rig.timeline.start(expRef);
+      rig.timeline.start(expRef, Alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();

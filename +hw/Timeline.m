@@ -77,7 +77,8 @@ classdef Timeline < handle
         LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
         NextChronoSign = 1 % the value to output on the chrono channel, the sign is changed each 'DataAvailable' event (DaqSamplesPerNotify)
-        Ref % the expRef string, concatenated with the AlyxInstance used when timeline was started (if user was logged in).  See tl.start()
+        Ref % the expRef string.  See tl.start()
+        AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start() 
         Data % A structure containing timeline data
         Axes % A figure handle for plotting the aquired data as it's processed
         DataFID % The data file ID for writing aquired data directly to disk
@@ -108,7 +109,7 @@ classdef Timeline < handle
             end
         end
         
-        function start(obj, ref, varargin)
+        function start(obj, expRef, Alyx, varargin)
             % Starts tl data acquisition
             %   TL.START(obj, ref, [disregardInputs]) starts all DAQ
             %   sessions and adds the relevent output and input channels.
@@ -116,15 +117,16 @@ classdef Timeline < handle
             %   'rotaryEncoder' that temporarily not aquired if used by
             %   other sessions.  For example to turn off rotary encoder
             %   recording in tl so the experiment object can access it
-            if nargin > 2 
-                disregardInputs = ensureCell(varargin{1});
+            if nargin > 3 
+                disregardInputs = ensureCell(varargin);
             else; disregardInputs = {};
             end
             if obj.IsRunning % check if it's already running, and if so, stop it
                 disp('Timeline already running, stopping first');
                 obj.stop();
             end
-            obj.Ref = ref; % set the current experiment ref
+            obj.Ref = expRef; % set the current experiment ref
+            obj.AlyxInstance = Alyx; % set the current instance of Alyx
             init(obj, disregardInputs); % start the relevent sessions and add channels
             
             %%Send a test pulse low, then high to clocking channel & check we read it back
@@ -143,7 +145,6 @@ classdef Timeline < handle
             channelDirs = io.daqSessionChannelDirections(obj.Sessions('main'));
             numInputChannels = sum(strcmp(channelDirs, 'Input'));
             
-            expRef = dat.parseAlyxInstance(obj.Ref); % extract experiment reference from ref string (i.e. remove Alyx instance)
             obj.Data.savePaths = dat.expFilePath(expRef, 'timeline');
             %find the local path to save the data to file during aquisition
             if obj.WriteToDisk
@@ -367,7 +368,7 @@ classdef Timeline < handle
                 'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency', obj.ClockOutputFrequency,...
                 'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
                 'inputs', obj.Inputs, 'arrayChronoColumn', arrayChronoColumn);
-            obj.Data.expRef = dat.parseAlyxInstance(obj.Ref); % save experiment ref
+            obj.Data.expRef = obj.Ref; % save experiment ref
             obj.Data.isRunning = obj.IsRunning;
             obj.Data.nextChronoSign = obj.NextChronoSign;
             obj.Data.lastTimestamp = obj.LastTimestamp;
@@ -396,8 +397,7 @@ classdef Timeline < handle
             end
             
             % register files to Alyx database
-            [~, AlyxInstance] = dat.parseAlyxInstance(obj.Ref);
-            if ~isempty(AlyxInstance)
+            if ~isempty(obj.AlyxInstance)
                 %TODO register files
             end
             
