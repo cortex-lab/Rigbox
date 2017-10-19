@@ -34,6 +34,7 @@ classdef Timeline < handle
 %     - Comment livePlot function
 %     - In future could implement option to only write to disk to avoid
 %     memory limitations when aquiring a lot of data
+%     - Delete buffer once timeline has successfully save to zserver
 %
 %   Part of Rigbox
 %   2014-01 CB created
@@ -59,7 +60,7 @@ classdef Timeline < handle
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
-        WriteToDisk = false % if true the data are written to disk as they're aquired NB: in the future this will happen by default
+        WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
     
     properties (SetAccess = protected)
@@ -147,7 +148,7 @@ classdef Timeline < handle
             
             obj.Data.savePaths = dat.expFilePath(expRef, 'timeline');
             %find the local path to save the data to file during aquisition
-            if obj.WriteToDisk
+            if obj.WriteBufferToDisk
                 fprintf(1, 'opening binary file for writing\n');
                 localPath = dat.expFilePath(expRef, 'timeline', 'local'); % get the local exp data path
                 if ~dat.expExists(expRef); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
@@ -536,7 +537,7 @@ classdef Timeline < handle
             %Update continuity timestamp for next check
             obj.LastTimestamp = event.TimeStamps(end);
             % if writing to binary file, save data there
-            if obj.WriteToDisk && ~isempty(obj.DataFID)
+            if obj.WriteBufferToDisk && ~isempty(obj.DataFID)
                 datToWrite = cast(event.Data, obj.AquiredDataType); % Ensure data are the correct type
                 fwrite(obj.DataFID, datToWrite', obj.AquiredDataType); % Write to file
             end
