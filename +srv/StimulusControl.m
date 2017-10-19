@@ -16,6 +16,7 @@ classdef StimulusControl < handle
   properties
     Uri
     Services = {}  % List of remote services that are to be interfaced with during an experiment.  Should be a list of string ids or hostnames
+    SelectedServices % Logical array the size of Services, indicating which services to use (set by eui.MControl)
     Name
     ExpPreDelay = 0
     ExpPostDelay = 0
@@ -109,7 +110,7 @@ classdef StimulusControl < handle
       obj.errorOnFail(r);
     end
     
-    function startExperiment(obj, expRef)
+    function startExperiment(obj, expRef, Alyx)
       %startExperiment
       %Ensure the experiment ref exists
       assert(dat.expExists(expRef), 'Experiment ref ''%s'' does not exist', expRef);
@@ -117,7 +118,7 @@ classdef StimulusControl < handle
       preDelay = obj.ExpPreDelay;
       postDelay = obj.ExpPostDelay;
       
-      r = obj.exchange({'run', expRef, preDelay, postDelay});
+      r = obj.exchange({'run', expRef, preDelay, postDelay, Alyx});
       obj.errorOnFail(r);
     end
     

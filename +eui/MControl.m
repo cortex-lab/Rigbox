@@ -6,6 +6,10 @@ classdef MControl < handle
   %     - improve it.
   %     - ensure all Parent objects specified explicitly (See GUI Layout
   %     Toolbox 2.3.1/layoutdoc/Getting_Started2.html)
+  %     - Do PrePostExpDelayEdits still store handles now it's moved to new
+  %     dialog?
+  %     - Tidy Options dialog
+  %     - Comment rigOptions function
   %   See also MC.
   %
   % Part of Rigbox
@@ -37,6 +41,7 @@ classdef MControl < handle
     ParamEditor
     ParamPanel
     BeginExpButton
+    RigOptionsButton
     NewExpFactory
     RootContainer
     Parameters
@@ -49,6 +54,7 @@ classdef MControl < handle
     Listeners
     %handles to pre (i=1) and post (i=2) experiment delay edit text controls
     PrePostExpDelayEdits
+    Services % cell array of selected services
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
@@ -348,7 +354,7 @@ classdef MControl < handle
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
       obj.log('''%s'' on ''%s'' stopped', evt.Ref, rig.Name);
       if rig == obj.RemoteRigs.Selected
-        set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
       
       % Alyx water reporting: indicate amount of water this mouse still needs     
@@ -371,16 +377,14 @@ classdef MControl < handle
     function rigConnected(obj, rig, evt) % If rig is connected...
       obj.log('Connected to ''%s''', rig.Name); % Say so in the log box
       if rig == obj.RemoteRigs.Selected
-        set(obj.BeginExpButton, 'Enable', 'on'); % Enable 'Start' button
-        set(obj.PrePostExpDelayEdits, 'Enable', 'on'); % % Enable 'Delays' boxes
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
       end
     end
     
     function rigDisconnected(obj, rig, evt) % If rig is disconnected...
       obj.log('Disconnected from ''%s''', rig.Name); % Say so in the log box
       if rig == obj.RemoteRigs.Selected 
-        set(obj.BeginExpButton, 'enable', 'off'); % Grey out 'Start' button
-        set(obj.PrePostExpDelayEdits, 'Enable', 'off'); % Grey out 'Delays' boxes
+        set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
       end
     end
     
@@ -393,7 +397,7 @@ classdef MControl < handle
     end
     
     function remoteRigChanged(obj)
-      set([obj.BeginExpButton obj.PrePostExpDelayEdits], 'enable', 'off');
+      set(obj.RigOptionsButton, 'Enable', 'off');
       rig = obj.RemoteRigs.Selected;
       if ~isempty(rig) && strcmp(rig.Status, 'disconnected')
         %attempt to connect to rig
@@ -409,16 +413,67 @@ classdef MControl < handle
           obj.log('Could not connect to ''%s'' (%s)', rig.Name, errmsg);
         end
       elseif strcmp(rig.Status, 'idle')
-        set([obj.BeginExpButton obj.PrePostExpDelayEdits], 'enable', 'on');
+        set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'on');
       end
-      set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
-      set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
     end
     
+    function rigOptions(obj)
+        rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        d = dialog('Position',[300 300 150 150],'Name', [upper(rig.Name) ' options']);
+        vbox = uix.VBox('Parent', d, 'Padding', 5);
+        bui.label('Services:', vbox); % Add 'Services' label
+        c = gobjects(1, length(rig.Services));
+        if numel(rig.Services)
+          for i = 1:length(rig.Services)
+            c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
+                'String', rig.Services{i}, 'Value', rig.SelectedServices(i));
+          end
+        else
+          bui.label('No services available', vbox);
+          i = 1;
+        end
+        uix.Empty('Parent', vbox);
+        bui.label('Delays:', vbox); % Add 'Delyas' label next to rig dropdown
+        preDelaysBox = uix.HBox('Parent', vbox);
+        bui.label('Pre', preDelaysBox);
+        pre = uicontrol('Parent', preDelaysBox,... % Add 'Pre' textbox
+            'Style', 'edit',...
+            'BackgroundColor', [1 1 1],...
+            'HorizontalAlignment', 'left',...
+            'Enable', 'on',...
+            'Callback', @(src, evt) put(obj.RemoteRigs.Selected,... % SetField 'ExpPreDelay' in obj.RemoteRigs.Selected to what ever was enetered
+            'ExpPreDelay', str2double(get(src, 'String'))));
+        postDelaysBox = uix.HBox('Parent', vbox);
+        bui.label('Post', postDelaysBox); % Add 'Post' label
+        post = uicontrol('Parent', postDelaysBox,... % Add 'Post' textbox
+            'Style', 'edit',...
+            'BackgroundColor', [1 1 1],...
+            'HorizontalAlignment', 'left',...
+            'Enable', 'on',...
+            'Callback', @(src, evt) put(obj.RemoteRigs.Selected,...  % SetField 'ExpPostDelay' in obj.RemoteRigs.Selected to what ever was enetered
+            'ExpPostDelay', str2double(get(src, 'String'))));
+        obj.PrePostExpDelayEdits = [pre post]; % Store Pre and Post values in obj
+        uix.Empty('Parent', vbox);
+        uicontrol('Parent',vbox,...
+            'Position',[89 20 70 25],...
+            'String','Okay',...
+            'Callback',@options_callback);
+        vbox.Heights = [20 repmat(15,1,i) -1 15 15 15 15 20];
+        set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
+        set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
+        function options_callback(varargin)
+            vals = get(c,'Value');
+            if iscell(vals); vals = cell2mat(vals); end
+            rig.SelectedServices = vals';
+            close(gcf)
+        end
+    end
+        
     function beginExp(obj)
-      set(obj.BeginExpButton, 'enable', 'off'); % Grey out 'Start' button
+      set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
       rig = obj.RemoteRigs.Selected; % Find which rig is selected
-      obj.Parameters.set('services', rig.Services(:),...
+      services = rig.Services(rig.SelectedServices);
+       obj.Parameters.set('services', services(:),...
         'List of experiment services to use during the experiment');
       expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
       panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct, obj);
@@ -426,7 +481,7 @@ classdef MControl < handle
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
       obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef); % Tell rig to start experiment
+      rig.startExperiment(expRef, obj.AlyxInstance); % Tell rig to start experiment
       %update the parameter set label to indicate used for this experiment
       subject = dat.parseExpRef(expRef);
       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
@@ -594,29 +649,17 @@ classdef MControl < handle
       obj.RemoteRigs = bui.Selector(controlbox, srv.stimulusControllers); % Rig dropdown box
       obj.RemoteRigs.addlistener('SelectionChanged', @(src,~) obj.remoteRigChanged); % Add listener for rig selection change
       obj.Listeners = arrayfun(@obj.listenToRig, obj.RemoteRigs.Option, 'Uni', false); % Add listeners for each rig (keep track of whether they're connected, running, etc.)
-      bui.label('Delays: Pre', controlbox); % Add 'Delyas' label next to rig dropdown
-      pre = uicontrol('Parent', controlbox,... % Add 'Pre' textbox
-        'Style', 'edit',...
-        'BackgroundColor', [1 1 1],...
-        'HorizontalAlignment', 'left',...
-        'Enable', 'off',...
-        'Callback', @(src, evt) put(obj.RemoteRigs.Selected,... % SetField 'ExpPreDelay' in obj.RemoteRigs.Selected to what ever was enetered
-        'ExpPreDelay', str2double(get(src, 'String'))));
-      bui.label('Post', controlbox); % Add 'Post' label
-      post = uicontrol('Parent', controlbox,... % Add 'Post' textbox
-        'Style', 'edit',...
-        'BackgroundColor', [1 1 1],...
-        'HorizontalAlignment', 'left',...
-        'Enable', 'off',...
-        'Callback', @(src, evt) put(obj.RemoteRigs.Selected,...  % SetField 'ExpPostDelay' in obj.RemoteRigs.Selected to what ever was enetered
-        'ExpPostDelay', str2double(get(src, 'String'))));
-      obj.PrePostExpDelayEdits = [pre post]; % Store Pre and Post values in obj
+      obj.RigOptionsButton = uicontrol('Parent', controlbox, 'Style', 'pushbutton',... % Add 'Options' button
+        'String', 'Options',...
+        'TooltipString', 'Set services and delays',...
+        'Callback', @(~,~) obj.rigOptions(),... % When pressed run 'rigOptions' function
+        'Enable', 'off');
       obj.BeginExpButton = uicontrol('Parent', controlbox, 'Style', 'pushbutton',... % Add 'Start' button
         'String', 'Start',...
         'TooltipString', 'Start an experiment using the parameters',...
         'Callback', @(~,~) obj.beginExp(),... % When pressed run 'beginExp' function
         'Enable', 'off');
-      controlbox.Sizes = [80 200 60 50 30 50 80]; % Resize the Rig and Delay boxes
+      controlbox.Sizes = [80 200 80 80]; % Resize the Rig and Delay boxes
       
       leftSideBox.Heights = [55 22];
       
