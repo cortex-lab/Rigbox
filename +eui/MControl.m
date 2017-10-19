@@ -311,17 +311,19 @@ classdef MControl < handle
                 d.start_time = thisDate;
                 d.type = 'Base';
 
-                latest_base = alyx.postData(ai, 'sessions', d);
-                if ~isfield(latest_base,'subject')
+                base_submit = alyx.postData(ai, 'sessions', d);
+                if ~isfield(base_submit,'subject')
                     obj.log(['Failed to create new session in Alyx for: ' thisSubj]);
                     disp(d);
                 end
                 obj.log(['Created new session in Alyx for: ' thisSubj]);
                 
-            else
-                latest_base = sessions{end};
-                obj.log(['Using existing session in Alyx for ' thisSubj]);
+                %Now retrieve the sessions again
+                sessions = alyx.getData(ai, ['sessions?type=Base&subject=' thisSubj]);    
             end
+            latest_base = sessions{end};
+            disp(latest_base);
+            obj.log(['Using existing session in Alyx for ' thisSubj]);
             
             
             %Now create a new SUBSESSION, using the same experiment number
