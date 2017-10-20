@@ -116,7 +116,7 @@ classdef DaqRotaryEncoder < hw.PositionSensor
     function deleteListeners(obj)
       if ~isempty(obj.DaqListener)
         delete(obj.DaqListener);
-      end;
+      end
     end
     
     function x = decodeDaq(obj, newValue)
@@ -148,7 +148,7 @@ classdef DaqRotaryEncoder < hw.PositionSensor
   end
   
   methods (Access = protected)
-    function daqListener(obj, src, event)
+    function daqListener(obj, ~, event)
       acqStartTime = obj.Clock.fromMatlab(event.TriggerTime);
       values = decode(obj, event.Data(:,obj.DaqInputChannelIdx)) - obj.ZeroOffset;
       times = acqStartTime + event.TimeStamps(:,obj.DaqInputChannelIdx);
