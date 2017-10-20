@@ -34,7 +34,11 @@ if ~file.exists(fn)
 end
 rig = load(fn);
 rig.name = name;
-rig.clock = iff(rig.timeline.UseTimeline, hw.TimelineClock(rig.timeline), hw.ptb.Clock);
+if isfield(rig, 'timeline')&&rig.timeline.UseTimeline
+    rig.clock = hw.TimelineClock(rig.timeline);
+else
+    rig.clock = hw.ptb.Clock;
+end
 rig.useDaq = pick(rig, 'useDaq', 'def', true);
 
 %% Configure common devices, if present

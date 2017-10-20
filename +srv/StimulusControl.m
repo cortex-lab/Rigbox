@@ -39,6 +39,9 @@ classdef StimulusControl < handle
     Responses %Map from message IDs to responses
     LogTimes = zeros(10000,2)
     LogCount = 0
+  end
+  
+  properties (Transient, Hidden)
     AlyxInstance = [] % Property to store rig specific Alyx token
   end
   

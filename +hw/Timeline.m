@@ -399,7 +399,7 @@ classdef Timeline < handle
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
             % conversion is provided
-            if ~isempty(which('alf.timelineToALF'))
+            if ~isempty(which('alf.timelineToALF'))&&~isempty(which('writeNPY'))
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
             end
