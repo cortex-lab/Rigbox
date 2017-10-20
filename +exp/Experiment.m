@@ -776,9 +776,13 @@ classdef Experiment < handle
         if isempty(obj.AlyxInstance)
             warning('No Alyx token set');
         else
-            [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
-            if strcmp(subject,'default'); return; end
-            alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+            try
+                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject,'default'); return; end
+                alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+            catch
+                warning('couldnt register files to alyx because no subsession found');
+            end
         end
     end
   end
