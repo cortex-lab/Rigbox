@@ -39,6 +39,7 @@ classdef StimulusControl < handle
     Responses %Map from message IDs to responses
     LogTimes = zeros(10000,2)
     LogCount = 0
+    AlyxInstance = [] % Property to store rig specific Alyx token
   end
   
   properties (Constant)
@@ -102,15 +103,15 @@ classdef StimulusControl < handle
       obj.errorOnFail(r);
     end
     
-    function quitExperiment(obj, immediately, Alyx)
+    function quitExperiment(obj, immediately)
       if nargin < 2
         immediately = false;
       end
-      r = obj.exchange({'quit', immediately, Alyx.AlyxInstance});
+      r = obj.exchange({'quit', immediately, obj.AlyxInstance});
       obj.errorOnFail(r);
     end
     
-    function startExperiment(obj, expRef, Alyx)
+    function startExperiment(obj, expRef)
       %startExperiment
       %Ensure the experiment ref exists
       assert(dat.expExists(expRef), 'Experiment ref ''%s'' does not exist', expRef);
@@ -118,7 +119,7 @@ classdef StimulusControl < handle
       preDelay = obj.ExpPreDelay;
       postDelay = obj.ExpPostDelay;
       
-      r = obj.exchange({'run', expRef, preDelay, postDelay, Alyx});
+      r = obj.exchange({'run', expRef, preDelay, postDelay, obj.AlyxInstance});
       obj.errorOnFail(r);
     end
     

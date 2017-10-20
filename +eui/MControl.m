@@ -472,6 +472,9 @@ classdef MControl < handle
     function beginExp(obj)
       set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
       rig = obj.RemoteRigs.Selected; % Find which rig is selected
+      if ~isempty(obj.AlyxInstance)
+          rig.AlyxInstance = obj.AlyxInstance;
+      end
       services = rig.Services(rig.SelectedServices);
        obj.Parameters.set('services', services(:),...
         'List of experiment services to use during the experiment');
@@ -481,7 +484,7 @@ classdef MControl < handle
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
       obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef, obj.AlyxInstance); % Tell rig to start experiment
+      rig.startExperiment(expRef); % Tell rig to start experiment
       %update the parameter set label to indicate used for this experiment
       subject = dat.parseExpRef(expRef);
       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
