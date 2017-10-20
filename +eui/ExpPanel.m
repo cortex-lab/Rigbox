@@ -11,7 +11,6 @@ classdef ExpPanel < handle
     %log entry pertaining to this experiment
     LogEntry
     Listeners
-    Alyx
   end
   
   properties (Access = protected)
@@ -38,7 +37,7 @@ classdef ExpPanel < handle
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct, Alyx)
+    function p = live(parent, ref, remoteRig, paramsStruct)
       subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
       try
         logEntry = dat.addLogEntry(... % Add new entry to log
@@ -75,15 +74,13 @@ classdef ExpPanel < handle
         @(src, ~) fun.run(true,...
         @() remoteRig.quitExperiment(true),...
         @() set(p.StopButtons, 'Enable', 'off')));
-      p.Alyx = Alyx;
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
         event.listener(remoteRig, 'ExpStarted', @p.expStarted)
         event.listener(remoteRig, 'ExpStopped', @p.expStopped)
-        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate);
-        event.listener(remoteRig, 'AlyxRequest', @p.AlyxRequest)]; % request from expServer for Alyx Instance
+        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate)];
 %       p.ElapsedTimer = timer('Period', 0.9, 'ExecutionMode', 'fixedSpacing',...
 %         'TimerFcn', @(~,~) set(p.DurationLabel, 'String',...
 %         sprintf('%i:%02.0f', floor(p.elapsed/60), mod(p.elapsed, 60))));
@@ -253,14 +250,7 @@ classdef ExpPanel < handle
           obj.event(evt.Data{2}, evt.Data{3});
       end
     end
-    
-    function AlyxRequest(obj, rig, evt)
-        ref = evt.Data; % expRef
-        try rig.setAlyxInstance(obj.Alyx.AlyxInstance); % StimulusControl obj
-        catch %log(['Failed to submit Alyx token for' ref ' to ' rig.Name]);
-        end
-    end
-    
+        
     function mergeTrialData(obj, idx, data)
       fields = fieldnames(data);
       for i = 1:numel(fields)

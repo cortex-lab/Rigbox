@@ -99,13 +99,7 @@ classdef StimulusControl < handle
         end
       end
     end
-    
-    function setAlyxInstance(obj, AlyxInstance)
-      % send AlyxInstance to experiment server
-      r = obj.exchange({'updateAlyxInstance', AlyxInstance});
-      obj.errorOnFail(r);
-    end
-    
+        
     function quitExperiment(obj, immediately)
       if nargin < 2
         immediately = false;
@@ -224,8 +218,12 @@ classdef StimulusControl < handle
 %                 end
             end
           case 'AlyxRequest'
+            % expServer requested the AlyxInstance
             ref = data; % expRef
-            % notify listeners i.e. ExpPanel of request for AlyxInstance
+            % send AlyxInstance to experiment server
+            r = obj.exchange({'updateAlyxInstance', obj.AlyxInstance});
+            obj.errorOnFail(r);
+            % notify listeners of request for AlyxInstance
             notify(obj, 'AlyxRequest', srv.ExpEvent('AlyxRequest', ref));
         end
       end

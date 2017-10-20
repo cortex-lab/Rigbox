@@ -472,14 +472,13 @@ classdef MControl < handle
     function beginExp(obj)
       set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
       rig = obj.RemoteRigs.Selected; % Find which rig is selected
-      if ~isempty(obj.AlyxInstance)
-          rig.AlyxInstance = obj.AlyxInstance;
-      end
+      % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
+      if ~isempty(obj.AlyxInstance); rig.AlyxInstance = obj.AlyxInstance; end
       services = rig.Services(rig.SelectedServices);
        obj.Parameters.set('services', services(:),...
         'List of experiment services to use during the experiment');
       expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
-      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct, obj);
+      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
       obj.LastExpPanel = panel;
       panel.Listeners = [panel.Listeners
         event.listener(obj, 'Refresh', @(~,~)panel.update())];
