@@ -403,11 +403,18 @@ classdef Timeline < handle
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
             end
-            
-            % register files to Alyx database
-            if ~isempty(obj.AlyxInstance)
-                %TODO register files
+
+            % register Timeline.mat file to Alyx database
+            [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+            if ~isempty(obj.AlyxInstance) && ~strcmp(subject,'default')
+                try
+                    alyx.registerFile(subject,[],'Timeline',obj.Data.savePaths{end},'zserver',obj.AlyxInstance);
+                catch
+                    warning('couldnt register files to alyx');
+                end
             end
+            %TODO: Register ALF components to alyx, instead of the main
+            %Timeline.mat file
             
             % delete data from memory, tl is now officially no longer running
             obj.Data = [];
