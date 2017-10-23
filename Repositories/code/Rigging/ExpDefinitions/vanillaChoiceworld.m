@@ -33,13 +33,6 @@ staircaseMiss = 1;
 contrasts = [1,0.5,0.25,0.125,0.06,0];
 % (which conrasts to use at the beginning of training)
 startingContrasts = [true,true,false,false,false,false];
-%%%%%%%%%%%%%% NOTE: FOR NOW MAKING THIS TRUE FROM THE BEGINNING
-%%%%%%%%%%%%%% THIS IS BECAUSE NEED TO FIX LOOKING FOR OLD CHOICEWORLD:
-%%%%%%%%%%%%%% MAKE IT BE THE LAST CHOICEWORLD, NOT THE LAST EXPT
-startingContrasts = [true,true,true,true,true,true];
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%
 % (which contrasts to repeat on miss)
 repeatOnMiss = [true,true,false,false,false,false];
 % (number of trials to judge rolling performance)
@@ -47,7 +40,7 @@ trialsToBuffer = 50;
 % (number of trials after introducing 12.5% contrast to introduce 0%)
 trialsToZeroContrast = 500;
 sigma = [20,20];
-spatialFrequency = 0.01;
+spatialFreq = 1/15;
 stimFlickerFrequency = 5; % DISABLED BELOW
 startingAzimuth = 90;
 responseDisplacement = 90;
@@ -128,12 +121,14 @@ trialContrast = trialData.trialContrast;
 %% Give feedback and end trial
 
 % Give reward on hit
-water = at(rewardSize,trialData.hit);  
+% NOTE: there is a 10ms delay for water output, because otherwise water and
+% stim output compete and stim is delayed
+water = at(rewardSize,trialData.hit.delay(0.01));  
 outputs.reward = water;
 totalWater = water.scan(@plus,0);
 
 % Play noise on miss
-audio.missNoise = missNoiseSamples.at(trialData.miss);
+audio.missNoise = missNoiseSamples.at(trialData.miss.delay(0.01));
 
 % ITI defined by outcome
 iti = response.delay(trialData.hit.at(response)*itiHit + trialData.miss.at(response)*itiMiss);
@@ -147,17 +142,21 @@ endTrial = iti;
 %% Visual stimulus
 
 % Azimuth control
-% Stim fixed in place before interactive and after response, wheel-conditional otherwise
+% 1) stim fixed in place until interactive on
+% 2) wheel-conditional during interactive
+% 3) fixed at response displacement azimuth after response
 stimAzimuth = cond( ...
     events.newTrial.to(interactiveOn), startingAzimuth*trialData.trialSide, ...
-    interactiveOn.to(response), startingAzimuth*trialData.trialSide + stimDisplacement);
+    interactiveOn.to(response), startingAzimuth*trialData.trialSide + stimDisplacement, ...
+    response.to(events.newTrial), ...
+    startingAzimuth*trialData.trialSide.at(interactiveOn) + sign(stimDisplacement.at(response))*responseDisplacement);
 
 % Stim flicker
 stimFlicker = sin((t - t.at(stimOn))*stimFlickerFrequency*2*pi) > 0;
 
 stim = vis.grating(t, 'square', 'gaussian');
 stim.sigma = sigma;
-stim.spatialFrequency = spatialFrequency;
+stim.spatialFreq = spatialFreq;
 stim.phase = 2*pi*events.newTrial.map(@(v)rand);
 stim.azimuth = stimAzimuth;
 %stim.contrast = trialContrast.at(stimOn)*stimFlicker;
@@ -247,17 +246,29 @@ trialDataInit.sessionPerformance = ...
     zeros(size(unique([-contrasts,contrasts])))];
 
 %%%% Load the last experiment for the subject if it exists
-% (note: MC creates folder on initilization, so look for > 1)
+% (note: MC creates folder on initilization, so start search at 1-back)
 expRef = dat.listExps(subject);
+useOldParams = false;
 if length(expRef) > 1
-    previousBlockFilename = dat.expFilePath(expRef{end-1}, 'block', 'master');
-    if exist(previousBlockFilename,'file')
-        previousBlock = load(previousBlockFilename);
-    end
+    % Loop through blocks from latest to oldest, if any have the relevant
+    % parameters then carry them over
+    for check_expt = length(expRef)-1:-1:1
+        previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
+        if exist(previousBlockFilename,'file')
+            previousBlock = load(previousBlockFilename);
+        end
+        % Check if the relevant fields exist
+        if exist('previousBlock','var') && isfield(previousBlock.block,'events') && ...
+                all(isfield(previousBlock.block.events, ...
+                {'useContrastsValues','hitBufferValues','trialsToZeroContrastValues'}))
+            % Break the loop and use these parameters
+            useOldParams = true;
+            break
+        end       
+    end        
 end
-if exist('previousBlock','var') && isfield(previousBlock.block,'events') && ...
-        all(isfield(previousBlock.block.events, ...
-        {'useContrastsValues','hitBufferValues','trialsToZeroContrastValues'}))
+
+if useOldParams
     % If the last experiment file has the relevant fields, set up performance
     
     % Which contrasts are currently in use
@@ -271,9 +282,9 @@ if exist('previousBlock','var') && isfield(previousBlock.block,'events') && ...
     
     % The countdown to adding 0% contrast
     trialDataInit.trialsToZeroContrast = previousBlock.block. ...
-        events.trialsToZeroContrastValues(end);      
-       
-else    
+        events.trialsToZeroContrastValues(end);
+    
+else
     % If this animal has no previous experiments, initialize performance
     trialDataInit.useContrasts = startingContrasts;
     trialDataInit.hitBuffer = nan(trialsToBuffer,length(contrasts));
