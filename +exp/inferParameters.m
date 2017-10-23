@@ -43,6 +43,16 @@ try
   parsStruct.numRepeats = ones(1,max(sz)); % add 'numRepeats' parameter
   parsStruct.defFunction = expdef;
   parsStruct.type = 'custom';
+  % Define the ExpPanel to use (automatically by name convention for now)
+  [path, name, ext] = fileparts(expdef);
+  ExpPanel_name = [name 'ExpPanel'];
+  ExpPanel_fn = [path filesep ExpPanel_name ext];
+  if exist(ExpPanel_fn,'file')
+      parsStruct.expPanelFun = str2func(ExpPanel_fn);
+      cd(path)
+      parsStruct.expPanelFun = str2func(ExpPanel_name);
+      %       parsStruct.expPanelFun = fileFunction(ExpPanel_fn);
+  end
 catch ex
   net.delete();
   rethrow(ex)
