@@ -20,9 +20,7 @@ classdef MControl < handle
   % specific expDef that was selected
   
   properties
-      AlyxInstance = [];
-      AlyxUsername = [];
-      weighingsUnpostedToAlyx = {}; % holds weighings until someone logs in, to be posted
+    LoggingDisplay % control for showing log output
   end
   
   properties (SetAccess = private)
@@ -37,9 +35,9 @@ classdef MControl < handle
   end
   
   properties (Access = private)
-    LoggingDisplay %control for showing log output
     ParamEditor
     ParamPanel
+    AlyxPanel % holds the AlyxPanel object (see buildUI() & eui.AlyxPanel())
     BeginExpButton
     RigOptionsButton
     NewExpFactory
@@ -91,6 +89,8 @@ classdef MControl < handle
       obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
         'TimerFcn', @(~,~)notify(obj, 'Refresh'));
       start(obj.RefreshTimer);
+      addlistener(obj.AlyxPanel, 'Connected', @obj.expSubjectChanged);
+      addlistener(obj.AlyxPanel, 'Disconnected', @obj.expSubjectChanged);
       try
         if isfield(rig, 'scale') && ~isempty(rig.scale)
           obj.WeighingScale = fieldOrDefault(rig, 'scale');
@@ -98,7 +98,7 @@ classdef MControl < handle
           obj.Listeners = [obj.Listeners,...
             {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}];
         end
-      catch ex
+      catch
         obj.log('Warning: could not connect to weighing scales');
       end      
       
@@ -111,19 +111,40 @@ classdef MControl < handle
         delete(obj.RootContainer);
       end
     end
-%   end
-%   
-%   methods (Access = protected) % test by NS - remove protection of these
-%   methods, so that alyxPanel can access them... not sure what is the
-%   tradeoff/danger
+  end
+  
+  methods (Access = protected)
     function newScalesReading(obj, ~, ~)
       if obj.TabPanel.SelectedChild == 1 && obj.LogTabs.SelectedChild == 2
         obj.plotWeightReading(); %refresh weighing scale reading
       end
     end
     
-    function expSubjectChanged(obj)
-      obj.expTypeChanged();
+    function expSubjectChanged(obj, ~, src)
+        % Function deals with subject dropdown list changes
+        switch src.EventName
+            case 'SelectionChanged' % user selected a new subject
+                % 'refresh' experiment type - this method allows the relevent parameters to be loaded for the new subject
+                obj.expTypeChanged(); 
+            case 'Connected' % user logged in to Alyx
+                % Change subject list to database list
+                obj.NewExpSubject.Option = obj.AlyxPanel.SubjectList;
+                obj.LogSubject.Option = obj.AlyxPanel.SubjectList;
+                % if selected is not in the database list, switch to
+                % default
+                if ~any(strcmp(obj.NewExpSubject.Selected, obj.AlyxPanel.SubjectList))
+                    obj.NewExpSubject.Selected = 'default';
+                    obj.expTypeChanged();
+                end
+                if ~any(strcmp(obj.LogSubject.Selected, obj.AlyxPanel.SubjectList))
+                    obj.LogSubject.Selected = 'default';
+                    obj.expTypeChanged();
+                end
+                obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
+            case 'Disconnected' % user logged out of Alyx
+                obj.NewExpSubject.Option = dat.listSubjects;
+                obj.LogSubject.Option = dat.listSubjects;
+        end
     end
     
     function expTypeChanged(obj)
@@ -320,7 +341,7 @@ classdef MControl < handle
                 latest_base = alyx.postData(ai, 'sessions', d);
                 if ~isfield(latest_base,'subject')
                     obj.log(['Failed to create new session in Alyx for: ' thisSubj]);
-                    disp(d);
+                    disp(d)
                 end
                 obj.log(['Created new session in Alyx for: ' thisSubj]);
                 
@@ -343,7 +364,7 @@ classdef MControl < handle
             subsession = alyx.postData(ai, 'sessions', d);
             if ~isfield(subsession,'subject')
                 obj.log(['Failed to create new sub-session in Alyx for: ' thisSubj]);
-                disp(d);
+                disp(d)
             end
             obj.log(['Created new sub-session in Alyx for: ', thisSubj]);
 
@@ -374,14 +395,14 @@ classdef MControl < handle
       end
     end
     
-    function rigConnected(obj, rig, evt) % If rig is connected...
+    function rigConnected(obj, rig, ~) % If rig is connected...
       obj.log('Connected to ''%s''', rig.Name); % Say so in the log box
       if rig == obj.RemoteRigs.Selected
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
       end
     end
     
-    function rigDisconnected(obj, rig, evt) % If rig is disconnected...
+    function rigDisconnected(obj, rig, ~) % If rig is disconnected...
       obj.log('Disconnected from ''%s''', rig.Name); % Say so in the log box
       if rig == obj.RemoteRigs.Selected 
         set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
@@ -457,11 +478,11 @@ classdef MControl < handle
         uicontrol('Parent',vbox,...
             'Position',[89 20 70 25],...
             'String','Okay',...
-            'Callback',@options_callback);
+            'Callback',@rigOptions_callback);
         vbox.Heights = [20 repmat(15,1,i) -1 15 15 15 15 20];
         set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
         set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
-        function options_callback(varargin)
+        function rigOptions_callback(varargin)
             vals = get(c,'Value');
             if iscell(vals); vals = cell2mat(vals); end
             rig.SelectedServices = vals';
@@ -473,7 +494,14 @@ classdef MControl < handle
       set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
       rig = obj.RemoteRigs.Selected; % Find which rig is selected
       % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-      if ~isempty(obj.AlyxInstance); rig.AlyxInstance = obj.AlyxInstance; end
+      if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
+        try
+          obj.AlyxPanel.login();
+        catch
+          warning('Must be logged in to Alyx before running an experiment')
+        end
+      end
+      if ~isempty(obj.AlyxPanel.AlyxInstance); rig.AlyxInstance = obj.AlyxPanel.AlyxInstance; end
       services = rig.Services(rig.SelectedServices);
        obj.Parameters.set('services', services(:),...
         'List of experiment services to use during the experiment');
@@ -556,22 +584,8 @@ classdef MControl < handle
       dat.addLogEntry(subject, now, 'weight-grams', grams, '');            
       
       obj.log('Logged weight of %.1fg for ''%s''', grams, subject);
-      
-      d.subject = subject;
-      d.weight = grams;
-      d.user = obj.AlyxUsername;
-      
-      if ~isempty(obj.AlyxInstance)
-          try
-              w = alyx.postData(obj.AlyxInstance, 'weighings/', d);
-              obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
-          catch
-              obj.log('Warning: Alyx weight posting failed!');
-          end
-      else
-          obj.weighingsUnpostedToAlyx{end+1} = d;
-          obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
-      end
+      % post weight to Alyx
+      obj.AlyxPanel.recordWeight(grams, subject)
       
       %refresh log entries so new weight reading is plotted
       obj.Log.setSubject(obj.LogSubject.Selected);
@@ -586,7 +600,7 @@ classdef MControl < handle
       % tabs for doing different things with the selected subject
       obj.TabPanel = uiextras.TabPanel('Parent', obj.RootContainer, 'Padding', 5);
       obj.LoggingDisplay = uicontrol('Parent', obj.RootContainer, 'Style', 'listbox',...
-        'Enable', 'inactive', 'String', {}); % This is the messege area at the bottom of mc
+        'Enable', 'inactive', 'String', {}, 'Tag', 'Logging Display'); % This is the messege area at the bottom of mc
       obj.RootContainer.Sizes = [-1 72]; % TabPanel variable size with wieght 1; LoggingDisplay fixed height of 72px
       
       %% Log tab
@@ -638,7 +652,7 @@ classdef MControl < handle
       obj.NewExpSubject = bui.Selector(topgrid, dat.listSubjects); % Subject dropdown box
       set(subjectLabel, 'FontSize', 11); % Make 'Subject' label larger
       set(obj.NewExpSubject.UIControl, 'FontSize', 11); % Make dropdown box text larger
-      obj.NewExpSubject.addlistener('SelectionChanged', @(~,~) obj.expSubjectChanged()); % Add listener for subject selection
+      obj.NewExpSubject.addlistener('SelectionChanged', @obj.expSubjectChanged); % Add listener for subject selection
       obj.NewExpType = bui.Selector(topgrid, {obj.NewExpFactory.label}); % Make experiment type dropdown box
       obj.NewExpType.addlistener('SelectionChanged', @(~,~) obj.expTypeChanged()); % Add listener for experiment type change
       
@@ -666,7 +680,8 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      eui.AlyxPanel(obj, headerBox);
+      obj.AlyxPanel = eui.AlyxPanel(headerBox);
+      addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
       % a titled panel for the parameters editor
       param = uiextras.Panel('Parent', newExpBox, 'Title', 'Parameters', 'Padding', 5);
