@@ -377,12 +377,12 @@ classdef MControl < handle
       if rig == obj.RemoteRigs.Selected
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
-      
+      rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
       % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(obj.AlyxInstance)
+      if ~isempty(obj.AlyxPanel.AlyxInstance)
           try              
               subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(obj.AlyxInstance, ...
+              sd = alyx.getData(obj.AlyxPanel.AlyxInstance, ...
                   sprintf('subjects/%s', subject));
               obj.log(sprintf(...
                   'Water requirement remaining for %s: %.2f (%.2f already given)', ...

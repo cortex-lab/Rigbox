@@ -1,5 +1,7 @@
 classdef AlyxPanel < handle
-    
+    % EUI.ALYXPANEL A GUI for interating with the Alyx database
+    %   This class is emplyed by mc (but may also be used stand-alone) to
+    %   post weights and water administations to the Alyx database. 
     properties (SetAccess = private)
         AlyxInstance = [];
         AlyxUsername = [];
@@ -226,6 +228,9 @@ classdef AlyxPanel < handle
         end
         
         function giveWater(obj)
+            % Callback to the give water button.  Posts the value entered
+            % in the text box as either liquid or gel depending on the
+            % state of the 'is hydrogel' check box
             ai = obj.AlyxInstance;
             thisDate = now;
             amount = str2double(get(obj.WaterEntry, 'String'));
@@ -237,19 +242,21 @@ classdef AlyxPanel < handle
                     obj.log('%s administration of %.2f for %s posted successfully to alyx', wstr, amount, obj.Subject);
                 end
             end
+            % update the water required text
             dispWaterReq(obj);
         end
         
         
         function giveFutureGel(obj)
+            % Open a dialog allowing one to input water submissions for
+            % future dates
             ai = obj.AlyxInstance;
             thisDate = now;
             prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter 0 to skip a day');
             answer = inputdlg(prompt,'Future Gel Amounts', [1 50]);
-            if isempty(answer)||isempty(ai); return; end
+            if isempty(answer)||isempty(ai); return; end % user pressed 'Close' or 'x'
             amount = str2double(answer{:});
             weekendDates = thisDate + (1:length(amount));
-            
             for d = 1:length(weekendDates)
                 if amount(d) > 0
                     alyx.postWater(ai, obj.Subject, amount(d), weekendDates(d), 1);
@@ -259,6 +266,10 @@ classdef AlyxPanel < handle
         end
         
         function dispWaterReq(obj, src, ~)
+            % Display the amount of water required by the selected subject
+            % for it to reach its minimum requirement.  This function is
+            % also used to update the selected subject, i.e. it is this
+            % funtion to use as a callback to subject dropdown listeners
             ai = obj.AlyxInstance;
             % Set the selected subject if it is an input
             if nargin>2; obj.Subject = src.Selected; end
@@ -276,7 +287,6 @@ classdef AlyxPanel < handle
                       obj.Subject, s.water_requirement_remaining, s.water_requirement_total));
                   obj.AlyxInstance.water_requirement_remaining = s.water_requirement_remaining;
               end
-              
             catch me
               d = loadjson(me.message);
               if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
@@ -286,6 +296,10 @@ classdef AlyxPanel < handle
         end
         
         function changeWaterText(obj, src, ~)
+            % Update the panel text to show the amount of water still
+            % required for the subject to reach its minimum requirement.
+            % This text is updated before the value in the water text box
+            % has been posted to Alyx
             ai = obj.AlyxInstance;
             if ~isempty(ai) && isfield(ai, 'water_requirement_remaining') && ~isempty(ai.water_requirement_remaining)
                 rem = ai.water_requirement_remaining;
@@ -295,25 +309,31 @@ classdef AlyxPanel < handle
         end
         
         function recordWeight(obj, weight, subject)
+            % Post a subject's weight to Alyx.  If no inputs are provided,
+            % create an input dialog for the user to input a weight.  If no
+            % subject is provided, use this object's currently selected
+            % subject
             ai = obj.AlyxInstance;
             if isempty(ai); return; end
             if nargin < 3; subject = obj.Subject; end
             if nargin < 2
                 prompt = {sprintf('weight of %s:', subject)};
-                dlg_title = 'Manual weight logging';
-                num_lines = 1;
-                defaultans = {'',''};
-                weight = inputdlg(prompt,dlg_title,num_lines,defaultans);
+                dlgTitle = 'Manual weight logging';
+                numLines = 1;
+                defaultAns = {'',''};
+                weight = inputdlg(prompt, dlgTitle, numLines, defaultAns);
                 if isempty(weight); return; end
             end
-            % ensure the weight is a string
-            weight = iff(ischar(weight), str2double(weight), weight);
+            % inputdlg returns weight as a cell, otherwise it may now be
+            weight = ensureCell(weight); % ensure it's a cell
+            % convert to double if weight is a string
+            weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
             d.subject = subject;
             d.weight = weight;
-            if isemptry(ai)
+            if isempty(ai) % if not logged in, save the weight for later
                 obj.AlyxPanel.weighingsUnpostedToAlyx{end+1} = d;
                 obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
-            else
+            else % otherwise immediately post to Alyx
                 try
                     w = alyx.postData(ai, 'weighings/', d);
                     obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);

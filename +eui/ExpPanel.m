@@ -220,12 +220,11 @@ classdef ExpPanel < handle
           if ~any(amount); return; end % Return if no water was given
           try
             alyx.postWater(ai, subject, amount*0.001, now, false);
-            obj.log('Water administration of %.2f for %s posted successfully to Alyx', amount*0.001, subject);
+            sprintf('Water administration of %.2f for %s posted successfully to Alyx', amount*0.001, subject);
           catch
-            obj.log('Warning: failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
+            warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
       end
-      rig.AlyxInstance = []; % remove AlyxInstance
     end
     
     function expUpdate(obj, rig, evt)
@@ -294,21 +293,6 @@ classdef ExpPanel < handle
       disp('saving comments');
       obj.LogEntry.comments = get(src, 'String');
       obj.saveLogEntry();
-    end
-    
-    function log(obj, varargin)
-        % Function for displaying timestamped information about
-        % occurrences
-        logPanel = findobj('Tag', 'Logging Display');
-        message = sprintf(varargin{:});
-        if ~isempty(logPanel)
-            timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
-            str = sprintf('[%s] %s', timestamp, message);
-            current = get(obj.LoggingDisplay, 'String');
-            set(obj.LoggingDisplay, 'String', [current; str], 'Value', numel(current) + 1);
-        else
-            fprintf(message)
-        end
     end
     
     function build(obj, parent)
