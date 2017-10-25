@@ -314,7 +314,6 @@ classdef AlyxPanel < handle
             % subject is provided, use this object's currently selected
             % subject
             ai = obj.AlyxInstance;
-            if isempty(ai); return; end
             if nargin < 3; subject = obj.Subject; end
             if nargin < 2
                 prompt = {sprintf('weight of %s:', subject)};
