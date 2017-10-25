@@ -321,7 +321,7 @@ classdef MControl < handle
         
         [thisSubj,~,thisExpNum] = dat.parseExpRef(evt.Ref);
         
-        ai = obj.AlyxInstance;
+        ai = obj.AlyxPanel.AlyxInstance;
         if ~isempty(ai) %Find/create BASE session, then create subsession
             
             if strcmp(thisSubj,'default'); return; end
