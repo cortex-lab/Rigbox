@@ -532,14 +532,6 @@ classdef AlyxPanel < handle
             end
         end
         
-        function val = hydrogelVal(x)
-            if isempty(x)
-                val = false;
-            else
-                val = logical(x);
-            end
-        end
-                
         function log(obj, varargin)
             % Function for displaying timestamped information about
             % occurrences
