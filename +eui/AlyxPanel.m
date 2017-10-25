@@ -20,9 +20,10 @@ classdef AlyxPanel < handle
         IsHydrogel % UI checkbox indicating whether to water to be given is in gel form
         WaterRequiredText % Handle to text UI element displaying the water required
         WaterRemainingText % Handle to text UI element displaying the water remaining
+        LoginTimer % Timer to keep track of how long the user has been logged in, when this expires the user is automatically logged out
     end
     
-    events
+    events (NotifyAccess = 'protected')
         Connected % Notified when logged in to database
         Disconnected % Notified when logged out of database
     end
@@ -154,8 +155,25 @@ classdef AlyxPanel < handle
                 obj.LoggingDisplay = findobj('Tag', 'Logging Display');
             end
         end
-                
+        
+        function delete(obj)
+            % To be called before destroying AlyxPanel object.  Deletes the
+            % loggin timer
+            disp('AlyxPanel destructor called');
+            if obj.RootContainer.isvalid; delete(obj.RootContainer); end
+            if ~isempty(obj.LoginTimer) % If there is a timer object
+                stop(obj.LoginTimer) % Stop the timer...
+                delete(obj.LoginTimer) % ... delete it...
+                obj.LoginTimer = []; % ... and remove it
+            end
+        end
+        
         function login(obj)
+            % Used both to log in and out of Alyx.  Logging means to
+            % generate an Alyx token with which to send/request data.
+            % Logging out does not cause the token to expire, instead the
+            % token is simply deleted from this object.
+            
             % Are we logging in or out?
             if isempty(obj.AlyxInstance) % logging in
                 % attempt login
@@ -163,6 +181,11 @@ classdef AlyxPanel < handle
                 if ~isempty(ai) % successful
                     obj.AlyxInstance = ai;
                     obj.AlyxUsername = username;
+                    % Start log in timer, to automatically log out after 20
+                    % minutes of 'inactivity' (defined as not calling
+                    % dispWaterReq)
+                    obj.LoginTimer = timer('StartDelay', 20*60, 'TimerFcn', @(~,~)obj.login);
+                    start(obj.LoginTimer)
                     % Enable all buttons
                     set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
                     set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxUsername]); % display which user is logged in
@@ -218,6 +241,11 @@ classdef AlyxPanel < handle
                 obj.AlyxInstance = [];
                 obj.AlyxUsername = [];
                 obj.SubjectList = [];
+                if ~isempty(obj.LoginTimer) % If there is a timer object
+                    stop(obj.LoginTimer) % Stop the timer...
+                    delete(obj.LoginTimer) % ... delete it...
+                    obj.LoginTimer = []; % ... and remove it
+                end
                 set(obj.LoginText, 'String', 'Not logged in')
                 % Disable all buttons
                 set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'off')
@@ -245,7 +273,6 @@ classdef AlyxPanel < handle
             % update the water required text
             dispWaterReq(obj);
         end
-        
         
         function giveFutureGel(obj)
             % Open a dialog allowing one to input water submissions for
@@ -277,6 +304,8 @@ classdef AlyxPanel < handle
               set(obj.WaterRequiredText, 'String', 'Log in to see water requirements');
               return
             end
+            % Refresh the timer as the user isn't inactive
+            stop(obj.LoginTimer); start(obj.LoginTimer)
             try
               s = alyx.getData(ai, alyx.makeEndpoint(ai, ['subjects/' obj.Subject])); % struct with data about the subject
               if s.water_requirement_total==0
@@ -473,14 +502,6 @@ classdef AlyxPanel < handle
             end
         end
         
-        function val = hydrogelVal(x)
-            if isempty(x)
-                val = false;
-            else
-                val = logical(x);
-            end
-        end
-        
         function viewAllSubjects(obj)
             ai = obj.AlyxInstance;
             if ~isempty(ai)
@@ -512,6 +533,14 @@ classdef AlyxPanel < handle
             end
         end
         
+        function val = hydrogelVal(x)
+            if isempty(x)
+                val = false;
+            else
+                val = logical(x);
+            end
+        end
+                
         function log(obj, varargin)
             % Function for displaying timestamped information about
             % occurrences

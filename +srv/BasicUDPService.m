@@ -61,6 +61,7 @@ classdef BasicUDPService < srv.Service
         obj.Socket = []; % Delete udp object
         obj.Listener = []; % Delete any listeners to that object
         if ~isempty(obj.ResponseTimer) % If there is a timer object 
+          stop(obj.ResponseTimer) % Stop the timer..
           delete(obj.ResponseTimer) % Delete the timer...
           obj.ResponseTimer = []; % ... and remove it
         end
@@ -135,8 +136,9 @@ classdef BasicUDPService < srv.Service
       obj.AwaitingConfirmation = true;
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimout)
-        obj.ResponseTimer = timer('Period', obj.ResponseTimout,...
-          'TimerFcn', @processMsg);
+        obj.ResponseTimer = timer('StartDelay', obj.ResponseTimout,...
+          'TimerFcn', @(~,~)obj.processMsg);
+        start(obj.ResponseTimer) % start the timer
       end
     end
     
@@ -158,20 +160,30 @@ classdef BasicUDPService < srv.Service
   
   methods (Access = protected)
     function processMsg(obj, ~, ~)
-      response = obj.LastReceivedMessage;
+      % Parse the message into its constituent parts
+      response = regexp(obj.LastReceivedMessage,...
+          '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
+      % Check that the message was from the correct host, otherwise ignore
+      if strcmp(response.host, obj.RemoteHost)
+          warning('Received message from %s, ignoring', response.host);
+          return
+      end
       if obj.AwaitingConfirmation
       % Check the confirmation message is the same as the sent message
         assert(~isempty(response)||... % something received
-            strcmp(response, 'WHAT')||... % status update
-            strcmp(response, obj.LastSentMessage),... % is echo
+            strcmp(response.status, 'WHAT')||... % status update
+            strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
           'Confirmation failed')
-      % We no longer need the timer, delete it
-        if ~isempty(obj.ResponseTimer);delete(obj.ResponseTimer); end
-        obj.ResponseTimer = [];
+      % We no longer need the timer, stop and delete it
+        if ~isempty(obj.ResponseTimer)
+            stop(obj.ResponseTimer)
+            delete(obj.ResponseTimer)
+            obj.ResponseTimer = [];
+        end
       end
       % At the moment we just disply some stuff, other functions listening
       % to the MessageReceived event can do their thing
-      switch obj.LastReceivedMessage(1:4)
+      switch response.status
         case 'GOGO'
           if obj.AwaitingConfirmation
             obj.Status = 'running';
@@ -192,7 +204,7 @@ classdef BasicUDPService < srv.Service
           end
         case 'WHAT'
           % TODO fix status updates so that they're meaningful
-          parsed = regexp(response, '(?<status>[A-Z]+)(?<id>\d+)(?<update>[a-z]*)\*', 'names');
+          parsed = regexp(response.body, '(?<id>\d+)(?<update>[a-z]*)', 'names');
           if obj.AwaitingConfirmation
             try
               assert(strcmp(parsed.id, int2str(obj.ConfirmID)), 'Rigbox:srv:unexpectedUDPResponse',...

@@ -565,6 +565,8 @@ classdef MControl < handle
         delete(obj.RefreshTimer);
         obj.RefreshTimer = [];
       end
+      % delete the AlyxPanel object
+      if ~isempty(obj.AlyxPanel); delete(obj.AlyxPanel); end
       %close connectiong to weighing scales
       if ~isempty(obj.WeighingScale)
         obj.WeighingScale.cleanup();
