@@ -181,10 +181,10 @@ classdef AlyxPanel < handle
                 if ~isempty(ai) % successful
                     obj.AlyxInstance = ai;
                     obj.AlyxUsername = username;
-                    % Start log in timer, to automatically log out after 20
+                    % Start log in timer, to automatically log out after 30
                     % minutes of 'inactivity' (defined as not calling
                     % dispWaterReq)
-                    obj.LoginTimer = timer('StartDelay', 20*60, 'TimerFcn', @(~,~)obj.login);
+                    obj.LoginTimer = timer('StartDelay', 30*60, 'TimerFcn', @(~,~)obj.login);
                     start(obj.LoginTimer)
                     % Enable all buttons
                     set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
