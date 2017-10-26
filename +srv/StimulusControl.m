@@ -115,7 +115,6 @@ classdef StimulusControl < handle
       
       preDelay = obj.ExpPreDelay;
       postDelay = obj.ExpPostDelay;
-      
       r = obj.exchange({'run', expRef, preDelay, postDelay, obj.AlyxInstance});
       obj.errorOnFail(r);
     end

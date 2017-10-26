@@ -226,7 +226,6 @@ ShowCursor();
       if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
         [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
         rig.timeline.UseInputs(idx) = [];
-%         disregardInputs = rig.disregardTimelineInputs;
       else
         % turn off rotary encoder recording in timeline by default so
         % experiment can access it
@@ -278,12 +277,6 @@ ShowCursor();
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
-    %     disp('TODO: implement saving');
-    %save the updated rewardCalibrations struct
-    %     save(, 'rewardCalibrations', '-append');
-    %apply the calibration to rewardcontroller
-    %     rig.rewardController.MeasuredDeliveries = calibration;
-    %     log('Measured deliveries for reward calibrations saved');
   end
 
    function whiteScreen()

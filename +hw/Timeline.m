@@ -22,7 +22,9 @@ classdef Timeline < handle
 %
 %   Besides the chrono signal, tl can aquire any number of inputs and
 %   record their values on the same clock.  For example a photodiode to
-%   record the times at which the screen updates (see tl.addInput).
+%   record the times at which the screen updates (see tl.addInput).  You
+%   can view the wiring information for any given channel by running
+%   wiringInfo(name).
 %
 %   Timeline uses the PsychToolbox function GetSecs() to get the most
 %   reliable system time (see GetSecs() and GetSecsTest()).  NB: both the
@@ -107,25 +109,18 @@ classdef Timeline < handle
             end
         end
         
-        function start(obj, expRef, Alyx, varargin)
+        function start(obj, expRef, Alyx)
             % Starts tl data acquisition
-            %   TL.START(obj, ref, [disregardInputs]) starts all DAQ
-            %   sessions and adds the relevent output and input channels.
-            %   'disregardInputs' is a cell array of input names (e.g.
-            %   'rotaryEncoder' that temporarily not aquired if used by
-            %   other sessions.  For example to turn off rotary encoder
-            %   recording in tl so the experiment object can access it
-            if nargin > 3 
-                disregardInputs = ensureCell(varargin);
-            else; disregardInputs = {};
-            end
+            %   TL.START(obj, ref, Alyx) starts all DAQ sessions and adds
+            %   the relevent output and input channels.
+            
             if obj.IsRunning % check if it's already running, and if so, stop it
                 disp('Timeline already running, stopping first');
                 obj.stop();
             end
             obj.Ref = expRef; % set the current experiment ref
             obj.AlyxInstance = Alyx; % set the current instance of Alyx
-            init(obj, disregardInputs); % start the relevent sessions and add channels
+            init(obj); % start the relevent sessions and add channels
             
             %%Send a test pulse low, then high to clocking channel & check we read it back
             idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
@@ -312,6 +307,35 @@ classdef Timeline < handle
             fprintf('Timeline input ''%s'' successfully added.\n', name);
         end
         
+        function wiringInfo(obj, name)
+            % TL.WIRINGINFO Return information about how the input/output
+            % 'name' is wired.  If no name is provided, the different port
+            % naming conventions of the NI DAQ are returned.
+            if nargin < 2
+                fprintf('For NI USB-6211 the following ports are by default equivelant:\n')
+                fprintf('PFI0-3 = port0/line0-3 = ctr0-3\n')
+                fprintf('PFI4-7 = port1/line0-3\n')
+                fprintf('ctr0-3 = port1/line0-3\n')
+            else
+                if strcmp(name, 'chrono') % Chrono wiring info
+                    idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
+                    idO = cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name});
+                    fprintf('Bridge terminals %s and %s\n',...
+                        obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
+                elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
+                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Outputs.name});
+                    fprintf('Connect device to terminal %s of the DAQ\n',...
+                        obj.Outputs(idx).daqChannelID)
+                elseif any(strcmp(name, {obj.Inputs.name})) % Input wiring info
+                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Inputs.name});
+                    fprintf('Connect device to terminal %s of the DAQ\n',...
+                        obj.Inputs(idx).daqChannelID)
+                else
+                    fprintf('No inputs or outputs of that name were found\n')
+                end
+            end
+        end
+        
         function v = get.SamplingInterval(obj)
             v = 1/obj.DaqSampleRate;
         end
@@ -434,9 +458,9 @@ classdef Timeline < handle
     end
     
     methods (Access = private)
-        function init(obj, disregardInputs)
+        function init(obj)
             % Create DAQ session and add channels
-            %   TL.INIT(disregardInputs) creates all the DAQ sessions
+            %   TL.INIT() creates all the DAQ sessions
             %   and stores them in the Sessions map by their Outputs name.
             %   Also add a 'main' session to which all input channels are
             %   added.  See daq.createSession
@@ -474,7 +498,6 @@ classdef Timeline < handle
             inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
             obj.Sessions('main') = inputSession;
             for i = 1:length(use)
-                if any(strcmp(use{i}, disregardInputs)); continue; end
                 in = obj.Inputs(idx(i)); % get channel info, etc.
                 switch in.measurement
                     case 'Voltage'
