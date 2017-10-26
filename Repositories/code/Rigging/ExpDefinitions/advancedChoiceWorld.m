@@ -5,6 +5,7 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 % 2017-03-25 Added contrast discrimination MW
 % 2017-08    Added baited trials (thanks PZH)
 % 2017-09-26 Added manual reward key presses
+% 2017-10-26 p.wheelGain now in mm/deg units
 
 %% parameters
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
@@ -25,8 +26,15 @@ onsetToneSamples = p.onsetToneAmplitude*...
 audio.onsetTone = onsetToneSamples.at(interactiveOn); % At the time of 'interative on', send samples to audio device and log as 'onsetTone'
 
 %% wheel position to stimulus displacement
+% Here we define the multiplication factor for changing the wheel signal
+% into mm/deg visual angle units.  The Lego wheel used has a 31mm radius.
+% The standard KÜBLER rotary encoder uses X4 encoding; we record all edges
+% (up and down) from both channels for maximum resolution. This means that
+% e.g. a KÜBLER 2400 with 100 pulses per revolution will actually generate
+% *400* position ticks per full revolution.
 wheelOrigin = wheel.at(interactiveOn); % wheel position sampled at 'interactiveOn'
-stimulusDisplacement = p.wheelGain*(wheel - wheelOrigin); 
+millimetersFactor = map2(p.wheelGain, 31*2*pi/(1024*4), @times); % convert the wheel gain to a value in mm/deg
+stimulusDisplacement = millimetersFactor*(wheel - wheelOrigin); % yoke the stimulus displacment to the wheel movement during closed loop
 
 %% define response and response threshold 
 responseTimeOver = (t - t.at(interactiveOn)) > p.responseWindow; % p.responseWindow may be set to Inf

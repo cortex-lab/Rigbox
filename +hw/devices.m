@@ -34,7 +34,11 @@ if ~file.exists(fn)
 end
 rig = load(fn);
 rig.name = name;
-rig.useTimeline = pick(rig, 'useTimeline', 'def', false);
+if isfield(rig, 'timeline')&&rig.timeline.UseTimeline
+    rig.clock = hw.TimelineClock(rig.timeline);
+else
+    rig.clock = hw.ptb.Clock;
+end
 rig.clock = iff(rig.useTimeline, hw.TimelineClock, hw.ptb.Clock);
 rig.useDaq = pick(rig, 'useDaq', 'def', true);
 

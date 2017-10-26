@@ -15,7 +15,6 @@ rewardPulseKey = KbName('space');
 rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
-useTimeline = false;
 rewardId = 1;
 
 %% Initialisation
@@ -71,7 +70,7 @@ log('Started presentation server on port %i', listenPort);
 
 if nargin < 1 || isempty(useTimelineOverride)
   % toggle use of timeline according to rig default setting
-  toggleTimeline(rig.useTimeline);
+  toggleTimeline(rig.timeline.UseTimeline);
 else
   toggleTimeline(useTimelineOverride);
 end
@@ -128,6 +127,11 @@ while running
   if firstPress(gammaCalibrationKey) > 0
       log('Performing a gamma calibration');
       calibrateGamma();
+  end
+  
+  if firstPress(toggleBackground) > 0
+      log('Changing background to white');
+      whiteScreen();
   end
   
   if firstPress(KbName('1')) > 0
@@ -206,16 +210,18 @@ ShowCursor();
     
     rig.stimWindow.flip(); % clear the screen before
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %start the timeline system
-      if isfield(rig, 'disregardTimelineInputs')
-        disregardInputs = rig.disregardTimelineInputs;
+      if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
+        [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
+        rig.timeline.UseInputs(idx) = [];
       else
         % turn off rotary encoder recording in timeline by default so
         % experiment can access it
-        disregardInputs = {'rotaryEncoder'};
+        idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+        rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      tl.start(expRef, disregardInputs);
+      rig.timeline.start(expRef, Alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -255,16 +261,9 @@ ShowCursor();
     ul = [calibration.volumeMicroLitres];
     log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
     
-    %     rigData = load(fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat'));
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
-    %     disp('TODO: implement saving');
-    %save the updated rewardCalibrations struct
-    %     save(, 'rewardCalibrations', '-append');
-    %apply the calibration to rewardcontroller
-    %     rig.rewardController.MeasuredDeliveries = calibration;
-    %     log('Measured deliveries for reward calibrations saved');
   end
 
   function calibrateGamma()
@@ -306,20 +305,20 @@ ShowCursor();
 
   function t = toggleTimeline(enable)
     if nargin < 1
-      enable = ~useTimeline;
+      enable = ~rig.timeline.UseTimeline;
     end
     if ~enable
-      useTimeline = false;
+      rig.timeline.UseTimeline = false;
       clock = hw.ptb.Clock; % use psychtoolbox clock
     else
-      useTimeline = true;
-      clock = hw.TimelineClock; % use timeline clock
+      rig.timeline.UseTimeline = true;
+      clock = hw.TimelineClock(rig.timeline); % use timeline clock
     end
     rig.clock = clock;
     cellfun(@(user) setClock(user, clock),...
       {'mouseInput', 'rewardController', 'lickDetector'});
     
-    t = useTimeline;
+    t = rig.timeline.UseTimeline;
     if enable
       log('Use of timeline enabled');
     else

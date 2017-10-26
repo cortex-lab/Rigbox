@@ -22,7 +22,9 @@ classdef (Sealed) Timeline < handle
 %
 %   Besides the chrono signal, tl can aquire any number of inputs and
 %   record their values on the same clock.  For example a photodiode to
-%   record the times at which the screen updates (see tl.addInput).
+%   record the times at which the screen updates (see tl.addInput). You can
+%   view the wiring information for any given channel by running
+%   wiringInfo(name).
 %
 %   Timeline uses the PsychToolbox function GetSecs() to get the most
 %   reliable system time (see GetSecs() and GetSecsTest()).  NB: both the
@@ -272,6 +274,35 @@ classdef (Sealed) Timeline < handle
             
             % Report success
             fprintf('Timeline input ''%s'' successfully added.\n', name);
+        end
+        
+        function wiringInfo(obj, name)
+            % TL.WIRINGINFO Return information about how the input/output
+            % 'name' is wired.  If no name is provided, the different port
+            % naming conventions of the NI DAQ are returned.
+            if nargin < 2
+                fprintf('For NI USB-6211 the following ports are by default equivelant:\n')
+                fprintf('PFI0-3 = port0/line0-3 = ctr0-3\n')
+                fprintf('PFI4-7 = port1/line0-3\n')
+                fprintf('ctr0-3 = port1/line0-3\n')
+            else
+                if strcmp(name, 'chrono') % Chrono wiring info
+                    idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
+                    idO = cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name});
+                    fprintf('Bridge terminals %s and %s\n',...
+                        obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
+                elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
+                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Outputs.name});
+                    fprintf('Connect device to terminal %s of the DAQ\n',...
+                        obj.Outputs(idx).daqChannelID)
+                elseif any(strcmp(name, {obj.Inputs.name})) % Input wiring info
+                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Inputs.name});
+                    fprintf('Connect device to terminal %s of the DAQ\n',...
+                        obj.Inputs(idx).daqChannelID)
+                else
+                    fprintf('No inputs or outputs of that name were found\n')
+                end
+            end
         end
         
         function v = get.SamplingInterval(obj)
