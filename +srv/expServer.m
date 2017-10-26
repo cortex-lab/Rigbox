@@ -128,12 +128,7 @@ while running
       log('Performing a gamma calibration');
       calibrateGamma();
   end
-  
-  if firstPress(toggleBackground) > 0
-      log('Changing background to white');
-      whiteScreen();
-  end
-  
+    
   if firstPress(KbName('1')) > 0
     rewardId = 1;
   end
@@ -221,7 +216,7 @@ ShowCursor();
         idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      rig.timeline.start(expRef, Alyx);
+      rig.timeline.start(expRef, []);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -239,9 +234,9 @@ ShowCursor();
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %stop the timeline system
-      tl.stop();
+      rig.timeline.stop();
     end
     
     % re-enable ptb keyboard listening

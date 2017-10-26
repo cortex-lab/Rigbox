@@ -39,7 +39,6 @@ if isfield(rig, 'timeline')&&rig.timeline.UseTimeline
 else
     rig.clock = hw.ptb.Clock;
 end
-rig.clock = iff(rig.useTimeline, hw.TimelineClock, hw.ptb.Clock);
 rig.useDaq = pick(rig, 'useDaq', 'def', true);
 
 %% Configure common devices, if present

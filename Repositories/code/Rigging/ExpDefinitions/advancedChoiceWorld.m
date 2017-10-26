@@ -140,7 +140,7 @@ p.rewardKey = 'r';
 p.stimulusOrientation = 0;
 p.spatialFrequency = 0.19; % Prusky & Douglas, 2004
 p.interTrialDelay = 0.5;
-p.wheelGain = 0.2;
+p.wheelGain = 3;
 % p.audDevIdx = 1;
 catch
 end
