@@ -5,7 +5,7 @@ classdef AlyxPanel < handle
     properties (SetAccess = private)
         AlyxInstance = [];
         AlyxUsername = [];
-        weighingsUnpostedToAlyx = {}; % holds weighings until someone logs in, to be posted
+        QueuedWeights = {}; % holds weighings until someone logs in, to be posted
         SubjectList % List of active subjects from database
         Subject = 'default' % The name of the currently selected subject
     end
@@ -222,14 +222,14 @@ classdef AlyxPanel < handle
                     end
                     
                     % post any un-posted weighings
-                    if ~isempty(obj.weighingsUnpostedToAlyx)
+                    if ~isempty(obj.QueuedWeights)
                         try
-                            for w = 1:length(obj.weighingsUnpostedToAlyx)
-                                d = obj.weighingsUnpostedToAlyx{w};
+                            for w = 1:length(obj.QueuedWeights)
+                                d = obj.QueuedWeights{w};
                                 wobj = alyx.postData(obj.AlyxInstance, 'weighings/', d);
                                 obj.log('Alyx weight posting succeeded: %.2f for %s', wobj.weight, wobj.subject);
                             end
-                            obj.weighingsUnpostedToAlyx = {};
+                            obj.QueuedWeights = {};
                         catch
                             obj.log('Failed to post stored weighings')
                         end
@@ -359,7 +359,7 @@ classdef AlyxPanel < handle
             d.subject = subject;
             d.weight = weight;
             if isempty(ai) % if not logged in, save the weight for later
-                obj.AlyxPanel.weighingsUnpostedToAlyx{end+1} = d;
+                obj.QueuedWeights{end+1} = d;
                 obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
             else % otherwise immediately post to Alyx
                 try
