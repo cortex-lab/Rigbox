@@ -282,7 +282,7 @@ classdef AlyxPanel < handle
             prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter 0 to skip a day');
             answer = inputdlg(prompt,'Future Gel Amounts', [1 50]);
             if isempty(answer)||isempty(ai); return; end % user pressed 'Close' or 'x'
-            amount = str2double(answer{:});
+            amount = str2num(answer{:}); %#ok<ST2NM>
             weekendDates = thisDate + (1:length(amount));
             for d = 1:length(weekendDates)
                 if amount(d) > 0
