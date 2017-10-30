@@ -10,6 +10,21 @@ classdef BasicUDPService < srv.Service
   %   back).  To receive messaged only, simply use bind() and add a
   %   listener to the MessageReceived event.
   %
+  %   Examples:
+  %     remoteTL = srv.BasicUDPService('tl-host', 10000, 10000);
+  %     remoteTL.start('2017-10-27-1-default'); % Start remote service with
+  %     an experiment reference
+  %     remoteTL.stop; remoteTL.delete; % Clean up after stopping remote
+  %     rig
+  % 
+  %     experimentRig = srv.BasicUDPService('mainRigHostName', 10000, 10000);
+  %     experimentRig.bind(); % Connect to the remote rig
+  %     remoteStatus = requestStatus(experimentRig); % Get the status of
+  %     the experimental rig
+  %     lh = events.listener(experimentRig, 'MessageReceived',
+  %     @(srv, evt)processMessage(srv, evt)); % Add a listener to do
+  %     something when a message is received.
+  %
   %   See also SRV.PRIMITIVEUDPSERVICE, UDP.
   %
   % Part of Rigbox

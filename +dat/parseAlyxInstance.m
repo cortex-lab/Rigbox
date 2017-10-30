@@ -1,5 +1,5 @@
 function [ref, AlyxInstance] = parseAlyxInstance(varargin)
-%DATA.PARSEALYXINSTANCE Converts input to string for UDP message and back
+%DAT.PARSEALYXINSTANCE Converts input to string for UDP message and back
 %   [UDP_string] = DATA.PARSEALYXINSTANCE(ref, AlyxInstance)
 %   [ref, AlyxInstance] = DATA.PARSEALYXINSTANCE(UDP_string)
 %

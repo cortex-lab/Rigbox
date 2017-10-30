@@ -1,5 +1,5 @@
 function block = loadBlock(varargin)
-%loadBlock Load the designated experiment block(s)
+%DAT.LOADBLOCK Load the designated experiment block(s)
 %   BLOCK = loadBlock(EXPREF, [EXPTYPE])
 %
 %   BLOCK = loadBlock(SUBJECTREF, EXPDATE, EXPSEQ, [EXPTYPE])

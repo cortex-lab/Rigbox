@@ -1,7 +1,36 @@
 classdef AlyxPanel < handle
     % EUI.ALYXPANEL A GUI for interating with the Alyx database
     %   This class is emplyed by mc (but may also be used stand-alone) to
-    %   post weights and water administations to the Alyx database. 
+    %   post weights and water administations to the Alyx database.
+    %
+    %   eui.AlyxPanel() opens a stand-alone GUI. eui.AlyxPanel(parent)
+    %   constructs the panel inside a parent object.
+    %   
+    %   Use the login button to retrieve a token from the database.
+    %   Use the subject drop-down to select the subject.
+    %   Subject weights can be entered using the 'Manual weighing' button.
+    %   Previous weighings and water infomation can be viewed by pressing
+    %   the 'Subject history' button.
+    %   Water administrations can be recorded by entering a value in ml
+    %   into the text box.  Pressing return does not post the water, but
+    %   updates the text to the right of the box, showing the amount of
+    %   water remaining (i.e. the amount below the subject's calculated
+    %   minimum requirement for that day.  The check box to the right of
+    %   the text box is to indicate whether the water was liquid
+    %   (unchecked) or gel (checked).  To post the water to Alyx, press the
+    %   'Give water' button.
+    %   To post gel for future date (for example weekend hydrogel), Click
+    %   the 'Give gel in future' button and enter in all the values
+    %   starting at tomorrow then the day after, etc.
+    %   The 'All WR subjects' button shows the amount of water remaining
+    %   today for all mice that are currently on water restriction.
+    %   
+    %   The 'default' subject is for testing and is usually ignored.
+    %
+    %   See also ALYX, MCONTROL
+    %
+    %   2017-03 NS created
+    %   2017-10 MW made into class
     properties (SetAccess = private)
         AlyxInstance = [];
         AlyxUsername = [];
@@ -295,8 +324,9 @@ classdef AlyxPanel < handle
         function dispWaterReq(obj, src, ~)
             % Display the amount of water required by the selected subject
             % for it to reach its minimum requirement.  This function is
-            % also used to update the selected subject, i.e. it is this
-            % funtion to use as a callback to subject dropdown listeners
+            % also used to update the selected subject, for example it is
+            % this funtion to use as a callback to subject dropdown
+            % listeners
             ai = obj.AlyxInstance;
             % Set the selected subject if it is an input
             if nargin>2; obj.Subject = src.Selected; end
@@ -328,7 +358,11 @@ classdef AlyxPanel < handle
             % Update the panel text to show the amount of water still
             % required for the subject to reach its minimum requirement.
             % This text is updated before the value in the water text box
-            % has been posted to Alyx
+            % has been posted to Alyx.  For example if the user is unsure
+            % how much gel over the minimum they have weighed out, pressing
+            % return will display this without posting to Alyx
+            % 
+            % See also DISPWATERREQ, GIVEWATER
             ai = obj.AlyxInstance;
             if ~isempty(ai) && isfield(ai, 'water_requirement_remaining') && ~isempty(ai.water_requirement_remaining)
                 rem = ai.water_requirement_remaining;
@@ -341,7 +375,9 @@ classdef AlyxPanel < handle
             % Post a subject's weight to Alyx.  If no inputs are provided,
             % create an input dialog for the user to input a weight.  If no
             % subject is provided, use this object's currently selected
-            % subject
+            % subject.
+            %
+            % See also VIEWSUBJECTHISTORY, VIEWALLSUBJECTS
             ai = obj.AlyxInstance;
             if nargin < 3; subject = obj.Subject; end
             if nargin < 2
@@ -534,7 +570,11 @@ classdef AlyxPanel < handle
         
         function log(obj, varargin)
             % Function for displaying timestamped information about
-            % occurrences
+            % occurrences.  If the LoggingDisplay property is unset, the
+            % message is printed to the command prompt.
+            % log(formatSpec, A1,... An)
+            %
+            % See also FPRINTF
             message = sprintf(varargin{:});
             if ~isempty(obj.LoggingDisplay)
                 timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');

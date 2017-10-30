@@ -1,39 +1,53 @@
 classdef ExpPanel < handle
   %EUI.EXPPANEL Basic UI control for monitoring an experiment
-  %   TODO
+  %   The EXPPANEL superclass is instantiated by MCONTROL when an
+  %   experiment is started through MC.  The object adds listeners for
+  %   updates broadcast by the rig (defined in the _rig_ object) and
+  %   updates plots and text as the experiment progresses.  Additionally
+  %   there are buttons to end or abort the experiment and to view the
+  %   experimental parameters (the _paramStruct_).  
+  %   EXPPANEL is not stand-alone and thus requires a handle to a parent
+  %   window.  This class has a number of subclasses, one for each
+  %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
+  %   SQUEAKEXPPANEL  for Signals experiments.  
+  %
+  %   
+  %
+  % See also SQUEAKEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
   %
   % Part of Rigbox
   
   % 2013-06 CB created
+  % 2017-05 MW added Alyx compatibility
   
   properties
-    Block = struct('numCompletedTrials', 0, 'trial', struct([]))
+    Block = struct('numCompletedTrials', 0, 'trial', struct([])) % A structure to hold update information relevant for the plotting of psychometics and performance calculations
     %log entry pertaining to this experiment
     LogEntry
     Listeners
   end
   
   properties (Access = protected)
-    ExpRunning = false
+    ExpRunning = false % A flag indicating whether the experiment is still running
     ActivePhases = {}
     Root
-    Ref
-    SubjectRef
-    InfoGrid
+    Ref % The experimental reference (expRef).  
+    SubjectRef % A string representing the subject's name
+    InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
     InfoLabels %label text controls for each info field
     InfoFields %field controls for each info field
-    StatusLabel
-    TrialCountLabel
+    StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
+    TrialCountLabel % A counter displaying the current trial number
     ConditionLabel
     DurationLabel
-    StopButtons
+    StopButtons % Handles to the End and Abort buttons, used to terminate an experiment through the UI
     StartedDateTime
 %     ElapsedTimer
-    CloseButton
-    CommentsBox
-    CustomPanel
-    MainVBox
-    Parameters
+    CloseButton % The little x at the top right of the panel.  Deletes the object.
+    CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
+    CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
+    MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
+    Parameters % A structure of experimental parameters used by this experiment
   end
   
   methods (Static)
@@ -171,6 +185,11 @@ classdef ExpPanel < handle
     end
     
     function expStarted(obj, rig, evt)
+      % EXPSTARTED Callback for the ExpStarted  event.
+      %   Updates the ExpRunning flag, the panel title and status label to
+      %   show that the experiment has officially begun.
+      %   
+      % See also EXPSTOPPED
       if strcmp(evt.Ref, obj.Ref)
         set(obj.StatusLabel, 'String', 'Running'); %staus to running
         set(obj.StopButtons, 'Enable', 'on', 'Visible', 'on'); %enable stop buttons
@@ -187,6 +206,13 @@ classdef ExpPanel < handle
     end
     
     function expStopped(obj, rig, evt)
+      % EXPSTOPPED Callback for the ExpStopped event.
+      %   Updates the ExpRunning flag, the panel title and status label to
+      %   show that the experiment has ended.  This function also records to Alyx the
+      %   amount of water, if any, that the subject received during the
+      %   task.
+      %   
+      % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
       obj.ExpRunning = false;
       set(obj.StopButtons, 'Enable', 'off'); %disable stop buttons
@@ -252,6 +278,13 @@ classdef ExpPanel < handle
     end
         
     function mergeTrialData(obj, idx, data)
+      % MERGETRIALDATA Update the local block structure with data from the
+      % last trial
+      %   This is only used by CHOICEEXPPANEL, etc. where trial data we
+      %   constant and had a predefined structure.  This is not used by the
+      %   SQEUEAKEXPPANEL sub-class.
+      %
+      % See also EXPUPDATE
       fields = fieldnames(data);
       for i = 1:numel(fields)
         f = fields{i};
@@ -260,10 +293,20 @@ classdef ExpPanel < handle
     end
     
     function saveLogEntry(obj)
+      % SAVELOGENTRY Saves the obj.LogEntry to disk
+      %  As the log entry has been updated throughout the experiment with
+      %  comments and experiment end times, it must be saved to disk.
+      % 
+      % See also DAT.UPDATELOGENTRY
       dat.updateLogEntry(obj.SubjectRef, obj.LogEntry.id, obj.LogEntry);
     end
     
     function viewParams(obj)
+      % VIEWPARAMS The callback for the Parameters button.
+      %   Creates a new figure to display the current experimental
+      %   parameters (the sructure in obj.Parameters).  
+      %
+      %   See also EUI.PARAMEDITOR
       f = figure('Name', sprintf('%s Parameters', obj.Ref),...
         'MenuBar', 'none',...
         'Toolbar', 'none',...
@@ -272,7 +315,7 @@ classdef ExpPanel < handle
       %         'OuterPosition', [0.1 0.2 0.8 0.7]);
       params = obj.Parameters;
       editor = eui.ParamEditor(params, f);
-      editor.Enable = 'off';
+      editor.Enable = 'off'; % The parameter field should not be editable as the experiment has already started
     end
     
     function [fieldCtrl] = addInfoField(obj, label, field)

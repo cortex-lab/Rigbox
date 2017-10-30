@@ -1,26 +1,27 @@
 classdef StimulusControl < handle
   %SRV.STIMULUSCONTROL Interface to, and info about a remote rig setup
-  %   This interface is used by srv.expServer and mc to communicate with
+  %   This interface is used and mc to communicate with
   %   one another.  The data are sent over TCP/IP through a java Web Socket
   %   (net.entropy_mill.websocket).  This object can be used to send
   %   arbitraty data over the network.  It is used by expServer to send a
   %   receive parrameter structures and status updates in the form of
   %   strings.
   %
-  %   NB: This class replaces SRV.REMOTERIG.  See also SRV.SERVICE.
+  %   NB: This class replaces SRV.REMOTERIG.  See also SRV.SERVICE,
+  %   IO.WSJCOMMUNICATOR, EUI.MCONTROL
   %
   % Part of Rigbox
   
   % 2013-06 CB created
   
   properties
-    Uri
+    Uri % 
     Services = {}  % List of remote services that are to be interfaced with during an experiment.  Should be a list of string ids or hostnames
     SelectedServices % Logical array the size of Services, indicating which services to use (set by eui.MControl)
-    Name
-    ExpPreDelay = 0
-    ExpPostDelay = 0
-    ResponseTimeout = 15
+    Name % The name of the remote rig, usually the host name
+    ExpPreDelay = 0 % The delay in seconds before the experiment is to start, set by mc
+    ExpPostDelay = 0 % The delay in seconds after the experiment has ended before data are saved, listeners deleted, etc.  Set by mc
+    ResponseTimeout = 15 % Time to wait for a response from the remote host before throwing an error
   end
   
   properties (Dependent = true)
