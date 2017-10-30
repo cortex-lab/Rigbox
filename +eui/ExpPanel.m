@@ -246,7 +246,6 @@ classdef ExpPanel < handle
           if ~any(amount); return; end % Return if no water was given
           try
             alyx.postWater(ai, subject, amount*0.001, now, false);
-            fprintf('Water administration of %.2f for %s posted successfully to Alyx\n', amount*0.001, subject);
           catch
             warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
