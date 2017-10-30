@@ -1,5 +1,5 @@
-classdef vanillaChoiceworld_ExpPanel < eui.ExpPanel
-  %vanillaChoiceWorld_ExpPanel 
+classdef vanillaChoiceworldExpPanel < eui.ExpPanel
+  %vanillaChoiceWorldExpPanel 
   % AP 2017-03-31
   % plotting panel for vanillaChoiceWorld
   
@@ -16,7 +16,7 @@ classdef vanillaChoiceworld_ExpPanel < eui.ExpPanel
   
   
   methods
-    function obj = vanillaChoiceworld_ExpPanel(parent, ref, params, logEntry)
+    function obj = vanillaChoiceworldExpPanel(parent, ref, params, logEntry)
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
       obj.LabelsMap = containers.Map();
     end
@@ -171,7 +171,7 @@ classdef vanillaChoiceworld_ExpPanel < eui.ExpPanel
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
-      obj.InfoGrid.ColumnSizes = [150, -1];
+%       obj.InfoGrid.ColumnSizes = [150, -1];
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.HBox('Parent', obj.MainVBox);
       
