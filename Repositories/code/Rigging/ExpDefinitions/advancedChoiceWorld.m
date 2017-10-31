@@ -13,7 +13,7 @@ rewardKey = p.rewardKey.at(evts.expStart); % get value of rewardKey at experiemn
 rewardKeyPressed = in.keyboard.strcmp(rewardKey); % true each time the reward key is pressed
 nAudChannels = 2;
 % p.audDevIdx; % Windows' audio device index (default is 1)
-audSampleRate = 96000; % Check PTB Snd('DefaultRate');
+audSampleRate = 44100; % Check PTB Snd('DefaultRate');
 contrastLeft = p.stimulusContrast(1);
 contrastRight = p.stimulusContrast(2);
 
@@ -116,7 +116,7 @@ evts.azimuth = azimuth;
 evts.response = response;
 evts.feedback = feedback;
 % Accumulate reward signals and append microlitre units
-evts.totalReward = reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl')); 
+evts.totalReward = out.reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl')); 
 
 % Trial ends when evts.endTrial updates.  
 % If the value of evts.endTrial is false, the current set of conditional

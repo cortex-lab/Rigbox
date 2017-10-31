@@ -137,7 +137,9 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
           end
           if obj.Block.numCompletedTrials == 0; i = 1; else; i = obj.Block.numCompletedTrials+1; end
           idx = strcmp('events.contrast', {evt.Data.name});
-          if any(idx); obj.Block.trial(i).contrast = evt.Data(idx).value; end
+          if any(idx)
+              obj.Block.trial(i).contrast = evt.Data(idx).value;
+          end
           idx = strcmp('events.repeatNum', {evt.Data.name});
           if any(idx); obj.Block.trial(i).repeatNum = evt.Data(idx).value; end
           idx = strcmp('events.response', {evt.Data.name});
@@ -147,8 +149,29 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
           idx = strcmp('events.trialNum', {evt.Data.name});
           if any(idx); obj.Block.numCompletedTrials = evt.Data(idx).value-1; end
 
+          contrast = obj.Block.trial(end).contrast;
+          if sign(contrast)==1
+              leftSpec = 'g';
+              rightSpec = 'r';
+          elseif sign(contrast)==-1
+              leftSpec = 'r';
+              rightSpec = 'g';
+          else
+              leftSpec = 'g';
+              rightSpec = 'g';
+          end
+              
+          azimuth = obj.Parameters.Struct.stimulusAzimuth;
+              obj.ExperimentAxes.plot(...
+              [-azimuth -azimuth], [-50 50], leftSpec,... %L boundary
+              [azimuth  azimuth], [-50 50], rightSpec,'LineWidth', 4);%R boundary
+          
           % make plot
-          if i > 2; psy.plot2AUFC(obj.PsychometricAxes.Handle, obj.Block); end
+          if ~isempty(contrast); obj.PsychometricAxes.plot(contrast*[100 100], [-10 110], 'k:', 'LineWidth', 3); end
+          if i > 2
+              obj.PsychometricAxes.clear();
+              psy.plot2AUFC(obj.PsychometricAxes.Handle, obj.Block);
+          end
 
           case 'newTrial'
           cond = evt.Data{2}; %condition data for the new trial

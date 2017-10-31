@@ -2,6 +2,10 @@ function plot2AUFC(ax, block)
 
 % numCompletedTrials = block.numCompletedTrials;
 
+[block.trial(arrayfun(@(a)isempty(a.contrast), block.trial)).contrast] = deal(nan);
+[block.trial(arrayfun(@(a)isempty(a.response), block.trial)).response] = deal(nan);
+[block.trial(arrayfun(@(a)isempty(a.repeatNum), block.trial)).repeatNum] = deal(nan);
+[block.trial(arrayfun(@(a)isempty(a.feedback), block.trial)).feedback] = deal(nan);
 contrast = [block.trial.contrast];
 response = [block.trial.response];
 repeatNum = [block.trial.repeatNum];
@@ -41,7 +45,7 @@ for r = 1:numRespTypes
     
     xdata = 100*cVals;
     ydata = 100*psychoM(r,:);
-    errBars = 100*psychoMCI(r,:);
+%     errBars = 100*psychoMCI(r,:);
     
     plot(ax, xdata, ydata, '-o', 'Color', colors(r,:), 'LineWidth', 1.0);
     
@@ -63,6 +67,7 @@ for r = 1:numRespTypes
     
 end
 ylim(ax, [-1 101]);
+xdata = xdata(~isnan(xdata));
 if numel(xdata) > 1
   xlim(ax, xdata([1 end])*1.1);
 end
