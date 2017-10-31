@@ -1,5 +1,5 @@
 classdef DigitalOnOff < hw.ControlSignalGenerator
-  %HW.DigitalOnOff Digital HIGH/LOW switch
+  %HW.DIGITALONOFF Digital HIGH/LOW switch
   %   Currently converts input to either HIGH or LOW digital output. In the
   %   future timed switch should be introduced.
   

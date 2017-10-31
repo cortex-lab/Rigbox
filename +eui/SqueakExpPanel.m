@@ -1,5 +1,5 @@
 classdef SqueakExpPanel < eui.ExpPanel
-  %eui.SqueakExpPanel Basic UI control for monitoring an experiment
+  %EUI.SQUEAKEXPPANEL Basic UI control for monitoring an experiment
   %   TODO
   %
   % Part of Rigbox

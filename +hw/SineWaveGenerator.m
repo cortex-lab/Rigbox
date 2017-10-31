@@ -1,5 +1,5 @@
 classdef SineWaveGenerator < hw.ControlSignalGenerator
-  %HW.PULSESWITCHER Generates a train of pulses
+  %HW.SINEWAVEGENERATOR Generates a sinewave
   %   Detailed explanation goes here
   
   properties
