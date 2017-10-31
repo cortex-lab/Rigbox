@@ -28,7 +28,7 @@ classdef ControlSignalGenerator < matlab.mixin.Heterogeneous & handle
   %       daqController.SignalGenerators(1) = hw.PulseSwitcher(duration,
   %       nPulses, freq);
   %     %Save your hardware file
-  %       save(hardware.mat, 'daqController', '-append');
+  %       save('hardware.mat', 'daqController', '-append');
   %
   % See also HW.DAQCONTROLLER
   %

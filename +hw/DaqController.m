@@ -26,7 +26,7 @@ classdef DaqController < handle
   %       valveDeliveryCalibration(openTimeRange, scalesPort, openValue,...
   %       closedValue, daqChannel, daqDevice);
   %     %Save your hardware file
-  %       save(hardware.mat, 'daqController', '-append');
+  %       save('hardware.mat', 'daqController', '-append');
   % 
   %   TODO:
   %    * Currently can not deal with having no analogue channels

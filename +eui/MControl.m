@@ -10,7 +10,7 @@ classdef MControl < handle
   %     dialog?
   %     - Tidy Options dialog
   %     - Comment rigOptions function
-  %   See also MC.
+  %   See also MC, EUI.ALYXPANEL, EUI.EXPPANEL, EUI.LOG, EUI.PARAMEDITOR
   %
   % Part of Rigbox
   
@@ -24,35 +24,34 @@ classdef MControl < handle
   end
   
   properties (SetAccess = private)
-    LogSubject %subject selector control
-    NewExpSubject
-    NewExpType
-    WeighingScale
-    Log %log control
-    RemoteRigs
-    TabPanel
-    LastExpPanel
+    LogSubject % Subject selector control
+    NewExpSubject % Experiment selector control
+    NewExpType % Experiment type selector control
+    WeighingScale % HW.WEIGHINGSCALE object for interacting with a balance
+    Log % Handle to the UI element containing the Log tabs
+    RemoteRigs % An array of SRV.STIMULUSCONTROL objects with connection information for each romote rig
+    TabPanel % Handle to the UI element containing the Log and Experiment tabs
+    LastExpPanel % Handle to the most recently instantiated EUI.EXPPANEL object
   end
   
   properties (Access = private)
     ParamEditor
     ParamPanel
-    AlyxPanel % holds the AlyxPanel object (see buildUI() & eui.AlyxPanel())
-    BeginExpButton
-    RigOptionsButton
-    NewExpFactory
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
+    BeginExpButton % The 'Start' button that begins an experiment
+    RigOptionsButton % The 'Options' button that opens the rig options dialog
+    NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
     RootContainer
-    Parameters
-    WeightAxes
+    Parameters % A structure containing the currently selected set of parameters
+    WeightAxes % Handle to the BUI.AXES object that holds the axes for the weight plot in the Log tab
     WeightReadingPlot
     NewExpParamProfile
     LogTabs
     ExpTabs
     ActiveExpsGrid
     Listeners
-    %handles to pre (i=1) and post (i=2) experiment delay edit text controls
-    PrePostExpDelayEdits
-    Services % cell array of selected services
+    PrePostExpDelayEdits % Handles to pre (i=1) and post (i=2) experiment delay edit text cotrols
+    Services % Cell array of selected services
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
@@ -389,21 +388,20 @@ classdef MControl < handle
       if rig == obj.RemoteRigs.Selected
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
-      rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
       % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(obj.AlyxPanel.AlyxInstance)
-          try              
+      if ~isempty(rig.AlyxInstance)
+          try
               subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(obj.AlyxPanel.AlyxInstance, ...
+              sd = alyx.getData(rig.AlyxInstance, ...
                   sprintf('subjects/%s', subject));
-              obj.log(sprintf(...
-                  'Water requirement remaining for %s: %.2f (%.2f already given)', ...
+              obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
                   subject, sd.water_requirement_remaining, ...
-                  sd.water_requirement_total-sd.water_requirement_remaining));
+                  sd.water_requirement_total-sd.water_requirement_remaining);
           catch
               subject = dat.parseExpRef(evt.Ref);
-              obj.log(sprintf('Warning: unable to query Alyx about %s''s water requirements', subject));
+              obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
           end
+          rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
       end
     end
     
