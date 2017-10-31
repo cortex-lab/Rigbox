@@ -209,6 +209,7 @@ classdef ParamEditor < handle
       % The callback for the 'Delete condition' button.  This removes the
       % selected conditions from the table and if less than two conditions
       % remain, globalizes them.
+      %     TODO: comment function better, index in a clearer fashion
       %
       % See also EXP.PARAMETERS, GLOBALISESELECTEDPARAMETERS
       rows = unique(obj.SelectedCells(:,1));
@@ -218,6 +219,8 @@ classdef ParamEditor < handle
       if numConditions-length(rows) <= 1
           remainingIdx = find(all(1:numConditions~=rows,1));
           if isempty(remainingIdx); remainingIdx = 1; end
+          % change selected cells to be all fields (except numRepeats which
+          % is assumed to always be the last column)
           obj.SelectedCells =[ones(length(names)-1,1)*remainingIdx, (1:length(names)-1)'];
           %... globalize them
           obj.globaliseSelectedParameters;
