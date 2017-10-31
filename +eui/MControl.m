@@ -341,9 +341,9 @@ classdef MControl < handle
                 if ~isfield(base_submit,'subject')
                     warning('Submitted base session did not return appropriate values');
                     warning('Submitted data below:');
-                    disp(d);
+                    disp(d)
                     warning('Return values below:');
-                    disp(base_submit);
+                    disp(base_submit)
                 end
 %                 obj.log(['Created new session in Alyx for: ' thisSubj]);
                 
@@ -360,9 +360,7 @@ classdef MControl < handle
                     return;
                 end
             end
-            
-            disp(latest_base);
-            
+                        
             %Now create a new SUBSESSION, using the same experiment number
             d = struct;
             d.subject = thisSubj;
@@ -424,17 +422,18 @@ classdef MControl < handle
       expRef = rig.ExpRunnning; % returns expRef if running
       if expRef
 %           error('Experiment %s already running of %s', expDef, rig.Name)
-          d = dialog('Position', [300 300 250 150], 'Name', 'Experiment running');
+          d = dialog('Position', [200 200 350 100], 'Name', upper(rig.Name));
+          str = sprintf('Attention: An experiment is already running on %s.\n  To view the experiment, click View', rig.Name);
           uicontrol('Parent',d,...
               'Style', 'text',...
-              'Position', [20 80 210 40],...
-              'String', 'Click the close button when you''re done.');
+              'Position', [20 40 310 40],...
+              'String', str);
           uicontrol('Parent',d,...
-              'Position', [10 20 70 25],...
+              'Position', [55 20 70 25],...
               'String', 'View',...
               'Callback', @(~,~)rigRunning_callback(expRef));
           uicontrol('Parent',d,...
-              'Position', [85 20 70 25],...
+              'Position', [130 20 70 25],...
               'String', 'Close',...
               'Callback', 'close(gcf)');
       else % The rig is idle...
@@ -447,7 +446,7 @@ classdef MControl < handle
         % RIGRUNNING_CALLBACK Callback for the RigRunning dialog 'View'
         % button
         %   This is called when the user opts to view an experiment that is
-        %   already running.  An EXPPANEL is created to display the
+        %   already running.  An EUI.EXPPANEL is created to display the
         %   experiment updates.
         %
         % See also EUI.EXPPANEL
