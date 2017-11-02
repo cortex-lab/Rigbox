@@ -408,6 +408,9 @@ classdef Timeline < handle
                 release(obj.Sessions(name));
             end
             
+            % only keep the used part of the daq input array
+            obj.Data.rawDAQData((obj.Data.rawDAQSampleCount + 1):end,:) = [];
+            
             % generate timestamps in seconds for the samples
             obj.Data.rawDAQTimestamps = ...
                 obj.SamplingInterval*(0:obj.Data.rawDAQSampleCount - 1);
