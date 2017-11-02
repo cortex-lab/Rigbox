@@ -499,7 +499,7 @@ classdef Timeline < handle
                     case 'acqLive'
                         obj.Sessions('acqLive') = daq.createSession(obj.DaqVendor);
                         obj.Sessions('acqLive').addDigitalChannel(obj.DaqIds, out.daqChannelID, out.type);
-                        obj.Sessions('acqLive').outputSingleScan(false); % ensure acq live is false
+                        outputSingleScan(obj.Sessions('acqLive'), false); % ensure acq live is false
                         
                     case 'clock'
                         obj.Sessions('clock') = daq.createSession(obj.DaqVendor);
