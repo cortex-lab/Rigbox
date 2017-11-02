@@ -3,12 +3,40 @@ classdef DaqController < handle
   %   This class deals with creating DAQ sessions, assigning output
   %   channels and generating the relevant waveforms to output to each
   %   channel. 
+  %
+  %   Example: Setting up water valve interface for a Signals behavour task
+  %     %In the romote rig's hardware.mat, instantiate a HW.DAQCONTROLLER
+  %     %object to interface with an NI DAQ
+  %       daqController = hw.DaqController;
+  %     %Set the DAQ id (can be found with daq.getDevices)
+  %       daqController.DaqIds = 'Dev1';
+  %     %Add a new channel
+  %       daqController.ChannelNames = {'rewardValve'};
+  %     %Define the channel ID to output on
+  %       daqController.DaqChannelIds = {'ai0'};
+  %     %As it is an analogue output, set the AnalogueChannelsIdx to true
+  %       daqController.AnalogueChannelIdx(1) = true;
+  %     %Add a signal generator that will return the correct samples for
+  %     %delivering a reward of a specified volume
+  %       daqController.SignalGenerators(1) = hw.RewardValveControl;
+  %     %Set some of the required fields (see HW.REWARDVALVECONTROL for
+  %     %more info
+  %       daqController.SignalGenerators(1).OpenValue = 5;
+  %       daqController.SignalGenerators(1).Calibrations =
+  %       valveDeliveryCalibration(openTimeRange, scalesPort, openValue,...
+  %       closedValue, daqChannel, daqDevice);
+  %     %Save your hardware file
+  %       save('hardware.mat', 'daqController', '-append');
   % 
   %   TODO:
   %    * Currently can not deal with having no analogue channels
   %    * The digital channels must be output only (no support for
   %      bi-directional digital channels
   %    * Untested with multiple devices
+  %
+  % See also HW.CONTROLSIGNALGENERATOR, HW.DAQROTARYENCODER
+  % 2013    CB created
+  % 2017-07 MW added digital output support
   
   properties
     ChannelNames = {} % name to refer to each channel

@@ -10,7 +10,7 @@ classdef MControl < handle
   %     dialog?
   %     - Tidy Options dialog
   %     - Comment rigOptions function
-  %   See also MC.
+  %   See also MC, EUI.ALYXPANEL, EUI.EXPPANEL, EUI.LOG, EUI.PARAMEDITOR
   %
   % Part of Rigbox
   
@@ -24,35 +24,34 @@ classdef MControl < handle
   end
   
   properties (SetAccess = private)
-    LogSubject %subject selector control
-    NewExpSubject
-    NewExpType
-    WeighingScale
-    Log %log control
-    RemoteRigs
-    TabPanel
-    LastExpPanel
+    LogSubject % Subject selector control
+    NewExpSubject % Experiment selector control
+    NewExpType % Experiment type selector control
+    WeighingScale % HW.WEIGHINGSCALE object for interacting with a balance
+    Log % Handle to the UI element containing the Log tabs
+    RemoteRigs % An array of SRV.STIMULUSCONTROL objects with connection information for each romote rig
+    TabPanel % Handle to the UI element containing the Log and Experiment tabs
+    LastExpPanel % Handle to the most recently instantiated EUI.EXPPANEL object
   end
   
   properties (Access = private)
     ParamEditor
     ParamPanel
-    AlyxPanel % holds the AlyxPanel object (see buildUI() & eui.AlyxPanel())
-    BeginExpButton
-    RigOptionsButton
-    NewExpFactory
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
+    BeginExpButton % The 'Start' button that begins an experiment
+    RigOptionsButton % The 'Options' button that opens the rig options dialog
+    NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
     RootContainer
-    Parameters
-    WeightAxes
+    Parameters % A structure containing the currently selected set of parameters
+    WeightAxes % Handle to the BUI.AXES object that holds the axes for the weight plot in the Log tab
     WeightReadingPlot
     NewExpParamProfile
     LogTabs
     ExpTabs
     ActiveExpsGrid
     Listeners
-    %handles to pre (i=1) and post (i=2) experiment delay edit text controls
-    PrePostExpDelayEdits
-    Services % cell array of selected services
+    PrePostExpDelayEdits % Handles to pre (i=1) and post (i=2) experiment delay edit text cotrols
+    Services % Cell array of selected services
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
@@ -342,9 +341,9 @@ classdef MControl < handle
                 if ~isfield(base_submit,'subject')
                     warning('Submitted base session did not return appropriate values');
                     warning('Submitted data below:');
-                    disp(d);
+                    disp(d)
                     warning('Return values below:');
-                    disp(base_submit);
+                    disp(base_submit)
                 end
 %                 obj.log(['Created new session in Alyx for: ' thisSubj]);
                 
@@ -361,9 +360,7 @@ classdef MControl < handle
                     return;
                 end
             end
-            
-            disp(latest_base);
-            
+                        
             %Now create a new SUBSESSION, using the same experiment number
             d = struct;
             d.subject = thisSubj;
@@ -389,39 +386,109 @@ classdef MControl < handle
       if rig == obj.RemoteRigs.Selected
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
-      rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
       % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(obj.AlyxPanel.AlyxInstance)
-          try              
+      if ~isempty(rig.AlyxInstance)
+          try
               subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(obj.AlyxPanel.AlyxInstance, ...
+              sd = alyx.getData(rig.AlyxInstance, ...
                   sprintf('subjects/%s', subject));
-              obj.log(sprintf(...
-                  'Water requirement remaining for %s: %.2f (%.2f already given)', ...
+              obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
                   subject, sd.water_requirement_remaining, ...
-                  sd.water_requirement_total-sd.water_requirement_remaining));
+                  sd.water_requirement_total-sd.water_requirement_remaining);
           catch
               subject = dat.parseExpRef(evt.Ref);
-              obj.log(sprintf('Warning: unable to query Alyx about %s''s water requirements', subject));
+              obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
           end
+          rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
       end
     end
     
-    function rigConnected(obj, rig, ~) % If rig is connected...
-      obj.log('Connected to ''%s''', rig.Name); % Say so in the log box
-      if rig == obj.RemoteRigs.Selected
-        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
+    function rigConnected(obj, rig, ~)
+      % RIGDCONNECTED Callback when notified of the rig object's 'Connected' event
+      %   Called when the rig object status is changed to 'connected', i.e.
+      %   when the mc computer has successfully connected to the remote
+      %   rig.  Enables the 'Start' and 'Rig optoins' buttons and logs the
+      %   event in the Logging Display Now that the rig is connected, this
+      %   function queries the status of the remote rig.  If the remote rig
+      %   is running an experiment, it returns the expRef for the
+      %   experiment that is running.  In this case a dialog is spawned
+      %   notifying the user.  The user can either do nothing or choose to
+      %   view the active experiment, in which case a new EXPPANEL is
+      %   created
+      %
+      % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL, EUI.EXPPANEL
+        
+      % If rig is connected check no experiments are running...
+      expRef = rig.ExpRunnning; % returns expRef if running
+      if expRef
+%           error('Experiment %s already running of %s', expDef, rig.Name)
+          d = dialog('Position', [200 200 350 100], 'Name', upper(rig.Name));
+          str = sprintf(['Attention: An experiment is already running on %s.\n',... 
+              'To view the experiment click ''View'', otherwise ''Close'''], rig.Name);
+          uicontrol('Parent',d,...
+              'Style', 'text',...
+              'Position', [20 45 310 40],...
+              'String', str);
+          uicontrol('Parent',d,...
+              'Position', [100 20 70 25],...
+              'String', 'View',...
+              'Callback', @(~,~)rigRunning_callback(expRef));
+          uicontrol('Parent',d,...
+              'Position', [175 20 70 25],...
+              'String', 'Close',...
+              'Callback', 'close(gcf)');
+      else % The rig is idle...
+        obj.log('Connected to ''%s''', rig.Name); % ...say so in the log box
+        if rig == obj.RemoteRigs.Selected
+          set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
+        end
+      end
+      function rigRunning_callback(expRef)
+        % RIGRUNNING_CALLBACK Callback for the RigRunning dialog 'View'
+        % button
+        %   This is called when the user opts to view an experiment that is
+        %   already running.  An EUI.EXPPANEL is created to display the
+        %   experiment updates.
+        %
+        % See also EUI.EXPPANEL
+        close(gcf) % close the dialog
+        % Load the parameters from file
+        paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
+        if ~isfield(paramStruct, 'type')
+          paramStruct.type = 'custom'; % override type name with preferred
+        end
+        % Instantiate an ExpPanel and pass it the expRef and parameters
+        panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct);
+        obj.LastExpPanel = panel;
+        % Add a listener for the new panel
+        panel.Listeners = [panel.Listeners
+            event.listener(obj, 'Refresh', @(~,~)panel.update())];
+        obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
       end
     end
     
-    function rigDisconnected(obj, rig, ~) % If rig is disconnected...
-      obj.log('Disconnected from ''%s''', rig.Name); % Say so in the log box
+    function rigDisconnected(obj, rig, ~)
+      % RIGDISCONNECTED Callback when notified of the rig object's 'Disconnected' event
+      %   Called when the rig object status is changed to 'disconnected',
+      %   i.e. when the rig is no longer connected to the mc computer.
+      %   Disables the 'Start' and 'Rig optoins' buttons and logs the event
+      %   in the Logging Display
+      %
+      % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL
+      %
+      % If rig is disconnected...
+      obj.log('Disconnected from ''%s''', rig.Name); % ...say so in the log box
       if rig == obj.RemoteRigs.Selected 
-        set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out 'Start' button
       end
     end
     
     function log(obj, varargin)
+      % LOG Displayes timestamped information about occurrences in mc
+      %   The log is stored in the LoggingDisplay property.
+      % log(formatSpec, A1,... An)
+      %
+      % See also FPRINTF
       message = sprintf(varargin{:});
       timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
       str = sprintf('[%s] %s', timestamp, message);
@@ -446,24 +513,33 @@ classdef MControl < handle
           obj.log('Could not connect to ''%s'' (%s)', rig.Name, errmsg);
         end
       elseif strcmp(rig.Status, 'idle')
-        set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'on');
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on');
+      else
+        obj.rigConnected(rig);
       end
     end
     
     function rigOptions(obj)
+        % RIGOPTIONS A callback for the 'Rig Options' button
+        %   Opens a dialog allowing one to select which of the selected
+        %   rig's services to start during experiment initialization, and
+        %   to set any pre- and post-experiment delays.
+        %
+        %   See also SRV.STIMULUSCONTROL
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        % Create a dialog to display the selected rig options
         d = dialog('Position',[300 300 150 150],'Name', [upper(rig.Name) ' options']);
         vbox = uix.VBox('Parent', d, 'Padding', 5);
         bui.label('Services:', vbox); % Add 'Services' label
         c = gobjects(1, length(rig.Services));
-        if numel(rig.Services)
-          for i = 1:length(rig.Services)
+        if numel(rig.Services) % If the rig has any services...
+          for i = 1:length(rig.Services) % ...create a check box for each of them
             c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
                 'String', rig.Services{i}, 'Value', rig.SelectedServices(i));
           end
-        else
+        else % Otherwise indicate that no services are availible
           bui.label('No services available', vbox);
-          i = 1;
+          i = 1; % The number of services+1, used to set the container heights
         end
         uix.Empty('Parent', vbox);
         bui.label('Delays:', vbox); % Add 'Delyas' label next to rig dropdown
@@ -495,39 +571,54 @@ classdef MControl < handle
         set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
         set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
         function rigOptions_callback(varargin)
+            % RIGOPTIONS_CALLBACK A callback for the rig options 'Okay'
+            %   button.  Here we process the state of each services
+            %   check-box and set the selected services accordingly
+            %
+            %   See also SRV.STIMULUSCONTROL
             vals = get(c,'Value');
             if iscell(vals); vals = cell2mat(vals); end
             rig.SelectedServices = vals';
-            close(gcf)
+            close(gcf) % close the 
         end
     end
         
     function beginExp(obj)
-      set([obj.BeginExpButton obj.RigOptionsButton], 'enable', 'off'); % Grey out 'Start' button
-      rig = obj.RemoteRigs.Selected; % Find which rig is selected
-      % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-      if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
-        try
-          obj.AlyxPanel.login();
-        catch
-          warning('Must be logged in to Alyx before running an experiment')
+        % BEGINEXP The callback for the 'Start' button
+        %   Disables the start buttons, commands the remote rig to being an
+        %   experiment and calls the EXPPANEL object for monitoring the
+        %   experiment.  Additionally if the user is not logged into Alyx
+        %   (i.e. no Alyx token is set), the user is prompted to log in and
+        %   the token is stored in the rig object so that EXPPANEL can
+        %   later post any events to Alyx (for example the amount of water
+        %   received during the task).
+        % 
+        % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
+        rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
+        if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
+            try
+                obj.AlyxPanel.login();
+            catch
+                warning('Must be logged in to Alyx before running an experiment')
+            end
         end
-      end
-      if ~isempty(obj.AlyxPanel.AlyxInstance); rig.AlyxInstance = obj.AlyxPanel.AlyxInstance; end
-      services = rig.Services(rig.SelectedServices);
-       obj.Parameters.set('services', services(:),...
-        'List of experiment services to use during the experiment');
-      expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
-      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
-      obj.LastExpPanel = panel;
-      panel.Listeners = [panel.Listeners
-        event.listener(obj, 'Refresh', @(~,~)panel.update())];
-      obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef); % Tell rig to start experiment
-      %update the parameter set label to indicate used for this experiment
-      subject = dat.parseExpRef(expRef);
-      parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
-      set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
+        if ~isempty(obj.AlyxPanel.AlyxInstance); rig.AlyxInstance = obj.AlyxPanel.AlyxInstance; end
+        services = rig.Services(rig.SelectedServices);
+        obj.Parameters.set('services', services(:),...
+            'List of experiment services to use during the experiment');
+        expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
+        panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
+        obj.LastExpPanel = panel;
+        panel.Listeners = [panel.Listeners
+            event.listener(obj, 'Refresh', @(~,~)panel.update())];
+        obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
+        rig.startExperiment(expRef); % Tell rig to start experiment
+        %update the parameter set label to indicate used for this experiment
+        subject = dat.parseExpRef(expRef);
+        parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
+        set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
     end
     
     function updateWeightPlot(obj)

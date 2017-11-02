@@ -1,11 +1,13 @@
 classdef SineWaveGenerator < hw.ControlSignalGenerator
-  %HW.PULSESWITCHER Generates a train of pulses
-  %   Detailed explanation goes here
-  
+  %HW.SINEWAVEGENERATOR Generates a sinewave
+  %   Outputs a signwave of a particular frequency, duration and phase.  
+  % See also HW.DAQCONTROLLER
+  %
+  % Part of Rigbox  
   properties
-    Frequency
-    Duration
-    Offset
+    Frequency % The frequency of the sinewave in Hz
+    Duration % The duration of the signwave in seconds
+    Offset % The phase of the sinewave
   end
   
   methods

@@ -27,14 +27,13 @@ classdef AlyxPanel < handle
     %   
     %   The 'default' subject is for testing and is usually ignored.
     %
-    %   See also ALYX, MCONTROL
+    %   See also ALYX, EUI.MCONTROL
     %
     %   2017-03 NS created
     %   2017-10 MW made into class
     properties (SetAccess = private)
-        AlyxInstance = [];
-        AlyxUsername = [];
-        QueuedWeights = {}; % holds weighings until someone logs in, to be posted
+        AlyxInstance = []; % A struct containing the database URL, a token and the username of the who is logged in
+        QueuedWeights = {}; % Holds weighings until someone logs in, to be posted
         SubjectList % List of active subjects from database
         Subject = 'default' % The name of the currently selected subject
     end
@@ -209,7 +208,7 @@ classdef AlyxPanel < handle
                 [ai, username] = alyx.loginWindow(); % returns an instance if success, empty if you cancel
                 if ~isempty(ai) % successful
                     obj.AlyxInstance = ai;
-                    obj.AlyxUsername = username;
+                    obj.AlyxInstance.username = username;
                     % Start log in timer, to automatically log out after 30
                     % minutes of 'inactivity' (defined as not calling
                     % dispWaterReq)
@@ -217,7 +216,7 @@ classdef AlyxPanel < handle
                     start(obj.LoginTimer)
                     % Enable all buttons
                     set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
-                    set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxUsername]); % display which user is logged in
+                    set(obj.LoginText, 'String', ['You are logged in as ', username]); % display which user is logged in
                     set(obj.LoginButton, 'String', 'Logout');
                     
                     % try updating the subject selectors in other panels
@@ -226,7 +225,7 @@ classdef AlyxPanel < handle
                     respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
                     subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
                     
-                    thisUserSubs = sort(subjNames(strcmp(respUser, obj.AlyxUsername)));
+                    thisUserSubs = sort(subjNames(strcmp(respUser, username)));
                     otherUserSubs = sort(subjNames);
                     % note that we leave this User's mice also in
                     % otherUserSubs, in case they get confused and look
@@ -268,7 +267,6 @@ classdef AlyxPanel < handle
                 end
             else % logging out
                 obj.AlyxInstance = [];
-                obj.AlyxUsername = [];
                 obj.SubjectList = [];
                 if ~isempty(obj.LoginTimer) % If there is a timer object
                     stop(obj.LoginTimer) % Stop the timer...
@@ -418,7 +416,7 @@ classdef AlyxPanel < handle
                 clear d
                 d.subject = obj.Subject;
                 d.start_time = alyx.datestr(now);
-                d.users = {obj.AlyxUsername};
+                d.users = {obj.AlyxInstance.username};
                 try
                     thisSess = alyx.postData(ai, 'sessions', d);
                     obj.log('New session created for %s', obj.Subject);

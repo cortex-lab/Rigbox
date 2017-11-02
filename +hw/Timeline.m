@@ -31,6 +31,24 @@ classdef Timeline < handle
 %   system time and the DAQ times can (and do) drift.  It also requires the
 %   Data Aquisition Toolbox and the JSONlab add-on.
 %
+%   Example: setting up Timeline for the use with a Signals behavoural
+%   experiment
+%   %Open your hardware.mat file and instantiate a new Timeline object
+%     timeline = hw.Timeline;
+%   %Set tl to be started by default
+%     timeline.UseTimeline = true;
+%   %To set up chrono a wire must bridge the terminals defined in
+%   timeline.Outputs.daqChannelID and timeline.Inputs.daqChannelID
+%     timeline.wiringInfo('chrono');
+%   %Add the rotary encoder
+%     timeline.addInput('rotaryEncoder', 'ctr0', 'Position'); 
+%   %For a lick detector
+%     timeline.addInput('lickDetector', 'ctr2', 'EdgeCount'); 
+%   %We want use camera frame acquisition trigger by default
+%     timeline.UseOutputs{end+1} = 'clock';
+%   %Save your hardware.mat file
+%     save('hardware.mat', 'timeline', '-append')
+%
 %   TODO:
 %     - Register files to Alyx
 %     - Comment livePlot function
@@ -38,7 +56,10 @@ classdef Timeline < handle
 %     memory limitations when aquiring a lot of data
 %     - Delete local binary files once timeline has successfully saved to zserver?
 %
+%   See also HW.TIMELINECLOCK
+%
 %   Part of Rigbox
+
 %   2014-01 CB created
 %   2017-10 MW updated
 
