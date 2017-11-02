@@ -201,7 +201,7 @@ classdef Timeline < handle
             
             if isKey(obj.Sessions, 'acqLive') % is acqLive being used?
                 % set acquisition live signal to true
-                pause(obj.Outputs(cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name})).delay);
+                pause(obj.Outputs(cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name})).initialDelay);
                 outputSingleScan(obj.Sessions('acqLive'), true);
             end
             if isKey(obj.Sessions, 'clock') % is the clock output being used?
@@ -385,7 +385,7 @@ classdef Timeline < handle
             end
             % kill acquisition output signals
             if isKey(obj.Sessions, 'acqLive')
-                obj.Sessions('acqLive').outputSingleScan(false); % live -> false
+                outputSingleScan(obj.Sessions('acqLive'), false); % live -> false
             end
             for i = 1:length(obj.UseOutputs)
                 name = obj.UseOutputs{i};
