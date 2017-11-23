@@ -70,7 +70,8 @@ missNoiseSamples = missNoiseAmplitude*events.expStart.map(@(x) ...
 
 % Wheel parameters
 quiescThreshold = 1;
-wheelGain = 2;
+wheelGain = 3;
+millimetersFactor = wheelGain*(31*2*pi/(1024*4)); % convert the wheel gain to a value in mm/deg
 
 %% Initialize trial data
 
@@ -103,7 +104,7 @@ audio.onsetTone = toneSamples.at(interactiveOn);
 
 % Response
 % (wheel displacement zeroed at interactiveOn)
-stimDisplacement = wheelGain*(wheel - wheel.at(interactiveOn));
+stimDisplacement = millimetersFactor*(wheel - wheel.at(interactiveOn));
 
 response = keepWhen(interactiveOn.setTrigger(abs(stimDisplacement) ...
     >= responseDisplacement),interactiveOn.to(events.newTrial));

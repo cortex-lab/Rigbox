@@ -24,7 +24,8 @@ classdef vanillaChoiceworldExpPanel < eui.ExpPanel
     function update(obj)
       update@eui.ExpPanel(obj);
       processUpdates(obj); % update labels with latest signal values
-      labels = cell2mat(values(obj.LabelsMap))';
+      labelsMapVals = values(obj.LabelsMap)';
+      labels = [labelsMapVals{:}];
       if ~isempty(labels) % colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
@@ -221,8 +222,8 @@ classdef vanillaChoiceworldExpPanel < eui.ExpPanel
     hold(obj.performancePlot.axes.Handle);
     obj.performancePlot.axes.XLim = [-1,1];
     obj.performancePlot.axes.YLim = [0,1];   
-    xLabel(obj.performancePlot.axes,'Condition')
-    yLabel(obj.performancePlot.axes,'% Left')
+    xLabel(obj.performancePlot.axes,'Condition');
+    yLabel(obj.performancePlot.axes,'% Left');
     obj.performancePlot.dots = plot(0.5,0.5,'ok','MarkerSize',5); 
     obj.performancePlot.line = plot(0.5,0.5,'k','MarkerSize',2);   
     obj.performancePlot.NextPlot = 'add';  

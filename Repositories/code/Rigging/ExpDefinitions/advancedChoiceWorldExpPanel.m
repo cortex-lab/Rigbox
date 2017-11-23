@@ -28,12 +28,8 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
     function update(obj)
       update@eui.ExpPanel(obj);
       processUpdates(obj); % update labels with latest signal values
-%       labels = cell2mat(values(obj.LabelsMap))';
       labelsMapVals = values(obj.LabelsMap)';
-      labels = gobjects(size(values(obj.LabelsMap)));
-      for i=1:length(labelsMapVals) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
-          labels(i) = labelsMapVals{i};
-      end
+      labels = [labelsMapVals{:}];
       if ~isempty(labels) % colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
