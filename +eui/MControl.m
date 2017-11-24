@@ -532,6 +532,10 @@ classdef MControl < handle
         vbox = uix.VBox('Parent', d, 'Padding', 5);
         bui.label('Services:', vbox); % Add 'Services' label
         c = gobjects(1, length(rig.Services));
+        % Ensure that SelectedServices is the correct size
+        if length(rig.SelectedServices)~=length(rig.Services)
+          rig.SelectedServices = true(size(rig.Services));
+        end
         if numel(rig.Services) % If the rig has any services...
           for i = 1:length(rig.Services) % ...create a check box for each of them
             c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
