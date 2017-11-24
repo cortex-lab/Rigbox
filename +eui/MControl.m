@@ -582,7 +582,7 @@ classdef MControl < handle
             %   See also SRV.STIMULUSCONTROL
             vals = get(c,'Value');
             if iscell(vals); vals = cell2mat(vals); end
-            rig.SelectedServices = vals';
+            rig.SelectedServices = logical(vals');
             close(gcf) % close the 
         end
     end
