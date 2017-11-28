@@ -152,7 +152,7 @@ classdef BasicUDPService < srv.Service
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimeout)
         obj.ResponseTimer = timer('StartDelay', obj.ResponseTimeout,...
-          'TimerFcn', @(~,~)obj.processMsg);
+          'TimerFcn', @(~,~)obj.processMsg());
         start(obj.ResponseTimer) % start the timer
       end
     end
@@ -174,19 +174,19 @@ classdef BasicUDPService < srv.Service
   end
   
   methods (Access = protected)
-    function processMsg(obj, ~, ~)
+    function processMsg(obj)
       % Parse the message into its constituent parts
       response = regexp(obj.LastReceivedMessage,...
           '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
       % Check that the message was from the correct host, otherwise ignore
-      if strcmp(response.host, obj.RemoteHost)
+      if ~isempty(response)&&strcmp(response.host, obj.RemoteHost)
           warning('Received message from %s, ignoring', response.host);
           return
       end
       if obj.AwaitingConfirmation
       % Check the confirmation message is the same as the sent message
-        assert(~isempty(response)||... % something received
-            strcmp(response.status, 'WHAT')||... % status update
+        assert(~isempty(response)&&... % something received
+            strcmp(response.status, 'WHAT')&&... % status update
             strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
           'Confirmation failed')
       % We no longer need the timer, stop and delete it
