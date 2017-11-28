@@ -151,7 +151,7 @@ classdef BasicUDPService < srv.Service
       obj.AwaitingConfirmation = true;
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimeout)
-        obj.ResponseTimer = timer('StartDelay', obj.ResponseTimout,...
+        obj.ResponseTimer = timer('StartDelay', obj.ResponseTimeout,...
           'TimerFcn', @(~,~)obj.processMsg);
         start(obj.ResponseTimer) % start the timer
       end
