@@ -95,15 +95,15 @@ classdef BasicUDPService < srv.Service
         'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
       obj.Socket.ReadAsyncMode = 'continuous';
       obj.Socket.BytesAvailableFcnCount = 10; % Number of bytes in buffer required to trigger BytesAvailableFcn
-      obj.Socket.BytesAvailableFcn = @obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
+      obj.Socket.BytesAvailableFcn = @(~,~)obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
       % Add listener to MessageReceived event, notified when receiveUDP is
       % called.  This event can be listened to by anyone.
-      obj.Listener = event.listener(obj, 'MessageReceived', @processMsg);
+      obj.Listener = event.listener(obj, 'MessageReceived', @(~,~)obj.processMsg);
       % Add listener for when the observable properties are set 
       obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
         'PostSet',@obj.update);
       % Add listener for when the remote service's status is requested
-      obj.addlistener('Status', 'PreGet', @obj.requestStatus);
+      obj.addlistener('Status', 'PreGet', @(~,~)obj.requestStatus);
     end
     
     function update(obj, evt, ~)
@@ -132,11 +132,20 @@ classdef BasicUDPService < srv.Service
     function start(obj, expRef)
       % Send start message to remotehost and await confirmation
       obj.confirmedSend(sprintf('GOGO%s*%s', expRef, obj.RemoteHost));
+      while obj.AwaitingConfirmation&&...
+          ~strcmp(obj.LastReceivedMessage, obj.LastSentMessage)
+        pause(0.2);
+      end
     end
     
     function stop(obj)
       % Send stop message to remotehost and await confirmation
       obj.confirmedSend(sprintf('STOP*%s', obj.RemoteHost));
+      while obj.AwaitingConfirmation&&...
+          ~strcmp(obj.LastReceivedMessage, obj.LastSentMessage)
+        pause(0.1)
+      end
+      obj.delete
     end
     
     function requestStatus(obj)
@@ -158,9 +167,10 @@ classdef BasicUDPService < srv.Service
     end
     
     function receiveUDP(obj)
-      obj.LastReceivedMessage = fscanf(obj.Socket);
+      obj.LastReceivedMessage = strtrim(fscanf(obj.Socket));
+      
       % Remove any more accumulated inputs to the listener
-      obj.Socket.flushinput();
+%       obj.Socket.flushinput();
       notify(obj, 'MessageReceived')
     end
     
@@ -174,30 +184,32 @@ classdef BasicUDPService < srv.Service
   end
   
   methods (Access = protected)
-    function processMsg(obj)
+      function processMsg(obj)
       % Parse the message into its constituent parts
       response = regexp(obj.LastReceivedMessage,...
           '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
       % Check that the message was from the correct host, otherwise ignore
-      if ~isempty(response)&&strcmp(response.host, obj.RemoteHost)
+      if ~isempty(response)&&~strcmp(response.host, obj.RemoteHost)
           warning('Received message from %s, ignoring', response.host);
           return
       end
-      if obj.AwaitingConfirmation
-      % Check the confirmation message is the same as the sent message
-        assert(~isempty(response)&&... % something received
-            strcmp(response.status, 'WHAT')&&... % status update
-            strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
-          'Confirmation failed')
       % We no longer need the timer, stop and delete it
-        if ~isempty(obj.ResponseTimer)
-            stop(obj.ResponseTimer)
-            delete(obj.ResponseTimer)
-            obj.ResponseTimer = [];
-        end
+      if ~isempty(obj.ResponseTimer)
+          stop(obj.ResponseTimer)
+          delete(obj.ResponseTimer)
+          obj.ResponseTimer = [];
+      end
+      
+      if obj.AwaitingConfirmation
+          % Check the confirmation message is the same as the sent message
+          assert(~isempty(response)&&... % something received
+              strcmp(response.status, 'WHAT')||... % status update
+              strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
+              'Confirmation failed')
       end
       % At the moment we just disply some stuff, other functions listening
       % to the MessageReceived event can do their thing
+      if isempty(response); return; end
       switch response.status
         case 'GOGO'
           if obj.AwaitingConfirmation
@@ -234,7 +246,7 @@ classdef BasicUDPService < srv.Service
               obj.Status = 'unavailable';
             end
           else % Received status request NB: Currently no way of determining status
-             obj.sendUDP([parsed.status parsed.id obj.LocalStatus])
+             obj.sendUDP(['WHAT' parsed.id obj.LocalStatus obj.RemoteHost])
           end
         otherwise
           disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
