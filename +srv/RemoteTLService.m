@@ -139,18 +139,18 @@ classdef RemoteTLService < srv.Service
     
     function start(obj, expRef)
       % Send start message to remotehost and await confirmation
-      obj.confirmedSend(sprintf('GOGO%s*%s', expRef, obj.RemoteHost));
+      obj.confirmedSend(sprintf('GOGO%s*%s', expRef, hostname));
     end
     
     function stop(obj)
       % Send stop message to remotehost and await confirmation
-      obj.confirmedSend(sprintf('STOP*%s', obj.RemoteHost));
+      obj.confirmedSend(sprintf('STOP*%s', hostname));
     end
     
     function requestStatus(obj)
       % Request a status update from the remote service
       obj.ConfirmID = randi(1e6);
-      obj.sendUDP(sprintf('WHAT%i*%s', obj.ConfirmID, obj.RemoteHost));
+      obj.sendUDP(sprintf('WHAT%i*%s', obj.ConfirmID, hostname));
       disp('Requested status update from remote service')
     end
         
@@ -186,7 +186,7 @@ classdef RemoteTLService < srv.Service
       response = regexp(obj.LastReceivedMessage,...
           '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
       % Check that the message was from the correct host, otherwise ignore
-      if strcmp(response.host, obj.RemoteHost)
+      if ~isempty(response)&&~any(strcmp(response.host, {obj.RemoteHost hostname}))
           warning('Received message from %s, ignoring', response.host);
           return
       end
