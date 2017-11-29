@@ -279,45 +279,27 @@ ShowCursor();
     save(rigHwFile, 'daqController', '-append');
   end
 
-   function whiteScreen()
-%       stimWindow = rig.stimWindow;
-%       set.BackgroundColour(stimWindow, stimWindow.White);
-rig.stimWindow.BackgroundColour = 255;
-rig.stimWindow.flip();
-rig.stimWindow.BackgroundColour = bgColour;
-%       stimWindow.pBackgroundColour = stimWindow.White;
-%       if stimWindow.PtbHandle > -1
-        % performing a ptb FillRect will set the new background colour
-%         Screen('FillRect', stimWindow.PtbHandle, 255);
-%       end
-%       pause(30);
-%       rig.stimWindow.flip();
-%       set.BackgroundColour(stimWindow, stimWindow.White);
-%       rig.stimWindow.BackgroundColour = bgColour;
-% rig.stimWindow.flip();
-%       stimWindow.pBackgroundColour = bgColour;
-%       if stimWindow.PtbHandle > -1
-        % performing a ptb FillRect will set the new background colour
-%         Screen('FillRect', stimWindow.PtbHandle, bgColour);
-%       end
-
+  function whiteScreen()
+    rig.stimWindow.BackgroundColour = 255;
+    rig.stimWindow.flip();
+    rig.stimWindow.BackgroundColour = bgColour;
   end
 
   function calibrateGamma()
-        stimWindow = rig.stimWindow;
-        DaqDev = rig.daqController.DaqIds;
-        lightIn = 'ai0'; % defaults from hw.psy.Window
-        clockIn = 'ai1';
-        clockOut = 'port1/line0 (PFI4)';
-        log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-            'Press any key to contiue\n'],lightIn,clockIn,clockOut);
-        pause; % wait for keypress
-        stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-        pause(1);
-        saveGamma(stimWindow.Calibration);
-        stimWindow.applyCalibration(stimWindow.Calibration);
-        clear('lightIn','clockIn','clockOut','cal');
-        log('Gamma calibration complete');
+    stimWindow = rig.stimWindow;
+    DaqDev = rig.daqController.DaqIds;
+    lightIn = 'ai0'; % defaults from hw.psy.Window
+    clockIn = 'ai1';
+    clockOut = 'port1/line0 (PFI4)';
+    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
+        'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    pause; % wait for keypress
+    stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+    pause(1);
+    saveGamma(stimWindow.Calibration);
+    stimWindow.applyCalibration(stimWindow.Calibration);
+    clear('lightIn','clockIn','clockOut','cal');
+    log('Gamma calibration complete');
   end
 
   function saveGamma(cal)
