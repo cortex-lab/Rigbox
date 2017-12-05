@@ -577,6 +577,9 @@ classdef MControl < handle
               disp(d)
               warning('Return values below:');
               disp(base_submit)
+              return
+            else
+                obj.log(['Created new base session in Alyx for ' obj.NewExpSubject.Selected]);
             end
           end
           
@@ -584,15 +587,7 @@ classdef MControl < handle
           sessions = alyx.getData(obj.AlyxPanel.AlyxInstance,...
               ['sessions?type=Base&subject=' obj.NewExpSubject.Selected]);
           latest_base = sessions{end};
-          
-          %Check that the latest base session now corresponds to today
-%           if strcmp(latest_base.start_time(1:10), thisDate(1:10))
-%               obj.log(['Created new base session in Alyx for ' obj.NewExpSubject.Selected]);
-%           else
-%               obj.log(['Failed to create new base session in Alyx for ' obj.NewExpSubject.Selected]);
-%               return;
-%           end
-                        
+                                  
           %Now create a new SUBSESSION, using the same experiment number
           d = struct;
           d.subject = obj.NewExpSubject.Selected;
