@@ -128,9 +128,9 @@ classdef SignalsExp < handle
       obj.Inputs = sig.Registry(clockFun);
       obj.Outputs = sig.Registry(clockFun);
       obj.Visual = StructRef;
-      nAudChannels = getOr(paramStruct, 'numAudChannels', 2);
-      audSampleRate = getOr(paramStruct, 'audSampleRate', 192e3); % Hz
-      audDevIdx = getOr(paramStruct, 'audDevIdx', -1); % -1 means use system default
+      nAudChannels = getOr(paramStruct, 'numAudChannels', rig.audioDevice.NrOutputChannels);
+      audSampleRate = getOr(paramStruct, 'audSampleRate', rig.audioDevice.DefaultSampleRate); % Hz
+      audDevIdx = getOr(paramStruct, 'audDevIdx', rig.audioDevice.DeviceIndex); % -1 means use system default
       obj.Audio = audstream.Registry(audSampleRate, nAudChannels, audDevIdx);
       obj.Events = sig.Registry(clockFun);
       %% configure signals

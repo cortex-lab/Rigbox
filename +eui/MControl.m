@@ -554,9 +554,8 @@ classdef MControl < handle
           'List of experiment services to use during the experiment');
         [expRef, seq] = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
         % Set up new session on Alyx
-        if ~isempty(obj.AlyxPanel.AlyxInstance)
+        if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
           %Find/create BASE session, then create subsession
-          if strcmp(obj.NewExpSubject.Selected,'default'); return; end % Do nothing if 'default'
           thisDate = alyx.datestr(now);
           sessions = alyx.getData(obj.AlyxPanel.AlyxInstance,...
               ['sessions?type=Base&subject=' obj.NewExpSubject.Selected]);            
@@ -587,16 +586,16 @@ classdef MControl < handle
           latest_base = sessions{end};
           
           %Check that the latest base session now corresponds to today
-          if strcmp(latest_base.start_time(1:10), thisDate(1:10))
-              obj.log(['Created new base session in Alyx for ' obj.NewExpSubject.Selected]);
-          else
-              obj.log(['Failed to create new base session in Alyx for ' obj.NewExpSubject.Selected]);
-              return;
-          end
+%           if strcmp(latest_base.start_time(1:10), thisDate(1:10))
+%               obj.log(['Created new base session in Alyx for ' obj.NewExpSubject.Selected]);
+%           else
+%               obj.log(['Failed to create new base session in Alyx for ' obj.NewExpSubject.Selected]);
+%               return;
+%           end
                         
           %Now create a new SUBSESSION, using the same experiment number
           d = struct;
-          d.subject = thisSubj;
+          d.subject = obj.NewExpSubject.Selected;
           d.procedures = {'Behavior training/tasks'};
           d.narrative = 'auto-generated session';
           d.start_time = thisDate;

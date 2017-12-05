@@ -20,6 +20,8 @@ e.pars = net.subscriptableOrigin('pars');
 e.pars.CacheSubscripts = true;
 e.visual = net.subscriptableOrigin('visual');
 e.audio = net.subscriptableOrigin('audio');
+e.audio.SampleRate = 44100;
+e.audio.NChannels = 2;
 e.inputs = net.subscriptableOrigin('inputs');
 e.outputs = net.subscriptableOrigin('outputs');
 
