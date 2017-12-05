@@ -23,7 +23,10 @@ if nargin > 1 % in [ref, AlyxInstance]
 else % in [UDP_string]
   C = strsplit(varargin{1},'\'); % split string
   ref = C{1}; % output expRef
-  if numel(C)>1 % if UDP string included AlyxInstance
+  if numel(C)>4 % if UDP string included AlyxInstance
+    AlyxInstance = struct('baseURL', C{2}, 'token', C{3},...
+        'username', C{4}, 'subsessionURL', C{5}); % reconstruct AlyxInstance
+  elseif numel(C)>1 % if AlyxInstance has no subsession set
     AlyxInstance = struct('baseURL', C{2}, 'token', C{3}, 'username', C{4}); % reconstruct AlyxInstance
   else
     AlyxInstance = []; % if input was just an expRef, output empty AlyxInstance

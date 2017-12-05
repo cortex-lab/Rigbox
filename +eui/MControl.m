@@ -317,68 +317,6 @@ classdef MControl < handle
     
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
         obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
-        
-        [thisSubj,~,thisExpNum] = dat.parseExpRef(evt.Ref);
-        
-        ai = obj.AlyxPanel.AlyxInstance;
-        if ~isempty(ai) %Find/create BASE session, then create subsession
-            
-            if strcmp(thisSubj,'default'); return; end
-            thisDate = alyx.datestr(now);
-            sessions = alyx.getData(ai, ['sessions?type=Base&subject=' thisSubj]);            
-            
-            %If the date of this latest base session is not the same date as
-            %today, then create a new base session for today
-            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
-                d = struct;
-                d.subject = thisSubj;
-                d.procedures = {'Behavior training/tasks'};
-                d.narrative = 'auto-generated session';
-                d.start_time = thisDate;
-                d.type = 'Base';
-                
-                base_submit = alyx.postData(ai, 'sessions', d);
-                if ~isfield(base_submit,'subject')
-                    warning('Submitted base session did not return appropriate values');
-                    warning('Submitted data below:');
-                    disp(d)
-                    warning('Return values below:');
-                    disp(base_submit)
-                end
-%                 obj.log(['Created new session in Alyx for: ' thisSubj]);
-                
-                %Now retrieve the sessions again
-                sessions = alyx.getData(ai, ['sessions?type=Base&subject=' thisSubj]);
-                latest_base = sessions{end};
-
-                %Check that the latest base session now corresponds to
-                %today
-                if strcmp(latest_base.start_time(1:10), thisDate(1:10))
-                    obj.log(['Created new base session in Alyx for: ' thisSubj]);
-                else
-                    obj.log(['Failed to create new base session in Alyx for: ' thisSubj]);
-                    return;
-                end
-            end
-                        
-            %Now create a new SUBSESSION, using the same experiment number
-            d = struct;
-            d.subject = thisSubj;
-            d.procedures = {'Behavior training/tasks'};
-            d.narrative = 'auto-generated session';
-            d.start_time = thisDate;
-            d.type = 'Experiment';
-            d.parent_session = latest_base.url;
-            d.number = thisExpNum;
-
-            subsession = alyx.postData(ai, 'sessions', d);
-            if ~isfield(subsession,'subject')
-                obj.log(['Failed to create new sub-session in Alyx for: ' thisSubj]);
-                disp(d)
-            end
-            obj.log(['Created new sub-session in Alyx for: ', thisSubj]);
-        end
-        
     end
     
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
@@ -602,17 +540,82 @@ classdef MControl < handle
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
         if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
-            try
-                obj.AlyxPanel.login();
-            catch
-                warning('Must be logged in to Alyx before running an experiment')
-            end
+          try
+            obj.AlyxPanel.login();
+          catch
+            log('Warning: Must be logged in to Alyx before running an experiment')
+            return
+          end
         end
-        if ~isempty(obj.AlyxPanel.AlyxInstance); rig.AlyxInstance = obj.AlyxPanel.AlyxInstance; end
+        % Find which services should be started by expServer
         services = rig.Services(rig.SelectedServices);
+        % Add these services to the parameters
         obj.Parameters.set('services', services(:),...
-            'List of experiment services to use during the experiment');
-        expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
+          'List of experiment services to use during the experiment');
+        [expRef, seq] = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
+        % Set up new session on Alyx
+        if ~isempty(obj.AlyxPanel.AlyxInstance)
+          %Find/create BASE session, then create subsession
+          if strcmp(obj.NewExpSubject.Selected,'default'); return; end % Do nothing if 'default'
+          thisDate = alyx.datestr(now);
+          sessions = alyx.getData(obj.AlyxPanel.AlyxInstance,...
+              ['sessions?type=Base&subject=' obj.NewExpSubject.Selected]);            
+            
+          %If the date of this latest base session is not the same date as
+          %today, then create a new base session for today
+          if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
+            d = struct;
+            d.subject = obj.NewExpSubject.Selected;
+            d.procedures = {'Behavior training/tasks'};
+            d.narrative = 'auto-generated session';
+            d.start_time = thisDate;
+            d.type = 'Base';
+                
+            base_submit = alyx.postData(obj.AlyxPanel.AlyxInstance, 'sessions', d);
+            if ~isfield(base_submit,'subject')
+              warning('Submitted base session did not return appropriate values');
+              warning('Submitted data below:');
+              disp(d)
+              warning('Return values below:');
+              disp(base_submit)
+            end
+          end
+          
+          %Now retrieve the sessions again
+          sessions = alyx.getData(obj.AlyxPanel.AlyxInstance,...
+              ['sessions?type=Base&subject=' obj.NewExpSubject.Selected]);
+          latest_base = sessions{end};
+          
+          %Check that the latest base session now corresponds to today
+          if strcmp(latest_base.start_time(1:10), thisDate(1:10))
+              obj.log(['Created new base session in Alyx for ' obj.NewExpSubject.Selected]);
+          else
+              obj.log(['Failed to create new base session in Alyx for ' obj.NewExpSubject.Selected]);
+              return;
+          end
+                        
+          %Now create a new SUBSESSION, using the same experiment number
+          d = struct;
+          d.subject = thisSubj;
+          d.procedures = {'Behavior training/tasks'};
+          d.narrative = 'auto-generated session';
+          d.start_time = thisDate;
+          d.type = 'Experiment';
+          d.parent_session = latest_base.url;
+          d.number = seq;
+
+          subsession = alyx.postData(obj.AlyxPanel.AlyxInstance, 'sessions', d);
+          if ~isfield(subsession,'subject')
+            obj.log(['Failed to create new sub-session in Alyx for ' obj.NewExpSubject.Selected]);
+            disp(d)
+          end
+          obj.log(['Created new sub-session in Alyx for ', obj.NewExpSubject.Selected]);
+          % Add a copy of the AlyxInstance to the rig object for later
+          % water registration, &c.
+          rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
+          rig.AlyxInstance.subsessionURL = subsession.url;
+        end
+        
         panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
         obj.LastExpPanel = panel;
         panel.Listeners = [panel.Listeners
