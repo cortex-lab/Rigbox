@@ -213,13 +213,13 @@ classdef Timeline < handle
             fprintf('Timeline started successfully for ''%s''.\n', expRef);
         end
         
-        function record(obj, name, event, time)
+        function record(obj, name, event, t)
             % Records an event in Timeline
             %   TL.RECORD(name, event, [time]) records an event in the Timeline
             %   struct in fields prefixed with 'name', with data in 'event'. Optionally
             %   specify 'time', otherwise the time of call will be used (relative to
             %   Timeline acquisition).
-            if nargin < 3; time = time(obj); end % default to time now (using Timeline clock)
+            if nargin < 4; t = time(obj); end % default to time now (using Timeline clock)
             initLength = 100; % default initial length of event data arrays
             
             timesFieldName = [name 'Times'];
@@ -249,7 +249,7 @@ classdef Timeline < handle
             end
             
             %%store the event at the appropriate index
-            obj.Data.(timesFieldName)(newCount) = time;
+            obj.Data.(timesFieldName)(newCount) = t;
             obj.Data.(eventFieldName){newCount} = event;
             obj.Data.(countFieldName) = newCount;
         end
