@@ -113,7 +113,7 @@ classdef RemoteMPEPService < srv.Service
       obj.addlistener('Status', 'PreGet', @obj.requestStatus);
     end
     
-    function obj = addListener(name, listenPort, callback)
+    function obj = addListener(obj, name, listenPort, callback)
         if nargin<3; callback = @nop; end
         if listenPort==obj.ListenPorts
           error('Listen port already added');

@@ -7,7 +7,7 @@ function [ref, AlyxInstance] = parseAlyxInstance(varargin)
 %   date formats accepted, either 'yyyy-mm-dd' or 'yyyymmdd'.
 %   
 %   AlyxInstance should be a struct with the following fields, all
-%   containing strings: 'baseURL', 'token', 'username'.
+%   containing strings: 'baseURL', 'token', 'username'[, 'subsessionURL'].
 %
 % Part of Rigbox
 
@@ -17,6 +17,11 @@ if nargin > 1 % in [ref, AlyxInstance]
   ref = varargin{1}; % extract expRef
   ai = varargin{2}; % extract AlyxInstance struct
   if isstruct(ai) % if there is an AlyxInstance
+    ai = orderfields(ai); % alphabetize fields
+    % remove water requirement remaining field
+    if isfield(ai, 'water_requirement_remaining')
+      ai = rmfield(ai, 'water_requirement_remaining');
+    end
     c = cellfun(@(fn) ai.(fn), fieldnames(ai), 'UniformOutput', false); % get fieldnames
     ref = strjoin([ref; c],'\'); % join into single string for UDP, otherwise just output the expRef
   end
@@ -24,8 +29,8 @@ else % in [UDP_string]
   C = strsplit(varargin{1},'\'); % split string
   ref = C{1}; % output expRef
   if numel(C)>4 % if UDP string included AlyxInstance
-    AlyxInstance = struct('baseURL', C{2}, 'token', C{3},...
-        'username', C{4}, 'subsessionURL', C{5}); % reconstruct AlyxInstance
+    AlyxInstance = struct('baseURL', C{2}, 'subsessionURL', C{3},...
+        'token', C{4}, 'username', C{5}); % reconstruct AlyxInstance
   elseif numel(C)>1 % if AlyxInstance has no subsession set
     AlyxInstance = struct('baseURL', C{2}, 'token', C{3}, 'username', C{4}); % reconstruct AlyxInstance
   else
