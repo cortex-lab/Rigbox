@@ -93,23 +93,13 @@ if init
     InitializePsychSound;
     IsPsychSoundInitialize = true;
   end
-  if isfield(rig, 'audioDevice')
-      audioDevice = rig.audioDevice;
-      audioSR = 96e3;
-      audioChannels = 2;
-%   elseif isfield(rig, 'audioDetails')
-%       % Pip Modified 25/03/2016
-%     audioSR = rig.audioDetails.audioSR;
-%     audioDevice = rig.audioDetails.audioDevice;
-%     audioChannels = rig.audioDetails.audioChannels;
-  else
-    audioDevice = [];
-    audioSR = 96e3;
-    audioChannels = 2;
-  end
+  idx = pick(rig, 'audioDevice', 'def', 0);
+  rig.audioDevice = PsychPortAudio('GetDevices', [], idx);
   % setup playback audio device - no configurable settings for now
   % 96kHz sampling rate, 2 channels, try to very low audio latency
-  rig.audio = aud.open(audioDevice, audioChannels, audioSR, 1);
+  rig.audio = aud.open(rig.audioDevice.DeviceIndex,...
+  rig.audioDevice.NrOutputChannels,...
+  rig.audioDevice.DefaultSampleRate, 1);
 end
 
 rig.paths = paths;
