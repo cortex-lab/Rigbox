@@ -62,7 +62,7 @@ classdef ExpPanel < handle
       end
       params = exp.Parameters(paramsStruct); % Get parameters
       if isfield(params.Struct, 'expPanelFun') % Can define your own experiment panel
-        p = params.Struct.expPanelFun(parent, ref, params, logEntry);
+        p = feval(params.Struct.expPanelFun, parent, ref, params, logEntry);
       else
         switch params.Struct.type
           case {'SingleTargetChoiceWorld' 'ChoiceWorld' 'DiscWorld' 'SurroundChoiceWorld'}
