@@ -62,6 +62,7 @@ classdef ExpPanel < handle
       end
       params = exp.Parameters(paramsStruct); % Get parameters
       if isfield(params.Struct, 'expPanelFun') % Can define your own experiment panel
+        if isempty(which(params.Struct.expPanelFun)); addpath(fileparts(params.Struct.defFunction)); end
         p = feval(params.Struct.expPanelFun, parent, ref, params, logEntry);
       else
         switch params.Struct.type
