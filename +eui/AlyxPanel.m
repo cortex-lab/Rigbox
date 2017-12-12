@@ -462,6 +462,11 @@ classdef AlyxPanel < handle
               endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
               wr = alyx.getData(ai, endpnt);
               records = catStructs(wr.records, nan);
+              % no weighings found
+              if isempty(wr.records)
+                obj.log('No weight data found for subject %s', obj.Subject);
+                return
+              end
               dates = cellfun(@(x)datenum(x), {records.date});
                 
               % build the figure to show it
