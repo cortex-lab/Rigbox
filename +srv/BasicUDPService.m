@@ -114,7 +114,7 @@ classdef BasicUDPService < srv.Service
       % Check if socket is open
       isOpen = strcmp(obj.Socket.Status, 'open');
       % Close connection before setting, if required to do so
-      if any(strcmp(src.Name, {'RemoteHost', 'LocalPort', 'EnablePortSharing'}))&&isOpen
+      if any(strcmp(src.Name, {'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'}))&&isOpen
         fclose(obj.Socket);
       end
       % Set all the relevant properties
@@ -189,7 +189,7 @@ classdef BasicUDPService < srv.Service
       function processMsg(obj, src, evt)
       % Parse the message into its constituent parts
       response = regexp(obj.LastReceivedMessage,...
-        '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
+        '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>\w*)', 'names');
       % Check that the message was from the correct host, otherwise ignore
       if ~isempty(response)&&~any(strcmp(response.host, {obj.RemoteHost hostname}))
         warning('Received message from %s, ignoring', response.host);
@@ -227,8 +227,8 @@ classdef BasicUDPService < srv.Service
               feval(obj.StartCallback, src, evt);
               obj.LocalStatus = 'running';
               obj.sendUDP(obj.LastReceivedMessage)
-              catch
-                error('Failed to start service')
+              catch ex
+                error('Failed to start service: %s', ex.message)
               end
             end
           end
@@ -266,7 +266,7 @@ classdef BasicUDPService < srv.Service
             end
           else 
             try
-              obj.sendUDP(['WHAT' parsed.id obj.LocalStatus obj.RemoteHost])
+              obj.sendUDP(['WHAT' parsed.id obj.LocalStatus '*' obj.RemoteHost])
               disp(['Sent status update to ' obj.RemoteHost]) % Display success
             catch
               error('Failed to send status update to %s', obj.RemoteHost)
