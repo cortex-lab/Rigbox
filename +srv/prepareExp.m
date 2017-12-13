@@ -20,7 +20,9 @@ if isfield(params, 'services') && ~isempty(params.services)
   services = srv.findService(params.services); % Uses basicServices
 %   services = srv.loadService(params.services); % Loads BasicUDPService objects
   for i = 1:length(services)
-    services{i}.Timeline = rig.timeline;
+    if isprop(services{i},'Timeline')
+      services{i}.Timeline = rig.timeline;
+    end
   end
   startServices = exp.StartServices(services);
   stopServices = exp.StopServices(services);
