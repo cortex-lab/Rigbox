@@ -489,7 +489,6 @@ classdef AlyxPanel < handle
                   set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
               else
                   ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax.Handle, 'XTick'), 'uni', false);
-                  rotateticklabel(ax.Handle, 45);
               end
               ylabel('weight (g)');
                 
@@ -589,7 +588,9 @@ classdef AlyxPanel < handle
                 timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
                 str = sprintf('[%s] %s', timestamp, message);
                 current = get(obj.LoggingDisplay, 'String');
-                set(obj.LoggingDisplay, 'String', [current; str], 'Value', numel(current) + 1);
+                %NB: If more that one instance of MATLAB is open, we use
+                %the last opened LoggingDisplay
+                set(obj.LoggingDisplay(end), 'String', [current; str], 'Value', numel(current) + 1);
             else
                 fprintf(message)
             end

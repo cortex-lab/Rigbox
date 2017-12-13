@@ -638,6 +638,7 @@ classdef MControl < handle
       obj.WeightAxes.clear();
       if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.LogSubject.Selected,'default')
         obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes)
+        rotateticklabel(obj.WeightAxes.Handle, 45);
       else
         if numel(datenums) > 0
           obj.WeightAxes.plot(datenums, [entries.value], '-o');
