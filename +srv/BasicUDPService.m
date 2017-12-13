@@ -163,7 +163,7 @@ classdef BasicUDPService < srv.Service
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimeout)
         obj.ResponseTimer = timer('StartDelay', obj.ResponseTimeout,...
-          'TimerFcn', @(src,evt)obj.processMsg(src,evt));
+          'TimerFcn', @(src,evt)obj.processMsg(src,evt), 'StopFcn', @(src,~)delete(src));
         start(obj.ResponseTimer) % start the timer
       end
     end
@@ -195,12 +195,8 @@ classdef BasicUDPService < srv.Service
         warning('Received message from %s, ignoring', response.host);
         return
       end
-      % We no longer need the timer, stop and delete it
-      if ~isempty(obj.ResponseTimer)
-        stop(obj.ResponseTimer)
-        delete(obj.ResponseTimer)
-        obj.ResponseTimer = [];
-      end
+      % We no longer need the timer, stop it
+      if ~isempty(obj.ResponseTimer); stop(obj.ResponseTimer); end
       
       if obj.AwaitingConfirmation
         % Reset AwaitingConfirmation
@@ -264,7 +260,9 @@ classdef BasicUDPService < srv.Service
             catch
               obj.Status = 'unavailable';
             end
-          else 
+          else
+            % Ignore if it is our on 
+            if strcmp(response.host, hostname); return; end
             try
               obj.sendUDP(['WHAT' parsed.id obj.LocalStatus '*' obj.RemoteHost])
               disp(['Sent status update to ' obj.RemoteHost]) % Display success
