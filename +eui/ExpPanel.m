@@ -55,7 +55,7 @@ classdef ExpPanel < handle
       subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
       try
         logEntry = dat.addLogEntry(... % Add new entry to log
-          subject, now, 'experiment-info', struct('ref', ref), '');
+          subject, now, 'experiment-info', struct('ref', ref), '', remoteRig.AlyxInstance);
       catch ex
         logEntry.comments = '';
         warning(ex.getReport());
@@ -186,7 +186,7 @@ classdef ExpPanel < handle
     end
     
     function expStarted(obj, rig, evt)
-      % EXPSTARTED Callback for the ExpStarted  event.
+      % EXPSTARTED Callback for the ExpStarted event.
       %   Updates the ExpRunning flag, the panel title and status label to
       %   show that the experiment has officially begun.
       %   

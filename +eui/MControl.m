@@ -360,48 +360,30 @@ classdef MControl < handle
       expRef = rig.ExpRunnning; % returns expRef if running
       if expRef
 %           error('Experiment %s already running of %s', expDef, rig.Name)
-          d = dialog('Position', [200 200 350 100], 'Name', upper(rig.Name));
-          str = sprintf(['Attention: An experiment is already running on %s.\n',... 
-              'To view the experiment click ''View'', otherwise ''Close'''], rig.Name);
-          uicontrol('Parent',d,...
-              'Style', 'text',...
-              'Position', [20 45 310 40],...
-              'String', str);
-          uicontrol('Parent',d,...
-              'Position', [100 20 70 25],...
-              'String', 'View',...
-              'Callback', @(~,~)rigRunning_callback(expRef));
-          uicontrol('Parent',d,...
-              'Position', [175 20 70 25],...
-              'String', 'Close',...
-              'Callback', 'close(gcf)');
+          choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
+              upper(rig.Name), 'View', 'Cancel', 'Cancel');
+          switch choice
+              case 'View'
+                  % Load the parameters from file
+                  paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
+                  if ~isfield(paramStruct.parameters, 'type')
+                      paramStruct.type = 'custom'; % override type name with preferred
+                  end
+                  % Instantiate an ExpPanel and pass it the expRef and parameters
+                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct.parameters);
+                  obj.LastExpPanel = panel;
+                  % Add a listener for the new panel
+                  panel.Listeners = [panel.Listeners
+                      event.listener(obj, 'Refresh', @(~,~)panel.update())];
+                  obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
+              case 'Cancel'
+                  return
+          end
       else % The rig is idle...
         obj.log('Connected to ''%s''', rig.Name); % ...say so in the log box
         if rig == obj.RemoteRigs.Selected
           set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
         end
-      end
-      function rigRunning_callback(expRef)
-        % RIGRUNNING_CALLBACK Callback for the RigRunning dialog 'View'
-        % button
-        %   This is called when the user opts to view an experiment that is
-        %   already running.  An EUI.EXPPANEL is created to display the
-        %   experiment updates.
-        %
-        % See also EUI.EXPPANEL
-        close(gcf) % close the dialog
-        % Load the parameters from file
-        paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
-        if ~isfield(paramStruct, 'type')
-          paramStruct.type = 'custom'; % override type name with preferred
-        end
-        % Instantiate an ExpPanel and pass it the expRef and parameters
-        panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct);
-        obj.LastExpPanel = panel;
-        % Add a listener for the new panel
-        panel.Listeners = [panel.Listeners
-            event.listener(obj, 'Refresh', @(~,~)panel.update())];
-        obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
       end
     end
     

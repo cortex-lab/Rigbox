@@ -342,7 +342,6 @@ classdef AlyxPanel < handle
                   set(obj.WaterRequiredText, 'String', ...
                       sprintf('Subject %s requires %.2f of %.2f today', ...
                       obj.Subject, s.water_requirement_remaining, s.water_requirement_total));
-                  obj.AlyxInstance.water_requirement_remaining = s.water_requirement_remaining;
               end
             catch me
               d = loadjson(me.message);
@@ -406,27 +405,60 @@ classdef AlyxPanel < handle
         end
         
         function launchSessionURL(obj)
+            % Launch the Webpage for the current session in the default Web
+            % browser.  If no session exists for today's date, a new base
+            % and/or subsession is created accordingly.
+            %   TODO: Do we really want to create a session if one doesn't
+            %   exist?
             ai = obj.AlyxInstance;
-            
             % determine whether there is a session for this subj and date
-            ss = alyx.getData(ai, ['sessions?subject=' obj.Subject '&start_date=' datestr(now, 'yyyy-mm-dd')]);
+            thisDate = alyx.datestr(now);
+            sessions = alyx.getData(ai, ['sessions?type=Experiment&subject=' obj.Subject]);
             
-            % if not, create one
-            if isempty(ss)
-                clear d
-                d.subject = obj.Subject;
-                d.start_time = alyx.datestr(now);
-                d.users = {obj.AlyxInstance.username};
-                try
-                    thisSess = alyx.postData(ai, 'sessions', d);
-                    obj.log('New session created for %s', obj.Subject);
-                catch
-                    obj.log('Could not create new session - cannot launch page');
-                    return
+            % If the date of this latest session is not the same date as
+            % today, then create a new session for today
+            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
+                % Ask user whether he/she wants to create new session
+                % Construct a questdlg with three options
+                choice = questdlg('Would you like to create a new session?', ...
+                    ['No session exists for ' datestr(now, 'yyyy-mm-dd')], ...
+                    'Yes','No','No');
+                % Handle response
+                switch choice
+                    case 'Yes'
+                        % Check if base session exists
+                        baseSessions = alyx.getData(ai, ['sessions?type=Experiment&subject=' obj.Subject]);
+                        if isempty(baseSessions) || ~strcmp(baseSessions{end}.start_time(1:10), thisDate(1:10))
+                            % Create our base session
+                            d = struct;
+                            d.subject = obj.Subject;
+                            d.procedures = {'Behavior training/tasks'};
+                            d.narrative = 'auto-generated session';
+                            d.start_time = thisDate;
+                            d.type = 'Base';
+                            
+                            base_submit = alyx.postData(ai, 'sessions', d);
+                            if ~isfield(base_submit,'subject') % fail
+                                warning('Submitted base session did not return appropriate values');
+                                warning('Submitted data below:');
+                                disp(d)
+                                warning('Return values below:');
+                                disp(base_submit)
+                                return
+                            else % success
+                                obj.log(['Created new base session in Alyx for ' obj.Subject]);
+                            end
+                        end
+                        % Now create a new SUBSESSION, using the same experiment number
+                        %                     d = struct;
+                        %                     d.subject = obj.Subject;
+                        %                     d.start_time = alyx.datestr(now);
+                        %                     d.users = {ai.username};
+                    case 'No'
+                        return
                 end
-                
             else
-                thisSess = ss{1};
+                thisSess = sessions{end};
             end
             
             % parse the uuid from the url in the session object

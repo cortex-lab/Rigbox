@@ -7,6 +7,15 @@ function updateLogEntry(subject, id, newEntry)
 
 % 2013-03 CB created
 
+if isfield(newEntry, 'AlyxInstance')
+  data = struct('subject', dat.parseExpRef(newEntry.value.ref),...
+      'narrative', newEntry.comments);
+  alyx.putData(newEntry.AlyxInstance,...
+      newEntry.AlyxInstance.subsessionURL,...
+      data);
+  newEntry = rmfield(newEntry, 'AlyxInstance');
+end
+
 %load existing log from central repos
 log = pick(load(dat.logPath(subject, 'master')), 'log');
 %find the entry with specified id
@@ -17,5 +26,4 @@ assert(sum(idx) == 1, 'Multiple entries with the same id');
 log(idx) = newEntry;
 %store new log to all repos locations
 superSave(dat.logPath(subject), struct('log', log));
-
 end
