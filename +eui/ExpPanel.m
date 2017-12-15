@@ -9,7 +9,7 @@ classdef ExpPanel < handle
   %   EXPPANEL is not stand-alone and thus requires a handle to a parent
   %   window.  This class has a number of subclasses, one for each
   %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
-  %   SQUEAKEXPPANEL  for Signals experiments.  
+  %   SQUEAKEXPPANEL for Signals experiments.  
   %
   %   
   %
@@ -293,11 +293,13 @@ classdef ExpPanel < handle
     end
     
     function saveLogEntry(obj)
-      % SAVELOGENTRY Saves the obj.LogEntry to disk
+      % SAVELOGENTRY Saves the obj.LogEntry to disk and to Alyx
       %  As the log entry has been updated throughout the experiment with
-      %  comments and experiment end times, it must be saved to disk.
+      %  comments and experiment end times, it must be saved to disk.  In
+      %  addition if an Alyx Instance is set, the comments are saved to the
+      %  subsession's narrative field.
       % 
-      % See also DAT.UPDATELOGENTRY
+      % See also DAT.UPDATELOGENTRY, COMMENTSCHANGED
       dat.updateLogEntry(obj.SubjectRef, obj.LogEntry.id, obj.LogEntry);
     end
     
@@ -333,6 +335,11 @@ classdef ExpPanel < handle
     end
     
     function commentsChanged(obj, src, ~)
+      % COMMENTSCHANGED Callback for saving comments to server and Alyx
+      %  This function is called when text in the comments box is changed
+      %  and reports this in the command window
+      %
+      %  See also SAVELOGENTRY, LIVE
       disp('saving comments');
       obj.LogEntry.comments = get(src, 'String');
       obj.saveLogEntry();

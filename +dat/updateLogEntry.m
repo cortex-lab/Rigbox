@@ -1,18 +1,20 @@
 function updateLogEntry(subject, id, newEntry)
 %DAT.UPDATELOGENTRY Updates an existing experiment log entry
-%   DAT.UPDATELOGENTRY(subject, id, newEntry)
-%   TODO
+%   DAT.UPDATELOGENTRY(subject, id, newEntry) The server copy of the log is
+%   loaded and the relevant record overwritten.  If an AlyxInstance is set,
+%   any session comments are saved in the session narrative in Alyx.
+%
+%   See also DAT.ADDLOGENTRY
 %
 % Part of Rigbox
 
 % 2013-03 CB created
 
-if isfield(newEntry, 'AlyxInstance')
+if isfield(newEntry, 'AlyxInstance')&&~isempty(newEntry.comments)
   data = struct('subject', dat.parseExpRef(newEntry.value.ref),...
       'narrative', newEntry.comments);
   alyx.putData(newEntry.AlyxInstance,...
-      newEntry.AlyxInstance.subsessionURL,...
-      data);
+      newEntry.AlyxInstance.subsessionURL, data);
   newEntry = rmfield(newEntry, 'AlyxInstance');
 end
 
