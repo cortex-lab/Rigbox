@@ -525,7 +525,8 @@ classdef MControl < handle
         %   (i.e. no Alyx token is set), the user is prompted to log in and
         %   the token is stored in the rig object so that EXPPANEL can
         %   later post any events to Alyx (for example the amount of water
-        %   received during the task).
+        %   received during the task).  An Alyx Experiment and, if required, Base
+        %   session are also created here.
         % 
         % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
