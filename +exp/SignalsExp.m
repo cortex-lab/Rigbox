@@ -832,9 +832,13 @@ classdef SignalsExp < handle
             warning('No Alyx token set');
         else
             try
-                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+                [subject,~,~] = dat.parseExpRef(obj.Data.expRef); 
                 if strcmp(subject,'default'); return; end
+                % Register saved files
                 alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
+                % Save the session end time
+                alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
+                    struct('end_time', alyx.datestr(now), 'subject', subject));
             catch
                 warning('couldnt register files to alyx because no subsession found');
             end
