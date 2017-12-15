@@ -327,7 +327,7 @@ classdef AlyxPanel < handle
             % listeners
             ai = obj.AlyxInstance;
             % Set the selected subject if it is an input
-            if nargin>2; obj.Subject = src.Selected; end
+            if nargin>1; obj.Subject = src.Selected; end
             if isempty(ai)
               set(obj.WaterRequiredText, 'String', 'Log in to see water requirements');
               return
@@ -481,43 +481,52 @@ classdef AlyxPanel < handle
             end
         end
         
-        function viewSubjectHistory(obj)
-            
+        function viewSubjectHistory(obj, ax)
+            % View historical information about a subject.
+            % Opens a new window and plots a set of weight graphs as well
+            % as displaying a table with the water and weight entries for
+            % the selected subject.  If an axes handle is provided, this
+            % function plots a single weight graph
             ai = obj.AlyxInstance;
-            if ~isempty(ai)&&~strcmp(obj.Subject, 'default')
-                % collect the data for the table
-                endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
-                wr = alyx.getData(ai, endpnt);
+            % If not logged in or 'default' is selected, return
+            if isempty(ai)||strcmp(obj.Subject, 'default'); return; end
+              % collect the data for the table
+              endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
+              wr = alyx.getData(ai, endpnt);
+              records = catStructs(wr.records, nan);
+              % no weighings found
+              if isempty(wr.records)
+                obj.log('No weight data found for subject %s', obj.Subject);
+                return
+              end
+              dates = cellfun(@(x)datenum(x), {records.date});
                 
-                hydrogelAmts = cellfun(@(x)x.hydrogel_given, wr.records);
-                waterAmts = cellfun(@(x)x.water_given, wr.records);
-                waterExp = cellfun(@(x)x.water_expected, wr.records);
-                hasWeighing = cellfun(@(x)isfield(x, 'weight_measured'), wr.records);
-                weight = cellfun(@(x)x.weight_measured, wr.records(hasWeighing));
-                weightExp = cellfun(@(x)x.weight_expected, wr.records);
-                dates = cellfun(@(x)datenum(x.date), wr.records);
-                
-                % build the figure to show it
+              % build the figure to show it
+              if nargin==1
                 f = figure('Name', obj.Subject, 'NumberTitle', 'off'); % popup a new figure for this
                 p = get(f, 'Position');
                 set(f, 'Position', [p(1) p(2) 1100 p(4)]);
                 histbox = uix.HBox('Parent', f, 'BackgroundColor', 'w');
-                
                 plotBox = uix.VBox('Parent', histbox, 'BackgroundColor', 'w');
-                
                 ax = axes('Parent', plotBox);
-                plot(dates(hasWeighing), weight, '.-');
-                hold on;
-                plot(dates, weightExp*0.7, 'r', 'LineWidth', 2.0);
-                plot(dates, weightExp*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
-                box off;
-                xlim([min(dates) max(dates)]);
-                set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
-                ylabel('weight (g)');
+              end
+              
+              plot(ax, dates, [records.weight_measured], '.-');
+              hold on;
+              plot(ax, dates, [records.weight_expected]*0.7, 'r', 'LineWidth', 2.0);
+              plot(ax, dates, [records.weight_expected]*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+              box off;
+              xlim([min(dates) max(dates)]);
+              if nargin == 1
+                  set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
+              else
+                  ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax.Handle, 'XTick'), 'uni', false);
+              end
+              ylabel('weight (g)');
                 
-                
+               if nargin==1 
                 ax = axes('Parent', plotBox);
-                plot(dates(hasWeighing), weight./weightExp(hasWeighing), '.-');
+                plot(dates, [records.weight_measured]./[records.weight_expected], '.-');
                 hold on;
                 plot(dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
                 plot(dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -527,36 +536,37 @@ classdef AlyxPanel < handle
                 ylabel('weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(dates, waterAmts+hydrogelAmts, '.-');
+                plot(dates, [records.water_given]+[records.hydrogel_given], '.-');
                 hold on;
-                plot(dates, hydrogelAmts, '.-');
-                plot(dates, waterAmts, '.-');
-                plot(dates, waterExp, 'r', 'LineWidth', 2.0);
+                plot(dates, [records.hydrogel_given], '.-');
+                plot(dates, [records.water_given], '.-');
+                plot(dates, [records.water_expected], 'r', 'LineWidth', 2.0);
                 box off;
                 xlim([min(dates) max(dates)]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
                 ylabel('water/hydrogel (mL)');
                 
-                
+                % Create table of useful weight and water information,
+                % sorted by date
                 histTable = uitable('Parent', histbox,...
                     'FontName', 'Consolas',...
                     'RowName', []);
-                
-                weightsByDate = cell([length(dates),1]);
-                weightsByDate(hasWeighing) = num2cell(weight);
+                weightsByDate = num2cell([records.weight_measured]);
                 weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
-                weightPctByDate = cell([length(dates),1]);
-                weightPctByDate(hasWeighing) = num2cell(weight./weightExp(hasWeighing));
+                weightsByDate(isnan([records.weight_measured])) = {[]};
+                weightPctByDate = num2cell([records.weight_measured]./[records.weight_expected]);
                 weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
+                weightPctByDate(isnan([records.weight_measured])) = {[]};
                 
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
-                    weightsByDate, ...
-                    arrayfun(@(x)sprintf('%.1f', 0.8*x), weightExp', 'uni', false), ...
-                    weightPctByDate);
+                    weightsByDate', ...
+                    arrayfun(@(x)sprintf('%.1f', 0.8*x), [records.weight_expected]', 'uni', false), ...
+                    weightPctByDate');
                 waterDat = (...
-                    num2cell(horzcat(waterAmts', hydrogelAmts', ...
-                    waterAmts'+hydrogelAmts', waterExp', waterAmts'+hydrogelAmts'-waterExp')));
+                    num2cell(horzcat([records.water_given]', [records.hydrogel_given]', ...
+                    [records.water_given]'+[records.hydrogel_given]', [records.water_expected]',...
+                    [records.water_given]'+[records.hydrogel_given]'-[records.water_expected]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
                 dat = horzcat(dat, waterDat);
                 
@@ -564,7 +574,7 @@ classdef AlyxPanel < handle
                     'Data', dat(end:-1:1,:),...
                     'ColumnEditable', false(1,5));
                 histbox.Widths = [ -1 725];
-            end
+              end
         end
         
         function viewAllSubjects(obj)
@@ -610,7 +620,9 @@ classdef AlyxPanel < handle
                 timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
                 str = sprintf('[%s] %s', timestamp, message);
                 current = get(obj.LoggingDisplay, 'String');
-                set(obj.LoggingDisplay, 'String', [current; str], 'Value', numel(current) + 1);
+                %NB: If more that one instance of MATLAB is open, we use
+                %the last opened LoggingDisplay
+                set(obj.LoggingDisplay(end), 'String', [current; str], 'Value', numel(current) + 1);
             else
                 fprintf(message)
             end

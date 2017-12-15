@@ -119,6 +119,16 @@ classdef MControl < handle
       end
     end
     
+    function tabChanged(obj)
+    % Function to change which subject Alyx uses when user changes tab
+      if isempty(obj.AlyxPanel.AlyxInstance); return; end
+      if obj.TabPanel.SelectedChild == 1 % Log tab
+        obj.AlyxPanel.dispWaterReq(obj.LogSubject);
+      else % SelectedChild == 2 Experiment tab
+        obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
+      end
+    end
+    
     function expSubjectChanged(obj, ~, src)
         % Function deals with subject dropdown list changes
         switch src.EventName
@@ -608,19 +618,24 @@ classdef MControl < handle
       entries = obj.Log.entriesByType('weight-grams');
       datenums = floor([entries.date]);
       obj.WeightAxes.clear();
-      if numel(datenums) > 0
-        obj.WeightAxes.plot(datenums, [entries.value], '-o');
-        dateticks = min(datenums):floor(now);
-        set(obj.WeightAxes.Handle, 'XTick', dateticks);
-        obj.WeightAxes.XTickLabel = datestr(dateticks, 'dd-mm');
-        obj.WeightAxes.yLabel('Weight (g)');
-        xl = [min(datenums) floor(now)];
-        if diff(xl) <= 0
-          xl(1) = xl(2) - 0.5;
-          xl(2) = xl(2) + 0.5;
-        end
-        obj.WeightAxes.XLim = xl;
+      if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.LogSubject.Selected,'default')
+        obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes)
         rotateticklabel(obj.WeightAxes.Handle, 45);
+      else
+        if numel(datenums) > 0
+          obj.WeightAxes.plot(datenums, [entries.value], '-o');
+          dateticks = min(datenums):floor(now);
+          set(obj.WeightAxes.Handle, 'XTick', dateticks);
+          obj.WeightAxes.XTickLabel = datestr(dateticks, 'dd-mm');
+          obj.WeightAxes.yLabel('Weight (g)');
+          xl = [min(datenums) floor(now)];
+          if diff(xl) <= 0
+            xl(1) = xl(2) - 0.5;
+            xl(2) = xl(2) + 0.5;
+          end
+          obj.WeightAxes.XLim = xl;
+          rotateticklabel(obj.WeightAxes.Handle, 45);
+        end
       end
     end
     
@@ -770,6 +785,7 @@ classdef MControl < handle
       % Create the Alyx panel
       obj.AlyxPanel = eui.AlyxPanel(headerBox);
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
+      addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
       % a titled panel for the parameters editor
       param = uiextras.Panel('Parent', newExpBox, 'Title', 'Parameters', 'Padding', 5);
@@ -810,6 +826,7 @@ classdef MControl < handle
       obj.TabPanel.SelectedChild = 2;
       obj.ExpTabs.TabNames = {'New' 'Current'};
       obj.ExpTabs.SelectedChild = 1;
+      obj.TabPanel.SelectionChangedFcn = @(~,~)obj.tabChanged;
     end
   end
   
