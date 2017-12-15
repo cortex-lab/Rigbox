@@ -368,7 +368,7 @@ classdef AlyxPanel < handle
             end
         end
         
-        function recordWeight(obj, weight, subject)
+        function recordWeight(obj, weight, subject, weighingScale)
             % Post a subject's weight to Alyx.  If no inputs are provided,
             % create an input dialog for the user to input a weight.  If no
             % subject is provided, use this object's currently selected
@@ -376,6 +376,7 @@ classdef AlyxPanel < handle
             %
             % See also VIEWSUBJECTHISTORY, VIEWALLSUBJECTS
             ai = obj.AlyxInstance;
+            if nargin < 4; weighingScale = hostname; end 
             if nargin < 3; subject = obj.Subject; end
             if nargin < 2
                 prompt = {sprintf('weight of %s:', subject)};
@@ -391,6 +392,8 @@ classdef AlyxPanel < handle
             weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
             d.subject = subject;
             d.weight = weight;
+            d.user = ai.user;
+            d.weighing_scale = weighingScale;
             if isempty(ai) % if not logged in, save the weight for later
                 obj.QueuedWeights{end+1} = d;
                 obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
