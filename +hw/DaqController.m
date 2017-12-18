@@ -154,7 +154,7 @@ classdef DaqController < handle
         end
         channelNames = obj.ChannelNames(1:n);
         analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
-        if any(analogueChannelsIdx)&&any(values(analogueChannelsIdx)~=0)
+        if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
           queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
           if foreground
             startForeground(obj.DaqSession);
