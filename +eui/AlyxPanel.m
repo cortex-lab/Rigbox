@@ -49,6 +49,7 @@ classdef AlyxPanel < handle
         WaterRequiredText % Handle to text UI element displaying the water required
         WaterRemainingText % Handle to text UI element displaying the water remaining
         LoginTimer % Timer to keep track of how long the user has been logged in, when this expires the user is automatically logged out
+        WaterRemaining % Holds the current water required for the selected subject
     end
     
     events (NotifyAccess = 'protected')
@@ -342,6 +343,7 @@ classdef AlyxPanel < handle
                   set(obj.WaterRequiredText, 'String', ...
                       sprintf('Subject %s requires %.2f of %.2f today', ...
                       obj.Subject, s.water_requirement_remaining, s.water_requirement_total));
+                  obj.WaterRemaining = s.water_requirement_remaining;
               end
             catch me
               d = loadjson(me.message);
@@ -361,8 +363,8 @@ classdef AlyxPanel < handle
             % 
             % See also DISPWATERREQ, GIVEWATER
             ai = obj.AlyxInstance;
-            if ~isempty(ai) && isfield(ai, 'water_requirement_remaining') && ~isempty(ai.water_requirement_remaining)
-                rem = ai.water_requirement_remaining;
+            if ~isempty(ai) && ~isempty(obj.WaterRemaining)
+                rem = obj.WaterRemaining;
                 curr = str2double(src.String);
                 set(obj.WaterRemainingText, 'String', sprintf('(%.2f)', rem-curr));
             end
