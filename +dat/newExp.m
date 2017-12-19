@@ -112,6 +112,8 @@ if ~strcmp(subject,'default') % Ignore fake subject
   assert(isfield(subsession,'subject'),...
     'Failed to create new sub-session in Alyx for %s', subject);
   url = subsession.url;
+else
+  url = [];
 end
 
 % if the parameters had an experiment definition function, save a copy in
