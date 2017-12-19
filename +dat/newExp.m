@@ -1,6 +1,6 @@
-function [expRef, expSeq] = newExp(subject, expDate, expParams, AlyxInstance)
+function [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstance)
 %DAT.NEWEXP Create a new unique experiment in the database
-%   [ref, seq] = DAT.NEWEXP(subject, expDate, expParams[, AlyxInstance]) 
+%   [ref, seq, url] = DAT.NEWEXP(subject, expDate, expParams[, AlyxInstance]) 
 %   Create a new experiment by creating the relevant folder tree in the
 %   local and main data repositories in the following format:
 %               
@@ -82,6 +82,7 @@ if ~strcmp(subject,'default') % Ignore fake subject
       d.narrative = 'auto-generated session';
       d.start_time = expDate;
       d.type = 'Base';
+%       d.users = {AlyxInstance.username};
             
       base_submit = alyx.postData(AlyxInstance, 'sessions', d);
       assert(isfield(base_submit,'subject'),...
@@ -91,7 +92,7 @@ if ~strcmp(subject,'default') % Ignore fake subject
       sessions = alyx.getData(AlyxInstance,...
           ['sessions?type=Base&subject=' subject]);
     end
-  latest_base = sessions{end};
+    latest_base = sessions{end};
   else % If not logged in to Alyx...
     latest_base.url = []; % set the base url to null
   end
@@ -105,10 +106,12 @@ if ~strcmp(subject,'default') % Ignore fake subject
   d.type = 'Experiment';
   d.parent_session = latest_base.url;
   d.number = expSeq;
+%   d.users = {AlyxInstance.username};
     
   subsession = alyx.postData(AlyxInstance, 'sessions', d);
   assert(isfield(subsession,'subject'),...
     'Failed to create new sub-session in Alyx for %s', subject);
+  url = subsession.url;
 end
 
 % if the parameters had an experiment definition function, save a copy in
