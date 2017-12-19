@@ -408,55 +408,46 @@ classdef AlyxPanel < handle
         end
         
         function launchSessionURL(obj)
-            % Launch the Webpage for the current session in the default Web
-            % browser.  If no session exists for today's date, a new base
-            % and/or subsession is created accordingly.
-            %   TODO: Do we really want to create a session if one doesn't
-            %   exist?
+            % Launch the Webpage for the current base session in the
+            % default Web browser.  If no session exists for today's date,
+            % a new base session is created accordingly.
+            %
+            % See also LAUNCHSUBJECTURL
             ai = obj.AlyxInstance;
             % determine whether there is a session for this subj and date
             thisDate = alyx.datestr(now);
-            sessions = alyx.getData(ai, ['sessions?type=Experiment&subject=' obj.Subject]);
+            sessions = alyx.getData(ai, ['sessions?type=Base&subject=' obj.Subject]);
             
-            % If the date of this latest session is not the same date as
-            % today, then create a new session for today
+            % If the date of this latest base session is not the same date
+            % as today, then create a new one for today
             if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
-                choice = questdlg('Would you like to create a new session?', ...
-                    ['No session exists for ' datestr(now, 'yyyy-mm-dd')], ...
+                choice = questdlg('Would you like to create a new base session?', ...
+                    ['No base session exists for ' datestr(now, 'yyyy-mm-dd')], ...
                     'Yes','No','No');
                 % Handle response
                 switch choice
                     case 'Yes'
-                        % Check if base session exists
-                        baseSessions = alyx.getData(ai, ['sessions?type=Experiment&subject=' obj.Subject]);
-                        if isempty(baseSessions) || ~strcmp(baseSessions{end}.start_time(1:10), thisDate(1:10))
-                            % Create our base session
-                            d = struct;
-                            d.subject = obj.Subject;
-                            d.procedures = {'Behavior training/tasks'};
-                            d.narrative = 'auto-generated session';
-                            d.start_time = thisDate;
-                            d.type = 'Base';
-                            
-                            base_submit = alyx.postData(ai, 'sessions', d);
-                            if ~isfield(base_submit,'subject') % fail
-                                warning('Submitted base session did not return appropriate values');
-                                warning('Submitted data below:');
-                                disp(d)
-                                warning('Return values below:');
-                                disp(base_submit)
-                                return
-                            else % success
-                                obj.log(['Created new base session in Alyx for ' obj.Subject]);
-                            end
+                        % Create our base session
+                        d = struct;
+                        d.subject = obj.Subject;
+                        d.procedures = {'Behavior training/tasks'};
+                        d.narrative = 'auto-generated session';
+                        d.start_time = thisDate;
+                        d.type = 'Base';
+                        
+                        thisSess = alyx.postData(ai, 'sessions', d);
+                        if ~isfield(thisSess,'subject') % fail
+                            warning('Submitted base session did not return appropriate values');
+                            warning('Submitted data below:');
+                            disp(d)
+                            warning('Return values below:');
+                            disp(thisSess)
+                            return
+                        else % success
+                            obj.log(['Created new base session in Alyx for ' obj.Subject]);
                         end
-                        % Now create a new SUBSESSION, using the same experiment number
-                        %                     d = struct;
-                        %                     d.subject = obj.Subject;
-                        %                     d.start_time = alyx.datestr(now);
-                        %                     d.users = {ai.username};
                     case 'No'
                         return
                 end
