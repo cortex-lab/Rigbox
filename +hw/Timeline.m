@@ -522,7 +522,7 @@ classdef Timeline < handle
             inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
             obj.Sessions('main') = inputSession;
             for i = 1:length(use)
-                 in = inputOptions(strcmp({obj.Inputs.name}, obj.UseInputs(i))); % get channel info, etc.
+                 in = obj.Inputs(idx(i)); % get channel info, etc.
                 switch in.measurement
                     case 'Voltage'
                         ch = obj.Sessions('main').addAnalogInputChannel(obj.DaqIds, in.daqChannelID, in.measurement);
