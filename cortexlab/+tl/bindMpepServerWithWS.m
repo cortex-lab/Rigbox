@@ -45,6 +45,12 @@ listener = event.listener(communicator, 'MessageReceived',...
 communicator.EventMode = false;
 communicator.open();
 
+%% initialize timeline
+
+rig = hw.devices([], false);
+tlObj = rig.timeline;
+tls.tlObj = tlObj;
+
 %% Helper functions
 
     function closeConns()
@@ -61,10 +67,10 @@ communicator.open();
     function processListener(listener)
         sz = pnet(listener.socket, 'readpacket', 1000, 'noblock');
         if sz > 0
-            t = tl.time(false); % save the time we got the UDP packet
+            t = tlObj.time(false); % save the time we got the UDP packet
             msg = pnet(listener.socket, 'read');
-            if tl.running
-                tl.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
+            if tlObj.IsRunning
+                tlObj.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
             end
             listener.callback(listener, msg); % call special handling function
         end
@@ -77,6 +83,10 @@ communicator.open();
         log('%s: ''%s'' from %s:%i', listener.name, msg, ipstr, port);
         % parse the message
         info = dat.mpepMessageParse(msg);
+        
+        % !!! Get alyx instance here!!
+        ai = [];
+        
         failed = false; % flag for preventing UDP echo
         %% Experiment-level events start/stop timeline
         switch lower(info.instruction)
@@ -85,10 +95,10 @@ communicator.open();
                 try
                     % start Timeline
                     communicator.send('status', { 'starting', info.expRef});
-                    tl.start(info.expRef);
+                    tlObj.start(info.expRef, ai);
                     % re-record the UDP event in Timeline since it wasn't started
                     % when we tried earlier. Treat it as having arrived at time zero.
-                    tl.record('mpepUDP', msg, 0);
+                    tlObj.record('mpepUDP', msg, 0);
                 catch ex
                     % flag up failure so we do not echo the UDP message back below
                     failed = true;
@@ -96,11 +106,11 @@ communicator.open();
                 end
             case 'expend'
                 
-                tl.stop(); % stop Timeline
+                tlObj.stop(); % stop Timeline
                 communicator.send('status', { 'completed', info.expRef});
             case 'expinterrupt'
                 
-                tl.stop(); % stop Timeline
+                tlObj.stop(); % stop Timeline
                 communicator.send('status', { 'completed', info.expRef});
         end
         if ~failed
@@ -135,20 +145,26 @@ communicator.open();
             if firstPress(quitKey)
                 running = false;
             end
-            if firstPress(manualStartKey) && ~tl.running
-                [mouseName, ~] = dat.subjectSelector();
+            if firstPress(manualStartKey) && ~tlObj.IsRunning
+                
+                % first get an alyx instance
+                ai = alyx.loginWindow();
+                                
+                [mouseName, ~] = dat.subjectSelector([],ai);
+                
                 if ~isempty(mouseName)                    
                     clear expParams;
                     expParams.experimentType = 'timelineManualStart';
-                    newExpRef = dat.newExp(mouseName, now, expParams);
+                    newExpRef = dat.newExp(mouseName, now, expParams, ai);
                     %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);
                     %newExpRef = dat.constructExpRef(mouseName, now, expNum);
                     communicator.send('status', { 'starting', newExpRef});
-                    tl.start(newExpRef);
+                    tlObj.start(newExpRef, ai);
                 end
-            elseif firstPress(manualStartKey) && tl.running && ~isempty(newExpRef)
-                
-                tl.stop();
+                KbQueueFlush;
+            elseif firstPress(manualStartKey) && tlObj.IsRunning && ~isempty(newExpRef)
+                fprintf(1, 'stopping timeline\n');
+                tlObj.stop();
                 communicator.send('status', { 'completed', newExpRef});
                 newExpRef = [];
             end
@@ -172,8 +188,8 @@ communicator.open();
             % client disconnected
             log('WS: ''%s'' disconnected', host);
         else
-            command = data{1};
-            args = data(2:end);
+            command = data{1}
+            args = data(2:end)
             if ~strcmp(command, 'status')
                 % log the command received
                 log('WS: Received ''%s''', command);
@@ -181,7 +197,7 @@ communicator.open();
             switch command
                 case 'status'
                     % status request
-                    if ~tl.running
+                    if ~tlObj.IsRunning
                         communicator.send(id, {'idle'});
                     else
                         communicator.send(id, {'running'});

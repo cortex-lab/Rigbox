@@ -522,7 +522,9 @@ classdef Timeline < handle
             inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
             obj.Sessions('main') = inputSession;
             for i = 1:length(use)
-                 in = obj.Inputs(idx(i)); % get channel info, etc.
+                in = obj.Inputs(idx(i)); % get channel info, etc.
+                fprintf(1, 'adding channel %s on %s\n', in.name, in.daqChannelID);
+                
                 switch in.measurement
                     case 'Voltage'
                         ch = obj.Sessions('main').addAnalogInputChannel(obj.DaqIds, in.daqChannelID, in.measurement);
@@ -603,7 +605,9 @@ classdef Timeline < handle
                 fwrite(obj.DataFID, datToWrite', obj.AquiredDataType); % Write to file
             end
             % if plotting the channels live, plot the new data
+            
             if obj.LivePlot; obj.livePlot(event.Data); end
+            
         end
         
         function livePlot(obj, data)
