@@ -522,7 +522,8 @@ classdef Timeline < handle
             inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
             obj.Sessions('main') = inputSession;
             for i = 1:length(use)
-                in = obj.Inputs(idx(i)); % get channel info, etc.
+                in = obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i)));
+%                 in = obj.Inputs(idx(i)); % get channel info, etc.
                 fprintf(1, 'adding channel %s on %s\n', in.name, in.daqChannelID);
                 
                 switch in.measurement
@@ -538,7 +539,7 @@ classdef Timeline < handle
                         % we assume quadrature encoding (X4) for position measurement
                         ch.EncoderType = 'X4';
                 end
-                obj.Inputs(idx(i)).arrayColumn = i;
+                obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
             end
         end
         
