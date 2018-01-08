@@ -20,6 +20,7 @@ classdef MpepUDPDataHosts < srv.Service
     DigitalOutDaqChannelId
     Verbose = false % whether to output I/O messages etc
     Timeline % An instance of timeline for for recording UDP messages
+    AlyxInstance
   end
   
   properties (SetAccess = protected)
@@ -170,7 +171,7 @@ classdef MpepUDPDataHosts < srv.Service
         msg = sprintf('StimEnd %s %d %d 1 %d', subject, seriesNum, expNum, num);
         broadcast(obj, msg);
         
-         if ~isempty(obj.Timeline)&&obj.Timeline.IsRunning
+         if ~isempty(obj.Timeline)&&isfield(obj.Timeline, 'IsRunning')&&obj.Timeline.IsRunning
            obj.Timeline.record('mpepUDP', msg); % record the UDP event in Timeline
          end
          dt = toc;
@@ -200,9 +201,15 @@ classdef MpepUDPDataHosts < srv.Service
       obj.ExpRef = [];
     end
     
-    function start(obj, expRef)
+    function start(obj, ref)
+      [expRef, ai] = dat.parseAlyxInstance(ref);
+      obj.AlyxInstance = ai;
+      [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
+      alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, ref);
+      confirmedBroadcast(obj, alyxmsg);
       % equivalent to startExp(expRef)
       expStarted(obj, expRef);
+      
     end
     
     function stop(obj)
@@ -230,7 +237,7 @@ classdef MpepUDPDataHosts < srv.Service
     function confirmedBroadcast(obj, msg)
       broadcast(obj, msg);
       validateResponses(obj);
-      if ~isempty(obj.Timeline)&&obj.Timeline.IsRunning
+      if ~isempty(obj.Timeline)&&isfield(obj.Timeline, 'IsRunning')&&obj.Timeline.IsRunning
         obj.Timeline.record('mpepUDP', msg); % record the UDP event in Timeline
       end
     end
