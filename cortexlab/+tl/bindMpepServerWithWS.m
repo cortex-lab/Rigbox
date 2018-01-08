@@ -37,6 +37,7 @@ log('Bound UDP sockets');
 tls.close = @closeConns;
 tls.process = @process;
 tls.listen = @listen;
+tls.AlyxInstance = [];
 
 listenPort = io.WSJCommunicator.DefaultListenPort;
 communicator = io.WSJCommunicator.server(listenPort);
@@ -82,20 +83,26 @@ tls.tlObj = tlObj;
         ipstr = sprintf('%i.%i.%i.%i', ip{:});
         log('%s: ''%s'' from %s:%i', listener.name, msg, ipstr, port);
         % parse the message
-        info = dat.mpepMessageParse(msg);
-        
-        % !!! Get alyx instance here!!
-        ai = [];
+        info = dat.mpepMessageParse(msg);                
         
         failed = false; % flag for preventing UDP echo
         %% Experiment-level events start/stop timeline
         switch lower(info.instruction)
+            case 'alyx'
+                fprintf(1, 'received alyx token message\n');
+                idx = find(msg==' ', 1, 'last');
+                [expref, ai] = dat.parseAlyxInstance(msg(idx+1:end));                
+                disp(ai)
+                
+                tls.AlyxInstance = ai;
             case 'expstart'
                 % create a file path & experiment ref based on experiment info
                 try
                     % start Timeline
+                    communicator.send('AlyxSend', {tls.AlyxInstance});
                     communicator.send('status', { 'starting', info.expRef});
-                    tlObj.start(info.expRef, ai);
+                    
+                    tlObj.start(info.expRef, tls.AlyxInstance);
                     % re-record the UDP event in Timeline since it wasn't started
                     % when we tried earlier. Treat it as having arrived at time zero.
                     tlObj.record('mpepUDP', msg, 0);
