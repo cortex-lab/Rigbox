@@ -4,6 +4,12 @@ function [subjectName, expNum] = subjectSelector(varargin)
 %
 % If you provide an alyxInstance, it will populate with a list of subjects
 % from alyx; otherwise, from dat.listSubjects
+%
+% example usage:
+% >> alyxInstance = alyx.loginWindow();
+% >> [subj, expNum] = subjectSelector([], alyxInstance);
+%
+% Created by NS 2017
 
 subjectName = [];
 expNum = 1;
@@ -37,20 +43,8 @@ subjectDropdown = uicontrol('Style', 'popupmenu', 'Parent', f, ...
 
 if nargin>1
     ai = varargin{2};
-    
-    s = alyx.getData(ai, 'subjects?stock=False&alive=True');
-    
-    respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
-    subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
-    
-    thisUserSubs = sort(subjNames(strcmp(respUser, ai.username)));
-    otherUserSubs = sort(subjNames);
-    % note that we leave this User's mice also in
-    % otherUserSubs, in case they get confused and look
-    % there.
-    
-    newSubs = [{'default'}, thisUserSubs, otherUserSubs];
-    set(subjectDropdown, 'String', newSubs);
+        
+    set(subjectDropdown, 'String', dat.listSubjects(ai));
 else
     set(subjectDropdown, 'String', dat.listSubjects);
 end
