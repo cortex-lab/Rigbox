@@ -107,7 +107,7 @@ audio.onsetTone = toneSamples.at(interactiveOn);
 
 % Response
 % (wheel displacement zeroed at interactiveOn)
-stimDisplacement = millimetersFactor*(wheel - wheel.at(interactiveOn));
+stimDisplacement = wheelGain*millimetersFactor*(wheel - wheel.at(interactiveOn));
 
 response = interactiveOn.setTrigger(abs(stimDisplacement) ...
     >= responseDisplacement);
