@@ -39,19 +39,19 @@ classdef RemoteMPEPService < srv.Service
     LocalStatus % Local status to send upon request
     ResponseTimeout = Inf % How long to wait for confirmation of receipt
     Timeline % Holds an instance of Timeline
-    Callbacks % Holds callback functions for each instruction
+    Callbacks = {@obj.processMsg, @nop} % Holds callback functions for each instruction
   end
   
   properties (SetObservable, AbortSet = true)
     RemoteHost % Host name of the remote service
-    ListenPort = 10000 % Localhost port number to listen for messages on
-    RemotePort = 10000 % Which port to send messages to remote service on
+    ListenPorts % Localhost port number to listen for messages on
+    RemotePort = 1103 % Which port to send messages to remote service on
     EnablePortSharing = 'off' % If set to 'on' other applications can use the listen port
   end
   
   properties (SetAccess = protected)
     RemoteIP % The IP address of the remote service
-    Socket % A handle to the udp object
+    Sockets % A handle to the udp object
     LastSentMessage = '' % A copy of the message sent from this host
     LastReceivedMessage = '' % A copy of the message received by this host
   end
@@ -72,10 +72,10 @@ classdef RemoteMPEPService < srv.Service
       % To be called before destroying BasicUDPService object.  Deletes all
       % timers, sockets and listeners Tidy up after ourselves by closing
       % the listening sockets
-      if ~isempty(obj.Socket)
-        fclose(obj.Socket); % Close the connection
-        delete(obj.Socket); % Delete the socket
-        obj.Socket = []; % Delete udp object
+      if ~isempty(obj.Sockets)
+        cellfun(@fclose, obj.Sockets); % Close the connection
+        delete(obj.Sockets); % Delete the socket
+        obj.Sockets = []; % Delete udp object
         obj.Listener = []; % Delete any listeners to that object
         if ~isempty(obj.ResponseTimer) % If there is a timer object 
           stop(obj.ResponseTimer) % Stop the timer..
@@ -85,40 +85,69 @@ classdef RemoteMPEPService < srv.Service
       end
     end
     
-    function obj = RemoteTLService(remoteHost, remotePort, listenPort)
-      % SRV.REMOTETLSERVICE(remoteHost [remotePort, listenPort])
+    function obj = RemoteMPEPService(name, listenPort, callback)
+      % SRV.REMOTETLSERVICE([remoteHost, remotePort, listenPort])
       %   remoteHost is the hostname of the service with which to send and
       %   receive messages.
       paths = dat.paths(hostname); % Get list of paths for timeline
-      obj.Callbacks = struct('Instruction', {'ExpStart', 'BlockStart',...
-        'StimStart', 'StimEnd', 'BlockEnd', 'ExpEnd', 'ExpInterrupt'}, 'Callback', @nop);
-      obj.Timeline = load(fullfile(paths.rigConfig, 'hardware.mat'), 'timeline'); % Load timeline object
-      obj.RemoteHost = remoteHost; % Set hostname
-      obj.RemoteIP = ipaddress(remoteHost); % Get IP address
-      if nargin >= 3; obj.ListenPort = listenPort; end % Set local port
-      if nargin >= 2; obj.RemotePort = remotePort; end % Set remote port
-      obj.Socket = udp(obj.RemoteIP,... % Create udp object
-        'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
-      obj.Socket.ReadAsyncMode = 'continuous';
-      obj.Socket.BytesAvailableFcnCount = 10; % Number of bytes in buffer required to trigger BytesAvailableFcn
-      obj.Socket.BytesAvailableFcn = @obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
+%       obj.Callbacks = struct('Instruction', {'ExpStart', 'BlockStart',...
+%         'StimStart', 'StimEnd', 'BlockEnd', 'ExpEnd', 'ExpInterrupt'}, 'Callback', @nop);
+      load(fullfile(paths.rigConfig, 'hardware.mat'), 'timeline'); % Load timeline object
+      obj.Timeline = timeline;
+      obj.addListener(name, listenPort, callback);
+%       if nargin < 1; remoteHost = ''; end % Set local port
+%       obj.RemoteHost = remotehost; % Set hostname
+%       obj.RemoteIP = ipaddress(remoteHost); % Get IP address
+%       if nargin >= 3; obj.ListenPort = listenPort; end % Set local port
+%       if nargin >= 2; obj.RemotePort = remotePort; end % Set remote port
+%       obj.Socket = udp(obj.RemoteIP,... % Create udp object
+%         'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
+%       obj.Socket.BytesAvailableFcn = @obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
       % Add listener to MessageReceived event, notified when receiveUDP is
       % called.  This event can be listened to by anyone.
-      obj.Listener = event.listener(obj, 'MessageReceived', @processMsg);
+%       obj.Listener = event.listener(obj, 'MessageReceived', @processMsg);
       % Add listener for when the observable properties are set 
-      obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
-        'PostSet',@obj.update);
+%       obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
+%         'PostSet',@(src,~)obj.update(src));
       % Add listener for when the remote service's status is requested
-      obj.addlistener('Status', 'PreGet', @obj.requestStatus);
+%       obj.addlistener('Status', 'PreGet', @obj.requestStatus);
     end
     
-    function update(obj, evt, ~)
+    function obj = addListener(obj, name, listenPort, callback)
+        if nargin<3; callback = @nop; end
+        if listenPort==obj.ListenPorts
+          error('Listen port already added');
+        end
+        idx = length(obj.Sockets)+1;
+        obj.Sockets{idx} = udp(name, 'RemotePort', obj.RemotePort,...
+            'LocalPort', listenPort, 'ReadAsyncMode', 'continuous');
+        obj.Sockets{idx}.BytesAvailableFcnCount = 10; % Number of bytes in buffer required to trigger BytesAvailableFcn
+        obj.Sockets{idx}.BytesAvailableFcn = @(~,~)obj.receiveUDP(src,evt);
+        obj.Sockets{idx}.Tag = name;
+        obj.ListenPorts{idx} = listenPort;
+        obj.Callbacks{idx} = callback;
+    end
+    
+    function obj = removeHost(obj, name)
+        %TODO
+        if nargin<3; callback = @nop; end
+        if listenPort==obj.ListenPorts
+          error('Listen port already added');
+        end
+        obj.Sockets(end+1) = udp(obj.RemoteIP, 'RemotePort', obj.RemotePort, 'LocalPort', listenPort);
+        obj.Sockets(end).BytesAvailableFcn = @(~,~)obj.receiveUDP(src,evt);
+        obj.Sockets(end).Tag = name;
+        obj.ListenPorts(end+1) = listenPort;
+        obj.Callbacks(end+1) = callback;
+    end
+    
+    function update(obj, src)
       % Callback for setting udp relevant properties.  Some properties can
       % only be set when the socket is closed.
       % Check if socket is open
       isOpen = strcmp(obj.Socket.Status, 'open');
       % Close connection before setting, if required to do so
-      if any(strcmp(evt.name, {'RemoteHost', 'LocalPort', 'EnablePortSharing'}))&&isOpen
+      if any(strcmp(src.name, {'RemoteHost', 'LocalPort', 'EnablePortSharing'}))&&isOpen
         fclose(obj.Socket);
       end
       % Set all the relevant properties
@@ -129,15 +158,41 @@ classdef RemoteMPEPService < srv.Service
       if isOpen; bind(obj); end % If socket was open before, re-open
     end
     
-    function bind(obj)
-      % Open the connection to allow messages to be sent and received
-      if ~isempty(obj.Socket); fclose(obj.Socket); end
-      fopen(obj.Socket);
+    function bind(obj, names)
+      if isempty(obj.Sockets)
+        warning('No sockets to bind')
+        return
+      end
+      if nargin<2
+        % Close all sockets, in case they are open
+        cellfun(@fclose, obj.Sockets)
+        % Open the connection to allow messages to be sent and received
+        cellfun(@fopen, obj.Sockets)
+      else
+        names = ensureCell(names);
+        hosts = arrayfun(@(s)s.Tag, obj.Sockets);
+        idx = cellfun(@(n)find(strcmp(n,hosts)), names);
+        arrayfun(@fopen, obj.Sockets(idx))
+      end
+      log('Polling for UDP messages');
     end
     
-    function start(obj, expRef)
+    function start(obj, ref)
       % Send start message to remotehost and await confirmation
-      obj.confirmedSend(sprintf('GOGO%s*%s', expRef, obj.RemoteHost));
+      [expRef, AlyxInstance] = parseAlyxInstance(ref);
+      % Convert expRef to MPEP style
+      [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+      % Build start message
+      msg = sprintf('ExpStart %s %d %d', subject, seriesNum, expNum);
+      % Send the start message
+      obj.confirmedSend(msg, obj.RemoteHost);
+      % Wait for response
+      while obj.AwaitingConfirmation; pause(0.2); end
+%       % Start a block (we only use one per experiment)
+%       msg = sprintf('BlockStart %s %d %d 1', subject, seriesNum, expNum);
+%       obj.confirmedSend(msg, obj.RemoteHost);
+%       % Wait for response
+%       while obj.AwaitingConfirmation; pause(0.2); end
     end
     
     function stop(obj)
@@ -163,11 +218,18 @@ classdef RemoteMPEPService < srv.Service
       end
     end
     
-    function receiveUDP(obj)
-      obj.LastReceivedMessage = fscanf(obj.Socket);
-      % Remove any more accumulated inputs to the listener
-      obj.Socket.flushinput();
+    function receiveUDP(obj, src, evt)
+      obj.LastReceivedMessage = strtrim(fscanf(obj.Socket));
+      % Let everyone know a message was recieved
       notify(obj, 'MessageReceived')
+      hosts = arrayfun(@(s)s.Tag, obj.Sockets);
+      if ~isempty(obj.Timeline)&&obj.Timeline.IsRunning
+        t = obj.Timeline.time; % Note the time
+        % record the UDP event in Timeline
+        obj.Timeline.record([hosts 'UDP'], msg, t); 
+      end
+      % Pass message to callback function for precessing
+      feval(obj.Callbacks{strcmp(hosts, src.Tag)}, src, evt);
     end
     
     function sendUDP(obj, msg)
@@ -177,78 +239,73 @@ classdef RemoteMPEPService < srv.Service
       obj.LastSentMessage = msg; % Save a copy of the message
       disp(['Sent message to ' obj.RemoteHost]) % Display success
     end
+    
+    function echo(obj, src, ~)
+      % Echo message
+      fclose(src);
+      src.RemoteHost = src.DatagramAddress;
+      src.RemotePort = src.DatagramPort;
+      fopen(src);
+      fprintf(obj.Socket, obj.LastReceivedMessage); % Send message
+      obj.LastSentMessage = obj.LastReceivedMessage; % Save a copy of the message
+      disp(['Echo''d message to ' src.Tag]) % Display success
+    end
   end
   
   methods (Access = protected)
-    function processMsg(obj, ~, ~)
-      % Parse the message into its constituent parts
-      msg = dat.mpepMessageParse;
-      % Check that the message was from the correct host, otherwise ignore
-      if strcmp(response.host, obj.RemoteHost)
-          warning('Received message from %s, ignoring', response.host);
-          return
+    function processMsg(obj, src, ~)
+      %PROCESSMSG Processes messages from expServer and MPEP
+      % As the remote host me be either expServer or MPEP, we first
+      % determine the type of message. Parse the message into its
+      % constituent parts
+%       if strcmp(obj.LastReceivedMessage(1:4), {'WHAT', 'GOGO', 'ALYX', 'STOP'})
+      try % Try to process message as MPEP command
+        msg = dat.mpepMessageParse(obj.LastReceivedMessage);
+      catch
+        msg = regexp(obj.LastReceivedMessage,...
+        '(?<intruction>[A-Z]{4})(?<body>.*)\*(?<host>\w*)', 'names');
+        % If the message body contains and expRef, explicity set this
+        if regexp(msg.body,dat.expRefRegExp); msg.expRef = msg.body; end
       end
-      if obj.AwaitingConfirmation
-      % Check the confirmation message is the same as the sent message
-        assert(~isempty(response)||... % something received
-            strcmp(response.status, 'WHAT')||... % status update
-            strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
-          'Confirmation failed')
-      % We no longer need the timer, stop and delete it
-        if ~isempty(obj.ResponseTimer)
-            stop(obj.ResponseTimer)
-            delete(obj.ResponseTimer)
-            obj.ResponseTimer = [];
-        end
-      end
-      % At the moment we just disply some stuff, other functions listening
-      % to the MessageReceived event can do their thing
-      switch response.status
-        case 'GOGO'
-          if obj.AwaitingConfirmation
-            obj.Status = 'running';
-            disp(['Service on ' obj.RemoteHost ' running'])
-          else
-            disp('Received start request')
-            obj.LocalStatus = 'starting';
-            obj.Timeline.start(dat.parseAlyxInstance(response.body))
-            obj.LocalStatus = 'running';
-            obj.sendUDP(obj.LastReceivedMessage)
-          end
-        case 'STOP'
-          if obj.AwaitingConfirmation
-            obj.Status = 'stopped';
-            disp(['Service on ' obj.RemoteHost ' stopped'])
-          else
-            disp('Received stop request')
-            obj.LocalStatus = 'stopping';
-            obj.Timeline.stop
-            obj.sendUDP(obj.LastReceivedMessage)
-          end
-        case 'WHAT'
-          % TODO fix status updates so that they're meaningful
-          parsed = regexp(response.body, '(?<id>\d+)(?<update>[a-z]*)', 'names');
-          if obj.AwaitingConfirmation
+      
+      % Process the instruction
+      switch lower(msg.instruction)
+          case {'expstart', 'gogo'}
             try
-              assert(strcmp(parsed.id, int2str(obj.ConfirmID)), 'Rigbox:srv:unexpectedUDPResponse',...
-                'Received UDP message ID did not match sent');
-              switch parsed.update
-                case {'running' 'starting'}
-                  obj.Status = 'running';
-                otherwise
-                  obj.Status = 'idle';
-              end
-            catch
-              obj.Status = 'unavailable';
+              % Start Timeline
+              log('Received start request')
+              obj.LocalStatus = 'starting';
+              obj.Timeline.start(dat.parseAlyxInstance(msg.expRef))
+              obj.LocalStatus = 'running';
+              obj.echo(src);
+              % re-record the UDP event in Timeline since it wasn't started
+              % when we tried earlier. Treat it as having arrived at time zero.
+              obj.Timeline.record('mpepUDP', obj.LastReceivedMessage, 0);
+            catch ex
+                % flag up failure so we do not echo the UDP message back below
+                failed = true;
+                disp(getReport(ex));
             end
-          else % Received status request NB: Currently no way of determining status
-             obj.sendUDP([parsed.status parsed.id obj.LocalStatus])
-          end
-        otherwise
-          disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
+          case {'expend', 'stop', 'expinterrupt'}
+            obj.Timeline.stop(); % stop Timeline
+          case 'what'
+            % TODO fix status updates so that they're meaningful
+            parsed = regexp(msg.body, '(?<id>\d+)(?<update>[a-z]*)', 'names');
+            obj.sendUDP([parsed.status parsed.id obj.LocalStatus])
+          case 'alyx'
+            % TODO Add Alyx token request
+            obj.sendUDP()
+          otherwise
+            % TODO RemoteHost
+            log(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
       end
-      % Reset AwaitingConfirmation
-      obj.AwaitingConfirmation = false;
     end
+    
+    function log(varargin)
+      message = sprintf(varargin{:});
+      timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
+      fprintf('[%s] %s\n', timestamp, message);
+    end
+
   end
 end
