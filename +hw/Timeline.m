@@ -83,6 +83,7 @@ classdef Timeline < handle
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
+        LivePlotParams = [];
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
     
@@ -616,23 +617,28 @@ classdef Timeline < handle
             %   TL.LIVEPLOT(source, event) plots the data aquired by the
             %   DAQ while the PlotLive property is true.
             if isempty(obj.Axes)
-                figure(); % create a figure for plotting aquired data
+                f = figure(); % create a figure for plotting aquired data
                 obj.Axes = gca; % store a handle to the axes
-%                 set(figure_handle, 'Position', [21 81 1033 1726]); % set the figure position
+                if isfield(obj.LivePlotParams, 'figPosition') && ~isempty(obj.LivePlotParams.figPosition)
+                    set(f, 'Position', obj.LivePlotParams.figPosition); % set the figure position
+                end
             end
             
             % get the names of the inputs being recorded
             names = pick({obj.Inputs.name}, find([obj.Inputs.arrayColumn] > -1), 'cell');
             nSamps = size(data,1); % Get the number of samples in this chunck
             nChans = size(data,2); % Get the number of channels
-            traceSep = 7; % ???
+            traceSep = 7; % unit is Volts - for most channels the max is 5V so this is a good separation
             offsets = (1:nChans)*traceSep;
-            scales = ones(1, nChans);
-            if length(scales)<nChans
-                sc = ones(1,nChans);
-                sc(1:length(scales)) = scales;
-                scales = sc; clear sc;
-            end
+            
+            % scales control a vertical scaling of each trace
+            % (multiplicative) and can be set manually in the config. A
+            % nicer future version would put a scroll wheel callback on the
+            % figure and scale by scrolling the one that's hovered over
+            scales = ones(1, nChans); 
+            if isfield(obj.LivePlotParams, 'figScales') && ~isempty(obj.LivePlotParams.figScales)
+                scales(1:numel(obj.LivePlotParams.figScales)) = obj.LivePlotParams.figScales;
+            end            
             
             traces = get(obj.Axes, 'Children'); 
             if isempty(traces)
@@ -643,8 +649,13 @@ classdef Timeline < handle
                 set(obj.Axes, 'YTickLabel', names);
             end
             
+            % get the measurement type of each channel, since Position-type
+            % inputs are plotted differently.
+            meas = {obj.Inputs.measurement};
+            meas = meas(ismember({obj.Inputs.name}, obj.UseInputs));
+            
             for t = 1:length(traces)
-                if strcmp(obj.Inputs(t).measurement, 'Position')
+                if strcmp(meas{t}, 'Position')
                     % if a position sensor (i.e. rotary encoder) scale
                     % by the first point and allow negative values
                     if any(data(:,t)>2^31); data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; end
@@ -653,7 +664,13 @@ classdef Timeline < handle
                 yy = get(traces(end-t+1), 'YData'); % get current data for trace
                 yy(1:end-nSamps) = yy(nSamps+1:end); % add the new chuck for channel
                 % scale and offset the traces
-                if strcmp(obj.Inputs(t).measurement, 'Position')
+                if strcmp(meas{t}, 'Position')
+                    % for position-type inputs, plot velocity (take the
+                    % diff, and smooth) rather than absolute. this is
+                    % necessary to prevent the value from wandering way off
+                    % the range and making it impossible to see any of the
+                    % other traces. Plus it is probably more useful,
+                    % anyway. 
                     yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
                         gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
                 else
