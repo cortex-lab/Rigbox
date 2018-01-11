@@ -1,9 +1,14 @@
 
 
 function expSeq = findNextSeqNum(subject, varargin)
-% function expSeq = findNextSeqNum(subject[, date])
+% expSeq = findNextSeqNum(subject[, date])
+%
+% Returns the next experiment number (aka Sequence number) that should be
+% chosen for the given subject. Optionally specify a particular date to
+% consider. 
+
 if isempty(varargin)
-    expDate = now;
+    expDate = now; %default to today
 else
     expDate = varargin{1};
 end
