@@ -154,17 +154,25 @@ tls.tlObj = tlObj;
             end
             if firstPress(manualStartKey) && ~tlObj.IsRunning
                 
-                % first get an alyx instance
-                ai = alyx.loginWindow();
-                                
+                if isempty(tls.AlyxInstance)
+                    % first get an alyx instance
+                    ai = alyx.loginWindow();
+                else
+                    ai = tls.AlyxInstance;
+                end
+                
                 [mouseName, ~] = dat.subjectSelector([],ai);
                 
                 if ~isempty(mouseName)                    
                     clear expParams;
                     expParams.experimentType = 'timelineManualStart';
-                    newExpRef = dat.newExp(mouseName, now, expParams, ai);
+                    [newExpRef, newExpSeq, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
+                    ai.subsessionURL = subsessionURL;
+                    tls.AlyxInstance = ai;
+                    
                     %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);
                     %newExpRef = dat.constructExpRef(mouseName, now, expNum);
+                    communicator.send('AlyxSend', {tls.AlyxInstance});
                     communicator.send('status', { 'starting', newExpRef});
                     tlObj.start(newExpRef, ai);
                 end
