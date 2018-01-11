@@ -225,11 +225,6 @@ classdef ExpPanel < handle
       subject = obj.SubjectRef;
       if ~isempty(ai)&&~strcmp(subject,'default')
           switch class(obj)
-              case 'eui.SqueakExpPanel'
-                  infoFields = {obj.InfoFields.String};
-                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
-                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
-                  amount = iff(isempty(reward),0,@()reward);
               case 'eui.ChoiceExpPanel'
                   if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
                   if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
@@ -242,7 +237,10 @@ classdef ExpPanel < handle
                   end
                   if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
               otherwise
-                  return
+                  infoFields = {obj.InfoFields.String};
+                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
+                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
+                  amount = iff(isempty(reward),0,@()reward);
           end
           if ~any(amount); return; end % Return if no water was given
           try

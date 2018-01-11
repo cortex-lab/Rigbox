@@ -393,11 +393,11 @@ classdef AlyxPanel < handle
             weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
             d.subject = subject;
             d.weight = weight;
-            d.user = ai.username;
             if isempty(ai) % if not logged in, save the weight for later
                 obj.QueuedWeights{end+1} = d;
                 obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
             else % otherwise immediately post to Alyx
+                d.user = ai.username;
                 try
                     w = alyx.postData(ai, 'weighings/', d);
                     obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
