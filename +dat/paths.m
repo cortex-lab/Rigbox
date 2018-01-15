@@ -18,6 +18,8 @@ server1Name = '\\zserver.cortexlab.net';
 % server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
 % unused by Rigbox
 server4Name = '\\zserver4.cortexlab.net';
+basketName = '\\basket.cortexlab.net'; % for working analyses
+lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 
 %% defaults
 % path containing rigbox config folders
@@ -37,7 +39,8 @@ p.twoPhotonRepository = fullfile(server4Name, 'Data', '2P');
 % for calcium widefield imaging
 p.widefieldRepository = fullfile(server1Name, 'data', 'GCAMP');
 % Repository for storing eye tracking movies
-p.eyeTrackingRepository = fullfile(server1Name, 'data', 'EyeCamera');
+% p.eyeTrackingRepository = fullfile(server1Name, 'data', 'EyeCamera');
+p.eyeTrackingRepository = p.mainRepository;
 
 % electrophys repositories
 p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
@@ -50,6 +53,18 @@ p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
 p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
+
+% repository for working analyses that are not meant to be stored
+% permanently
+p.workingAnalysisRepository = fullfile(basketName, 'data');
+
+% for tape backups, first files go here:
+p.tapeStagingRepository = fullfile(lugaroName, 'bigdrive', 'staging'); 
+
+% then they go here:
+p.tapeArchiveRepository = fullfile(lugaroName, 'bigdrive', 'toarchive');
+
+
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
