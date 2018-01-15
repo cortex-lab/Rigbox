@@ -22,6 +22,9 @@ if nargin > 1 % in [ref, AlyxInstance]
     if isfield(ai, 'water_requirement_remaining')
       ai = rmfield(ai, 'water_requirement_remaining');
     end
+    fname = fieldnames(ai); % get fieldnames
+    emp = structfun(@isempty, ai); % find empty fields
+    if any(emp); ai = rmfield(ai, fname(emp)); end % remove the empty fields
     c = cellfun(@(fn) ai.(fn), fieldnames(ai), 'UniformOutput', false); % get fieldnames
     ref = strjoin([ref; c],'\'); % join into single string for UDP, otherwise just output the expRef
   end
