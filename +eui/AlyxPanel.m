@@ -506,39 +506,39 @@ classdef AlyxPanel < handle
               end
               
               plot(ax, dates, [records.weight_measured], '.-');
-              hold on;
+              hold(ax, 'on');
               plot(ax, dates, [records.weight_expected]*0.7, 'r', 'LineWidth', 2.0);
               plot(ax, dates, [records.weight_expected]*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
-              box off;
-              xlim([min(dates) max(dates)]);
+              box(ax, 'off');
+              xlim(ax, [min(dates) max(dates)]);
               if nargin == 1
                   set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
               else
-                  ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax.Handle, 'XTick'), 'uni', false);
+                  ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false);
               end
-              ylabel('weight (g)');
+              ylabel(ax, 'weight (g)');
                 
                if nargin==1 
                 ax = axes('Parent', plotBox);
-                plot(dates, [records.weight_measured]./[records.weight_expected], '.-');
-                hold on;
-                plot(dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
-                plot(dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
-                box off;
-                xlim([min(dates) max(dates)]);
+                plot(ax, dates, [records.weight_measured]./[records.weight_expected], '.-');
+                hold(ax, 'on');
+                plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
+                plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+                box(ax, 'off');
+                xlim(ax, [min(dates) max(dates)]);
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
-                ylabel('weight as pct (%)');
+                ylabel(ax, 'weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(dates, [records.water_given]+[records.hydrogel_given], '.-');
-                hold on;
-                plot(dates, [records.hydrogel_given], '.-');
-                plot(dates, [records.water_given], '.-');
-                plot(dates, [records.water_expected], 'r', 'LineWidth', 2.0);
-                box off;
-                xlim([min(dates) max(dates)]);
+                plot(axWater, dates, [records.water_given]+[records.hydrogel_given], '.-');
+                hold(axWater, 'on');
+                plot(axWater, dates, [records.hydrogel_given], '.-');
+                plot(axWater, dates, [records.water_given], '.-');
+                plot(axWater, dates, [records.water_expected], 'r', 'LineWidth', 2.0);
+                box(axWater, 'off');
+                xlim(axWater, [min(dates) max(dates)]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
-                ylabel('water/hydrogel (mL)');
+                ylabel(axWater, 'water/hydrogel (mL)');
                 
                 % Create table of useful weight and water information,
                 % sorted by date

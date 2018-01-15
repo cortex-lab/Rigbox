@@ -61,10 +61,11 @@ classdef ExpPanel < handle
         warning(ex.getReport());
       end
       params = exp.Parameters(paramsStruct); % Get parameters
-      if isfield(params.Struct, 'expPanelFun') % Can define your own experiment panel
+      % Can define your own experiment panel
+      if isfield(params.Struct, 'expPanelFun')&&~isempty(params.Struct.expPanelFun)
         if isempty(which(params.Struct.expPanelFun)); addpath(fileparts(params.Struct.defFunction)); end
         p = feval(params.Struct.expPanelFun, parent, ref, params, logEntry);
-      else
+      else % otherwise use the default
         switch params.Struct.type
           case {'SingleTargetChoiceWorld' 'ChoiceWorld' 'DiscWorld' 'SurroundChoiceWorld'}
             p = eui.ChoiceExpPanel(parent, ref, params, logEntry);
