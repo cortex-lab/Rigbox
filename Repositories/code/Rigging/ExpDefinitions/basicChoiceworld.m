@@ -142,9 +142,6 @@ iti = response.delay(trialData.hit.at(response)*itiHit + trialData.miss.at(respo
 % Stim stays on until the end of the ITI
 stimOff = iti;
 
-% End trial at the end of the ITI
-endTrial = iti;
-
 %% Visual stimulus
 
 % Azimuth control
@@ -181,14 +178,13 @@ events.stimOn = stimOn;
 events.stimOff = stimOff;
 events.interactiveOn = interactiveOn;
 events.response = response;
-events.endTrial = endTrial;
+events.endTrial = at(~trialData.repeatTrial, stimOff);
 
 % Performance
 events.contrasts = trialData.contrasts;
 events.repeatOnMiss = trialData.repeatOnMiss;
 events.trialContrast = trialData.trialContrast;
 events.trialSide = trialData.trialSide;
-events.repeatTrial = trialData.repeatTrial;
 events.hit = at(trialData.hit, events.trialNum > 1);
 events.staircase = trialData.staircase;
 events.useContrasts = trialData.useContrasts;

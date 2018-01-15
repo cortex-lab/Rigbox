@@ -1,7 +1,8 @@
 classdef basicChoiceworldExpPanel < eui.ExpPanel
-  %vanillaChoiceWorld_ExpPanel 
-  % AP 2017-03-31
-  % plotting panel for vanillaChoiceWorld
+  %BASICCHOICEWORLDEXPPANEL 
+  % AP 2017-03-31 created
+  % MW 2018-01-01 modified
+  % plotting panel for basicChoiceworldExpPanel
   
   properties
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
@@ -12,7 +13,8 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
   
   properties (Access = protected)
     PsychometricAxes % Handle to axes of psychometric plot
-    ExperimentAxes % Handle to axes of wheel trace and threhold line plot
+    ExperimentAxes % Handle to axes of wheel trace
+    ThresholdLineAxes % Handle to axes of right/wrong threshold line plot
     InputSensorPlot % Handle to axes for wheel trace plot
     InputSensorPosTime % Vector of timesstamps in seconds for plotting the wheel trace
     InputSensorPos % Vector of azimuth values for plotting the wheel trace
@@ -101,7 +103,9 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
           case {'events.newTrial', 'events.stimAzimuth', 'outputs.reward',...
                   'events.stimOn', 'events.expStart', 'events.response',...
                   'events.sessionPerformance', 'events.stimOff',...
-                  'events.endTrial'}
+                  'events.endTrial', 'events.repeatOnMiss', 'events.staircase',...
+                  'events.hitBuffer', 'events.interactiveOn', 'events.contrasts',...
+                  'events.azimuth'}
                 % Don't show these signals as labels  
           otherwise
             if ~isKey(obj.LabelsMap, signame)
@@ -136,18 +140,29 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
           %update sensor pos plot with new data
           plotwindow = [-5 0]; t = 0;
           % Record the current trial contrast
-          idx = strcmp('events.trialSide', {evt.Data.name});
-          if any(idx); obj.Block.trialSide = evt.Data(idx).value; end
+          idx = strcmp('events.trialSide', {updates.name});
+          if any(idx); obj.Block.trialSide = updates(idx).value; end
           if isfield(obj.Block,'trialSide')
             side = obj.Block.trialSide;
           else
             side = [];
           end
-          % Update wheel trace
-          idx = strcmp('events.azimuth', {evt.Data.name});
+          % After a response has been given set the threshold bars to be
+          % white
+          idx = strcmp('events.response',{updates.name});
           if any(idx)
-            x = evt.Data(idx).value-(side*90);
-            t = (24*3600*datenum(evt.Data(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            side = [];
+            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            lastidx = obj.InputSensorPosCount + 1;
+            obj.InputSensorPosCount = lastidx;
+            obj.InputSensorPos(lastidx) = NaN;
+            obj.InputSensorPosTime(lastidx) = t(end);
+          end
+          % Update wheel trace
+          idx = strcmp('events.azimuth', {updates.name});
+          if any(idx)
+            x = updates(idx).value-(side*90);
+            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
             % Downsample wheel trace plot to 10Hz
             if obj.InputSensorPosCount==0||...
                     t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
@@ -188,14 +203,24 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
             rightSpec = 'g';
           end
           azimuth = 90; % Starting azimuth is hard-coded in basicChoiceWorld
-              obj.ExperimentAxes.plot(...
-              [-azimuth -azimuth], plotwindow + t, leftSpec,... %L boundary
-              [azimuth  azimuth], plotwindow + t, rightSpec,'LineWidth', 4);%R boundary
+          
+          if isempty(obj.ThresholdLineAxes)
+            obj.ThresholdLineAxes = obj.ExperimentAxes.plot(...
+               [-azimuth -azimuth], plotwindow + t, leftSpec,... %L boundary
+               [azimuth  azimuth], plotwindow + t, rightSpec,'LineWidth', 4);%R boundary
+          else
+            set(obj.ThresholdLineAxes(1),...
+              'XData', [-azimuth -azimuth], 'YData', plotwindow + t,...
+              'Color', leftSpec);
+            set(obj.ThresholdLineAxes(2),...
+              'XData', [azimuth azimuth], 'YData', plotwindow + t,...
+              'Color', rightSpec);
+          end
 
           % Plot psychometric
-          idx = strcmp('events.sessionPerformance',{evt.Data.name});
+          idx = strcmp('events.sessionPerformance',{updates.name});
           if any(idx)
-              curr_performance_data = evt.Data(idx).value;
+              curr_performance_data = updates(idx).value;
               conditions = curr_performance_data(1,:);
               leftward = curr_performance_data(3,:)./curr_performance_data(2,:);
               obj.PsychometricAxes.plot(conditions(~isnan(leftward)), ...
@@ -296,7 +321,7 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
       obj.PsychometricAxes.NextPlot = 'add';
       xLabel(obj.PsychometricAxes,'Condition');
       yLabel(obj.PsychometricAxes,'% Left');
-      hold(obj.PsychometricAxes.Handle);
+      hold(obj.PsychometricAxes.Handle, 'on');
 
       
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');

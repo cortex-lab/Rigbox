@@ -105,9 +105,9 @@ paramVals = catStructs(paramVals);
 events = catStructs(events);
 % events = iff(all(class(events)=='cell'), catStructs(events), events);
 resp = [events.responseValues];
-trialEndTimes = [events.endTrialTimes];
+trialEndTimes = [events.endTrialTimes]-events.expStartTimes;
 numCompletedTrials = sum(cell2mat(numCompletedTrials));
-if strcmp(expDef, 'vanillaChoiceworld')
+if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     rt = [events.responseTimes]-[events.interactiveOnTimes];
     contrast = [events.trialContrastValues].*[events.trialSideValues];
     correct = [events.hitValues];
@@ -116,7 +116,7 @@ if strcmp(expDef, 'vanillaChoiceworld')
     resp(leftResp(1:numCompletedTrials)) = -1;
     inc = ~events.repeatTrialValues;
     respWindow = Inf;
-    repeatNum = [events.missValues];
+    repeatNum = [events.repeatNumValues];
 elseif strcmp(expDef, 'advancedChoiceWorld')
     correct = events.feedback;
     rt = [events.responseTimes]-[events.stimulusOnTimes]-[paramVals.interactiveDelay];
