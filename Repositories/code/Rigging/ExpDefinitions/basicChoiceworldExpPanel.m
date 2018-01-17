@@ -134,7 +134,11 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
             %grow message queue to accommodate
             obj.SignalUpdates(2*newNUpdates).value = [];
           end
-          obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          try
+            obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          catch
+            warning('Error caught in signals updates: length of updates = %g, length newNUpdates = %g', length(updates), newNUpdates-(obj.NumSignalUpdates+1))
+          end
           obj.NumSignalUpdates = newNUpdates;
           
           %update sensor pos plot with new data
@@ -321,7 +325,7 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
       obj.PsychometricAxes.NextPlot = 'add';
       xLabel(obj.PsychometricAxes,'Condition');
       yLabel(obj.PsychometricAxes,'% Left');
-      hold(obj.PsychometricAxes.Handle, 'on');
+      hold(obj.PsychometricAxes.Handle, 'off');
 
       
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');

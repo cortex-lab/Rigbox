@@ -109,8 +109,9 @@ audio.onsetTone = toneSamples.at(interactiveOn);
 % (wheel displacement zeroed at interactiveOn)
 stimDisplacement = wheelGain*millimetersFactor*(wheel - wheel.at(interactiveOn));
 
-response = interactiveOn.setTrigger(abs(stimDisplacement) ...
+threshold = interactiveOn.setTrigger(abs(stimDisplacement) ...
     >= responseDisplacement);
+response = at(-sign(stimDisplacement), threshold);
 
 % A rolling buffer of trial response times
 dt = t.scan(@(a,b)diff([a,b]),0).at(response);
