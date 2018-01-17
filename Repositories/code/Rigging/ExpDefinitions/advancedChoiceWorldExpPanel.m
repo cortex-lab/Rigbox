@@ -16,6 +16,7 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
   properties (Access = protected)
     PsychometricAxes % Handle to axes of psychometric plot
     ExperimentAxes % Handle to axes of wheel trace and threhold line plot
+    ThresholdLineAxes % Handle to axes of right/wrong threshold line plot
     InputSensorPlot % Handle to axes for wheel trace plot
     InputSensorPosTime % Vector of timesstamps in seconds for plotting the wheel trace
     InputSensorPos % Vector of azimuth values for plotting the wheel trace
@@ -131,16 +132,20 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
             %grow message queue to accommodate
             obj.SignalUpdates(2*newNUpdates).value = [];
           end
-          obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          try
+            obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          catch
+            warning('Error caught in signals updates: length of updates = %g, length newNUpdates = %g', length(updates), newNUpdates-(obj.NumSignalUpdates+1))
+          end
           obj.NumSignalUpdates = newNUpdates;
 
           % Update wheel trace
-          idx = strcmp('events.azimuth', {evt.Data.name});
+          idx = strcmp('events.azimuth', {updates.name});
           %update sensor pos plot with new data
           plotwindow = [-5 0]; t = 0;
           if any(idx)
-            x = evt.Data(idx).value;
-            t = (24*3600*datenum(evt.Data(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            x = updates(idx).value;
+            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
             % Downsample wheel trace plot to 10Hz
             if obj.InputSensorPosCount==0||...
                     t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
@@ -168,23 +173,30 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
           end
           
           % Build block structure for plotting
-          idx = strcmp('events.newTrial', {evt.Data.name});
+          idx = strcmp('events.newTrial', {updates.name});
           if any(idx) && obj.Block.numCompletedTrials == 0
-              obj.Block.startTime = datenum(evt.Data(idx).timestamp);
+              obj.Block.startTime = datenum(updates(idx).timestamp);
           end
           if obj.Block.numCompletedTrials == 0; i = 1; else; i = obj.Block.numCompletedTrials+1; end
-          idx = strcmp('events.contrast', {evt.Data.name});
-          if any(idx); obj.Block.trial(i).contrast = evt.Data(idx).value; end
-          idx = strcmp('events.repeatNum', {evt.Data.name});
-          if any(idx); obj.Block.trial(i).repeatNum = evt.Data(idx).value; end
-          idx = strcmp('events.response', {evt.Data.name});
-          if any(idx); obj.Block.trial(i).response = evt.Data(idx).value; end
-          idx = strcmp('events.feedback', {evt.Data.name});
-          if any(idx); obj.Block.trial(i).feedback = evt.Data(idx).value; end
-          idx = strcmp('events.trialNum', {evt.Data.name});
+          idx = strcmp('events.contrast', {updates.name});
+          if any(idx); obj.Block.trial(i).contrast = updates(idx).value; end
+          idx = strcmp('events.repeatNum', {updates.name});
+          if any(idx); obj.Block.trial(i).repeatNum = updates(idx).value; end
+          idx = strcmp('events.response', {updates.name});
+          if any(idx)
+            obj.Block.trial(i).response = updates(idx).value; 
+            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            lastidx = obj.InputSensorPosCount + 1;
+            obj.InputSensorPosCount = lastidx;
+            obj.InputSensorPos(lastidx) = NaN;
+            obj.InputSensorPosTime(lastidx) = t(end);
+          end
+          idx = strcmp('events.feedback', {updates.name});
+          if any(idx); obj.Block.trial(i).feedback = updates(idx).value; end
+          idx = strcmp('events.trialNum', {updates.name});
           contrast = obj.Block.trial(end).contrast;
           if any(idx)
-            obj.Block.numCompletedTrials = evt.Data(idx).value-1; 
+            obj.Block.numCompletedTrials = updates(idx).value-1; 
             obj.PsychometricAxes.clear();
             % make plot
             if ~isempty(contrast)
@@ -206,13 +218,22 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
             leftSpec = 'w';
             rightSpec = 'w';
           else
-            leftSpec = 'g';
-            rightSpec = 'g';
+            leftSpec = 'r';
+            rightSpec = 'r';
           end
-          azimuth = obj.Parameters.Struct.stimulusAzimuth;
-              obj.ExperimentAxes.plot(...
-              [-azimuth -azimuth], plotwindow + t, leftSpec,... %L boundary
-              [azimuth  azimuth], plotwindow + t, rightSpec,'LineWidth', 4);%R boundary
+          az = obj.Parameters.Struct.stimulusAzimuth;
+          if isempty(obj.ThresholdLineAxes)
+            obj.ThresholdLineAxes = obj.ExperimentAxes.plot(...
+               [-az -az], plotwindow + t, leftSpec,... %L boundary
+               [az  az], plotwindow + t, rightSpec,'LineWidth', 4);%R boundary
+          else
+            set(obj.ThresholdLineAxes(1),...
+              'XData', [-az -az], 'YData', plotwindow + t,...
+              'Color', leftSpec);
+            set(obj.ThresholdLineAxes(2),...
+              'XData', [az az], 'YData', plotwindow + t,...
+              'Color', rightSpec);
+          end
           
         case 'newTrial'
           cond = evt.Data{2}; %condition data for the new trial
