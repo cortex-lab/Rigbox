@@ -457,7 +457,8 @@ classdef Timeline < handle
             [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
             if ~isempty(obj.AlyxInstance) && ~strcmp(subject,'default')
                 try
-                    alyx.registerFile(subject,[],'Timeline',obj.Data.savePaths{end},'zserver',obj.AlyxInstance);
+                    alyx.registerFile(obj.Data.savePaths{end}, 'alf',...
+                        obj.AlyxInstance.subsessionURL, 'Timeline', [], obj.AlyxInstance);
                 catch
                     warning('couldnt register files to alyx');
                 end
