@@ -128,6 +128,17 @@ end
 
 % now save the experiment parameters variable
 superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
+% save a copy in json
+% if exist('savejson', 'file')
+%     % save server copy only
+%     jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')));
+%     savejson('parameters', expParams, jsonPath, 'Parameters.json');
+% else
+%     warning('JSONlab not found - hardware information not saved to ALF')
+% end
 
+% Register our parameter set to Alyx
+alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
+    url, 'Parameters', [], AlyxInstance);
 
 end
