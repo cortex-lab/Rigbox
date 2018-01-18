@@ -138,7 +138,9 @@ superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams)
 % end
 
 % Register our parameter set to Alyx
-alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-    url, 'Parameters', [], AlyxInstance);
+if ~strcmp(subject,'default')
+  alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
+      url, 'Parameters', [], AlyxInstance);
+end
 
 end
