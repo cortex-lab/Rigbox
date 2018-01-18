@@ -138,10 +138,11 @@ outputs.reward = water;
 audio.missNoise = missNoiseSamples.at(trialData.miss.delay(0.01));
 
 % ITI defined by outcome
-iti = response.delay(trialData.hit.at(response)*itiHit + trialData.miss.at(response)*itiMiss);
+iti = iff(trialData.hit==1, itiHit, itiMiss);
+% iti = iff(eq(trialData.miss, true), abs(response)*itiHit, abs(response)*itiMiss).at(response);
 
 % Stim stays on until the end of the ITI
-stimOff = iti;
+stimOff = threshold.delay(iti);
 
 %% Visual stimulus
 
@@ -164,7 +165,7 @@ stim.spatialFreq = spatialFreq;
 stim.phase = 2*pi*events.newTrial.map(@(v)rand);
 stim.azimuth = azimuth;
 %stim.contrast = trialContrast.at(stimOn)*stimFlicker;
-stim.contrast = trialContrast.at(stimOn);
+stim.contrast = trialContrast.at(events.newTrial);
 stim.show = stimOn.to(stimOff);
 
 visStim.stim = stim;
@@ -186,7 +187,7 @@ events.contrasts = trialData.contrasts;
 events.repeatOnMiss = trialData.repeatOnMiss;
 events.trialContrast = trialData.trialContrast;
 events.trialSide = trialData.trialSide;
-events.hit = at(trialData.hit, events.trialNum > 1);
+events.hit = trialData.hit.at(response);
 events.staircase = trialData.staircase;
 events.useContrasts = trialData.useContrasts;
 events.trialsToZeroContrast = trialData.trialsToZeroContrast;
