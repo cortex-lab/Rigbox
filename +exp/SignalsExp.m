@@ -839,8 +839,9 @@ classdef SignalsExp < handle
                 % Save the session end time
                 alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
                     struct('end_time', alyx.datestr(now), 'subject', subject));
-            catch
-                warning('couldnt register files to alyx because no subsession found');
+            catch ex
+                warning('couldnt register files to alyx');
+                disp(ex)
             end
         end
 
