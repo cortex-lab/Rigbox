@@ -570,7 +570,7 @@ classdef MControl < handle
       datenums = floor([entries.date]);
       obj.WeightAxes.clear();
       if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.LogSubject.Selected,'default')
-        obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes)
+        obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
       else
         if numel(datenums) > 0
