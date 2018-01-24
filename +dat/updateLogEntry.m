@@ -12,7 +12,7 @@ function updateLogEntry(subject, id, newEntry)
 
 if isfield(newEntry, 'AlyxInstance')&&~isempty(newEntry.comments)
   data = struct('subject', dat.parseExpRef(newEntry.value.ref),...
-      'narrative', newEntry.comments);
+      'narrative', strrep(mat2DStrTo1D(newEntry.comments),newline,'\n'));
   alyx.putData(newEntry.AlyxInstance,...
       newEntry.AlyxInstance.subsessionURL, data);
   newEntry = rmfield(newEntry, 'AlyxInstance');
