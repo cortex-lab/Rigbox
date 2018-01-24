@@ -114,16 +114,20 @@ if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     leftResp = events.trialSideValues==-1&correct==1;
     resp = double(resp);
     resp(leftResp(1:numCompletedTrials)) = -1;
-    inc = ~events.repeatTrialValues;
+    if ~isfield(events, 'repeatTrialValues')||isempty(events.repeatTrialValues)
+      inc = events.repeatNumValues == 1;
+    else
+      inc = ~events.repeatTrialValues;
+    end
     respWindow = Inf;
     repeatNum = [events.repeatNumValues];
 elseif strcmp(expDef, 'advancedChoiceWorld')
-    correct = events.feedback;
+    correct = events.feedbackValues;
     rt = [events.responseTimes]-[events.stimulusOnTimes]-[paramVals.interactiveDelay];
-    contrast = [paramVals.targetContrast];
+    contrast = [paramVals.stimulusContrast];
     inc = events.repeatNumValues == 1;
     respWindow = [paramVals.responseWindow];
-    repeatNum = [events.repeatNum];
+    repeatNum = [events.repeatNumValues];
 end
 
 expRef = arrayfun(@(b){b.block.expRef},allBlocks); 
@@ -333,6 +337,39 @@ function [slidingPerf] = perfSlidingWindow(windowWidth, correct)
     for n = (windowWidth+1):nTrials
         slidingPerf(n) = ((sum(correct(n-windowWidth:n)))./windowWidth).*100;
     end
+end
+
+function h = plotWithErr(xdata, ydata, errBars, color)
+% function plotWithErr(xdata, ydata, errBars, color)
+%
+% assumes errBars is one value per data point (as opposed to a positive and
+% negative value)
+  holdOn = ishold(gca);    
+  if size(xdata,1)>size(xdata,2)
+    xdata = xdata'; % data must be a row
+  end
+  if size(ydata,1)>size(ydata,2)
+    ydata = ydata'; % data must be a row
+  end
+  if size(errBars,1)>size(errBars,2)
+    errBars = errBars'; % data must be a row
+  end
+    
+  h = plot(xdata, ydata);
+  hold on;
+  set(h, 'Color', color);
+  set(h, 'LineWidth', 2.0);
+    
+  % set all NaN values to 0 so the fill function can proceed just
+  % skipping over those points. 
+  ydata(isnan(ydata)) = 0;
+  errBars(isnan(errBars)) = 0;
+  fill([xdata xdata(end:-1:1)], [ydata+errBars ydata(end:-1:1)-errBars(end:-1:1)], color, 'FaceAlpha', 0.5, 'EdgeAlpha', 0);
+  
+  % set the hold state back to what it was before
+  if ~holdOn
+    hold off;
+  end
 end
 
 end

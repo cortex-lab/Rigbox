@@ -246,7 +246,7 @@ if length(expRef) > 1
         previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
         if exist(previousBlockFilename,'file')
             previousBlock = load(previousBlockFilename);
-            if isempty(previousBlock.block.outputs.rewardValues)
+            if ~isfield(previousBlock.block, 'outputs')||isempty(previousBlock.block.outputs.rewardValues)
                 lastRewardSize = rewardSize;
             else
                 lastRewardSize = previousBlock.block.outputs.rewardValues(end);

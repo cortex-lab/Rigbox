@@ -144,8 +144,8 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
           %update sensor pos plot with new data
           plotwindow = [-5 0]; t = 0;
           if any(idx)
-            x = updates(idx).value;
-            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            x = updates(find(idx, 1, 'last')).value;
+            t = (24*3600*datenum(updates(find(idx, 1, 'last')).timestamp))-(24*3600*obj.StartedDateTime);
             % Downsample wheel trace plot to 10Hz
             if obj.InputSensorPosCount==0||...
                     t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
