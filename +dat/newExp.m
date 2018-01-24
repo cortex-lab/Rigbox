@@ -9,9 +9,10 @@ function [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstanc
 %                       |_ expSeq/
 %
 %   If experiment parameters are passed into the function, they are saved
-%   here.  If an instance of Alyx is passed and a base session for the
-%   experiment date is not found, one is created in the Alyx database.  
-%   A corresponding subsession is also created.
+%   here, as a mat and in JSON (if possible).  If an instance of Alyx is
+%   passed and a base session for the experiment date is not found, one is
+%   created in the Alyx database. A corresponding subsession is also
+%   created and the parameters file is registered with the sub-session.
 %
 %   See also DAT.PATHS
 %
@@ -128,19 +129,29 @@ end
 
 % now save the experiment parameters variable
 superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
-% save a copy in json
-% if exist('savejson', 'file')
-%     % save server copy only
-%     jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')));
-%     savejson('parameters', expParams, jsonPath, 'Parameters.json');
-% else
-%     warning('JSONlab not found - hardware information not saved to ALF')
-% end
 
-% Register our parameter set to Alyx
-if ~strcmp(subject,'default')
-  alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
+try  % save a copy of parameters in json
+  % First, change all functions to strings
+  f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
+  fields = fieldnames(expParams);
+  paramCell = struct2cell(expParams);
+  paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx),'UniformOutput', false);
+  expParams = cell2struct(paramCell, fields);
+  % Generate JSON path and save
+  jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
+    [expRef, '_parameters.json']);
+  savejson('parameters', expParams, jsonPath);
+  % Register our JSON parameter set to Alyx
+  if ~strcmp(subject,'default')
+    alyx.registerFile(jsonPath, 'json', url, 'Parameters', [], AlyxInstance);
+  end
+catch ex
+  warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
+  % Register our parameter set to Alyx
+  if ~strcmp(subject,'default')
+    alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
       url, 'Parameters', [], AlyxInstance);
+  end
 end
 
 end
