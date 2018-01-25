@@ -508,11 +508,12 @@ classdef Timeline < handle
                         
                     case 'clock'
                         obj.Sessions('clock') = daq.createSession(obj.DaqVendor);
-                        obj.Sessions('clock').IsContinuous = true;
+                        clockSess = obj.Sessions('clock');
+                        clockSess.IsContinuous = true;
                         clocked = obj.Sessions('clock').addCounterOutputChannel(obj.DaqIds, out.daqChannelID, out.type);
                         clocked.Frequency = obj.ClockOutputFrequency;
                         clocked.DutyCycle = obj.ClockOutputDutyCycle;
-                        clocked.InitialDelay = out.delay;
+                        clocked.InitialDelay = out.initialDelay;
                 end
             end
             %%Create channels for each input

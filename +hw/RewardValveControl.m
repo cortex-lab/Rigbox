@@ -9,7 +9,6 @@ classdef RewardValveControl < hw.PulseSwitcher & handle
   
   properties
     Calibrations
-    
     % deliveries with measured volumes for calibration.
     % This should be a struct array with fields 'durationSecs' &
     % 'volumeMicroLitres' indicating the duration the valve was open, and the

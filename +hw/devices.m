@@ -65,14 +65,6 @@ end
 % end
 
 %% Set up controllers
-if isfield(rig, 'rewardCalibrations') && isfield(rig, 'rewardController')...
-    && ~isfield(rig, 'daqController') &&...
-    ~isa(rig.rewardController, 'hw.DummyFeedback')
-  % create a daq controller based on legacy rig.rewardController
-  rig.daqController = hw.daqControllerForValve(...
-      rig.rewardController, rig.rewardCalibrations);
-end
-
 if init 
   if isfield(rig, 'daqController')
     rig.daqController.createDaqChannels();
