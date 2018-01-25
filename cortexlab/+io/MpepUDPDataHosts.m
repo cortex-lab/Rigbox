@@ -201,10 +201,10 @@ classdef MpepUDPDataHosts < srv.Service
       obj.ExpRef = [];
     end
     
-    function start(obj, ref)
+    function start(obj, ref)        
       [expRef, ai] = dat.parseAlyxInstance(ref);
       obj.AlyxInstance = ai;
-      [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
+      [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
       alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, ref);
       confirmedBroadcast(obj, alyxmsg);
       % equivalent to startExp(expRef)
