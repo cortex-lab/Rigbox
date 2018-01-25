@@ -10,7 +10,7 @@ classdef tlOutput < matlab.mixin.Heterogeneous & handle
   %     hw.tlOutputStartStopSync - a digital channel that turns on only at
   %     the beginning and end of the recording
   %
-  %   The timeline object will call the onLoad, onStart, and onStop
+  %   The timeline object will call the onInit, onStart, onProcess, and onStop
   %   methods.
   %
   % Part of Rigbox
