@@ -1,6 +1,9 @@
 function calibration = calibrate(channel, rewardController, scales, tMin, tMax)
 %HW.CALIBRATE Performs measured reward deliveries for calibration
-%   TODO. This needs sanitising and incoporating into HW.REWARDCONTROLLER
+%   This function is used by srv.expServer to return a water calibration.  It still requires some scales to be attached to
+%   the computer.  TODO: Sanitize and integrate into HW.REWARDVALVECONTROL
+%
+% See also HW.REWARDVALVECONTROL
 %
 % Part of Rigbox
 

@@ -335,7 +335,7 @@ ShowCursor();
     end
     rig.clock = clock;
     cellfun(@(user) setClock(user, clock),...
-      {'mouseInput', 'rewardController', 'lickDetector'});
+      {'mouseInput', 'lickDetector'});
     
     t = rig.timeline.UseTimeline;
     if enable

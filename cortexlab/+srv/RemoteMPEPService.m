@@ -114,8 +114,8 @@ classdef RemoteMPEPService < srv.Service
     end
     
     function obj = addListener(obj, name, listenPort, callback)
-        if nargin<3; callback = @nop; end
-        if listenPort==obj.ListenPorts
+        if nargin<4; callback = @nop; end
+        if any(listenPort==obj.ListenPorts{:})
           error('Listen port already added');
         end
         idx = length(obj.Sockets)+1;
@@ -172,18 +172,19 @@ classdef RemoteMPEPService < srv.Service
         names = ensureCell(names);
         hosts = arrayfun(@(s)s.Tag, obj.Sockets);
         idx = cellfun(@(n)find(strcmp(n,hosts)), names);
-        arrayfun(@fopen, obj.Sockets(idx))
+        cellfun(@fopen, obj.Sockets(idx))
       end
-      log('Polling for UDP messages');
+      obj.log('Polling for UDP messages');
     end
     
     function start(obj, ref)
       % Send start message to remotehost and await confirmation
-      [expRef, AlyxInstance] = parseAlyxInstance(ref);
+%       [expRef, AlyxInstance] = parseAlyxInstance(ref);
       % Convert expRef to MPEP style
-      [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+%       [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
       % Build start message
-      msg = sprintf('ExpStart %s %d %d', subject, seriesNum, expNum);
+%       msg = sprintf('ExpStart %s %d %d', subject, seriesNum, expNum);
+      msg = sprintf('GOGO%s*%s', ref, hostname);
       % Send the start message
       obj.confirmedSend(msg, obj.RemoteHost);
       % Wait for response
@@ -248,7 +249,7 @@ classdef RemoteMPEPService < srv.Service
       fopen(src);
       fprintf(obj.Socket, obj.LastReceivedMessage); % Send message
       obj.LastSentMessage = obj.LastReceivedMessage; % Save a copy of the message
-      disp(['Echo''d message to ' src.Tag]) % Display success
+      log(obj,'Echo''d message to %s', src.Tag) % Display success
     end
   end
   
@@ -273,7 +274,7 @@ classdef RemoteMPEPService < srv.Service
           case {'expstart', 'gogo'}
             try
               % Start Timeline
-              log('Received start request')
+              log(obj, 'Received start request')
               obj.LocalStatus = 'starting';
               obj.Timeline.start(dat.parseAlyxInstance(msg.expRef))
               obj.LocalStatus = 'running';
@@ -297,7 +298,7 @@ classdef RemoteMPEPService < srv.Service
             obj.sendUDP()
           otherwise
             % TODO RemoteHost
-            log(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
+            log(obj, ['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
       end
     end
     
