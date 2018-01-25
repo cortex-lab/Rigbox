@@ -70,29 +70,8 @@ classdef Timeline < handle
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
         
-        Outputs % structure of outputs with their names and configuration information
-            % All outputs require the following fields: 
-            % - name: a string identifier
-            % - type: one of the supported modes that we know how to
-            % handle, see below
-            % - params, the required parameters for the selected type
-            %
-            % Available types:
-            %   - chrono: a default type that Timeline uses to monitor that
-            %   acquisition is proceeding normally during a recording.
-            %   Requires: daqChannelID
-            %
-            %   - acqLive: a digital output that is turned on at the start
-            %   of the timeline recording, turned off at the end
-            %   Requires: daqChannelID, initialDelay
-            %
-            %   - clock: a regular pulse at a specified frequency and duty
-            %   cycle. Can be used to trigger camera frames, e.g. 
-            %   Requires: daqChannelID, initialDelay, frequency, dutyCycle
-            %
-            %   - startStopSync: a brief pulse at the beginning and at the
-            %   end of a recording. Can be used for synchronization
-            %   - Requires: daqChannelID, initialDelay, pulseDuration
+        Outputs % array of output classes, defining any signals you desire to be sent from the daq. 
+            % see hw.tlOutput, and, e.g. hw.tlOutputClock. 
         
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
@@ -100,7 +79,6 @@ classdef Timeline < handle
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded')
         UseInputs = {'chrono'} % array of inputs to record while tl is running
-        %UseOutputs = {'chrono'} % array of output pulses to use while tl is running
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
         MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
@@ -135,44 +113,14 @@ classdef Timeline < handle
             % Constructor method
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
-            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify
-            
-%             defaultOutputs = struct('name', 'type', 'params'); 
-%             defaultOutputs(1).name = 'chrono'; 
-%             defaultOutputs(1).type = 'chrono'; 
-%             defaultOutputs(1).params.daqChannelID = 'port1/line0';
-%             
-%             defaultOutputs(2).name = 'acqLive'; 
-%             defaultOutputs(2).type = 'acqLive'; 
-%             defaultOutputs(2).params.daqChannelID = 'port0/line1';
-%             defaultOutputs(2).params.initialDelay = 0;
-%             
-%             defaultOutputs(3).name = 'clock'; 
-%             defaultOutputs(3).type = 'clock'; 
-%             defaultOutputs(3).params.daqChannelID = 'ctr3';
-%             defaultOutputs(3).params.initialDelay = 0;
-%             defaultOutputs(3).params.frequency = 60;
-%             defaultOutputs(3).params.dutyCycle = 0.2;
-%             
-%             defaultOutputs(4).name = 'camSync'; 
-%             defaultOutputs(4).type = 'startStopSync'; 
-%             defaultOutputs(4).params.daqChannelID = 'port0/line3';
-%             defaultOutputs(4).params.initialDelay = 0;
-%             defaultOutputs(4).params.pulseDuration = 0.2;
-                        
-%             obj.Outputs = defaultOutputs;
-            
+            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
+            obj.Outputs = hw.tlOutputChrono('chrono', obj.DaqIds, 'port0/line1');
             if nargin % if old tl hardware struct provided, use these to populate properties
                 obj.Inputs = hw.inputs;
                 obj.DaqVendor = hw.daqVendor;
                 obj.DaqIds = hw.daqDevice;
                 obj.DaqSampleRate = hw.daqSampleRate;
                 obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
-%                 obj.Outputs(1).daqChannelID = hw.chronoOutDaqChannelID;
-%                 obj.Outputs(2).daqChannelID = hw.acqLiveDaqChannelID;
-%                 obj.Outputs(3).daqChannelID = hw.clockOutputDaqChannelID;
-%                 obj.ClockOutputFrequency = hw.clockOutputFrequency;
-%                 obj.ClockOutputDutyCycle = hw.clockOutputDutyCycle;
             end
         end
         
@@ -232,11 +180,6 @@ classdef Timeline < handle
             for outidx = 1:numel(obj.Outputs)
                 obj.Outputs(outidx).onStart(obj);
             end
-            
-%             if isKey(obj.Sessions, 'clock') % is the clock output being used?
-%                 % start session to send timing output pulses
-%                 startBackground(obj.Sessions('clock'));
-%             end
             
             % Report success
             fprintf('Timeline started successfully for ''%s''.\n', expRef);
@@ -367,9 +310,10 @@ classdef Timeline < handle
                 fprintf('PFI4-7 = port1/line0-3\n')
                 fprintf('ctr0-3 = port1/line0-3\n')
             else
+                outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
                 if strcmp(name, 'chrono') % Chrono wiring info
                     idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-                    idO = cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name});
+                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);                    
                     fprintf('Bridge terminals %s and %s\n',...
                         obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
                 elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
@@ -412,10 +356,8 @@ classdef Timeline < handle
                 warning('Nothing to do, Timeline is not running!')
                 return
             end
+            
             % kill acquisition output signals
-%             if isKey(obj.Sessions, 'acqLive')
-%                 outputSingleScan(obj.Sessions('acqLive'), false); % live -> false
-%             end
             for outidx = 1:numel(obj.Outputs)
                 obj.Outputs(outidx).onStop(obj);
             end
@@ -538,34 +480,7 @@ classdef Timeline < handle
             %   TL.INIT() creates all the DAQ sessions
             %   and stores them in the Sessions map by their Outputs name.
             %   Also add a 'main' session to which all input channels are
-            %   added.  See daq.createSession
-            
-%             %%Create session objects for chrono and other outputs
-%             [use, idx] = intersect({obj.Outputs.name}, obj.UseOutputs); % find which outputs to use
-% %             assert(numel(idx) == numel(obj.UseOutputs), 'Not all outputs were recognised');
-%             for i = 1:length(use)
-%                 out = obj.Outputs(idx(i)); % get channel info, etc.
-%                 switch use{i}
-%                     case 'chrono'
-%                         obj.Sessions('chrono') = daq.createSession(obj.DaqVendor);
-%                         obj.Sessions('chrono').addDigitalChannel(obj.DaqIds, out.daqChannelID, out.type);
-%                         
-%                     case 'acqLive'
-%                         obj.Sessions('acqLive') = daq.createSession(obj.DaqVendor);
-%                         obj.Sessions('acqLive').addDigitalChannel(obj.DaqIds, out.daqChannelID, out.type);
-%                         outputSingleScan(obj.Sessions('acqLive'), false); % ensure acq live is false
-%                         
-%                     case 'clock'
-%                         obj.Sessions('clock') = daq.createSession(obj.DaqVendor);
-%                         obj.Sessions('clock').IsContinuous = true;
-%                         clocked = obj.Sessions('clock').addCounterOutputChannel(obj.DaqIds, out.daqChannelID, out.type);
-%                         clocked.Frequency = obj.ClockOutputFrequency;
-%                         clocked.DutyCycle = obj.ClockOutputDutyCycle;
-%                         clocked.InitialDelay = out.delay;
-%                 end
-%             end
-
-
+            %   added.  See daq.createSession            
 
             %%Create channels for each input
             [use, idx] = intersect({obj.Inputs.name}, obj.UseInputs);% find which inputs to use

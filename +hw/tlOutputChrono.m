@@ -81,6 +81,7 @@ classdef tlOutputChrono < hw.tlOutput
         fprintf(1, 'stop chrono\n');
         stop(obj.session);
         release(obj.session);
+        obj.session = [];
     end
     
   end

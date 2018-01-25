@@ -41,9 +41,10 @@ classdef tlOutputAcqLive < hw.tlOutput
     end
     
     function onStop(obj,~)
-        fprintf(1, 'stop chrono\n');
+        fprintf(1, 'stop acqLive\n');
         stop(obj.session);
         release(obj.session);
+        obj.session = [];
     end
     
   end
