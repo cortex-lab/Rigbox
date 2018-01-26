@@ -39,13 +39,18 @@ classdef tlOutputChrono < hw.tlOutput
         end
     end
     
-    function start(~, ~)     
-        %fprintf(1, 'start chrono\n');
-        % -- pass                
+    function start(obj, ~)   
+        if obj.enable
+            if obj.verbose
+                fprintf(1, 'start %s\n', obj.name);
+            end
+        
+            outputSingleScan(obj.session, false) % this will be the clocking pulse detected the first time process is called
+        end
     end
     
     function process(obj, timeline, event)
-        if obj.enable
+        if obj.enable && timeline.IsRunning && ~isempty(obj.session)
             if obj.verbose
                 fprintf(1, 'process %s\n', obj.name);                
             end
@@ -82,7 +87,7 @@ classdef tlOutputChrono < hw.tlOutput
     end
     
     function stop(obj,~)
-        if enable
+        if obj.enable
             if obj.verbose
                 fprintf(1, 'stop %s\n', obj.name);                
             end

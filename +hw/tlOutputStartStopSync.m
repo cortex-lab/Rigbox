@@ -53,7 +53,9 @@ classdef tlOutputStartStopSync < hw.tlOutput
     
     function stop(obj,~)
         if obj.enable
-            fprintf(1, 'stop %s\n', obj.name);
+            if obj.verbose
+                fprintf(1, 'stop %s\n', obj.name);
+            end
 
             outputSingleScan(obj.session, true);
             pause(obj.pulseDuration);
