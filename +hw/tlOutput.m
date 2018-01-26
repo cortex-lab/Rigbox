@@ -18,18 +18,21 @@ classdef tlOutput < matlab.mixin.Heterogeneous & handle
   % 2018-01 NS created
   
   properties
-    name
-    session
+      name
+      enable = true % will not do anything with it unless this is true
+      verbose = false % output status updates. Initialization message outputs regardless of verbose.
+  end
+  
+  properties (Transient)
+      session
   end
   
   methods (Abstract)
-    onInit(obj, timeline)
-    onStart(obj, timeline)
-    onProcess(obj, timeline, event)
-    onStop(obj, timeline)
-    %s = propertiesAsStruct(obj) % recommend we have a method that does this, 
-    %   so that we can save out all the properties in a json file. Incl a
-    %   version number?
+    init(obj, timeline)
+    start(obj, timeline)
+    process(obj, timeline, event)
+    stop(obj, timeline)
+    s = toStr(obj) % a string that describes the object succintly 
   end
   
 end

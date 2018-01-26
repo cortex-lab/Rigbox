@@ -21,42 +21,53 @@ classdef tlOutputStartStopSync < hw.tlOutput
       obj.daqChannelID = daqChannelID;      
     end
 
-    function onInit(obj, ~)
-        fprintf(1, 'initialize StartStopSync\n');
-        obj.session = daq.createSession(obj.daqVendor);
-        obj.session.addDigitalChannel(obj.daqDeviceID, obj.daqChannelID, 'OutputOnly');
-        outputSingleScan(obj.session, false); % ensure that it starts down
-            % by the way, if you use this to control a light for
-            % synchronization, note that you can configure in nidaqMX a
-            % "default" value for the channel, so for example it will stay
-            % "false" at all times even if the computer reboots. 
+    function init(obj, ~)
+        if obj.enable
+            fprintf(1, 'initializing %s\n', obj.toStr);
+            obj.session = daq.createSession(obj.daqVendor);
+            obj.session.addDigitalChannel(obj.daqDeviceID, obj.daqChannelID, 'OutputOnly');
+            outputSingleScan(obj.session, false); % ensure that it starts down
+                % by the way, if you use this to control a light for
+                % synchronization, note that you can configure in nidaqMX a
+                % "default" value for the channel, so for example it will stay
+                % "false" at all times even if the computer reboots. 
+        end
     end
     
-    function onStart(obj, ~)     
-        fprintf(1, 'start StartStopSync\n');
-        
-        pause(obj.initialDelay);
-        outputSingleScan(obj.session, true);
-        pause(obj.pulseDuration);
-        outputSingleScan(obj.session, false);
-        
+    function start(obj, ~)   
+        if obj.enable
+            if obj.verbose
+                fprintf(1, 'start %s\n', obj.name);
+            end
+            pause(obj.initialDelay);
+            outputSingleScan(obj.session, true);
+            pause(obj.pulseDuration);
+            outputSingleScan(obj.session, false);
+        end
     end
     
-    function onProcess(~, ~, ~)
-        fprintf(1, 'process StartStopSync\n');
-        
+    function process(~, ~, ~)
+        %fprintf(1, 'process StartStopSync\n');
+        % -- pass
     end
     
-    function onStop(obj,~)
-        fprintf(1, 'stop StartStopSync\n');
-        
-        outputSingleScan(obj.session, true);
-        pause(obj.pulseDuration);
-        outputSingleScan(obj.session, false);
-        
-        stop(obj.session);
-        release(obj.session);
-        obj.session = [];
+    function stop(obj,~)
+        if obj.enable
+            fprintf(1, 'stop %s\n', obj.name);
+
+            outputSingleScan(obj.session, true);
+            pause(obj.pulseDuration);
+            outputSingleScan(obj.session, false);
+
+            stop(obj.session);
+            release(obj.session);
+            obj.session = [];
+        end
+    end
+    
+    function s = toStr(obj)
+        s = sprintf('"%s" on %s/%s (StartStopSync, pulse duration %.2f)', obj.name, ...
+            obj.daqDeviceID, obj.daqChannelID, obj.pulseDuration);
     end
     
   end
