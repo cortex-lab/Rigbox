@@ -178,7 +178,7 @@ classdef Timeline < handle
             end
             
             for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).onStart(obj);
+                obj.Outputs(outidx).start(obj);
             end
             
             % Report success
@@ -359,7 +359,7 @@ classdef Timeline < handle
             
             % kill acquisition output signals
             for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).onStop(obj);
+                obj.Outputs(outidx).stop(obj);
             end
             
             pause(obj.StopDelay)
@@ -512,7 +512,7 @@ classdef Timeline < handle
             
             % Initialize outputs
             for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).onInit(obj);
+                obj.Outputs(outidx).init(obj);
             end
         end
         
@@ -536,10 +536,9 @@ classdef Timeline < handle
             assert(abs(event.TimeStamps(1) - obj.LastTimestamp - obj.SamplingInterval) < 1e-8,...
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
-            
-            % CALL ONPROCESS METHODS HERE
+                        
             for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).onProcess(obj, event);
+                obj.Outputs(outidx).process(obj, event);
             end
             
             %%% Store new samples into the timeline array

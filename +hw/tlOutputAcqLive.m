@@ -20,31 +20,45 @@ classdef tlOutputAcqLive < hw.tlOutput
       obj.daqChannelID = daqChannelID;      
     end
 
-    function onInit(obj, ~)
-        fprintf(1, 'initialize acqLive\n');
-        obj.session = daq.createSession(obj.daqVendor);
-        obj.session.addDigitalChannel(obj.daqDeviceID, obj.daqChannelID, 'OutputOnly');
-        outputSingleScan(obj.session, false);
+    function init(obj, ~)
+        if obj.enable
+            fprintf(1, 'initializing %s\n', obj.toStr);
+            obj.session = daq.createSession(obj.daqVendor);
+            obj.session.addDigitalChannel(obj.daqDeviceID, obj.daqChannelID, 'OutputOnly');
+            outputSingleScan(obj.session, false);
+        end
     end
     
-    function onStart(obj, ~)     
-        fprintf(1, 'start acqLive\n');
-        
-        pause(obj.initialDelay);
-        outputSingleScan(obj.session, true);
-        
+    function start(obj, ~) 
+        if obj.enable
+            if obj.verbose
+                fprintf(1, 'start %s\n', obj.name);
+            end
+                    
+            pause(obj.initialDelay);
+            outputSingleScan(obj.session, true);
+        end
     end
     
-    function onProcess(~, ~, ~)
-        fprintf(1, 'process acqLive\n');
-        
+    function process(~, ~, ~)
+        %fprintf(1, 'process acqLive\n');
+        % -- pass
     end
     
-    function onStop(obj,~)
-        fprintf(1, 'stop acqLive\n');
-        stop(obj.session);
-        release(obj.session);
-        obj.session = [];
+    function stop(obj,~)
+        if obj.enable
+            if obj.verbose
+                fprintf(1, 'stop %s\n', obj.name);                
+            end
+            stop(obj.session);
+            release(obj.session);
+            obj.session = [];
+        end
+    end
+    
+    function s = toStr(obj)
+        s = sprintf('"%s" on %s/%s (acqLive, initial delay %.2f)', obj.name, ...
+            obj.daqDeviceID, obj.daqChannelID, obj.initialDelay);
     end
     
   end
