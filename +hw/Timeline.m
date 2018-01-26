@@ -70,7 +70,8 @@ classdef Timeline < handle
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
         
-        Outputs % array of output classes, defining any signals you desire to be sent from the daq. 
+        Outputs  = hw.tlOutputChrono('chrono', 'Dev1', 'port0/line1')
+            % array of output classes, defining any signals you desire to be sent from the daq. 
             % see hw.tlOutput, and, e.g. hw.tlOutputClock. 
         
         Inputs = struct('name', 'chrono',...
@@ -79,6 +80,7 @@ classdef Timeline < handle
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded')
         UseInputs = {'chrono'} % array of inputs to record while tl is running
+        
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
         MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
@@ -86,8 +88,11 @@ classdef Timeline < handle
         LivePlot = false % if true the data are plotted as the data are aquired
         LivePlotParams = [];
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
-        
-        % moved these here so chrono class can access - NS
+                
+    end
+    
+    properties (Transient)
+        % moved these here (i.e. unprotected) so chrono class can access - NS
         CurrSysTimeTimelineOffset % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
         LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
@@ -114,7 +119,6 @@ classdef Timeline < handle
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
             obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
-            obj.Outputs = hw.tlOutputChrono('chrono', obj.DaqIds, 'port0/line1');
             if nargin % if old tl hardware struct provided, use these to populate properties
                 obj.Inputs = hw.inputs;
                 obj.DaqVendor = hw.daqVendor;
@@ -122,6 +126,7 @@ classdef Timeline < handle
                 obj.DaqSampleRate = hw.daqSampleRate;
                 obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
             end
+
         end
         
         function start(obj, expRef, Alyx)
@@ -416,6 +421,10 @@ classdef Timeline < handle
             obj.Data.lastTimestamp = obj.LastTimestamp;
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
+            
+            for outIdx = 1:numel(obj.Outputs)
+                obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
+            end
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
