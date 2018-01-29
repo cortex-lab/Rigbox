@@ -36,16 +36,19 @@ classdef tlOutputChrono < hw.tlOutput
             x2 = tls.inputSingleScan;
             assert(x1(timeline.Inputs(idx).arrayColumn) < 2.5 && x2(timeline.Inputs(idx).arrayColumn) > 2.5,...
                 'The clocking pulse test could not be read back');
+            
+            timeline.CurrSysTimeTimelineOffset = GetSecs;
         end
     end
     
-    function start(obj, ~)   
+    function start(obj, timeline)   
         if obj.enable
             if obj.verbose
                 fprintf(1, 'start %s\n', obj.name);
             end
-        
+            t = GetSecs; % system time before output
             outputSingleScan(obj.session, false) % this will be the clocking pulse detected the first time process is called
+            timeline.LastClockSentSysTime = (t + GetSecs)/2;
         end
     end
     
@@ -70,6 +73,11 @@ classdef tlOutputChrono < hw.tlOutput
             idx = elementByName(timeline.Inputs, 'chrono');
             clockChangeIdx = find(sign(event.Data(:,timeline.Inputs(idx).arrayColumn) - 2.5) == obj.NextChronoSign, 1);
 
+            if obj.verbose
+                fprintf(1, '  CurrOffset=%.2f, LastClock=%.2f\n', ...
+                timeline.CurrSysTimeTimelineOffset, timeline.LastClockSentSysTime);
+            end
+            
             %Ensure the clocking pulse was detected
             if ~isempty(clockChangeIdx)
                 clockChangeTimestamp = event.TimeStamps(clockChangeIdx);
@@ -83,6 +91,11 @@ classdef tlOutputChrono < hw.tlOutput
             t = GetSecs; % system time before output
             outputSingleScan(obj.session, obj.NextChronoSign > 0); % send next chrono flip
             timeline.LastClockSentSysTime = (t + GetSecs)/2; % record mean before/after system time
+            if obj.verbose
+                fprintf(1, '  CurrOffset=%.2f, LastClock=%.2f\n', ...
+                timeline.CurrSysTimeTimelineOffset, timeline.LastClockSentSysTime);
+            end
+            
         end
     end
     
