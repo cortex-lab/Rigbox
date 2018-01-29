@@ -93,7 +93,7 @@ classdef Timeline < handle
     
     properties (Transient)
         % moved these here (i.e. unprotected) so chrono class can access - NS
-        CurrSysTimeTimelineOffset % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
+        CurrSysTimeTimelineOffset = 0 % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
         LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
     end
@@ -422,9 +422,9 @@ classdef Timeline < handle
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
             
-            for outIdx = 1:numel(obj.Outputs)
-                obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
-            end
+%             for outIdx = 1:numel(obj.Outputs)
+%                 obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
+%             end
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
