@@ -426,9 +426,13 @@ classdef Timeline < handle
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
             
             % saving hardware metadata for each output 
-%             for outIdx = 1:numel(obj.Outputs)
-%                 obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
-%             end
+            warning('off', 'MATLAB:structOnObject'); % sorry, don't care
+            for outIdx = 1:numel(obj.Outputs)
+                s = struct(obj.Outputs(outIdx));
+                s.class = class(obj.Outputs(outIdx));
+                obj.Data.hw.Outputs{outIdx} = s;
+            end
+            warning('on', 'MATLAB:structOnObject');
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
@@ -438,7 +442,7 @@ classdef Timeline < handle
                 % save local copy
                 savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json')); 
                 % save server copy
-                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json'));
+                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'));
             else
                 warning('JSONlab not found - hardware information not saved to ALF')
             end
