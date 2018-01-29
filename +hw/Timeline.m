@@ -465,8 +465,7 @@ classdef Timeline < handle
                     warning('couldnt register files to alyx');
                 end
             end
-            %TODO: Register ALF components to alyx, instead of the main
-            %Timeline.mat file
+            %TODO: Register ALF components to alyx, incl TimelineHW.json
             
             % delete data from memory, tl is now officially no longer running
             obj.Data = [];
