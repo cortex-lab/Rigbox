@@ -19,8 +19,8 @@ if nargin < 1 || isempty(mpepListenPort)
 end
 
 mpepSendPort = 1103; % send responses back to this remote port
-
 quitKey = KbName('esc');
+manualStartKey = KbName('m');
 
 %% Start UDP communication
 listeners = struct(...
@@ -36,6 +36,13 @@ log('Bound UDP sockets');
 tls.close = @closeConns;
 tls.process = @process;
 tls.listen = @listen;
+tls.AlyxInstance = [];
+
+
+%% Initialize timeline
+rig = hw.devices([], false);
+tlObj = rig.timeline;
+tls.tlObj = tlObj;
 
 %% Helper functions
 
@@ -52,10 +59,10 @@ tls.listen = @listen;
   function processListener(listener)
     sz = pnet(listener.socket, 'readpacket', 1000, 'noblock');
     if sz > 0
-      t = tl.time(false); % save the time we got the UDP packet
+      t = tlObj.time(false); % save the time we got the UDP packet
       msg = pnet(listener.socket, 'read');
-      if tl.running
-        tl.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
+      if tlObj.IsRunning
+        tlObj.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
       end
       listener.callback(listener, msg); % call special handling function
     end
@@ -71,23 +78,28 @@ tls.listen = @listen;
     failed = false; % flag for preventing UDP echo
     %% Experiment-level events start/stop timeline
     switch lower(info.instruction)
+      case 'alyx'
+        fprintf(1, 'received alyx token message\n');
+        idx = find(msg==' ', 1, 'last');
+        [~, ai] = dat.parseAlyxInstance(msg(idx+1:end));
+        tls.AlyxInstance = ai;
       case 'expstart'
         % create a file path & experiment ref based on experiment info
         try
           % start Timeline
-          tl.start(info.expRef);
+          tlObj.start(info.expRef, tls.AlyxInstance);
           % re-record the UDP event in Timeline since it wasn't started
           % when we tried earlier. Treat it as having arrived at time zero.
-          tl.record('mpepUDP', msg, 0);
+          tlObj.record('mpepUDP', msg, 0);
         catch ex
           % flag up failure so we do not echo the UDP message back below
           failed = true;
           disp(getReport(ex));
         end
       case 'expend'
-        tl.stop(); % stop Timeline
+        tlObj.stop(); % stop Timeline
       case 'expinterrupt'
-        tl.stop(); % stop Timeline
+        tlObj.stop(); % stop Timeline
     end
     if ~failed
       %% echo the UDP message back to the sender
@@ -106,6 +118,7 @@ tls.listen = @listen;
     % listen to keyboard events
     KbQueueCreate();
     KbQueueStart();
+    newExpRef = [];
     cleanup1 = onCleanup(@KbQueueRelease);
     log('Polling for UDP messages. PRESS <%s> TO QUIT', KbName(quitKey));
     running = true;
@@ -115,6 +128,37 @@ tls.listen = @listen;
       [~, firstPress] = KbQueueCheck;
       if firstPress(quitKey)
         running = false;
+      end
+      if firstPress(manualStartKey) && ~tlObj.IsRunning
+        
+        if isempty(tls.AlyxInstance)
+          % first get an alyx instance
+          ai = alyx.loginWindow();
+        else
+          ai = tls.AlyxInstance;
+        end
+        
+        [mouseName, ~] = dat.subjectSelector([],ai);
+        
+        if ~isempty(mouseName)
+          clear expParams;
+          expParams.experimentType = 'timelineManualStart';
+          [newExpRef, ~, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
+          ai.subsessionURL = subsessionURL;
+          tls.AlyxInstance = ai;
+          
+          %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);
+          %newExpRef = dat.constructExpRef(mouseName, now, expNum);
+          communicator.send('AlyxSend', {tls.AlyxInstance});
+          communicator.send('status', { 'starting', newExpRef});
+          tlObj.start(newExpRef, ai);
+        end
+        KbQueueFlush;
+      elseif firstPress(manualStartKey) && tlObj.IsRunning && ~isempty(newExpRef)
+        fprintf(1, 'stopping timeline\n');
+        tlObj.stop();
+        communicator.send('status', { 'completed', newExpRef});
+        newExpRef = [];
       end
       if toc(tid) > 0.2
         pause(1e-3); % allow timeline aquisition every so often
