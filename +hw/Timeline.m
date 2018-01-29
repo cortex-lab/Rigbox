@@ -182,6 +182,7 @@ classdef Timeline < handle
                 pause(5e-3);
             end
             
+            % Start each output
             for outidx = 1:numel(obj.Outputs)
                 obj.Outputs(outidx).start(obj);
             end
@@ -389,7 +390,8 @@ classdef Timeline < handle
             inputsIdx = cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs);
             
             % this block finds the daqChannelID for chrono and acqLive if
-            % they exist 
+            % they exist, plus some clock parameters - all for legacy
+            % metadata saving, see below
             outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
             chronoChan = []; nextChrono = []; acqLiveChan = []; useClock = false; clockF = []; clockD = [];
             chronoOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputChrono'),1);
@@ -408,6 +410,7 @@ classdef Timeline < handle
                 clockD = obj.Outputs(clockOutputIdx).dutyCycle;
             end
             
+            % legacy metadata
             obj.Data.hw = struct('daqVendor', obj.DaqVendor, 'daqDevice', obj.DaqIds,...
                 'daqSampleRate', obj.DaqSampleRate, 'daqSamplesPerNotify', obj.DaqSamplesPerNotify,...
                 'chronoOutDaqChannelID', chronoChan, 'acqLiveOutDaqChannelID', acqLiveChan,...
@@ -422,6 +425,7 @@ classdef Timeline < handle
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
             
+            % saving hardware metadata for each output 
 %             for outIdx = 1:numel(obj.Outputs)
 %                 obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
 %             end
@@ -547,6 +551,7 @@ classdef Timeline < handle
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
                         
+            % process methods for outputs
             for outidx = 1:numel(obj.Outputs)
                 obj.Outputs(outidx).process(obj, event);
             end
