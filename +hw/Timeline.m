@@ -453,16 +453,18 @@ classdef Timeline < handle
             if ~isempty(which('alf.timelineToALF'))&&~isempty(which('writeNPY'))
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
+            else
+                warning('did not write files into alf format. Check that alyx-matlab and npy-matlab repositories are in path');
             end
 
             % register Timeline.mat file to Alyx database
             [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
             if ~isempty(obj.AlyxInstance) && ~strcmp(subject,'default')
                 try
-                    alyx.registerFile(obj.Data.savePaths{end}, 'alf',...
+                    alyx.registerFile(obj.Data.savePaths{end}, 'mat',...
                         obj.AlyxInstance.subsessionURL, 'Timeline', [], obj.AlyxInstance);
                 catch
-                    warning('couldnt register files to alyx');
+                    warning('couldn''t register files to alyx');
                 end
             end
             %TODO: Register ALF components to alyx, instead of the main
