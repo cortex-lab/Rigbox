@@ -21,7 +21,7 @@ classdef PulseSwitcher < hw.ControlSignalGenerator
     end
 
     function samples = waveform(obj, sampleRate, command)
-      [dt, npulses, f] = obj.ParamsFun(command(1));
+      [dt, npulses, f] = obj.ParamsFun(command);
       wavelength = 1/f;
       duty = dt/wavelength;
       assert(duty <= (1 + 1e-3), 'Pulse width larger than wavelength (duty=%.2f)', duty);
