@@ -10,9 +10,9 @@ classdef tlOutputClock < hw.tlOutput
     daqDeviceID
     daqChannelID
     daqVendor = 'ni'
-    initialDelay = 0
-    frequency = 60; 
-    dutyCycle = 0.2;    
+    initialDelay = 0 % delay from session start to clock output
+    frequency = 60; % Hz, of the clocking pulse
+    dutyCycle = 0.2;  % proportion of each cycle that the pulse is "true"
   end    
   
   properties (Transient)
@@ -27,6 +27,7 @@ classdef tlOutputClock < hw.tlOutput
     end
 
     function init(obj, ~)
+        % called when timeline is initialized (see hw.Timeline/init)
         if obj.enable
             fprintf(1, 'initializing %s\n', obj.toStr);
             
@@ -41,6 +42,7 @@ classdef tlOutputClock < hw.tlOutput
     end
     
     function start(obj, ~)
+        % called when timeline is started (see hw.Timeline/start)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'start %s\n', obj.name);
@@ -50,11 +52,13 @@ classdef tlOutputClock < hw.tlOutput
     end
     
     function process(~, ~, ~)
+        % called every time Timeline processes a chunk of data
         %fprintf(1, 'process Clock\n');
         % -- pass
     end
     
     function stop(obj,~)
+        % called when timeline is stopped (see hw.Timeline/stop)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'stop %s\n', obj.name);                

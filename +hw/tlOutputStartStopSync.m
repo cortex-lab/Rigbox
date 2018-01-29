@@ -10,8 +10,8 @@ classdef tlOutputStartStopSync < hw.tlOutput
     daqDeviceID
     daqChannelID
     daqVendor = 'ni'
-    initialDelay = 0
-    pulseDuration = 0.2;
+    initialDelay = 0 % sec, time between start of acquisition and onset of this pulse
+    pulseDuration = 0.2; % sec, time that the pulse is on at beginning and end
   end
   
   methods
@@ -22,6 +22,7 @@ classdef tlOutputStartStopSync < hw.tlOutput
     end
 
     function init(obj, ~)
+        % called when timeline is initialized (see hw.Timeline/init)
         if obj.enable
             fprintf(1, 'initializing %s\n', obj.toStr);
             obj.session = daq.createSession(obj.daqVendor);
@@ -35,6 +36,7 @@ classdef tlOutputStartStopSync < hw.tlOutput
     end
     
     function start(obj, ~)   
+        % called when timeline is started (see hw.Timeline/start)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'start %s\n', obj.name);
@@ -47,11 +49,13 @@ classdef tlOutputStartStopSync < hw.tlOutput
     end
     
     function process(~, ~, ~)
+        % called every time Timeline processes a chunk of data
         %fprintf(1, 'process StartStopSync\n');
         % -- pass
     end
     
     function stop(obj,~)
+        % called when timeline is stopped (see hw.Timeline/stop)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'stop %s\n', obj.name);

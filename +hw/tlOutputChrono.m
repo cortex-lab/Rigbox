@@ -1,6 +1,8 @@
 classdef tlOutputChrono < hw.tlOutput
   %hw.tlOutputChrono Timeline uses this to monitor that
-  %   acquisition is proceeding normally during a recording.
+  %   acquisition is proceeding normally during a recording and to update
+  %   the synchronization between the system time and the timeline time (to
+  %   prevent drift between daq and computer clock). 
   % See also hw.tlOutput and hw.Timeline
   %
   % Part of Rigbox
@@ -21,6 +23,7 @@ classdef tlOutputChrono < hw.tlOutput
     end
 
     function init(obj, timeline)
+        % called when timeline is initialized (see hw.Timeline/init)
         if obj.enable
             fprintf(1, 'initializing %s\n', obj.toStr);
             obj.session = daq.createSession(obj.daqVendor);
@@ -37,22 +40,24 @@ classdef tlOutputChrono < hw.tlOutput
             assert(x1(timeline.Inputs(idx).arrayColumn) < 2.5 && x2(timeline.Inputs(idx).arrayColumn) > 2.5,...
                 'The clocking pulse test could not be read back');
             
-            timeline.CurrSysTimeTimelineOffset = GetSecs;
+            timeline.CurrSysTimeTimelineOffset = GetSecs; % to initialize this, will be a bit off but fixed after the first pulse
         end
     end
     
-    function start(obj, timeline)   
+    function start(obj, timeline) 
+        % called when timeline is started (see hw.Timeline/start)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'start %s\n', obj.name);
             end
             t = GetSecs; % system time before output
             outputSingleScan(obj.session, false) % this will be the clocking pulse detected the first time process is called
-            timeline.LastClockSentSysTime = (t + GetSecs)/2;
+            timeline.LastClockSentSysTime = (t + GetSecs)/2; 
         end
     end
     
     function process(obj, timeline, event)
+        % called every time Timeline processes a chunk of data
         if obj.enable && timeline.IsRunning && ~isempty(obj.session)
             if obj.verbose
                 fprintf(1, 'process %s\n', obj.name);                
@@ -100,6 +105,7 @@ classdef tlOutputChrono < hw.tlOutput
     end
     
     function stop(obj,~)
+        % called when timeline is stopped (see hw.Timeline/stop)
         if obj.enable
             if obj.verbose
                 fprintf(1, 'stop %s\n', obj.name);                
