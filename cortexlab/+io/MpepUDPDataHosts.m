@@ -207,9 +207,9 @@ classdef MpepUDPDataHosts < srv.Service
       [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
       alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, ref);
       confirmedBroadcast(obj, alyxmsg);
+      
       % equivalent to startExp(expRef)
       expStarted(obj, expRef);
-      
     end
     
     function stop(obj)

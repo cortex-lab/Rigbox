@@ -13,12 +13,13 @@ classdef Timeline < handle
 %   (see tl.time() and tl.ptbSecsToTimeline()).  In is assumed that the
 %   time between sending the chrono pulse and recieving it is negligible.
 %
-%   There are two other available clocking signals: 'acqLive' and 'clock'.
+%   There are other available clocking signals, for instance: 'acqLive' and 'clock'.
 %   The former outputs a high (+5V) signal the entire time tl is aquiring
 %   (0V otherwise), and can be used to trigger devices with a TTL input.
 %   The 'clock' output is a regular pulse at a frequency of
 %   ClockOutputFrequency and duty cycle of ClockOutputDutyCycle.  This can
-%   be used to trigger a camera at a specific frame rate.
+%   be used to trigger a camera at a specific frame rate. See "properties" below for
+%   further details on output configurations.
 %
 %   Besides the chrono signal, tl can aquire any number of inputs and
 %   record their values on the same clock.  For example a photodiode to
@@ -68,23 +69,33 @@ classdef Timeline < handle
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        Outputs % structure of outputs with their type, delays and ports, see constructor
+        
+        Outputs  = hw.tlOutputChrono('chrono', 'Dev1', 'port0/line1')
+            % array of output classes, defining any signals you desire to be sent from the daq. 
+            % see hw.tlOutput, and, e.g. hw.tlOutputClock. 
+        
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded')
         UseInputs = {'chrono'} % array of inputs to record while tl is running
-        UseOutputs = {'chrono'} % array of output pulses to use while tl is running
+        
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
-        MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)
-        ClockOutputFrequency = 60 % if using 'clock' output, this specifies the frequency of pulses (Hz)
-        ClockOutputDutyCycle = 0.2 % if using 'clock' output, this specifies the duty cycle (as a fraction)
+        MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
         LivePlotParams = [];
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
+                
+    end
+    
+    properties (Transient)
+        % moved these here (i.e. unprotected) so chrono class can access - NS
+        CurrSysTimeTimelineOffset = 0 % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
+        LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
+        LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
     end
     
     properties (Dependent)
@@ -94,11 +105,7 @@ classdef Timeline < handle
         
     properties (Transient, Access = protected)
         Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
-        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
-        CurrSysTimeTimelineOffset % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
-        LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
-        LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
-        NextChronoSign = 1 % the value to output on the chrono channel, the sign is changed each 'DataAvailable' event (DaqSamplesPerNotify)
+        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()        
         Ref % the expRef string.  See tl.start()
         AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start() 
         Data % A structure containing timeline data
@@ -111,24 +118,15 @@ classdef Timeline < handle
             % Constructor method
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
-            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify
-            defaultOutputs = {'chrono', 'acqLive', 'clock';... % names of each output
-                'port1/line0', 'port0/line1', 'ctr3';... % their default ports
-                'OutputOnly', 'OutputOnly', 'PulseGeneration'; % default output type
-                0, 0, 0}; % the initial delay (useful for ensure all systems are ready)
-            obj.Outputs = cell2struct(defaultOutputs, {'name', 'daqChannelID', 'type', 'initialDelay'});
+            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
             if nargin % if old tl hardware struct provided, use these to populate properties
                 obj.Inputs = hw.inputs;
                 obj.DaqVendor = hw.daqVendor;
                 obj.DaqIds = hw.daqDevice;
                 obj.DaqSampleRate = hw.daqSampleRate;
                 obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
-                obj.Outputs(1).daqChannelID = hw.chronoOutDaqChannelID;
-                obj.Outputs(2).daqChannelID = hw.acqLiveDaqChannelID;
-                obj.Outputs(3).daqChannelID = hw.clockOutputDaqChannelID;
-                obj.ClockOutputFrequency = hw.clockOutputFrequency;
-                obj.ClockOutputDutyCycle = hw.clockOutputDutyCycle;
             end
+
         end
         
         function start(obj, expRef, Alyx)
@@ -142,16 +140,7 @@ classdef Timeline < handle
             end
             obj.Ref = expRef; % set the current experiment ref
             obj.AlyxInstance = Alyx; % set the current instance of Alyx
-            init(obj); % start the relevent sessions and add channels
-            
-            %%Send a test pulse low, then high to clocking channel & check we read it back
-            idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-            outputSingleScan(obj.Sessions('chrono'), false)
-            x1 = obj.Sessions('main').inputSingleScan;
-            outputSingleScan(obj.Sessions('chrono'), true)
-            x2 = obj.Sessions('main').inputSingleScan;
-            assert(x1(obj.Inputs(idx).arrayColumn) < 2.5 && x2(obj.Inputs(idx).arrayColumn) > 2.5,...
-                'The clocking pulse test could not be read back');
+            init(obj); % start the relevent sessions and add channels            
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
             
@@ -181,7 +170,6 @@ classdef Timeline < handle
             obj.Data.startDateTimeStr = datestr(obj.Data.startDateTime);
             
             %%Start the DAQ acquiring
-            outputSingleScan(obj.Sessions('chrono'), false) % make sure chrono is low
             %LastTimestamp is the timestamp of the last acquisition sample, which is
             %saved to ensure continuity of acquisition. Here it is initialised as if a
             %previous acquisition had been made in negative time, since the first
@@ -189,25 +177,13 @@ classdef Timeline < handle
             obj.LastTimestamp = -obj.SamplingInterval;
             startBackground(obj.Sessions('main')); % start aquisition
             
-            %%Output clocking pulse and wait for first acquisition to complete
-            % output first clocking high pulse
-            t = GetSecs; %system time before outputting chrono flip
-            outputSingleScan(obj.Sessions('chrono'), obj.NextChronoSign > 0); % flip chrono signal
-            obj.LastClockSentSysTime = (t + GetSecs)/2; % log mean before/after system time
-            
             % wait for first acquisition processing to begin
             while ~obj.IsRunning
                 pause(5e-3);
             end
             
-            if isKey(obj.Sessions, 'acqLive') % is acqLive being used?
-                % set acquisition live signal to true
-                pause(obj.Outputs(cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name})).initialDelay);
-                outputSingleScan(obj.Sessions('acqLive'), true);
-            end
-            if isKey(obj.Sessions, 'clock') % is the clock output being used?
-                % start session to send timing output pulses
-                startBackground(obj.Sessions('clock'));
+            for outidx = 1:numel(obj.Outputs)
+                obj.Outputs(outidx).start(obj);
             end
             
             % Report success
@@ -339,9 +315,10 @@ classdef Timeline < handle
                 fprintf('PFI4-7 = port1/line0-3\n')
                 fprintf('ctr0-3 = port1/line0-3\n')
             else
+                outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
                 if strcmp(name, 'chrono') % Chrono wiring info
                     idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-                    idO = cellfun(@(s2)strcmp('chrono',s2), {obj.Outputs.name});
+                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);                    
                     fprintf('Bridge terminals %s and %s\n',...
                         obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
                 elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
@@ -384,13 +361,10 @@ classdef Timeline < handle
                 warning('Nothing to do, Timeline is not running!')
                 return
             end
+            
             % kill acquisition output signals
-            if isKey(obj.Sessions, 'acqLive')
-                outputSingleScan(obj.Sessions('acqLive'), false); % live -> false
-            end
-            for i = 1:length(obj.UseOutputs)
-                name = obj.UseOutputs{i};
-                stop(obj.Sessions(name));
+            for outidx = 1:numel(obj.Outputs)
+                obj.Outputs(outidx).stop(obj);
             end
             
             pause(obj.StopDelay)
@@ -400,14 +374,7 @@ classdef Timeline < handle
             % wait before deleting the listener to ensure most recent samples are
             % collected
             pause(1.5);
-            delete(obj.Listener) % now delete the data listener
-                        
-            % release hardware resources
-            sessions = keys(obj.Sessions); % find names of all current sessions
-            for i = 1:length(sessions)
-                name = sessions{i};
-                release(obj.Sessions(name));
-            end
+            delete(obj.Listener) % now delete the data listener                        
             
             % only keep the used part of the daq input array
             obj.Data.rawDAQData((obj.Data.rawDAQSampleCount + 1):end,:) = [];
@@ -419,18 +386,45 @@ classdef Timeline < handle
             % replicate old tl data struct for legacy code
             idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
             arrayChronoColumn = obj.Inputs(idx).arrayColumn;
+            inputsIdx = cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs);
+            
+            % this block finds the daqChannelID for chrono and acqLive if
+            % they exist 
+            outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
+            chronoChan = []; nextChrono = []; acqLiveChan = []; useClock = false; clockF = []; clockD = [];
+            chronoOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputChrono'),1);
+            if ~isempty(chronoOutputIdx)
+                chronoChan = obj.Outputs(chronoOutputIdx).daqChannelID;
+                nextChrono = obj.Outputs(chronoOutputIdx).NextChronoSign;
+            end                            
+            acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputAcqLive'),1);
+            if ~isempty(acqLiveOutputIdx)
+                acqLiveChan = obj.Outputs(acqLiveOutputIdx).daqChannelID;
+            end
+            clockOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputClock'),1);
+            if ~isempty(clockOutputIdx)
+                useClock = true;
+                clockF = obj.Outputs(clockOutputIdx).frequency; 
+                clockD = obj.Outputs(clockOutputIdx).dutyCycle;
+            end
+            
             obj.Data.hw = struct('daqVendor', obj.DaqVendor, 'daqDevice', obj.DaqIds,...
                 'daqSampleRate', obj.DaqSampleRate, 'daqSamplesPerNotify', obj.DaqSamplesPerNotify,...
-                'chronoOutDaqChannelID', obj.Outputs(1).daqChannelID, 'acqLiveOutDaqChannelID', obj.Outputs(2).daqChannelID,...
-                'useClockOutput', any(strcmp('clock', obj.UseOutputs)), 'clockOutputFrequency', obj.ClockOutputFrequency,...
-                'clockOutputDutyCycle', obj.ClockOutputDutyCycle, 'samplingInterval', obj.SamplingInterval,...
-                'inputs', obj.Inputs(sign([obj.Inputs.arrayColumn])==1), 'arrayChronoColumn', arrayChronoColumn);
+                'chronoOutDaqChannelID', chronoChan, 'acqLiveOutDaqChannelID', acqLiveChan,...
+                'useClockOutput', useClock, 'clockOutputFrequency', clockF,...
+                'clockOutputDutyCycle', clockD, 'samplingInterval', obj.SamplingInterval,...
+                'inputs', obj.Inputs(inputsIdx), ... % find the correct inputs, in the correct order
+                'arrayChronoColumn', arrayChronoColumn);
             obj.Data.expRef = obj.Ref; % save experiment ref
             obj.Data.isRunning = obj.IsRunning;
-            obj.Data.nextChronoSign = obj.NextChronoSign;
+            obj.Data.nextChronoSign = nextChrono;
             obj.Data.lastTimestamp = obj.LastTimestamp;
             obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
+            
+%             for outIdx = 1:numel(obj.Outputs)
+%                 obj.Data.hw.Outputs{outIdx} = struct(obj.Outputs(outIdx));
+%             end
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
@@ -481,6 +475,13 @@ classdef Timeline < handle
             % Report successful stop
             fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
         end
+        
+        function s = getSessions(obj, name)
+            % returns the Sessions property. Some things (e.g. output
+            % classes) need this. 
+            s = obj.Sessions(name);
+        end
+        
     end
     
     methods (Access = private)
@@ -489,33 +490,8 @@ classdef Timeline < handle
             %   TL.INIT() creates all the DAQ sessions
             %   and stores them in the Sessions map by their Outputs name.
             %   Also add a 'main' session to which all input channels are
-            %   added.  See daq.createSession
-            
-            %%Create session objects for chrono and other outputs
-            [use, idx] = intersect({obj.Outputs.name}, obj.UseOutputs); % find which outputs to use
-%             assert(numel(idx) == numel(obj.UseOutputs), 'Not all outputs were recognised');
-            for i = 1:length(use)
-                out = obj.Outputs(idx(i)); % get channel info, etc.
-                switch use{i}
-                    case 'chrono'
-                        obj.Sessions('chrono') = daq.createSession(obj.DaqVendor);
-                        obj.Sessions('chrono').addDigitalChannel(obj.DaqIds, out.daqChannelID, out.type);
-                        
-                    case 'acqLive'
-                        obj.Sessions('acqLive') = daq.createSession(obj.DaqVendor);
-                        obj.Sessions('acqLive').addDigitalChannel(obj.DaqIds, out.daqChannelID, out.type);
-                        outputSingleScan(obj.Sessions('acqLive'), false); % ensure acq live is false
-                        
-                    case 'clock'
-                        obj.Sessions('clock') = daq.createSession(obj.DaqVendor);
-                        clockSess = obj.Sessions('clock');
-                        clockSess.IsContinuous = true;
-                        clocked = obj.Sessions('clock').addCounterOutputChannel(obj.DaqIds, out.daqChannelID, out.type);
-                        clocked.Frequency = obj.ClockOutputFrequency;
-                        clocked.DutyCycle = obj.ClockOutputDutyCycle;
-                        clocked.InitialDelay = out.initialDelay;
-                end
-            end
+            %   added.  See daq.createSession            
+
             %%Create channels for each input
             [use, idx] = intersect({obj.Inputs.name}, obj.UseInputs);% find which inputs to use
             assert(numel(idx) == numel(obj.UseInputs), 'Not all inputs were recognised');
@@ -526,7 +502,6 @@ classdef Timeline < handle
             obj.Sessions('main') = inputSession;
             for i = 1:length(use)
                 in = obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i)));
-%                 in = obj.Inputs(idx(i)); % get channel info, etc.
                 fprintf(1, 'adding channel %s on %s\n', in.name, in.daqChannelID);
                 
                 switch in.measurement
@@ -543,6 +518,11 @@ classdef Timeline < handle
                         ch.EncoderType = 'X4';
                 end
                 obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
+            end
+            
+            % Initialize outputs
+            for outidx = 1:numel(obj.Outputs)
+                obj.Outputs(outidx).init(obj);
             end
         end
         
@@ -566,26 +546,10 @@ classdef Timeline < handle
             assert(abs(event.TimeStamps(1) - obj.LastTimestamp - obj.SamplingInterval) < 1e-8,...
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
-            
-            %%% The chrono "out" value is flipped at a recorded time, and
-            %%% the sample index that this flip is measured is noted
-            % First, find the index of the flip in the latest chunk of data
-            idx = elementByName(obj.Inputs, 'chrono');
-            clockChangeIdx = find(sign(event.Data(:,obj.Inputs(idx).arrayColumn) - 2.5) == obj.NextChronoSign, 1);
-            
-            %Ensure the clocking pulse was detected
-            if ~isempty(clockChangeIdx)
-                clockChangeTimestamp = event.TimeStamps(clockChangeIdx);
-                obj.CurrSysTimeTimelineOffset = obj.LastClockSentSysTime - clockChangeTimestamp;
-            else
-                warning('Rigging:Timeline:timing', 'clocking pulse not detected - probably lagging more than one data chunk');
+                        
+            for outidx = 1:numel(obj.Outputs)
+                obj.Outputs(outidx).process(obj, event);
             end
-
-            %Now send the next clock pulse
-            obj.NextChronoSign = -obj.NextChronoSign; % flip next chrono
-            t = GetSecs; % system time before output
-            outputSingleScan(obj.Sessions('chrono'), obj.NextChronoSign > 0); % send next chrono flip
-            obj.LastClockSentSysTime = (t + GetSecs)/2; % record mean before/after system time
             
             %%% Store new samples into the timeline array
             prevSampleCount = obj.Data.rawDAQSampleCount;
@@ -626,8 +590,9 @@ classdef Timeline < handle
                 end
             end
             
-            % get the names of the inputs being recorded
-            names = pick({obj.Inputs.name}, find([obj.Inputs.arrayColumn] > -1), 'cell');
+            % get the names of the inputs being recorded (in the correct
+            % order)
+            names = pick({obj.Inputs.name}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
             nSamps = size(data,1); % Get the number of samples in this chunck
             nChans = size(data,2); % Get the number of channels
             traceSep = 7; % unit is Volts - for most channels the max is 5V so this is a good separation
@@ -653,8 +618,7 @@ classdef Timeline < handle
             
             % get the measurement type of each channel, since Position-type
             % inputs are plotted differently.
-            meas = {obj.Inputs.measurement};
-            meas = meas(ismember({obj.Inputs.name}, obj.UseInputs));
+            meas = pick({obj.Inputs.measurement}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
             
             for t = 1:length(traces)
                 if strcmp(meas{t}, 'Position')
