@@ -13,7 +13,7 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
-server1Name = '\\zserver.cortexlab.net';
+server1Name = '\\zubjects.cortexlab.net';
 % server2Name = '\\zserver2.cortexlab.net';
 % server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
 % unused by Rigbox
@@ -29,7 +29,7 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 p.localRepository = 'C:\LocalExpData';
 % for all data types, under the new system of having data grouped by mouse
 % rather than data type
-p.mainRepository = fullfile(server1Name, 'Data2', 'Subjects');
+p.mainRepository = fullfile(server1Name, 'Subjects');
 % Repository for info about experiments, i.e. stimulus, behavioural,
 % Timeline etc
 p.expInfoRepository = p.mainRepository;
