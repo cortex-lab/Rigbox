@@ -18,9 +18,9 @@ if nargin < 1 || isempty(mpepListenPort)
   mpepListenPort = 1001; % listen for commands on this port
 end
 
-mpepSendPort = 1103; % send responses back to this remote port
+% mpepSendPort = 1103; % send responses back to this remote port
 quitKey = KbName('esc');
-manualStartKey = KbName('m');
+manualStartKey = KbName('t');
 
 %% Start UDP communication
 listeners = struct(...
@@ -109,7 +109,7 @@ tls.tlObj = tlObj;
 %         connected = true;
 %       end
       pnet(listener.socket, 'write', msg);
-      pnet(listener.socket, 'writepacket', ipstr, mpepSendPort);
+      pnet(listener.socket, 'writepacket', ipstr, port);
     end
   end
 
@@ -118,7 +118,6 @@ tls.tlObj = tlObj;
     % listen to keyboard events
     KbQueueCreate();
     KbQueueStart();
-    newExpRef = [];
     cleanup1 = onCleanup(@KbQueueRelease);
     log('Polling for UDP messages. PRESS <%s> TO QUIT', KbName(quitKey));
     running = true;
@@ -154,11 +153,10 @@ tls.tlObj = tlObj;
           tlObj.start(newExpRef, ai);
         end
         KbQueueFlush;
-      elseif firstPress(manualStartKey) && tlObj.IsRunning && ~isempty(newExpRef)
+      elseif firstPress(manualStartKey) && tlObj.IsRunning
         fprintf(1, 'stopping timeline\n');
         tlObj.stop();
         communicator.send('status', { 'completed', newExpRef});
-        newExpRef = [];
       end
       if toc(tid) > 0.2
         pause(1e-3); % allow timeline aquisition every so often
