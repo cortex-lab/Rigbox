@@ -145,18 +145,12 @@ tls.tlObj = tlObj;
           [newExpRef, ~, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
           ai.subsessionURL = subsessionURL;
           tls.AlyxInstance = ai;
-          
-          %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);
-          %newExpRef = dat.constructExpRef(mouseName, now, expNum);
-          communicator.send('AlyxSend', {tls.AlyxInstance});
-          communicator.send('status', { 'starting', newExpRef});
           tlObj.start(newExpRef, ai);
         end
         KbQueueFlush;
       elseif firstPress(manualStartKey) && tlObj.IsRunning
         fprintf(1, 'stopping timeline\n');
         tlObj.stop();
-        communicator.send('status', { 'completed', newExpRef});
       end
       if toc(tid) > 0.2
         pause(1e-3); % allow timeline aquisition every so often
