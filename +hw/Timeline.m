@@ -129,6 +129,8 @@ classdef Timeline < handle
             % START Starts timeline data acquisition
             %   START(obj, ref, Alyx) starts all DAQ sessions and adds
             %   the relevent output and input channels.
+            %
+            % See Also HW.TLOUTPUT/START
             
             if obj.IsRunning % check if it's already running, and if so, stop it
                 disp('Timeline already running, stopping first');
@@ -230,7 +232,8 @@ classdef Timeline < handle
             %   Timeline data acquistion. 'strict' is optional (defaults to true), and
             %   if true, this function will fail if Timeline is not running. If false,
             %   it will just return the time using Psychtoolbox GetSecs if it's not
-            %   running. See also TL.PTBSECSTOTIMELINE().
+            %   running. 
+            % See also TL.PTBSECSTOTIMELINE().
             if nargin < 2; strict = true; end
             if obj.IsRunning
                 secs = GetSecs - obj.CurrSysTimeTimelineOffset;
@@ -329,6 +332,7 @@ classdef Timeline < handle
         end
         
         function v = get.SamplingInterval(obj)
+            %GET.SAMPLINGINTERVAL Defined as the reciprocal of obj.DaqSampleRate
             v = 1/obj.DaqSampleRate;
         end
         
@@ -350,6 +354,7 @@ classdef Timeline < handle
             %   TL.STOP() Deletes the listener, saves the aquired data,
             %   stops all running DAQ sessions 
             % 
+            % See Also HW.TLOUTPUT/STOP
             if ~obj.IsRunning
                 warning('Nothing to do, Timeline is not running!')
                 return
@@ -476,8 +481,11 @@ classdef Timeline < handle
         end
         
         function s = getSessions(obj, name)
+            % GETSESSIONS() Returns the Sessions property
             % returns the Sessions property. Some things (e.g. output
-            % classes) need this. 
+            % classes) need this.
+            %
+            % See Also HW.TLOUTPUT
             s = obj.Sessions(name);
         end
         
@@ -489,13 +497,15 @@ classdef Timeline < handle
             %   TL.INIT() creates all the DAQ sessions
             %   and stores them in the Sessions map by their Outputs name.
             %   Also add a 'main' session to which all input channels are
-            %   added.  See daq.createSession            
+            %   added.  
+            %
+            % See Also DAQ.CREATESESSION            
 
-            %%Create channels for each input
+            %%reate channels for each input
             [use, idx] = intersect({obj.Inputs.name}, obj.UseInputs);% find which inputs to use
             assert(numel(idx) == numel(obj.UseInputs), 'Not all inputs were recognised');
-            inputSession = daq.createSession(obj.DaqVendor);
-            inputSession.Rate = obj.DaqSampleRate;
+            inputSession = daq.createSession(obj.DaqVendor); %create DAQ session for input aquisition
+            inputSession.Rate = obj.DaqSampleRate; % set the aquisition sample rate
             inputSession.IsContinuous = true; % once started, continue acquiring until manually stopped
             inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
             obj.Sessions('main') = inputSession;
@@ -519,12 +529,12 @@ classdef Timeline < handle
                 obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
             end
             
-            % Initialize outputs
-            arrayfun(@(o)o.init(obj), obj.Outputs)
+            %Initialize outputs
+            arrayfun(@(out)out.init(obj), obj.Outputs)
         end
         
-        function process(obj, ~, event)
-            % Listener for processing acquired Timeline data
+        function process(obj, source, event)
+            % PROCESS() Listener for processing acquired Timeline data
             %   TL.PROCESS(source, event) is a listener callback
             %   function for handling tl data acquisition. Called by the
             %   'main' DAQ session with latest chunk of data. This is
@@ -538,18 +548,18 @@ classdef Timeline < handle
             %   LastTimestamp is the time of the last scan in the previous
             %   data chunk, and is used to ensure no data samples have been
             %   lost.
+            %
+            % See Also HW.TLOUTPUT/PROCESS
             
-            % assert continuity of this data from previous
+            %Assert continuity of this data from previous
             assert(abs(event.TimeStamps(1) - obj.LastTimestamp - obj.SamplingInterval) < 1e-8,...
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
                         
-            % process methods for outputs
-            for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).process(obj, event);
-            end
+            %Process methods for outputs
+            arrayfun(@(out)out.process(source, event), obj.Outputs);
             
-            %%% Store new samples into the timeline array
+            %Store new samples into the timeline array
             prevSampleCount = obj.Data.rawDAQSampleCount;
             newSampleCount = prevSampleCount + size(event.Data, 1);
             
@@ -570,10 +580,9 @@ classdef Timeline < handle
                 datToWrite = cast(event.Data, obj.AquiredDataType); % Ensure data are the correct type
                 fwrite(obj.DataFID, datToWrite', obj.AquiredDataType); % Write to file
             end
-            % if plotting the channels live, plot the new data
             
+            %If plotting the channels live, plot the new data
             if obj.LivePlot; obj.livePlot(event.Data); end
-            
         end
         
         function livePlot(obj, data)

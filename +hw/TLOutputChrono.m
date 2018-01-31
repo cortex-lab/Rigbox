@@ -1,18 +1,27 @@
 classdef TLOutputChrono < hw.TlOutput
-  % HW.TLOUTPUTCHRONO Principle output channel class which sets timeline clock offset 
+  %HW.TLOUTPUTCHRONO Principle output channel class which sets timeline clock offset 
   %   Timeline uses this to monitor that acquisition is proceeding normally
   %   during a recording and to update the synchronization between the
   %   system time and the timeline time (to prevent drift between daq and
   %   computer clock).
   %
-  % See also HW.TLOUTPUT and HW.TIMELINE
+  %   Example:
+  %     tl = hw.Timeline;
+  %     tl.Outputs(1) = hw.TLOutputChrono('Chrono', 'Dev1', 'PFI4');
+  %     tl.start('2018-01-01_1_mouse2', alyxInstance);
+  %     >> initializing Chrono
+  %     >> start Chrono
+  %     >> Timeline started successfully
+  %     tl.stop;
+  %
+  % See also HW.TLOUTPUT, HW.TIMELINE
   %
   % Part of Rigbox
   % 2018-01 NS
   
   properties
-    DaqDeviceID
-    DaqChannelID
+    DaqDeviceID % The name of the DAQ device ID, e.g. 'Dev1', see DAQ.GETDEVICES
+    DaqChannelID % The name of the DAQ channel ID, e.g. 'port1/line0', see DAQ.GETDEVICES
     DaqVendor = 'ni' % Name of the DAQ vendor
     NextChronoSign = 1 % The value to output on the chrono channel, the sign is changed each 'Process' event
   end
@@ -77,7 +86,7 @@ classdef TLOutputChrono < hw.TlOutput
       %   LastTimestamp is the time of the last scan in the previous data
       %   chunk, and is used to ensure no data samples have been lost.
       %
-      % See Also TL.TIME()
+      % See Also HW.TIMELINE/TIME() and HW.TIMELINE/PROCESS
 
         if obj.Enable && timeline.IsRunning && ~isempty(obj.Session)
             if obj.Verbose
@@ -130,6 +139,9 @@ classdef TLOutputChrono < hw.TlOutput
     end
     
     function s = toStr(obj)
+      % TOSTR Returns a string that describes the object succintly
+      %
+      % See Also INIT
         s = sprintf('"%s" on %s/%s (chrono)', obj.Name, ...
             obj.DaqDeviceID, obj.DaqChannelID);
     end
