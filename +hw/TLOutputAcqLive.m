@@ -1,17 +1,30 @@
 classdef TLOutputAcqLive < hw.TlOutput
-  % HW.TLOUTPUTACQLIVE A digital signal that goes up when the recording starts, 
+  %HW.TLOUTPUTACQLIVE A digital signal that goes up when the recording starts, 
   % down when it ends.
-  %   Used for triggaring external instruments during data aquisition.
+  %   Used for triggaring external instruments during data aquisition. Will
+  %   either output a constant high voltage signal while Timeline is
+  %   running, or if obj.PulseDuration is set to a value > 0 and < Inf, the
+  %   DAQ will output a pulse of that duration at the start and end of the
+  %   aquisition.
   %
-  % See also HW.TLOUTPUT and HW.TIMELINE
+  %   Example:
+  %     tl = hw.Timeline;
+  %     tl.Outputs(1) = hw.TLOutputAcqLive('Instra-Triggar', 'Dev1', 'PFI4');
+  %     tl.start('2018-01-01_1_mouse2', alyxInstance);
+  %     >> initializing Instra-Triggar
+  %     >> start Instra-Triggar
+  %     >> Timeline started successfully
+  %     tl.stop;
+  %
+  % See also HW.TLOUTPUT, HW.TIMELINE
   %
   % Part of Rigbox
   % 2018-01 NS
   
   properties
-    DaqDeviceID
-    DaqChannelID
-    DaqVendor = 'ni'
+    DaqDeviceID % The name of the DAQ device ID, e.g. 'Dev1', see DAQ.GETDEVICES
+    DaqChannelID % The name of the DAQ channel ID, e.g. 'port1/line0', see DAQ.GETDEVICES
+    DaqVendor = 'ni' % Name of the DAQ vendor
     InitialDelay = 0 % sec, time to wait before starting
     PulseDuration = Inf; % sec, time that the pulse is on at beginning and end
   end
@@ -57,9 +70,14 @@ classdef TLOutputAcqLive < hw.TlOutput
     end
     
     function process(~, ~, ~)
-        % called every time Timeline processes a chunk of data
-        %fprintf(1, 'process acqLive\n');
-        % -- pass
+      % PROCESS() Listener for processing acquired Timeline data
+      %   PROCESS(obj, source, event) is a listener callback
+      %   function for handling tl data acquisition. Called by the
+      %   'main' DAQ session with latest chunk of data. 
+      %
+      % See Also HW.TIMELINE/PROCESS
+      %fprintf(1, 'process acqLive\n');
+      % -- pass
     end
     
     function stop(obj,~)
@@ -84,10 +102,12 @@ classdef TLOutputAcqLive < hw.TlOutput
     end
     
     function s = toStr(obj)
+      % TOSTR Returns a string that describes the object succintly
+      %
+      % See Also INIT
         s = sprintf('"%s" on %s/%s (acqLive, initial delay %.2f)', obj.Name, ...
             obj.DaqDeviceID, obj.DaqChannelID, obj.InitialDelay);
     end
-    
   end
   
 end
