@@ -1,45 +1,59 @@
-classdef tlOutputAcqLive < hw.tlOutput
-  %hw.tlOutputAcqLive A digital signal that goes up when the recording starts, 
-  %     down when it ends.
-  % See also hw.tlOutput and hw.Timeline
+classdef TLOutputAcqLive < hw.TlOutput
+  % HW.TLOUTPUTACQLIVE A digital signal that goes up when the recording starts, 
+  % down when it ends.
+  %   Used for triggaring external instruments during data aquisition.
+  %
+  % See also HW.TLOUTPUT and HW.TIMELINE
   %
   % Part of Rigbox
   % 2018-01 NS
   
   properties
-    daqDeviceID
-    daqChannelID
-    daqVendor = 'ni'
-    initialDelay = 0 % sec, time to wait before starting
+    DaqDeviceID
+    DaqChannelID
+    DaqVendor = 'ni'
+    InitialDelay = 0 % sec, time to wait before starting
+    PulseDuration = Inf; % sec, time that the pulse is on at beginning and end
   end
   
   methods
-    function obj = tlOutputAcqLive(name, daqDeviceID, daqChannelID)
-      obj.name = name;
-      obj.daqDeviceID = daqDeviceID;
-      obj.daqChannelID = daqChannelID;      
+    function obj = TLOutputAcqLive(name, daqDeviceID, daqChannelID)
+      % TLOUTPUTCHRONO Constructor method
+      obj.Name = name;
+      obj.DaqDeviceID = daqDeviceID;
+      obj.DaqChannelID = daqChannelID;
     end
 
     function init(obj, ~)
-        % called when timeline is initialized (see hw.Timeline/init)
-        if obj.enable
-            fprintf(1, 'initializing %s\n', obj.toStr);
-            obj.session = daq.createSession(obj.daqVendor);
-            obj.session.addDigitalChannel(obj.daqDeviceID, obj.daqChannelID, 'OutputOnly');
-            outputSingleScan(obj.session, false); % start in the off/false state
-        end
+      % INIT Initialize the output session
+      %   INIT(obj, timeline) is called when timeline is initialized.
+      %   Creates the DAQ session and ensures it is outputting a low
+      %   (digital off) signal.
+      %
+      % See Also HW.TIMELINE/INIT
+      if obj.Enable
+        fprintf(1, 'initializing %s\n', obj.toStr);
+        obj.Session = daq.createSession(obj.DaqVendor);
+        obj.Session.addDigitalChannel(obj.DaqDeviceID, obj.DaqChannelID, 'OutputOnly');
+        outputSingleScan(obj.Session, false); % start in the off/false state
+      end
     end
     
     function start(obj, ~) 
-        % called when timeline is started (see hw.Timeline/start)
-        if obj.enable
-            if obj.verbose
-                fprintf(1, 'start %s\n', obj.name);
-            end
-                    
-            pause(obj.initialDelay); % wait for some duration before starting
-            outputSingleScan(obj.session, true); % set digital output true: acquisition is "live"
+      % START Output a high voltage signal
+      %   Called when timeline is started, this outputs the first high
+      %   voltage signal to triggar external instrument aquisition
+      %
+      % See Also HW.TIMELINE/START
+      if obj.Enable
+        if obj.Verbose; fprintf(1, 'start %s\n', obj.Name); end
+        pause(obj.InitialDelay); % wait for some duration before starting
+        outputSingleScan(obj.Session, true); % set digital output true: acquisition is "live"
+        if obj.PulseDuration ~= Inf
+          pause(obj.PulseDuration);
+          outputSingleScan(obj.Session, false);
         end
+      end
     end
     
     function process(~, ~, ~)
@@ -49,20 +63,29 @@ classdef tlOutputAcqLive < hw.tlOutput
     end
     
     function stop(obj,~)
-        % called when timeline is stopped (see hw.Timeline/stop)
-        if obj.enable
-            if obj.verbose
-                fprintf(1, 'stop %s\n', obj.name);                
-            end
-            stop(obj.session);
-            release(obj.session);
-            obj.session = [];
+        % STOP Stops the DAQ session object.
+        %   Called when timeline is stopped.  Outputs a low voltage signal,
+        %   the stops and releases the session object.
+        %
+        % See Also HW.TIMELINE/STOP
+        if obj.Enable
+          % set digital output false: acquisition is no longer "live"
+          if obj.PulseDuration ~= Inf
+            outputSingleScan(obj.Session, true);
+            pause(obj.PulseDuration);
+          end
+          outputSingleScan(obj.Session, false);
+          
+          if obj.Verbose; fprintf(1, 'stop %s\n', obj.Name); end
+          stop(obj.Session);
+          release(obj.Session);
+          obj.Session = [];
         end
     end
     
     function s = toStr(obj)
-        s = sprintf('"%s" on %s/%s (acqLive, initial delay %.2f)', obj.name, ...
-            obj.daqDeviceID, obj.daqChannelID, obj.initialDelay);
+        s = sprintf('"%s" on %s/%s (acqLive, initial delay %.2f)', obj.Name, ...
+            obj.DaqDeviceID, obj.DaqChannelID, obj.InitialDelay);
     end
     
   end
