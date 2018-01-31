@@ -69,18 +69,13 @@ classdef Timeline < handle
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        
-        Outputs  = hw.tlOutputChrono('chrono', 'Dev1', 'port0/line1')
-            % array of output classes, defining any signals you desire to be sent from the daq. 
-            % see hw.tlOutput, and, e.g. hw.tlOutputClock. 
-        
+        Outputs  = hw.tlOutputChrono('chrono', 'Dev1', 'port1/line0') % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded')
         UseInputs = {'chrono'} % array of inputs to record while tl is running
-        
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
         MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
@@ -88,7 +83,6 @@ classdef Timeline < handle
         LivePlot = false % if true the data are plotted as the data are aquired
         LivePlotParams = [];
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
-                
     end
     
     properties (Transient)
@@ -115,9 +109,12 @@ classdef Timeline < handle
     
     methods
         function obj = Timeline(hw)
-            % Constructor method
+            % TIMELINE Constructor method
+            %   HW.TIMELINE(hw) constructor can take a timeline hardware
+            %   structure as an input, replicating a previous instance.
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
+            
             obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
             if nargin % if old tl hardware struct provided, use these to populate properties
                 obj.Inputs = hw.inputs;
@@ -126,12 +123,11 @@ classdef Timeline < handle
                 obj.DaqSampleRate = hw.daqSampleRate;
                 obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
             end
-
         end
         
         function start(obj, expRef, Alyx)
-            % Starts tl data acquisition
-            %   TL.START(obj, ref, Alyx) starts all DAQ sessions and adds
+            % START Starts timeline data acquisition
+            %   START(obj, ref, Alyx) starts all DAQ sessions and adds
             %   the relevent output and input channels.
             
             if obj.IsRunning % check if it's already running, and if so, stop it
@@ -178,14 +174,10 @@ classdef Timeline < handle
             startBackground(obj.Sessions('main')); % start aquisition
             
             % wait for first acquisition processing to begin
-            while ~obj.IsRunning
-                pause(5e-3);
-            end
+            while ~obj.IsRunning; pause(5e-3); end
             
             % Start each output
-            for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).start(obj);
-            end
+            arrayfun(@start, obj.Outputs)
             
             % Report success
             fprintf('Timeline started successfully for ''%s''.\n', expRef);
@@ -233,7 +225,7 @@ classdef Timeline < handle
         end
         
         function secs = time(obj, strict)
-            % Time relative to Timeline acquisition
+            % TIME Time relative to Timeline acquisition
             %   secs = TL.TIME([strict]) Returns the time in seconds relative to
             %   Timeline data acquistion. 'strict' is optional (defaults to true), and
             %   if true, this function will fail if Timeline is not running. If false,
@@ -252,7 +244,7 @@ classdef Timeline < handle
         end
         
         function secs = ptbSecsToTimeline(obj, secs)
-            % Convert from Pyschtoolbox to Timeline time
+            % PTBSECSTOTIMELINE Convert from Pyschtoolbox to Timeline time
             %   secs = TL.PTBSECSTOTIMELINE(secs) takes a timestamp 'secs' obtained
             %   from Pyschtoolbox's functions and converts to Timeline-relative time.
             %   See also TL.TIME().
@@ -262,7 +254,7 @@ classdef Timeline < handle
         
         function addInput(obj, name, channelID, measurement, terminalConfig, use)
             % Add a new input to the object's Input property
-            %   TL.ADDINPUT(name, channelID, measurement, terminalConfig, use)
+            %   ADDINPUT(name, channelID, measurement, terminalConfig, use)
             %   adds a new input 'name' to the Inputs list.  If use is
             %   true, the input is also added to the UseInputs array.
             
@@ -307,7 +299,7 @@ classdef Timeline < handle
         end
         
         function wiringInfo(obj, name)
-            % TL.WIRINGINFO Return information about how the input/output
+            % WIRINGINFO Return information about how the input/output
             % 'name' is wired.  If no name is provided, the different port
             % naming conventions of the NI DAQ are returned.
             if nargin < 2
@@ -364,9 +356,7 @@ classdef Timeline < handle
             end
             
             % kill acquisition output signals
-            for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).stop(obj);
-            end
+            arrayfun(@stop, obj.Outputs)
             
             pause(obj.StopDelay)
             % stop actual DAQ aquisition
@@ -530,9 +520,7 @@ classdef Timeline < handle
             end
             
             % Initialize outputs
-            for outidx = 1:numel(obj.Outputs)
-                obj.Outputs(outidx).init(obj);
-            end
+            arrayfun(@(o)o.init(obj), obj.Outputs)
         end
         
         function process(obj, ~, event)
