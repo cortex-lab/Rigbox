@@ -1,4 +1,4 @@
-classdef TLOutputChrono < hw.TlOutput
+classdef TLOutputChrono < hw.TLOutput
   %HW.TLOUTPUTCHRONO Principle output channel class which sets timeline clock offset 
   %   Timeline uses this to monitor that acquisition is proceeding normally
   %   during a recording and to update the synchronization between the
@@ -26,6 +26,11 @@ classdef TLOutputChrono < hw.TlOutput
     NextChronoSign = 1 % The value to output on the chrono channel, the sign is changed each 'Process' event
   end
   
+  properties (SetAccess = private)
+    CurrSysTimeTimelineOffset = 0 % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
+    LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
+  end
+  
   methods
     function obj = TLOutputChrono(name, daqDeviceID, daqChannelID)
       % TLOUTPUTCHRONO Constructor method
@@ -44,8 +49,11 @@ classdef TLOutputChrono < hw.TlOutput
         if obj.Enable
             fprintf(1, 'initializing %s\n', obj.toStr);
             obj.Session = daq.createSession(obj.DaqVendor);
+            % Turn off warning about clocked sampling availability
+            warning('off', 'daq:Session:onDemandOnlyChannelsAdded');
+            % Add on-demand digital channel
             obj.Session.addDigitalChannel(obj.DaqDeviceID, obj.DaqChannelID, 'OutputOnly');
-
+            warning('on', 'daq:Session:onDemandOnlyChannelsAdded');
             tls = timeline.getSessions('main');
 
             %%Send a test pulse low, then high to clocking channel & check we read it back
@@ -56,11 +64,11 @@ classdef TLOutputChrono < hw.TlOutput
             x2 = tls.inputSingleScan;
             assert(x1(timeline.Inputs(idx).arrayColumn) < 2.5 && x2(timeline.Inputs(idx).arrayColumn) > 2.5,...
                 'The clocking pulse test could not be read back');
-            timeline.CurrSysTimeTimelineOffset = GetSecs; % to initialize this, will be a bit off but fixed after the first pulse
+            obj.CurrSysTimeTimelineOffset = GetSecs; % to initialize this, will be a bit off but fixed after the first pulse
         end
     end
     
-    function start(obj, timeline) 
+    function start(obj, ~) 
       % START Starts the first chrono flip
       %   Called when timeline is started, this outputs the first low
       %   voltage output on the chrono output channel
@@ -69,8 +77,8 @@ classdef TLOutputChrono < hw.TlOutput
       if obj.Enable % If the object is to be used
           if obj.Verbose; fprintf(1, 'start %s\n', obj.name); end
           t = GetSecs; % system time before output
-          outputSingleScan(obj.session, false) % this will be the clocking pulse detected the first time process is called
-          timeline.LastClockSentSysTime = (t + GetSecs)/2; 
+          outputSingleScan(obj.Session, false) % this will be the clocking pulse detected the first time process is called
+          obj.LastClockSentSysTime = (t + GetSecs)/2; 
       end
     end
     
@@ -82,9 +90,6 @@ classdef TLOutputChrono < hw.TlOutput
       %   the previous flip is found in the data and its timestamp noted.
       %   This is used by TL.TIME() to convert between system time and
       %   acquisition time.
-      %
-      %   LastTimestamp is the time of the last scan in the previous data
-      %   chunk, and is used to ensure no data samples have been lost.
       %
       % See Also HW.TIMELINE/TIME() and HW.TIMELINE/PROCESS
 
@@ -101,13 +106,13 @@ classdef TLOutputChrono < hw.TlOutput
 
             if obj.Verbose
                 fprintf(1, '  CurrOffset=%.2f, LastClock=%.2f\n', ...
-                timeline.CurrSysTimeTimelineOffset, timeline.LastClockSentSysTime);
+                obj.CurrSysTimeTimelineOffset, obj.LastClockSentSysTime);
             end
             
             % Ensure the clocking pulse was detected
             if ~isempty(clockChangeIdx)
                 clockChangeTimestamp = event.TimeStamps(clockChangeIdx);
-                timeline.CurrSysTimeTimelineOffset = timeline.LastClockSentSysTime - clockChangeTimestamp;
+                obj.CurrSysTimeTimelineOffset = obj.LastClockSentSysTime - clockChangeTimestamp;
             else
                 warning('Rigging:Timeline:timing', 'clocking pulse not detected - probably lagging more than one data chunk');
             end
@@ -116,10 +121,10 @@ classdef TLOutputChrono < hw.TlOutput
             obj.NextChronoSign = -obj.NextChronoSign; % flip next chrono
             t = GetSecs; % system time before output
             outputSingleScan(obj.Session, obj.NextChronoSign > 0); % send next chrono flip
-            timeline.LastClockSentSysTime = (t + GetSecs)/2; % record mean before/after system time
+            obj.LastClockSentSysTime = (t + GetSecs)/2; % record mean before/after system time
             if obj.Verbose
                 fprintf(1, '  CurrOffset=%.2f, LastClock=%.2f\n', ...
-                timeline.CurrSysTimeTimelineOffset, timeline.LastClockSentSysTime);
+                obj.CurrSysTimeTimelineOffset, obj.LastClockSentSysTime);
             end
         end
     end
@@ -141,7 +146,7 @@ classdef TLOutputChrono < hw.TlOutput
     function s = toStr(obj)
       % TOSTR Returns a string that describes the object succintly
       %
-      % See Also INIT
+      % See Also HW.TIMELINE/INIT
         s = sprintf('"%s" on %s/%s (chrono)', obj.Name, ...
             obj.DaqDeviceID, obj.DaqChannelID);
     end
