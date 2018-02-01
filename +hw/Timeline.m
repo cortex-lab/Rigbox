@@ -70,19 +70,20 @@ classdef Timeline < handle
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        Outputs  = hw.TLOutputChrono('chrono', 'Dev1', 'port1/line0') % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
+        Outputs % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
             'measurement', 'Voltage',...
-            'terminalConfig', 'SingleEnded')
+            'terminalConfig', 'SingleEnded',...
+            'figureScale', 1)
         UseInputs = {'chrono'} % array of inputs to record while tl is running
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
         MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
-        LivePlotParams = [];
+        FigureScale = []; % figure position in normalized units, default is [0 0 1 1] (full screen)
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
         
@@ -112,11 +113,17 @@ classdef Timeline < handle
             
             obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
             if nargin % if old tl hardware struct provided, use these to populate properties
+                % Configure the inputs
                 obj.Inputs = hw.inputs;
                 obj.DaqVendor = hw.daqVendor;
                 obj.DaqIds = hw.daqDevice;
                 obj.DaqSampleRate = hw.daqSampleRate;
                 obj.DaqSamplesPerNotify = hw.daqSamplesPerNotify;
+                % Configure the outputs
+                outputs = catStructs(hw.Outputs);
+                obj.Outputs = objfun(@(o)eval([o.Class '(o)']), outputs, 'Uni', false);
+                obj.Outputs = [obj.Outputs{:}];
+            else
             end
         end
         
@@ -231,7 +238,8 @@ classdef Timeline < handle
             % See also TL.PTBSECSTOTIMELINE().
             if nargin < 2; strict = true; end
             if obj.IsRunning
-                secs = GetSecs - obj.CurrSysTimeTimelineOffset;
+                idx = arrayfun(@(out)isa(out, 'hw.TLOutputChrono'), obj.Outputs);
+                secs = GetSecs - obj.Outputs(idx).CurrSysTimeTimelineOffset;
             elseif strict
                 error('Tried to use Timeline clock when Timeline is not running');
             else
@@ -247,7 +255,8 @@ classdef Timeline < handle
             %   from Pyschtoolbox's functions and converts to Timeline-relative time.
             %   See also TL.TIME().
             assert(obj.IsRunning, 'Timeline is not running.');
-            secs = secs - obj.CurrSysTimeTimelineOffset;
+            idx = arrayfun(@(out)isa(out, 'hw.TLOutputChrono'), obj.Outputs);
+            secs = secs - obj.Outputs(idx).CurrSysTimeTimelineOffset;
         end
         
         function addInput(obj, name, channelID, measurement, terminalConfig, use)
@@ -385,22 +394,22 @@ classdef Timeline < handle
             outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
             chronoChan = []; nextChrono = []; acqLiveChan = []; useClock = false; clockF = []; clockD = [];
             LastClockSentSysTime = []; CurrSysTimeTimelineOffset = [];
-            chronoOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputChrono'),1);
+            chronoOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputChrono'),1);
             if ~isempty(chronoOutputIdx)
-                chronoChan = obj.Outputs(chronoOutputIdx).daqChannelID;
+                chronoChan = obj.Outputs(chronoOutputIdx).DaqChannelID;
                 nextChrono = obj.Outputs(chronoOutputIdx).NextChronoSign;
                 LastClockSentSysTime = obj.Outputs(chronoOutputIdx).LastClockSentSysTime;
                 CurrSysTimeTimelineOffset = obj.Outputs(chronoOutputIdx).CurrSysTimeTimelineOffset;
             end                            
-            acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputAcqLive'),1);
+            acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputAcqLive'),1);
             if ~isempty(acqLiveOutputIdx)
-                acqLiveChan = obj.Outputs(acqLiveOutputIdx).daqChannelID;
+                acqLiveChan = obj.Outputs(acqLiveOutputIdx).DaqChannelID;
             end
-            clockOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputClock'),1);
+            clockOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputClock'),1);
             if ~isempty(clockOutputIdx)
                 useClock = true;
-                clockF = obj.Outputs(clockOutputIdx).frequency; 
-                clockD = obj.Outputs(clockOutputIdx).dutyCycle;
+                clockF = obj.Outputs(clockOutputIdx).Frequency; 
+                clockD = obj.Outputs(clockOutputIdx).DutyCycle;
             end
             
             % legacy metadata
@@ -422,7 +431,7 @@ classdef Timeline < handle
             warning('off', 'MATLAB:structOnObject'); % sorry, don't care
             for outIdx = 1:numel(obj.Outputs)
                 s = struct(obj.Outputs(outIdx));
-                s.class = class(obj.Outputs(outIdx));
+                s.Class = class(obj.Outputs(outIdx));
                 obj.Data.hw.Outputs{outIdx} = s;
             end
             warning('on', 'MATLAB:structOnObject');
@@ -588,10 +597,10 @@ classdef Timeline < handle
             %   TL.LIVEPLOT(source, event) plots the data aquired by the
             %   DAQ while the PlotLive property is true.
             if isempty(obj.Axes)
-                f = figure(); % create a figure for plotting aquired data
+                f = figure('Units', 'Normalized', 'Position', [0 0 1 1]); % create a figure for plotting aquired data
                 obj.Axes = gca; % store a handle to the axes
-                if isfield(obj.LivePlotParams, 'figPosition') && ~isempty(obj.LivePlotParams.figPosition)
-                    set(f, 'Position', obj.LivePlotParams.figPosition); % set the figure position
+                if isprop(obj, 'FigurePosition') && ~isempty(obj.FigurePosition)
+                    set(f, 'Position', obj.FigurePosition); % set the figure position
                 end
             end
             

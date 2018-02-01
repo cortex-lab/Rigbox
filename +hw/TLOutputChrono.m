@@ -32,11 +32,25 @@ classdef TLOutputChrono < hw.TLOutput
   end
   
   methods
-    function obj = TLOutputChrono(name, daqDeviceID, daqChannelID)
+    function obj = TLOutputChrono(hw)
       % TLOUTPUTCHRONO Constructor method
-      obj.Name = name;
-      obj.DaqDeviceID = daqDeviceID;
-      obj.DaqChannelID = daqChannelID;      
+      %   Can take the struct form of a previous instance (as saved in the
+      %   Timeline hw struct) to intantiate a new object with the same
+      %   properties.
+      %
+      % See Also HW.TIMELINE
+      if nargin
+        obj.Name = hw.Name;
+        obj.DaqDeviceID = hw.DaqDeviceID;
+        obj.DaqVendor = hw.DaqVendor;
+        obj.DaqChannelID = hw.DaqChannelID;
+        obj.Enable = hw.Enable;
+        obj.Verbose = hw.Verbose;
+      else % Some safe defaults
+        obj.Name = 'Chrono';
+        obj.DaqDeviceID = 'Dev1';
+        obj.DaqChannelID = 'port1/line0';
+      end
     end
 
     function init(obj, timeline)
