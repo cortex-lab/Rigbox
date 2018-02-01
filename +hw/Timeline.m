@@ -40,7 +40,7 @@ classdef Timeline < handle
 %   %Set tl to be started by default
 %     timeline.UseTimeline = true;
 %   %To set up chrono a wire must bridge the terminals defined in
-%   timeline.Outputs.daqChannelID and timeline.Inputs.daqChannelID
+%   timeline.Outputs(1).DaqChannelID and timeline.Inputs(1).daqChannelID
 %     timeline.wiringInfo('chrono');
 %   %Add the rotary encoder
 %     timeline.addInput('rotaryEncoder', 'ctr0', 'Position'); 
