@@ -70,7 +70,7 @@ classdef Timeline < handle
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        Outputs % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
+        Outputs = hw.TLOutputChrono % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
@@ -123,7 +123,6 @@ classdef Timeline < handle
                 outputs = catStructs(hw.Outputs);
                 obj.Outputs = objfun(@(o)eval([o.Class '(o)']), outputs, 'Uni', false);
                 obj.Outputs = [obj.Outputs{:}];
-            else
             end
         end
         
