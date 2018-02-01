@@ -76,7 +76,7 @@ classdef Timeline < handle
             'daqChannelID', 'ai0',...
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded',...
-            'figureScale', 1)
+            'axesScale', 1) % multiplicative vertical scaling for when live plotting the input
         UseInputs = {'chrono'} % array of inputs to record while tl is running
         StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
         MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
@@ -259,7 +259,8 @@ classdef Timeline < handle
             secs = secs - obj.Outputs(idx).CurrSysTimeTimelineOffset;
         end
         
-        function addInput(obj, name, channelID, measurement, terminalConfig, use)
+        function addInput(obj, name, channelID, measurement,...
+            terminalConfig, axesScale, use)
             % Add a new input to the object's Input property
             %   ADDINPUT(name, channelID, measurement, terminalConfig, use)
             %   adds a new input 'name' to the Inputs list.  If use is
@@ -269,8 +270,11 @@ classdef Timeline < handle
             % DAQ default for that port
             if nargin < 5; terminalConfig = []; end
                 
+            % if use is not specified, assume user wants normal scaling
+            if nargin < 6; axesScale = 1; end
+            
             % if use is not specified, assume user wants to record input
-            if nargin < 6; use = true; end
+            if nargin < 7; use = true; end
             
             assert(~any(strcmp(name, {obj.Inputs.name})),...
                 'An input by the name of ''%s'' has already been added.', name);
@@ -297,7 +301,8 @@ classdef Timeline < handle
                 'arrayColumn', -1,... % -1 is default indicating unused
                 'daqChannelID', channelID,...
                 'measurement', measurement,...
-                'terminalConfig', terminalConfig);
+                'terminalConfig', terminalConfig,...
+                'axesScale', axesScale);
             obj.Inputs = [obj.Inputs s]; % add the new input
             if use; obj.UseInputs = [obj.UseInputs {name}]; end % add to UseInputs
             
@@ -616,10 +621,7 @@ classdef Timeline < handle
             % (multiplicative) and can be set manually in the config. A
             % nicer future version would put a scroll wheel callback on the
             % figure and scale by scrolling the one that's hovered over
-            scales = ones(1, nChans); 
-            if isfield(obj.LivePlotParams, 'figScales') && ~isempty(obj.LivePlotParams.figScales)
-                scales(1:numel(obj.LivePlotParams.figScales)) = obj.LivePlotParams.figScales;
-            end            
+            scales = pick([obj.Inputs.axesScale], cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs));
             
             traces = get(obj.Axes, 'Children'); 
             if isempty(traces)
