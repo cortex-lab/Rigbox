@@ -109,6 +109,7 @@ classdef TLOutputClock < hw.TLOutput
             stop(obj.Session);
             release(obj.Session);
             obj.Session = [];
+            obj.ClockChan = [];
         end
     end
     
