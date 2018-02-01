@@ -1,4 +1,4 @@
-classdef TLOutputAcqLive < hw.TlOutput
+classdef TLOutputAcqLive < hw.TLOutput
   %HW.TLOUTPUTACQLIVE A digital signal that goes up when the recording starts, 
   % down when it ends.
   %   Used for triggaring external instruments during data aquisition. Will
@@ -47,7 +47,11 @@ classdef TLOutputAcqLive < hw.TlOutput
       if obj.Enable
         fprintf(1, 'initializing %s\n', obj.toStr);
         obj.Session = daq.createSession(obj.DaqVendor);
+        % Turn off warning about clocked sampling availability
+        warning('off', 'daq:Session:onDemandOnlyChannelsAdded');
+        % Add on-demand digital channel
         obj.Session.addDigitalChannel(obj.DaqDeviceID, obj.DaqChannelID, 'OutputOnly');
+        warning('on', 'daq:Session:onDemandOnlyChannelsAdded');
         outputSingleScan(obj.Session, false); % start in the off/false state
       end
     end

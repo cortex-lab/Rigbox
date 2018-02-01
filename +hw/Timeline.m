@@ -5,13 +5,14 @@ classdef Timeline < handle
 %   is called 'chrono' and consists of a digital squarewave that flips each
 %   time a new chunk of data is availible from the DAQ (see
 %   NotifyWhenDataAvailableExceeds for more information).  A callback
-%   function to this event (see tl.process()) collects the timestamp from the
-%   DAQ of the precise scan where the chrono signal flipped.  The
+%   function to this event (see tl.process()) collects the timestamp from
+%   the DAQ of the precise scan where the chrono signal flipped.  The
 %   difference between this and the system time recorded when the flip
 %   command was given is recorded as the CurrSysTimeTimelineOffset and can
 %   be used to unify all timestamps across computers during an experiment
-%   (see tl.time() and tl.ptbSecsToTimeline()).  In is assumed that the
-%   time between sending the chrono pulse and recieving it is negligible.
+%   (see tl.time(), tl.ptbSecsToTimeline() and hw.TLOutputChrono).  In is
+%   assumed that the time between sending the chrono pulse and recieving it
+%   is negligible.
 %
 %   There are other available clocking signals, for instance: 'acqLive' and 'clock'.
 %   The former outputs a high (+5V) signal the entire time tl is aquiring
@@ -57,7 +58,7 @@ classdef Timeline < handle
 %     memory limitations when aquiring a lot of data
 %     - Delete local binary files once timeline has successfully saved to zserver?
 %
-%   See also HW.TIMELINECLOCK
+%   See also HW.TIMELINECLOCK, HW.TLOUTPUT
 %
 %   Part of Rigbox
 
@@ -69,7 +70,7 @@ classdef Timeline < handle
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
         DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
         DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        Outputs  = hw.tlOutputChrono('chrono', 'Dev1', 'port1/line0') % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
+        Outputs  = hw.TLOutputChrono('chrono', 'Dev1', 'port1/line0') % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
         Inputs = struct('name', 'chrono',...
             'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
@@ -84,14 +85,7 @@ classdef Timeline < handle
         LivePlotParams = [];
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
-    
-    properties (Transient)
-        % moved these here (i.e. unprotected) so chrono class can access - NS
-        CurrSysTimeTimelineOffset = 0 % difference between the system time when the last chrono flip occured and the timestamp recorded by the DAQ, see tl.process()
-        LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
-        LastClockSentSysTime % the mean of the system time before and after the last chrono flip.  Used to calculate CurrSysTimeTimelineOffset, see tl.process()
-    end
-    
+        
     properties (Dependent)
         SamplingInterval % defined as 1/DaqSampleRate
         IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped (and everything saved), see tl.process and tl.stop
@@ -99,7 +93,8 @@ classdef Timeline < handle
         
     properties (Transient, Access = protected)
         Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
-        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()        
+        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()    
+        LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         Ref % the expRef string.  See tl.start()
         AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start() 
         Data % A structure containing timeline data
@@ -389,10 +384,13 @@ classdef Timeline < handle
             % metadata saving, see below
             outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
             chronoChan = []; nextChrono = []; acqLiveChan = []; useClock = false; clockF = []; clockD = [];
+            LastClockSentSysTime = []; CurrSysTimeTimelineOffset = [];
             chronoOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputChrono'),1);
             if ~isempty(chronoOutputIdx)
                 chronoChan = obj.Outputs(chronoOutputIdx).daqChannelID;
                 nextChrono = obj.Outputs(chronoOutputIdx).NextChronoSign;
+                LastClockSentSysTime = obj.Outputs(chronoOutputIdx).LastClockSentSysTime;
+                CurrSysTimeTimelineOffset = obj.Outputs(chronoOutputIdx).CurrSysTimeTimelineOffset;
             end                            
             acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.tlOutputAcqLive'),1);
             if ~isempty(acqLiveOutputIdx)
@@ -417,8 +415,8 @@ classdef Timeline < handle
             obj.Data.isRunning = obj.IsRunning;
             obj.Data.nextChronoSign = nextChrono;
             obj.Data.lastTimestamp = obj.LastTimestamp;
-            obj.Data.lastClockSentSysTime = obj.LastClockSentSysTime;
-            obj.Data.currSysTimeTimelineOffset = obj.CurrSysTimeTimelineOffset;
+            obj.Data.lastClockSentSysTime = LastClockSentSysTime;
+            obj.Data.currSysTimeTimelineOffset = CurrSysTimeTimelineOffset;
             
             % saving hardware metadata for each output 
             warning('off', 'MATLAB:structOnObject'); % sorry, don't care
@@ -533,7 +531,7 @@ classdef Timeline < handle
             arrayfun(@(out)out.init(obj), obj.Outputs)
         end
         
-        function process(obj, source, event)
+        function process(obj, ~, event)
             % PROCESS() Listener for processing acquired Timeline data
             %   TL.PROCESS(source, event) is a listener callback
             %   function for handling tl data acquisition. Called by the
@@ -557,7 +555,7 @@ classdef Timeline < handle
                 obj.LastTimestamp, event.TimeStamps(1));
                         
             %Process methods for outputs
-            arrayfun(@(out)out.process(source, event), obj.Outputs);
+            arrayfun(@(out)out.process(obj, event), obj.Outputs);
             
             %Store new samples into the timeline array
             prevSampleCount = obj.Data.rawDAQSampleCount;

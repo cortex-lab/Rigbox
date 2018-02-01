@@ -1,4 +1,4 @@
-classdef TLOutputClock < hw.TlOutput
+classdef TLOutputClock < hw.TLOutput
   %HW.TLOUTPUTCLOCK A regular pulse at a specified frequency and duty
   %   cycle. Can be used to trigger camera frames.
   %
@@ -47,9 +47,8 @@ classdef TLOutputClock < hw.TlOutput
       % See Also HW.TIMELINE/INIT
         if obj.Enable
             fprintf(1, 'initializing %s\n', obj.toStr);
-            
-            obj.session = daq.createSession(obj.DaqVendor);
-            obj.session.IsContinuous = true;
+            obj.Session = daq.createSession(obj.DaqVendor);
+            obj.Session.IsContinuous = true;
             clocked = obj.Session.addCounterOutputChannel(obj.DaqDeviceID, obj.DaqChannelID, 'PulseGeneration');
             clocked.Frequency = obj.Frequency;
             clocked.DutyCycle = obj.DutyCycle;
@@ -66,7 +65,7 @@ classdef TLOutputClock < hw.TlOutput
       % See Also HW.TIMELINE/START
         if obj.Enable
             if obj.Verbose; fprintf(1, 'start %s\n', obj.Name); end
-            startBackground(obj.session);
+            startBackground(obj.Session);
         end
     end
     
@@ -90,9 +89,9 @@ classdef TLOutputClock < hw.TlOutput
         % See Also HW.TIMELINE/STOP
         if obj.Enable
             if obj.Verbose; fprintf(1, 'stop %s\n', obj.Name); end
-            stop(obj.session);
-            release(obj.session);
-            obj.session = [];
+            stop(obj.Session);
+            release(obj.Session);
+            obj.Session = [];
         end
     end
     
