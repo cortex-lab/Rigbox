@@ -367,11 +367,10 @@ classdef Timeline < handle
                 warning('Nothing to do, Timeline is not running!')
                 return
             end
-            
-            % kill acquisition output signals
-            arrayfun(@stop, obj.Outputs)
-            
             pause(obj.StopDelay)
+
+            % stop acquisition output signals
+            arrayfun(@stop, obj.Outputs)
             % stop actual DAQ aquisition
             stop(obj.Sessions('main'));
             
