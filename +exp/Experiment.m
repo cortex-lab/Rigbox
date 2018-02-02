@@ -773,20 +773,20 @@ classdef Experiment < handle
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
         
-        if isempty(obj.AlyxInstance)
+        if ~obj.AlyxInstance.IsLoggedIn
             warning('No Alyx token set');
         else
             try
-                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
-                if strcmp(subject,'default'); return; end
+                subject = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject, 'default'); return; end
                 % Register saved files
-                alyx.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.subsessionURL, 'Block', [], obj.AlyxInstance);
+                obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+                    obj.AlyxInstance.subsessionURL, 'Block', []);
                 % Save the session end time
-                alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
-                    struct('end_time', alyx.datestr(now), 'subject', subject));
-            catch
-                warning('couldnt register files to alyx because no subsession found');
+                obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
+                    struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+            catch ex
+                warning(ex.identifer, 'Failed to register files to Alyx: %s', ex.message);
             end
         end
     end

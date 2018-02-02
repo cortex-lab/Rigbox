@@ -11,7 +11,6 @@ classdef ExpPanel < handle
   %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
   %   SQUEAKEXPPANEL for Signals experiments.  
   %
-  %   
   %
   % See also SQUEAKEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
   %
@@ -207,12 +206,12 @@ classdef ExpPanel < handle
       end
     end
     
-    function expStopped(obj, rig, evt)
+    function expStopped(obj, rig, ~)
       % EXPSTOPPED Callback for the ExpStopped event.
-      %   Updates the ExpRunning flag, the panel title and status label to
-      %   show that the experiment has ended.  This function also records to Alyx the
-      %   amount of water, if any, that the subject received during the
-      %   task.
+      %   expStopped(obj, rig, event) Updates the ExpRunning flag, the
+      %   panel title and status label to show that the experiment has
+      %   ended.  This function also records to Alyx the amount of water,
+      %   if any, that the subject received during the task.
       %   
       % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
@@ -245,7 +244,7 @@ classdef ExpPanel < handle
           end
           if ~any(amount); return; end % Return if no water was given
           try
-            alyx.postWater(ai, subject, amount*0.001, now, false);
+            ai.postWater(subject, amount*0.001, now, false);
           catch
             warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
@@ -299,7 +298,7 @@ classdef ExpPanel < handle
       %  subsession's narrative field.
       % 
       % See also DAT.UPDATELOGENTRY, COMMENTSCHANGED
-      dat.updateLogEntry(obj.SubjectRef, obj.LogEntry.id, obj.LogEntry);
+      dat.updateLogEntry(dat.parseExpRef(obj.SubjectRef), obj.LogEntry.id, obj.LogEntry);
     end
     
     function viewParams(obj)

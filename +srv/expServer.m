@@ -7,7 +7,7 @@ function expServer(useTimelineOverride, bgColour)
 % 2013-06 CB created
 
 %% Parameters
-global AGL GL GLU
+global AGL GL GLU %#ok<NUSED>
 listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
@@ -23,7 +23,7 @@ rewardId = 1;
 rng('shuffle');
 % communicator for receiving commands from clients
 communicator = io.WSJCommunicator.server(listenPort);
-listener = event.listener(communicator, 'MessageReceived',...
+addlistener(communicator, 'MessageReceived',...
   @(~,msg) handleMessage(msg.Id, msg.Data, msg.Sender));
 communicator.EventMode = false;
 communicator.open();
