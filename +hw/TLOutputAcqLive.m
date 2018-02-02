@@ -25,8 +25,8 @@ classdef TLOutputAcqLive < hw.TLOutput
     DaqDeviceID % The name of the DAQ device ID, e.g. 'Dev1', see DAQ.GETDEVICES
     DaqChannelID % The name of the DAQ channel ID, e.g. 'port1/line0', see DAQ.GETDEVICES
     DaqVendor = 'ni' % Name of the DAQ vendor
-    InitialDelay = 0 % sec, time to wait before starting
-    PulseDuration = Inf; % sec, time that the pulse is on at beginning and end
+    InitialDelay double {mustBeNonnegative} = 0 % sec, time to wait before starting
+    PulseDuration {mustBeNonnegative} = Inf; % sec, time that the pulse is on at beginning and end
   end
   
   properties (Transient, Access = private)
