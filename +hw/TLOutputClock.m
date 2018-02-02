@@ -21,9 +21,9 @@ classdef TLOutputClock < hw.TLOutput
     DaqDeviceID % The name of the DAQ device ID, e.g. 'Dev1', see DAQ.GETDEVICES
     DaqChannelID % The name of the DAQ channel ID, e.g. 'ctr0', see DAQ.GETDEVICES
     DaqVendor = 'ni' % Name of the DAQ vendor
-    InitialDelay = 0 % delay from session start to clock output
-    Frequency = 60; % Hz, of the clocking pulse
-    DutyCycle = 0.2;  % proportion of each cycle that the pulse is "true"
+    InitialDelay double {mustBeNonnegative} = 0 % delay from session start to clock output
+    Frequency double = 60; % Hz, of the clocking pulse
+    DutyCycle double = 0.2;  % proportion of each cycle that the pulse is "true"
   end    
   
   properties (Transient, Hidden, Access = protected)
