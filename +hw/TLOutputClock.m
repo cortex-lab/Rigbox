@@ -28,6 +28,7 @@ classdef TLOutputClock < hw.TLOutput
   
   properties (Transient, Hidden, Access = protected)
       ClockChan % Holds an instance of the PulseGeneration channel 
+      Timer
   end
   
   methods
@@ -71,6 +72,14 @@ classdef TLOutputClock < hw.TLOutput
             clocked.DutyCycle = obj.DutyCycle;
             clocked.InitialDelay = obj.InitialDelay;
             obj.ClockChan = clocked;
+            
+            % If the initial delay is greater than zero, create a timer for
+            % starting the signal late
+            if obj.InitialDelay > 0
+              obj.Timer = timer('StartDelay', obj.InitialDelay);
+              obj.Timer.TimerFcn = @(~,~)obj.start();
+              obj.Timer.StopFcn = @(src,~)delete(src);
+            end
         end
     end
     
@@ -81,8 +90,15 @@ classdef TLOutputClock < hw.TLOutput
       %
       % See Also HW.TIMELINE/START
         if obj.Enable
-            if obj.Verbose; fprintf(1, 'start %s\n', obj.Name); end
-            startBackground(obj.Session);
+          % If the initial delay is greater than 0 and the timer is empty,
+          % create and start the timer
+          if ~isempty(obj.Timer) && obj.InitialDelay > 0 ...
+              && strcmp(obj.Timer.Running, 'off')
+            start(obj.Timer); % wait for some duration before starting
+            return
+          end
+          if obj.Verbose; fprintf(1, 'start %s\n', obj.Name); end
+          startBackground(obj.Session);
         end
     end
     
@@ -110,6 +126,7 @@ classdef TLOutputClock < hw.TLOutput
             release(obj.Session);
             obj.Session = [];
             obj.ClockChan = [];
+            obj.Timer = [];
         end
     end
     

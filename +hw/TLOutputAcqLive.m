@@ -29,6 +29,10 @@ classdef TLOutputAcqLive < hw.TLOutput
     PulseDuration = Inf; % sec, time that the pulse is on at beginning and end
   end
   
+  properties (Transient, Access = private)
+    Timer
+  end
+  
   methods
     function obj = TLOutputAcqLive(hw)
       % TLOUTPUTCHRONO Constructor method
@@ -69,6 +73,13 @@ classdef TLOutputAcqLive < hw.TLOutput
         obj.Session.addDigitalChannel(obj.DaqDeviceID, obj.DaqChannelID, 'OutputOnly');
         warning('on', 'daq:Session:onDemandOnlyChannelsAdded');
         outputSingleScan(obj.Session, false); % start in the off/false state
+        % If the initial delay is greater than zero, create a timer for
+        % starting the signal late
+        if obj.InitialDelay > 0
+          obj.Timer = timer('StartDelay', obj.InitialDelay);
+          obj.Timer.TimerFcn = @(~,~)obj.start();
+          obj.Timer.StopFcn = @(src,~)delete(src);
+        end
       end
     end
     
@@ -79,8 +90,15 @@ classdef TLOutputAcqLive < hw.TLOutput
       %
       % See Also HW.TIMELINE/START
       if obj.Enable
+        % If the initial delay is greater than 0 and the timer is empty,
+        % create and start the timer
+        if ~isempty(obj.Timer) && obj.InitialDelay > 0 ...
+            && strcmp(obj.Timer.Running, 'off')
+          start(obj.Timer); % wait for some duration before starting
+          return
+        end
+        
         if obj.Verbose; fprintf(1, 'start %s\n', obj.Name); end
-        pause(obj.InitialDelay); % wait for some duration before starting
         outputSingleScan(obj.Session, true); % set digital output true: acquisition is "live"
         if obj.PulseDuration ~= Inf
           pause(obj.PulseDuration);
@@ -118,6 +136,7 @@ classdef TLOutputAcqLive < hw.TLOutput
           stop(obj.Session);
           release(obj.Session);
           obj.Session = [];
+          obj.Timer = [];
         end
     end
     
