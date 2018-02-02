@@ -121,7 +121,7 @@ classdef MControl < handle
     
     function tabChanged(obj)
     % Function to change which subject Alyx uses when user changes tab
-      if isempty(obj.AlyxPanel.AlyxInstance); return; end
+      if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn; return; end
       if obj.TabPanel.SelectedChild == 1 % Log tab
         obj.AlyxPanel.dispWaterReq(obj.LogSubject);
       else % SelectedChild == 2 Experiment tab
@@ -335,11 +335,10 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
       % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(rig.AlyxInstance)
+      if rig.AlyxInstance.IsLoggedIn
           try
               subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(rig.AlyxInstance, ...
-                  sprintf('subjects/%s', subject));
+              sd = rig.AlyxInstance.getData(sprintf('subjects/%s', subject));
               obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
                   subject, sd.water_requirement_remaining, ...
                   sd.water_requirement_total-sd.water_requirement_remaining);
@@ -347,7 +346,9 @@ classdef MControl < handle
               subject = dat.parseExpRef(evt.Ref);
               obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
           end
-          rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
+          % Remove AlyxInstance from rig; no longer required
+          delete(rig.AlyxInstance);
+          rig.AlyxInstance = [];
       end
     end
     
@@ -532,7 +533,8 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-        if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
+        ai = obj.AlyxPanel.AlyxInstance;
+        if ~ai.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
           try
             obj.AlyxPanel.login();
           catch
@@ -546,12 +548,11 @@ classdef MControl < handle
         obj.Parameters.set('services', services(:),...
             'List of experiment services to use during the experiment');
         % Create new experiment reference
-        [expRef, ~, url] = dat.newExp(obj.NewExpSubject.Selected, now,...
-            obj.Parameters.Struct, obj.AlyxPanel.AlyxInstance); 
+        [expRef, ~] = ai.newExp(obj.NewExpSubject.Selected, now,...
+            obj.Parameters.Struct); 
         % Add a copy of the AlyxInstance to the rig object for later
         % water registration, &c.
-        rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
-        rig.AlyxInstance.subsessionURL = url;
+        rig.AlyxInstance = ai.copy;
         
         panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
         obj.LastExpPanel = panel;
@@ -569,7 +570,7 @@ classdef MControl < handle
       entries = obj.Log.entriesByType('weight-grams');
       datenums = floor([entries.date]);
       obj.WeightAxes.clear();
-      if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.LogSubject.Selected,'default')
+      if obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.LogSubject.Selected,'default')
         obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
       else

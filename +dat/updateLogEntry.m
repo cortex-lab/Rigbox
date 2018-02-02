@@ -11,10 +11,8 @@ function updateLogEntry(subject, id, newEntry)
 % 2013-03 CB created
 
 if isfield(newEntry, 'AlyxInstance')&&~isempty(newEntry.comments)
-  data = struct('subject', dat.parseExpRef(newEntry.value.ref),...
-      'narrative', strrep(mat2DStrTo1D(newEntry.comments),newline,'\n'));
-  alyx.putData(newEntry.AlyxInstance,...
-      newEntry.AlyxInstance.subsessionURL, data);
+  % Update session narrative on Alyx
+  newEntry.AlyxInstance.updateNarrative(subject, obj.LogEntry.comments);
   newEntry = rmfield(newEntry, 'AlyxInstance');
 end
 
