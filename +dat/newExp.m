@@ -30,9 +30,9 @@ if nargin < 3
   expParams = [];
 end
 
-if nargin < 4
+if nargin < 4 || isempty(AlyxInstance)
   % no instance of Alyx, don't create session on Alyx
-  AlyxInstance = [];
+  AlyxInstance = alyx.loginWindow;
 end
 
 if ischar(expDate)
@@ -66,69 +66,67 @@ assert(~any(file.exists(expPath)), ...
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
 
-if ~strcmp(subject, 'default') % Ignore fake subject
+if ~strcmp(subject,'default') % Ignore fake subject
   % if the Alyx Instance is set, find or create BASE session
   expDate = alyx.datestr(expDate); % date in Alyx format
-  if ~isempty(AlyxInstance)
-    % Get list of base sessions
-    sessions = alyx.getData(AlyxInstance,...
-      ['sessions?type=Base&subject=' subject]);
-    
-    %If the date of this latest base session is not the same date as
-    %today, then create a new base session for today
-    if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), expDate(1:10))
-      d = struct;
-      d.subject = subject;
-      d.procedures = {'Behavior training/tasks'};
-      d.narrative = 'auto-generated session';
-      d.start_time = expDate;
-      d.type = 'Base';
-      %       d.users = {AlyxInstance.username};
-      
-      base_submit = alyx.postData(AlyxInstance, 'sessions', d);
-      assert(isfield(base_submit,'subject'),...
-        'Submitted base session did not return appropriate values');
-      
-      %Now retrieve the sessions again
-      sessions = alyx.getData(AlyxInstance,...
-        ['sessions?type=Base&subject=' subject]);
-    end
-    latest_base = sessions{end};
-    
-    %Now create a new SUBSESSION, using the same experiment number
+  % Get list of base sessions
+  sessions = alyx.getData(AlyxInstance,...
+    ['sessions?type=Base&subject=' subject]);
+  
+  %If the date of this latest base session is not the same date as
+  %today, then create a new base session for today
+  if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), expDate(1:10))
     d = struct;
     d.subject = subject;
     d.procedures = {'Behavior training/tasks'};
     d.narrative = 'auto-generated session';
     d.start_time = expDate;
-    d.type = 'Experiment';
-    d.parent_session = latest_base.url;
-    d.number = expSeq;
-    %   d.users = {AlyxInstance.username};
+    d.type = 'Base';
+    %       d.users = {AlyxInstance.username};
     
-    try
-      subsession = alyx.postData(AlyxInstance, 'sessions', d);
-      url = subsession.url;
-    catch
-      url = [];
-    end
-  else % If not logged in to Alyx...
-    url = []; % set the base url to null
+    base_submit = alyx.postData(AlyxInstance, 'sessions', d);
+    assert(isfield(base_submit,'subject'),...
+      'Submitted base session did not return appropriate values');
+    
+    %Now retrieve the sessions again
+    sessions = alyx.getData(AlyxInstance,...
+      ['sessions?type=Base&subject=' subject]);
   end
+  latest_base = sessions{end};
   
-  % if the parameters had an experiment definition function, save a copy in
-  % the experiment's folder
-  if isfield(expParams, 'defFunction')
-    assert(file.exists(expParams.defFunction),...
-      'Experiment definition function does not exist: %s', expParams.defFunction);
-    assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
-      dat.expFilePath(expRef, 'expDefFun'))),...
-      'Copying definition function to experiment folders failed');
-  end
+  %Now create a new SUBSESSION, using the same experiment number
+  d = struct;
+  d.subject = subject;
+  d.procedures = {'Behavior training/tasks'};
+  d.narrative = 'auto-generated session';
+  d.start_time = expDate;
+  d.type = 'Experiment';
+  d.parent_session = latest_base.url;
+  d.number = expSeq;
+  %   d.users = {AlyxInstance.username};
   
-  % now save the experiment parameters variable
-  superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
-  
+  subsession = alyx.postData(AlyxInstance, 'sessions', d);
+  assert(isfield(subsession,'subject'),...
+    'Failed to create new sub-session in Alyx for %s', subject);
+  url = subsession.url;
+else
+  url = [];
+end
+
+% if the parameters had an experiment definition function, save a copy in
+% the experiment's folder
+if isfield(expParams, 'defFunction')
+  assert(file.exists(expParams.defFunction),...
+    'Experiment definition function does not exist: %s', expParams.defFunction);
+  assert(all(cellfun(@(p)copyfile(expParams.defFunction, p),...
+    dat.expFilePath(expRef, 'expDefFun'))),...
+    'Copying definition function to experiment folders failed');
+end
+
+% now save the experiment parameters variable
+superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
+
+if ~isempty(expParams)
   try  % save a copy of parameters in json
     % First, change all functions to strings
     f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
@@ -152,5 +150,5 @@ if ~strcmp(subject, 'default') % Ignore fake subject
         url, 'Parameters', [], AlyxInstance);
     end
   end
-  
+end
 end
