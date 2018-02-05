@@ -69,7 +69,7 @@ classdef SignalsExp < handle
     LayersByStim
     
     %Occulus viewing model
-    Occ 
+    Occ
     
     Time
     
@@ -96,13 +96,9 @@ classdef SignalsExp < handle
     SyncColourCycle
     
     %Index into SyncColourCycle for next sync colour
-    NextSyncIdx 
+    NextSyncIdx
     
-    %Holds the session for the DAQ photodiode echo, used if
-    %rig.stimWindow.DaqSyncEchoPort is defined.  See also USERIG
-    DaqSyncEcho
-
-    % Alyx instance from client.  See also SAVEDATA
+    %Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
   end
   
@@ -112,9 +108,6 @@ classdef SignalsExp < handle
     
     %Data from the currently running experiment, if any.
     Data = struct
-    
-    %Data binary file ID and pars file ID for intermittent saving
-    DataFID
     
     %Currently active phases of the experiment. Cell array of their names
     %(i.e. strings)
@@ -126,6 +119,7 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    
   end
   
   properties (Access = protected)
@@ -133,8 +127,7 @@ classdef SignalsExp < handle
     %are awaiting activation pending completion of their delay period.
     Pending
     
-    %Flag indicating whether to continue in experiment loop
-    IsLooping = false 
+    IsLooping = false %flag indicating whether to continue in experiment loop
     
     AsyncFlipping = false
     
@@ -213,48 +206,19 @@ classdef SignalsExp < handle
     end
     
     function useRig(obj, rig)
-      % USERIG(OBJ, RIG) Initialize all hardware for experiment
-      %   Takes the rig hardware structure and loads the relevant
-      %   parameters into the class properties, namely the DAQ output
-      %   channels and the stimWindow properties.
-      %
-      % See Also HW.PTB.WINDOW, DAQCONTROLLER
-
       obj.Clock = rig.clock;
       obj.Data.rigName = rig.name;
-      % Sync bounds parameter for photodiode square
       obj.SyncBounds = rig.stimWindow.SyncBounds;
-      % Sync colour cycle (usually [0, 255]) - cycles through these each
-      % time the screen flips.
       obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
-      % If the DaqSyncEchoPort is defined, each time the screen flips, the
-      % DAQ will output an alternating high or low.  This signals will
-      % follow the photodiode signal.
-      if ~isempty(rig.stimWindow.DaqSyncEchoPort)
-        % Create the DAQ session for the sync echo
-        obj.DaqSyncEcho = daq.createSession(rig.stimWindow.DaqVendor);
-        % Add the digital channel using parameters defined in
-        % rig.stimWindow
-        obj.DaqSession.addDigitalChannel(rig.stimWindow.DaqDev,...
-          rig.stimWindow.DaqSyncEchoPort, 'OutputOnly');
-        % Output an initial 0V signal
-        obj.DaqSession.outputSingleScan(false);
-      end
-      % Initialize the sync square colour to be index 1
       obj.NextSyncIdx = 1;
-      % Get the handle to the PTB window opened by expServer
       obj.StimWindowPtr = rig.stimWindow.PtbHandle;
-      % Generate the viewing model based on the screen information from the
-      % rig struct, if availiable
       obj.Occ = vis.init(obj.StimWindowPtr);
       if isfield(rig, 'screens')
         obj.Occ.screens = rig.screens;
       else
         warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
       end
-      % Load the DAQ outputs
       obj.DaqController = rig.daqController;
-      % Load the wheel
       obj.Wheel = rig.mouseInput;
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
@@ -613,15 +577,6 @@ classdef SignalsExp < handle
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
-      
-      % open binary file for saving block data.  This can later be retrieved
-      % in case of a crash
-      fprintf(1, 'opening binary file for writing\n');
-      localPath = dat.expFilePath(obj.Data.expRef, 'block', 'local'); % get the local exp data path
-      obj.DataFID = fopen([localPath(1:end-4) '.dat'], 'w'); % open a binary data file
-      % save params now so if things crash later you at least have this record of the data type and size so you can load the dat
-      obj.DataFID(2) = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
-      
     end
     
     function cleanup(obj)
@@ -739,10 +694,6 @@ classdef SignalsExp < handle
             Screen('FillRect', obj.StimWindowPtr, col, obj.SyncBounds);
             % cyclically increment the next sync idx
             obj.NextSyncIdx = mod(obj.NextSyncIdx, size(obj.SyncColourCycle, 1)) + 1;
-            if ~isempty(obj.DaqSyncEcho)
-              % update sync echo
-              outputSingleScan(obj.DaqSyncEcho, mean(col) > 0);
-            end
           end
           renderTime = now(obj.Clock);
           % start the 'flip' of the frame onto the screen
@@ -907,9 +858,7 @@ classdef SignalsExp < handle
                 warning(ex.identifer, 'Failed to register files to Alyx: %s', ex.message);
             end
         end
-
     end
   end
   
 end
-
