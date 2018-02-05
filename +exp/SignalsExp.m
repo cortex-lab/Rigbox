@@ -891,6 +891,41 @@ classdef SignalsExp < handle
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
         
+        % if this is a 'ChoiceWorld' experiment, let's save out for
+        % relevant data for basic behavioural analysis and register them to
+        % Alyx
+        if contains(lower(obj.Data.expDef), 'choiceworld')
+          % Write feedback
+          feedback = obj.Data.events.feedbackValues;
+          feedback(feedback == 0) = -1;
+          alf.writeEventseries(savepaths{1}, 'cwFeedback', feedback);
+          alf.writeTimeseries(savepaths{1}, 'cwFeedback',...
+            obj.Data.events.feedbackTimes);
+          % Write go cue
+          
+          % Write response
+          
+          % Write stim on times
+          alf.writeEventseries(savepaths{1}, 'cwStimOn', obj.Data.events.stimulusOn);
+          alf.writeTimeseries(savepaths{1}, 'cwStimOn', obj.Data.events.stimulusOn);
+          
+          % Write trial intervals
+          alf.writeInterval(savepaths{1}, 'cwTrials',...
+            obj.Data.events.newTrialValues, obj.Data.events.endTrialValues);
+          repNum = obj.Data.events.repeatNumValues;
+          alf.writeEventseries(savepaths{1}, 'cwTrials.inclTrials', repNum == 1);
+          alf.writeEventseries(savepaths{1}, 'cwTrials.repNum', repNum);
+          
+          % Write wheel times, position and velocity
+          wheelValues = obj.Data.events.inputs.wheelValues;
+          wheelTimes = obj.Data.events.inputs.wheelTimes;
+          alf.writeEventseries(savepaths{1}, 'cwWheel.position', wheelValues);
+          alf.writeTimeseries(savepaths{1}, 'cwWheel', wheelTimes);
+          alf.writeEventseries(savepaths{1}, 'cwWheel.velocity', wheelValues./wheelTimes);
+          
+          % Register them to Alyx
+        end
+          
         if isempty(obj.AlyxInstance)
             warning('No Alyx token set');
         else
