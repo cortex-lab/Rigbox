@@ -30,7 +30,7 @@ if nargin < 3
   expParams = [];
 end
 
-if nargin < 4 || isempty(AlyxInstance)
+if (nargin < 4 || isempty(AlyxInstance)) && ~strcmp(subject, 'default')
   % no instance of Alyx, don't create session on Alyx
   AlyxInstance = alyx.loginWindow;
 end
@@ -66,7 +66,7 @@ assert(~any(file.exists(expPath)), ...
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
 
-if ~strcmp(subject,'default') % Ignore fake subject
+if ~strcmp(subject, 'default') % Ignore fake subject
   % if the Alyx Instance is set, find or create BASE session
   expDate = alyx.datestr(expDate); % date in Alyx format
   % Get list of base sessions
@@ -139,13 +139,13 @@ if ~isempty(expParams)
       [expRef, '_parameters.json']);
     savejson('parameters', expParams, jsonPath);
     % Register our JSON parameter set to Alyx
-    if ~strcmp(subject,'default')
+    if ~strcmp(subject, 'default')
       alyx.registerFile(jsonPath, 'json', url, 'Parameters', [], AlyxInstance);
     end
   catch ex
     warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
     % Register our parameter set to Alyx
-    if ~strcmp(subject,'default')
+    if ~strcmp(subject, 'default')
       alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
         url, 'Parameters', [], AlyxInstance);
     end
