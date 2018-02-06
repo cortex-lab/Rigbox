@@ -781,12 +781,12 @@ classdef Experiment < handle
                 if strcmp(subject, 'default'); return; end
                 % Register saved files
                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.subsessionURL, 'Block', []);
+                    obj.AlyxInstance.SessionURL, 'Block', []);
                 % Save the session end time
                 obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
                     struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
             catch ex
-                warning(ex.identifer, 'Failed to register files to Alyx: %s', ex.message);
+                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
             end
         end
     end
