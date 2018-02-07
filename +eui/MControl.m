@@ -537,8 +537,9 @@ classdef MControl < handle
         if ~ai.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
           try
             obj.AlyxPanel.login();
+            assert(ai.IsLoggedIn);
           catch
-            log('Warning: Must be logged in to Alyx before running an experiment')
+            obj.log('Warning: Must be logged in to Alyx before running an experiment')
             return
           end
         end
