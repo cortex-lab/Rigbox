@@ -263,6 +263,7 @@ classdef AlyxPanel < handle
         notify(obj, 'Disconnected'); % Notify listeners of logout
         obj.log('Logged out of Alyx');
       end
+    obj.dispWaterReq()
     end
     
     function giveWater(obj)
@@ -320,12 +321,35 @@ classdef AlyxPanel < handle
       stop(obj.LoginTimer); start(obj.LoginTimer)
       try
         s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject])); % struct with data about the subject
-        if s.water_requirement_total==0
-          set(obj.WaterRequiredText, 'String', sprintf('Subject %s not on water restriction', obj.Subject));
+        if s.water_requirement_total==0 % Subject not on water restriction
+          set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+            'String', sprintf('Subject %s not on water restriction', obj.Subject));
         else
-          set(obj.WaterRequiredText, 'String', ...
-            sprintf('Subject %s requires %.2f of %.2f today', ...
-            obj.Subject, s.water_requirement_remaining, s.water_requirement_total));
+          % Get information on weight and water given
+          endpnt = sprintf('water-requirement/%s?start_date=%s&end_date=%s',...
+            obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
+          wr = ai.getData(endpnt); % Get today's weight and water record
+          record = wr.records{1};
+          weight = getOr(record, 'weight_measured', NaN); % Get today's measured weight
+          water = getOr(record, 'water_given', 0); % Get total water given
+          gel = getOr(record, 'hydrogel_given', 0); % Get total gel given
+          % Set colour based on weight percentage
+          weight_pct = weight/record.weight_expected;
+          if weight_pct < 0.8 % Mouse below 80% original weight
+            colour = [0.91, 0.41, 0.17]; % Orange
+            weight_pct = '< 80%';
+          elseif weight_pct < 0.7 % Mouse below 70% original weight
+            colour = 'red';
+            weight_pct = '< 70%';
+          else
+            colour = 'black'; % Mouse above 80% or no weight measured today
+            weight_pct = '> 80%';
+          end
+          % Set text
+          set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
+            sprintf('Subject %s requires %.2f of %.2f today\n\t   Weight today: %.2f (%s)    Water today: %.2f', ...
+            obj.Subject, s.water_requirement_remaining, s.water_requirement_total, weight, weight_pct, sum([water gel])));
+          % Set WaterRemaining attribute for changeWaterText callback
           obj.WaterRemaining = s.water_requirement_remaining;
         end
       catch me
@@ -345,7 +369,7 @@ classdef AlyxPanel < handle
       % return will display this without posting to Alyx
       %
       % See also DISPWATERREQ, GIVEWATER
-      if ~obj.AlyxInstance.IsLoggedIn && ~isempty(obj.WaterRemaining)
+      if obj.AlyxInstance.IsLoggedIn && ~isempty(obj.WaterRemaining)
         rem = obj.WaterRemaining;
         curr = str2double(src.String);
         set(obj.WaterRemainingText, 'String', sprintf('(%.2f)', rem-curr));

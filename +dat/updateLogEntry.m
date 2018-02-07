@@ -10,9 +10,11 @@ function updateLogEntry(subject, id, newEntry)
 
 % 2013-03 CB created
 
-if isfield(newEntry, 'AlyxInstance')&&~isempty(newEntry.comments)
+if isfield(newEntry, 'AlyxInstance')
   % Update session narrative on Alyx
-  newEntry.AlyxInstance.updateNarrative(subject, obj.LogEntry.comments);
+  if ~isempty(newEntry.comments)
+    newEntry.comments = newEntry.AlyxInstance.updateNarrative(subject, newEntry.comments);
+  end
   newEntry = rmfield(newEntry, 'AlyxInstance');
 end
 

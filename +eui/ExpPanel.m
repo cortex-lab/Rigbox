@@ -298,7 +298,7 @@ classdef ExpPanel < handle
       %  subsession's narrative field.
       % 
       % See also DAT.UPDATELOGENTRY, COMMENTSCHANGED
-      dat.updateLogEntry(dat.parseExpRef(obj.SubjectRef), obj.LogEntry.id, obj.LogEntry);
+      dat.updateLogEntry(obj.SubjectRef, obj.LogEntry.id, obj.LogEntry);
     end
     
     function viewParams(obj)
