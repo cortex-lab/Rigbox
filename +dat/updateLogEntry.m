@@ -13,7 +13,7 @@ function updateLogEntry(subject, id, newEntry)
 if isfield(newEntry, 'AlyxInstance')
   % Update session narrative on Alyx
   if ~isempty(newEntry.comments)
-    newEntry.comments = newEntry.AlyxInstance.updateNarrative(subject, newEntry.comments);
+    newEntry.comments = newEntry.AlyxInstance.updateNarrative(newEntry.comments);
   end
   newEntry = rmfield(newEntry, 'AlyxInstance');
 end
