@@ -221,7 +221,7 @@ classdef MpepUDPDataHosts < srv.Service
       obj.broadcast('hello');
       try
         ok = awaitResponses(obj);
-      catch ex
+      catch
         ok = false;
       end
     end
