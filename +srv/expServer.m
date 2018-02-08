@@ -171,6 +171,7 @@ ShowCursor();
         case 'run'
           % exp run request
           [expRef, preDelay, postDelay, Alyx] = args{:};
+          Alyx.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
