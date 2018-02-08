@@ -230,16 +230,16 @@ classdef SignalsExp < handle
       % If the DaqSyncEchoPort is defined, each time the screen flips, the
       % DAQ will output an alternating high or low.  This signals will
       % follow the photodiode signal.
-      if ~isempty(rig.stimWindow.DaqSyncEchoPort)
-        % Create the DAQ session for the sync echo
-        obj.DaqSyncEcho = daq.createSession(rig.stimWindow.DaqVendor);
-        % Add the digital channel using parameters defined in
-        % rig.stimWindow
-        obj.DaqSession.addDigitalChannel(rig.stimWindow.DaqDev,...
-          rig.stimWindow.DaqSyncEchoPort, 'OutputOnly');
-        % Output an initial 0V signal
-        obj.DaqSession.outputSingleScan(false);
-      end
+%       if ~isempty(rig.stimWindow.DaqSyncEchoPort)
+%         % Create the DAQ session for the sync echo
+%         obj.DaqSyncEcho = daq.createSession(rig.stimWindow.DaqVendor);
+%         % Add the digital channel using parameters defined in
+%         % rig.stimWindow
+%         obj.DaqSyncEcho.addDigitalChannel(rig.stimWindow.DaqDev,...
+%           rig.stimWindow.DaqSyncEchoPort, 'OutputOnly');
+%         % Output an initial 0V signal
+%         obj.DaqSyncEcho.outputSingleScan(false);
+%       end
       % Initialize the sync square colour to be index 1
       obj.NextSyncIdx = 1;
       % Get the handle to the PTB window opened by expServer
@@ -369,10 +369,10 @@ classdef SignalsExp < handle
         assert(dat.expExists(ref), 'Experiment ref ''%s'' does not exist', ref);
       end
       
+      obj.Data.expRef = ref; %record the experiment reference
+      
       %do initialisation
       init(obj);
-      
-      obj.Data.expRef = ref; %record the experiment reference
       
       %Trigger the 'experimentInit' event so any handlers will be called
       initInfo = exp.EventInfo('experimentInit', obj.Clock.now, obj);
@@ -663,6 +663,9 @@ classdef SignalsExp < handle
       obj.Data.stimWindowRenderTimes((obj.StimWindowUpdateCount + 1):end) = [];
       
       % release resources
+%       obj.DaqSyncEcho.release;
+%       delete(obj.DaqSyncEcho);
+%       obj.DaqSyncEcho = [];
       obj.Listeners = [];
       deleteGlTextures(obj);
       KbQueueStop();
@@ -739,10 +742,10 @@ classdef SignalsExp < handle
             Screen('FillRect', obj.StimWindowPtr, col, obj.SyncBounds);
             % cyclically increment the next sync idx
             obj.NextSyncIdx = mod(obj.NextSyncIdx, size(obj.SyncColourCycle, 1)) + 1;
-            if ~isempty(obj.DaqSyncEcho)
-              % update sync echo
-              outputSingleScan(obj.DaqSyncEcho, mean(col) > 0);
-            end
+%             if ~isempty(obj.DaqSyncEcho)
+%               % update sync echo
+%               outputSingleScan(obj.DaqSyncEcho, mean(col) > 0);
+%             end
           end
           renderTime = now(obj.Clock);
           % start the 'flip' of the frame onto the screen
@@ -896,83 +899,87 @@ classdef SignalsExp < handle
         % Alyx
         if contains(lower(obj.Data.expDef), 'choiceworld')
           try
+          expPath = dat.expPath(obj.Data.expRef, 'main', 'master');
           % Write feedback
-          feedback = obj.Data.events.feedbackValues;
+          feedback = obj.Data.events.feedbackValues(:);
           feedback(feedback == 0) = -1;
-          alf.writeEventseries(savepaths{end}, 'cwFeedback.type', feedback);
-          alf.writeTimeseries(savepaths{end}, 'cwFeedback.times',...
-            obj.Data.events.feedbackTimes);
+          writeNPY(feedback, fullfile(expPath, 'cwFeedback.type.npy'));
+          alf.writeEventseries(expPath, 'cwFeedback',...
+            obj.Data.events.feedbackTimes, [], []);
           
           % Write go cue
-          alf.writeTimeseries(savepaths{end}, 'cwGoCue.times',...
-            obj.Data.events.interactiveOnTimes);
+          alf.writeEventseries(expPath, 'cwGoCue',...
+            obj.Data.events.interactiveOnTimes, [], []);
           
           % Write response
-          response = obj.Data.events.responseValues;
+          response = obj.Data.events.responseValues(:);
           if min(response) == -1
             response(response == 0) = 3;
             response(response == 1) = 2;
             response(response == -1) = 1;
           end
-          alf.writeEventseries(savepaths{end}, 'cwResponse.choice', response);
-          alf.writeTimeseries(savepaths{end}, 'cwResponse.times', obj.Data.events.responseTimes);
+          writeNPY(response, fullfile(expPath, 'cwResponse.choice.npy'));
+          alf.writeEventseries(expPath, 'cwResponse',...
+            obj.Data.events.responseTimes, [], []);
           
           % Write stim on times
-          alf.writeEventseries(savepaths{end}, 'cwStimOn', obj.Data.events.stimulusOnValues);
-          alf.writeTimeseries(savepaths{end}, 'cwStimOn.times', obj.Data.events.stimulusOnTimes);
-          alf.writeEventseries(savepaths{end}, 'cwStimOn.contrastLeft', obj.Data.events.contrastLeftValues);
-          alf.writeEventseries(savepaths{end}, 'cwStimOn.contrastRight', obj.Data.events.contrastRightValues);
+          alf.writeEventseries(expPath, 'cwStimOn',...
+            obj.Data.events.stimulusOnTimes, [], []);
+          writeNPY(obj.Data.events.contrastLeftValues(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
+          writeNPY(obj.Data.events.contrastRightValues(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
           
           % Write trial intervals
-          alf.writeInterval(savepaths{end}, 'cwTrials',...
-            obj.Data.events.newTrialValues, obj.Data.events.endTrialValues);
-          repNum = obj.Data.events.repeatNumValues;
-          alf.writeEventseries(savepaths{end}, 'cwTrials.inclTrials', repNum == 1);
-          alf.writeEventseries(savepaths{end}, 'cwTrials.repNum', repNum);
+          alf.writeInterval(expPath, 'cwTrials',...
+            obj.Data.events.newTrialTimes(:), obj.Data.events.endTrialTimes(:), [], []);
+          repNum = obj.Data.events.repeatNumValues(:);
+          writeNPY(repNum == 1, fullfile(expPath, 'cwTrials.inclTrials.npy'));
+          writeNPY(repNum, fullfile(expPath, 'cwTrials.repNum.npy'));
           
           % Write wheel times, position and velocity
-          wheelValues = obj.Data.events.inputs.wheelValues;
-          wheelTimes = obj.Data.events.inputs.wheelTimes;
-          alf.writeEventseries(savepaths{end}, 'cwWheel.position', wheelValues);
-          alf.writeTimeseries(savepaths{end}, 'cwWheel', wheelTimes);
-          alf.writeEventseries(savepaths{end}, 'cwWheel.velocity', wheelValues./wheelTimes);
+          wheelValues = obj.Data.inputs.wheelValues(:);
+          wheelValues = wheelValues*(3.1*2*pi/(4*1024));
+          wheelTimes = obj.Data.inputs.wheelTimes(:);
+          alf.writeTimeseries(expPath, 'Wheel', wheelTimes, [], []);
+          writeNPY(wheelValues, fullfile(expPath, 'Wheel.position.npy'));
+          writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
           
           % Register them to Alyx
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwFeedback.type'],...
-              'cwFeedback.type.npy', obj.AlyxInstance.SessionURL, 'cwFeedback.type', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwFeedback.times'],...
-              'cwFeedback.times.npy', obj.AlyxInstance.SessionURL, 'cwFeedback.times', []);
-            
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwGoCue.times'],...
-              'cwGoCue.times.npy', obj.AlyxInstance.SessionURL, 'cwGoCue.times', []);
-            
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwResponse.choice'],...
-              'cwResponse.choice.npy', obj.AlyxInstance.SessionURL, 'cwResponse.choice', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwResponse.times'],...
-              'cwResponse.times.npy', obj.AlyxInstance.SessionURL, 'cwResponse.times', []);
-           
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwStimOn'],...
-              'cwStimOn.npy', obj.AlyxInstance.SessionURL, 'cwStimOn', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwStimOn.times'],...
-              'cwStimOn.times.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.times', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwStimOn.contrastLeft'],...
-              'cwStimOn.contrastLeft.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.contrastLeft', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwStimOn.contrastRight'],...
-              'cwStimOn.contrastRight.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.contrastRight', []);
-            
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwTrials'],...
-              'cwTrials.npy', obj.AlyxInstance.SessionURL, 'cwTrials', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwTrials.inclTrials'],...
-              'cwTrials.inclTrials.npy', obj.AlyxInstance.SessionURL, 'cwTrials.inclTrials', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwTrials.repNum'],...
-              'cwTrials.repNum.npy', obj.AlyxInstance.SessionURL, 'cwTrials.repNum', []);
-            
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwWheel'],...
-              'cwWheel.npy', obj.AlyxInstance.SessionURL, 'cwWheel', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwWheel.position'],...
-              'cwWheel.position.npy', obj.AlyxInstance.SessionURL, 'cwWheel.position', []);
-            obj.AlyxInstance.registerFile([savepaths{end} 'cwWheel.velocity'],...
-              'cwWheel.velocity.npy', obj.AlyxInstance.SessionURL, 'cwWheel.velocity', []);
+          alyx.registerALFtoAlyx(expPath, obj.AlyxInstance.subsessionURL, obj.AlyxInstance);
+%             obj.AlyxInstance.registerFile([expPath 'cwFeedback.type'],...
+%               'cwFeedback.type.npy', obj.AlyxInstance.SessionURL, 'cwFeedback.type', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwFeedback.times'],...
+%               'cwFeedback.times.npy', obj.AlyxInstance.SessionURL, 'cwFeedback.times', []);
+%             
+%             obj.AlyxInstance.registerFile([expPath 'cwGoCue.times'],...
+%               'cwGoCue.times.npy', obj.AlyxInstance.SessionURL, 'cwGoCue.times', []);
+%             
+%             obj.AlyxInstance.registerFile([expPath 'cwResponse.choice'],...
+%               'cwResponse.choice.npy', obj.AlyxInstance.SessionURL, 'cwResponse.choice', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwResponse.times'],...
+%               'cwResponse.times.npy', obj.AlyxInstance.SessionURL, 'cwResponse.times', []);
+%            
+%             obj.AlyxInstance.registerFile([expPath 'cwStimOn'],...
+%               'cwStimOn.npy', obj.AlyxInstance.SessionURL, 'cwStimOn', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwStimOn.times'],...
+%               'cwStimOn.times.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.times', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwStimOn.contrastLeft'],...
+%               'cwStimOn.contrastLeft.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.contrastLeft', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwStimOn.contrastRight'],...
+%               'cwStimOn.contrastRight.npy', obj.AlyxInstance.SessionURL, 'cwStimOn.contrastRight', []);
+%             
+%             obj.AlyxInstance.registerFile([expPath 'cwTrials'],...
+%               'cwTrials.npy', obj.AlyxInstance.SessionURL, 'cwTrials', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwTrials.inclTrials'],...
+%               'cwTrials.inclTrials.npy', obj.AlyxInstance.SessionURL, 'cwTrials.inclTrials', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwTrials.repNum'],...
+%               'cwTrials.repNum.npy', obj.AlyxInstance.SessionURL, 'cwTrials.repNum', []);
+%             
+%             obj.AlyxInstance.registerFile([expPath 'cwWheel'],...
+%               'cwWheel.npy', obj.AlyxInstance.SessionURL, 'cwWheel', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwWheel.position'],...
+%               'cwWheel.position.npy', obj.AlyxInstance.SessionURL, 'cwWheel.position', []);
+%             obj.AlyxInstance.registerFile([expPath 'cwWheel.velocity'],...
+%               'cwWheel.velocity.npy', obj.AlyxInstance.SessionURL, 'cwWheel.velocity', []);
           catch ex
             warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
           end

@@ -19,13 +19,6 @@ end
 
 paths = dat.paths(name);
 
-% if strcmp(name, 'zen')
-%   baseDir = 'D:\Users\Chris\Documents\MATLAB\Experiments';
-%   configDir = fullfile(fullfile(baseDir, 'config'), name);
-% else
-%   baseDir = '\\zserver\code\Rigging';
-%   configDir = fullfile(fullfile(baseDir, 'config'), name);
-% end
 %% Basic initialisation
 fn = fullfile(paths.rigConfig, 'hardware.mat');
 if ~file.exists(fn)
