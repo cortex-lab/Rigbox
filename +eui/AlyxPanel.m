@@ -314,7 +314,8 @@ classdef AlyxPanel < handle
       % Set the selected subject if it is an input
       if nargin>1; obj.Subject = src.Selected; end
       if ~ai.IsLoggedIn
-        set(obj.WaterRequiredText, 'String', 'Log in to see water requirements');
+        set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+          'String', 'Log in to see water requirements');
         return
       end
       % Refresh the timer as the user isn't inactive
@@ -329,12 +330,17 @@ classdef AlyxPanel < handle
           endpnt = sprintf('water-requirement/%s?start_date=%s&end_date=%s',...
             obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
           wr = ai.getData(endpnt); % Get today's weight and water record
-          record = wr.records{1};
+          if ~isempty(wr.records)
+            record = wr.records{end};
+          else
+            record = struct();
+          end
           weight = getOr(record, 'weight_measured', NaN); % Get today's measured weight
           water = getOr(record, 'water_given', 0); % Get total water given
           gel = getOr(record, 'hydrogel_given', 0); % Get total gel given
+          weight_expected = getOr(record, 'weight_expected', NaN);
           % Set colour based on weight percentage
-          weight_pct = weight/record.weight_expected;
+          weight_pct = weight/weight_expected;
           if weight_pct < 0.8 % Mouse below 80% original weight
             colour = [0.91, 0.41, 0.17]; % Orange
             weight_pct = '< 80%';
@@ -355,7 +361,8 @@ classdef AlyxPanel < handle
       catch me
         d = loadjson(me.message);
         if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
-          set(obj.WaterRequiredText, 'String', sprintf('Subject %s not found in alyx', obj.Subject));
+          set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+            'String', sprintf('Subject %s not found in alyx', obj.Subject));
         end
       end
     end
