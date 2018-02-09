@@ -7,12 +7,6 @@ function psychDat = an(subject, dates, dateRange)
 % psychoDat         Struct containing expRef, contrasts, response made,
 %                   feedback, repeat numbers and response times
 
-%% Initialize & collect data
-% if isa(allBlocks, 'struct')
-%     allBlocks = {allBlocks};
-% elseif ~isa(allBlocks, 'struct')&&~isa(allBlocks, 'cell')
-%     error('allBlocks must be a single block structure or a cell array of blocks');
-% end
 %% 
 if nargin < 1
     error('Error in plotting psychometric: Must specify at least the subject');
@@ -90,7 +84,7 @@ end
 % Can later cat with catStructs
 events = arrayfun(@(b){b.block.events},allBlocks); 
 paramVals = arrayfun(@(b){b.block.paramsValues},allBlocks);
-numCompletedTrials = cellfun(@(S) {length(S.responseValues)}, events);
+numCompletedTrials = cellfun(@(S) {length(S.endTrialTimes)}, events);
 
 % remove incomplete trials
 events = cellfun(@(e,n) removeIncompleteTrials(e,n), events, numCompletedTrials, 'UniformOutput', 0);
@@ -105,7 +99,8 @@ paramVals = catStructs(paramVals);
 events = catStructs(events);
 % events = iff(all(class(events)=='cell'), catStructs(events), events);
 resp = [events.responseValues];
-trialEndTimes = [events.endTrialTimes]-events.expStartTimes;
+startTime = [events.expStartTimes];
+trialEndTimes = [events.endTrialTimes]-startTime(end);
 numCompletedTrials = sum(cell2mat(numCompletedTrials));
 if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     rt = [events.responseTimes]-[events.interactiveOnTimes];
@@ -125,7 +120,7 @@ elseif strcmp(expDef, 'advancedChoiceWorld')
     correct = events.feedbackValues;
     rt = [events.responseTimes]-[events.stimulusOnTimes]-[paramVals.interactiveDelay];
     contrast = [paramVals.stimulusContrast];
-    inc = events.repeatNumValues == 1;
+    inc = [events.repeatNumValues] == 1;
     respWindow = [paramVals.responseWindow];
     repeatNum = [events.repeatNumValues];
 end
