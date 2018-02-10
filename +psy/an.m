@@ -106,13 +106,13 @@ if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     rt = [events.responseTimes]-[events.interactiveOnTimes];
     contrast = [events.trialContrastValues].*[events.trialSideValues];
     correct = [events.hitValues];
-    leftResp = events.trialSideValues==-1&correct==1;
+    leftResp = [events.trialSideValues]==-1&correct==1;
     resp = double(resp);
     resp(leftResp(1:numCompletedTrials)) = -1;
-    if ~isfield(events, 'repeatTrialValues')||isempty(events.repeatTrialValues)
-      inc = events.repeatNumValues == 1;
+    if ~isfield(events, 'repeatTrialValues')||isempty([events.repeatTrialValues])
+      inc = [events.repeatNumValues] == 1;
     else
-      inc = ~events.repeatTrialValues;
+      inc = ~[events.repeatTrialValues];
     end
     respWindow = Inf;
     repeatNum = [events.repeatNumValues];
@@ -284,7 +284,8 @@ end
 function S = removeIncompleteTrials(S, completedTrials)
     lengths = structfun(@length, S);
     names = fieldnames(S);
-    names = names(lengths == completedTrials+1);
+    names = names(lengths == completedTrials+1|...
+        lengths == completedTrials+2);
     s = cellfun(@(x) x(1:completedTrials), pick(S, names), 'UniformOutput', 0);
     for n = 1:length(s)
         S.(names{n}) = s{n};
