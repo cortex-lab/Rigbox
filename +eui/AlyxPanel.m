@@ -205,12 +205,13 @@ classdef AlyxPanel < handle
       % Are we logging in or out?
       if ~obj.AlyxInstance.IsLoggedIn % logging in
         % attempt login
-        obj.AlyxInstance.login(); % returns an instance if success, empty if you cancel
+        obj.AlyxInstance = obj.AlyxInstance.login(); % returns an instance if success, empty if you cancel
         if obj.AlyxInstance.IsLoggedIn % successful
           % Start log in timer, to automatically log out after 30
           % minutes of 'inactivity' (defined as not calling
           % dispWaterReq)
-          obj.LoginTimer = timer('StartDelay', 30*60, 'TimerFcn', @(~,~)obj.login);
+          obj.LoginTimer = timer('StartDelay', 30*60, 'TimerFcn',...
+            @(~,~)obj.login, 'BusyMode', 'queue');
           start(obj.LoginTimer)
           % Enable all buttons
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
@@ -250,7 +251,7 @@ classdef AlyxPanel < handle
           obj.log('Did not log into Alyx');
         end
       else % logging out
-        obj.AlyxInstance.logout;
+        obj = obj.AlyxInstance.logout;
         if ~isempty(obj.LoginTimer) % If there is a timer object
           stop(obj.LoginTimer) % Stop the timer...
           delete(obj.LoginTimer) % ... delete it...
@@ -319,7 +320,7 @@ classdef AlyxPanel < handle
         return
       end
       % Refresh the timer as the user isn't inactive
-      stop(obj.LoginTimer); start(obj.LoginTimer)
+      stop(obj.LoginTimer); start(obj.LoginTimer) 
       try
         s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject])); % struct with data about the subject
         if s.water_requirement_total==0 % Subject not on water restriction
