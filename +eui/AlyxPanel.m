@@ -251,7 +251,7 @@ classdef AlyxPanel < handle
           obj.log('Did not log into Alyx');
         end
       else % logging out
-        obj = obj.AlyxInstance.logout;
+        obj.AlyxInstance = obj.AlyxInstance.logout;
         if ~isempty(obj.LoginTimer) % If there is a timer object
           stop(obj.LoginTimer) % Stop the timer...
           delete(obj.LoginTimer) % ... delete it...
