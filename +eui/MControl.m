@@ -347,7 +347,8 @@ classdef MControl < handle
               obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
           end
           % Remove AlyxInstance from rig; no longer required
-          delete(rig.AlyxInstance);
+%           delete(rig.AlyxInstance); % Line invalid now Alyx no longer
+%           handel class
           rig.AlyxInstance = [];
       end
     end
@@ -533,11 +534,10 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-        ai = obj.AlyxPanel.AlyxInstance;
-        if ~ai.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
+        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
           try
             obj.AlyxPanel.login();
-            assert(ai.IsLoggedIn);
+            assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn);
           catch
             obj.log('Warning: Must be logged in to Alyx before running an experiment')
             return
@@ -549,11 +549,11 @@ classdef MControl < handle
         obj.Parameters.set('services', services(:),...
             'List of experiment services to use during the experiment');
         % Create new experiment reference
-        [expRef, ~] = ai.newExp(obj.NewExpSubject.Selected, now,...
-            obj.Parameters.Struct); 
+        [expRef, ~] = obj.AlyxPanel.AlyxInstance.newExp(...
+          obj.NewExpSubject.Selected, now, obj.Parameters.Struct); 
         % Add a copy of the AlyxInstance to the rig object for later
         % water registration, &c.
-        rig.AlyxInstance = ai.copy;
+        rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
         
         panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
         obj.LastExpPanel = panel;
