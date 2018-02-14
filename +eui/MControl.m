@@ -549,11 +549,12 @@ classdef MControl < handle
         obj.Parameters.set('services', services(:),...
             'List of experiment services to use during the experiment');
         % Create new experiment reference
-        [expRef, ~] = obj.AlyxPanel.AlyxInstance.newExp(...
+        [expRef, ~, url] = obj.AlyxPanel.AlyxInstance.newExp(...
           obj.NewExpSubject.Selected, now, obj.Parameters.Struct); 
         % Add a copy of the AlyxInstance to the rig object for later
         % water registration, &c.
         rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
+        rig.AlyxInstance.SessionURL = url;
         
         panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
         obj.LastExpPanel = panel;
