@@ -846,14 +846,18 @@ classdef SignalsExp < handle
             warning('No Alyx token set');
         else
             try
-                subject = dat.parseExpRef(obj.Data.expRef);
+                [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
                 if strcmp(subject, 'default'); return; end
                 % Register saved files
                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.SessionURL, 'Block', []);
+                    {subject, expDate, seq}, 'Block', []);
                 % Save the session end time
-                obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
-                    struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                if ~isempty(obj.AlyxInstance.SessionURL)
+                  obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
+                      struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                else
+                  % Infer from date session and retrieve using expFilePath
+                end
             catch ex
                 warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
             end
