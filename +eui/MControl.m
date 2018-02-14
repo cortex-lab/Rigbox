@@ -264,6 +264,7 @@ classdef MControl < handle
       matchTypes = factory(strcmp({factory.label}, typeName)).matchTypes();
       subject = obj.NewExpSubject.Selected; % Find which subject is selected
       label = 'none';
+      set(obj.BeginExpButton, 'Enable', 'off') % Can't run experiment without params!
       switch lower(profile)
         case '<defaults>'
           %           if strcmp(obj.NewExpType.Selected, '<custom...>')
@@ -308,6 +309,7 @@ classdef MControl < handle
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
         obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+        set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
     end
     
@@ -332,7 +334,10 @@ classdef MControl < handle
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
       obj.log('''%s'' on ''%s'' stopped', evt.Ref, rig.Name);
       if rig == obj.RemoteRigs.Selected
-        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
+        set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options'
+      end
+      if obj.Parameters.Struct~=nil % If params loaded
+        set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
       % Alyx water reporting: indicate amount of water this mouse still needs     
       if rig.AlyxInstance.IsLoggedIn
@@ -394,7 +399,10 @@ classdef MControl < handle
       else % The rig is idle...
         obj.log('Connected to ''%s''', rig.Name); % ...say so in the log box
         if rig == obj.RemoteRigs.Selected
-          set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
+          set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options' button
+        end
+        if obj.Parameters.Struct~=nil % If parameters loaded
+          set(obj.BeginExpButton, 'Enable', 'on');
         end
       end
     end
@@ -445,7 +453,10 @@ classdef MControl < handle
           obj.log('Could not connect to ''%s'' (%s)', rig.Name, errmsg);
         end
       elseif strcmp(rig.Status, 'idle')
-        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on');
+        set(obj.RigOptionsButton, 'Enable', 'on');
+        if obj.Parameters.Struct~=nil
+          set(obj.BeginExpButton, 'Enable', 'on');
+        end
       else
         obj.rigConnected(rig);
       end
