@@ -468,8 +468,8 @@ classdef Timeline < handle
                 try
                     obj.AlyxInstance.registerFile(obj.Data.savePaths{end}, 'mat',...
                         {subject, expDate, seq}, 'Timeline', []);
-                catch
-                    warning('couldn''t register files to alyx');
+                catch ex
+                    warning(ex.identifier, 'couldn''t register files to Alyx: %s', ex.message);
                 end
             end
             %TODO: Register ALF components to alyx, incl TimelineHW.json
