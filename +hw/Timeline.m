@@ -463,11 +463,11 @@ classdef Timeline < handle
             end
 
             % register Timeline.mat file to Alyx database
-            subject = dat.parseExpRef(obj.Data.expRef);
+            [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
             if obj.AlyxInstance.IsLoggedIn && ~strcmp(subject,'default')
                 try
                     obj.AlyxInstance.registerFile(obj.Data.savePaths{end}, 'mat',...
-                        obj.AlyxInstance.SessionURL, 'Timeline', []);
+                        {subject, expDate, seq}, 'Timeline', []);
                 catch
                     warning('couldn''t register files to alyx');
                 end
