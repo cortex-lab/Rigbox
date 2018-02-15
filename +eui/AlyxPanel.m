@@ -217,7 +217,8 @@ classdef AlyxPanel < handle
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
           set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
           set(obj.LoginButton, 'String', 'Logout');
-                    
+          
+          % try updating the subject selectors in other panels
           newSubs = obj.AlyxInstance.listSubjects;
           obj.NewExpSubject.Option = newSubs;
           obj.SubjectList = newSubs;
@@ -310,8 +311,9 @@ classdef AlyxPanel < handle
       % Refresh the timer as the user isn't inactive
       stop(obj.LoginTimer); start(obj.LoginTimer) 
       try
-        s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject])); % struct with data about the subject
-        if s.water_requirement_total==0 % Subject not on water restriction
+        s = catStructs(ai.getData('water-restricted-subjects')); % struct with data about restricted subjects
+        idx = strcmp(obj.Subject, {s.nickname});
+        if ~any(idx) % Subject not on water restriction
           set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
             'String', sprintf('Subject %s not on water restriction', obj.Subject));
         else
@@ -343,9 +345,9 @@ classdef AlyxPanel < handle
           % Set text
           set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
             sprintf('Subject %s requires %.2f of %.2f today\n\t   Weight today: %.2f (%s)    Water today: %.2f', ...
-            obj.Subject, s.water_requirement_remaining, s.water_requirement_total, weight, weight_pct, sum([water gel])));
+            obj.Subject, s(idx).water_requirement_remaining, s(idx).water_requirement_total, weight, weight_pct, sum([water gel])));
           % Set WaterRemaining attribute for changeWaterText callback
-          obj.WaterRemaining = s.water_requirement_remaining;
+          obj.WaterRemaining = s(idx).water_requirement_remaining;
         end
       catch me
         d = loadjson(me.message);
