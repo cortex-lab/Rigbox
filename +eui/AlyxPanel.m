@@ -217,20 +217,8 @@ classdef AlyxPanel < handle
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
           set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
           set(obj.LoginButton, 'String', 'Logout');
-          
-          % try updating the subject selectors in other panels
-          s = obj.AlyxInstance.getData('subjects?stock=False&alive=True');
-          
-          respUser = cellfun(@(x)x.responsible_user, s, 'uni', false);
-          subjNames = cellfun(@(x)x.nickname, s, 'uni', false);
-          
-          thisUserSubs = sort(subjNames(strcmp(respUser, obj.AlyxInstance.User)));
-          otherUserSubs = sort(subjNames);
-          % note that we leave this User's mice also in
-          % otherUserSubs, in case they get confused and look
-          % there.
-          
-          newSubs = [{'default'}, thisUserSubs, otherUserSubs];
+                    
+          newSubs = obj.AlyxInstance.listSubjects;
           obj.NewExpSubject.Option = newSubs;
           obj.SubjectList = newSubs;
           
