@@ -309,7 +309,9 @@ classdef MControl < handle
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
         obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
-        set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
+        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
+        end
       end
     end
     
