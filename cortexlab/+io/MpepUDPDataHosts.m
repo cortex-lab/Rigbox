@@ -273,8 +273,8 @@ classdef MpepUDPDataHosts < srv.Service
         dt = toc;
         match = find(strcmp(waiting, ip), 1);
         assert(~isempty(match),...
-          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''',...
-          dt, ip, msg);
+          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''\nAwaiting response from %s',...
+          dt, ip, msg, strjoin(obj.RemoteHosts, ', '));
         waiting(match) = []; % remove matching IP from confirmation list
         ok(i) = isequal(expecting, msg);
       end
