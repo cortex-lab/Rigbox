@@ -205,7 +205,7 @@ classdef MpepUDPDataHosts < srv.Service
       % Deal with Alyx instance first
       if ~isempty(ai)
         obj.AlyxInstance = ai;
-        UDP_msg = ai.parseAlyxInstance;
+        UDP_msg = Alyx.parseAlyxInstance(expRef, ai);
         [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
         alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, UDP_msg);
         confirmedBroadcast(obj, alyxmsg);
@@ -273,8 +273,8 @@ classdef MpepUDPDataHosts < srv.Service
         dt = toc;
         match = find(strcmp(waiting, ip), 1);
         assert(~isempty(match),...
-          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''',...
-          dt, ip, msg);
+          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''\nAwaiting response from %s',...
+          dt, ip, msg, strjoin(obj.RemoteHosts, ', '));
         waiting(match) = []; % remove matching IP from confirmation list
         ok(i) = isequal(expecting, msg);
       end
