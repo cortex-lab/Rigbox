@@ -126,9 +126,9 @@ classdef Timeline < handle
             end
         end
         
-        function start(obj, expRef, Alyx)
+        function start(obj, expRef, ai)
             % START Starts timeline data acquisition
-            %   START(obj, ref, Alyx) starts all DAQ sessions and adds
+            %   START(obj, ref, AlyxInstance) starts all DAQ sessions and adds
             %   the relevent output and input channels.
             %
             % See Also HW.TLOUTPUT/START
@@ -138,7 +138,7 @@ classdef Timeline < handle
                 obj.stop();
             end
             obj.Ref = expRef; % set the current experiment ref
-            obj.AlyxInstance = Alyx; % set the current instance of Alyx
+            obj.AlyxInstance = ai; % set the current instance of Alyx
             init(obj); % start the relevent sessions and add channels            
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
@@ -463,11 +463,11 @@ classdef Timeline < handle
             end
 
             % register Timeline.mat file to Alyx database
-            [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
+            [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
             if obj.AlyxInstance.IsLoggedIn && ~strcmp(subject,'default')
                 try
                     obj.AlyxInstance.registerFile(obj.Data.savePaths{end}, 'mat',...
-                        {subject, expDate, seq}, 'Timeline', []);
+                        obj.AlyxInstance.SessionURL, 'Timeline', []);
                 catch ex
                     warning(ex.identifier, 'couldn''t register files to Alyx: %s', ex.message);
                 end
