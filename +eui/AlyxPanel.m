@@ -462,7 +462,7 @@ classdef AlyxPanel < handle
       uuid = u(find(u=='/', 1, 'last')+1:end);
       
       % make the admin url
-      adminURL = fullfile(ai.baseURL, 'admin', 'actions', 'session', uuid, 'change');
+      adminURL = fullfile(ai.BaseURL, 'admin', 'actions', 'session', uuid, 'change');
       
       % launch the website
       web(adminURL, '-browser');
@@ -470,7 +470,7 @@ classdef AlyxPanel < handle
     
     function launchSubjectURL(obj)
       ai = obj.AlyxInstance;
-      if ~ai.IsLoggedIn
+      if ai.IsLoggedIn
         s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
         subjURL = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
         web(subjURL, '-browser');
