@@ -126,6 +126,8 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    
+    BallSocket
   end
   
   properties (Access = protected)
@@ -165,6 +167,11 @@ classdef SignalsExp < handle
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
+      obj.Inputs.ball = net.subscriptableOrigin('ball');
+      ballHost = getOr(paramStruct, 'ballHostname', []);
+      if ~isempty(ballHost)
+          obj.BallSocket = srv.BallUDPService(ballHost, obj.Inputs.ball);
+      end
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -617,11 +624,11 @@ classdef SignalsExp < handle
       
       % open binary file for saving block data.  This can later be retrieved
       % in case of a crash
-      fprintf(1, 'opening binary file for writing\n');
-      localPath = dat.expFilePath(obj.Data.expRef, 'block', 'local'); % get the local exp data path
-      obj.DataFID = fopen([localPath(1:end-4) '.dat'], 'w'); % open a binary data file
+%       fprintf(1, 'opening binary file for writing\n');
+%       localPath = dat.expFilePath(obj.Data.expRef, 'block', 'local'); % get the local exp data path
+%       obj.DataFID = fopen([localPath(1:end-4) '.dat'], 'w'); % open a binary data file
       % save params now so if things crash later you at least have this record of the data type and size so you can load the dat
-      obj.DataFID(2) = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
+%       obj.DataFID(2) = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
       
     end
     
@@ -720,7 +727,7 @@ classdef SignalsExp < handle
         obj.Pending(inactiveIdx) = [];
         
         %% signalling
-%         tic
+        tic
         wx = readAbsolutePosition(obj.Wheel);
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
@@ -733,9 +740,8 @@ classdef SignalsExp < handle
         end
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
-        
-%         runSchedule(obj.Net);
-%         nChars = overfprintf(nChars, 'post took %.1fms\n', 1000*toc);
+
+        nChars = overfprintf(nChars, 'post took %.1fms\n', 1000*toc);
         
         %% redraw the stimulus window if it has been invalidated
         if obj.StimWindowInvalid
@@ -908,7 +914,8 @@ classdef SignalsExp < handle
         % relevant data for basic behavioural analysis and register them to
         % Alyx
         if contains(lower(obj.Data.expDef), 'choiceworld') ...
-            && ~strcmp(subject, 'default') && isfield(obj.Data, 'events')
+            && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
+            && ~strcmp(obj.Data.endStatus,'aborted')
           expPath = dat.expPath(obj.Data.expRef, 'main', 'master');
           % Write feedback
           
@@ -987,7 +994,7 @@ classdef SignalsExp < handle
             warning('No Alyx token set');
         else
             try
-                if strcmp(subject,'default'); return; end
+                if strcmp(subject,'default')||strcmp(obj.Data.endStatus,'aborted'); return; end
                 % Register saved files
                 alyx.registerFile(savepaths{end}, 'mat',...
                     obj.AlyxInstance.subsessionURL, 'Block', [], obj.AlyxInstance);

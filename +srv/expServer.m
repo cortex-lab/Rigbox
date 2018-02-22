@@ -291,8 +291,11 @@ ShowCursor();
     lightIn = 'ai0'; % defaults from hw.psy.Window
     clockIn = 'ai1';
     clockOut = 'port1/line0 (PFI4)';
-    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
+    text = sprintf(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
         'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    log(text);
+    stimWindow.drawText(obj, text);
+    stimWindow.flip();
     pause; % wait for keypress
     stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
     pause(1);

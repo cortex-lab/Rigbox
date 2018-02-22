@@ -70,10 +70,11 @@ classdef Parameters < handle
       obj.pNames = obj.namesFromFields;
       n = numel(obj.pNames);
       obj.IsTrialSpecific = struct;
-      isTrialSpecificDefault = @(n) ...
-        ~any(strcmp(n, {'defFunction', 'expPanelFun'})) &&...
-        (strcmp(n, {'numRepeats'})...
-        || size(obj.pStruct.(n), 2) > 1);
+      isTrialSpecificDefault = @(n) ... % Is trial specific if:
+        ~any(strcmp(n, {'defFunction', 'expPanelFun'})) &&... % he field doesn't match these;
+        (strcmp(n, {'numRepeats'})... % the field matches this;
+        || (size(obj.pStruct.(n), 2) > 1 && ~isa(obj.pStruct.(n), 'char'))... % is a char array with num rows > 1
+        || (size(obj.pStruct.(n), 1) > 1 && isa(obj.pStruct.(n), 'char'))); % is not a char array with num col > 1
       for i = 1:n
         name = obj.pNames{i};
         obj.IsTrialSpecific.(name) = isTrialSpecificDefault(name);
@@ -112,6 +113,10 @@ classdef Parameters < handle
     end
     
     function b = isTrialSpecific(obj, name)
+      % Returns a true if parameter is trial specific
+      %  Paramters are considered trials specific if they have more than
+      %  one column.  For full details of how this is determined, see
+      %  set.Struct
       isSpecific = @(n) obj.IsTrialSpecific.(n);
       if iscell(name)
         b = cellfun(@(n) isSpecific(n), name);
