@@ -1,4 +1,4 @@
-classdef BallUDPService < srv.BasicUDPService
+classdef BallUDPService < srv.Service
   %SRV.BASICUDPSERVICE Interface to a dumb UDP-based service
   %   A UDP interface that uses the udp function of the Instument Control
   %   Toolbox. Unlike SRV.PRIMITIVEUDPSERVICE, this can send and recieve
@@ -31,13 +31,32 @@ classdef BallUDPService < srv.BasicUDPService
   
   % 2017-10 MW created
   
+  properties (GetObservable, SetAccess = protected)
+    Status % Status of remote service
+  end
+  
   properties
     % Holds an instance of timeline for recording messages
     Timeline
     % Holds struct of ball values
     Ball
   end
-      
+        
+  properties (SetObservable, AbortSet = true)
+    RemoteHost % Host name of the remote service
+    ListenPort = 10000 % Localhost port number to listen for messages on
+    RemotePort = 10000 % Which port to send messages to remote service on
+  end
+  
+  properties (SetAccess = protected)
+    Socket % A handle to the udp object
+    LastReceivedMessage = '' % A copy of the message received by this host
+  end
+  
+  properties (Access = private)
+    Listener % A listener for the MessageReceived event
+  end
+  
   methods
     function delete(obj)
       % To be called before destroying BasicUDPService object.  Deletes all
@@ -48,12 +67,13 @@ classdef BallUDPService < srv.BasicUDPService
         delete(obj.Socket); % Delete the socket
         obj.Socket = []; % Delete udp object
         obj.Listener = []; % Delete any listeners to that object
-        if ~isempty(obj.ResponseTimer) % If there is a timer object 
-          stop(obj.ResponseTimer) % Stop the timer..
-          delete(obj.ResponseTimer) % Delete the timer...
-          obj.ResponseTimer = []; % ... and remove it
-        end
       end
+    end
+    
+    function bind(obj)
+      % Open the connection to allow messages to be sent and received
+      if ~isempty(obj.Socket); fclose(obj.Socket); end
+      fopen(obj.Socket);
     end
     
     function obj = BallUDPService(ball, remoteHost)
@@ -66,8 +86,6 @@ classdef BallUDPService < srv.BasicUDPService
       obj.Socket = udp(remoteHost, 'LocalPort', obj.ListenPort);
       obj.Socket.ReadAsyncMode = 'continuous';
       obj.Socket.DatagramReceivedFcn = @(~,~)obj.processMsg;
-      obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
-        'PostSet',@(src,~)obj.update(src));
       % Set ball origin signal
       obj.Ball = ball;
       obj.bind;
@@ -93,7 +111,7 @@ classdef BallUDPService < srv.BasicUDPService
   methods (Access = protected)
       function processMsg(obj)
        obj.LastReceivedMessage = strtrim(char(fread(obj.Socket)'));
-       C = cellfun(@str2num,strsplit(obj.LastSentMessage), 'uni', 0);
+       C = cellfun(@str2num,strsplit(obj.LastReceivedMessage), 'uni', 0);
        [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});
        post(obj.Ball, s);
        disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])

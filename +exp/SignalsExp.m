@@ -170,7 +170,7 @@ classdef SignalsExp < handle
       obj.Inputs.ball = net.subscriptableOrigin('ball');
       ballHost = getOr(paramStruct, 'ballHostname', []);
       if ~isempty(ballHost)
-          obj.BallSocket = srv.BallUDPService(ballHost, obj.Inputs.ball);
+          obj.BallSocket = srv.BallUDPService(obj.Inputs.ball, ballHost);
       end
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -727,7 +727,7 @@ classdef SignalsExp < handle
         obj.Pending(inactiveIdx) = [];
         
         %% signalling
-        tic
+%         tic
         wx = readAbsolutePosition(obj.Wheel);
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
@@ -741,7 +741,7 @@ classdef SignalsExp < handle
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
 
-        nChars = overfprintf(nChars, 'post took %.1fms\n', 1000*toc);
+%         nChars = overfprintf(nChars, 'post took %.1fms\n', 1000*toc);
         
         %% redraw the stimulus window if it has been invalidated
         if obj.StimWindowInvalid
@@ -774,6 +774,7 @@ classdef SignalsExp < handle
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
+      if ~isempty(obj.BallSocket); delete(obj.BallSocket); end
     end
     
     function checkInput(obj)
