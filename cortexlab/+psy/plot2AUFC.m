@@ -1,73 +1,99 @@
 function plot2AUFC(ax, block)
-
-% numCompletedTrials = block.numCompletedTrials;
-
-[block.trial(arrayfun(@(a)isempty(a.contrast), block.trial)).contrast] = deal(nan);
+[block.trial(arrayfun(@(a)isempty(a.contrastLeft), block.trial)).contrastLeft] = deal(nan);
+[block.trial(arrayfun(@(a)isempty(a.contrastRight), block.trial)).contrastRight] = deal(nan);
 [block.trial(arrayfun(@(a)isempty(a.response), block.trial)).response] = deal(nan);
 [block.trial(arrayfun(@(a)isempty(a.repeatNum), block.trial)).repeatNum] = deal(nan);
 [block.trial(arrayfun(@(a)isempty(a.feedback), block.trial)).feedback] = deal(nan);
-contrast = [block.trial.contrast];
+contrast = [];
+contrast(1,:) = [block.trial.contrastLeft];
+contrast(2,:) = [block.trial.contrastRight];
+% contrast = diff(contrast);
 response = [block.trial.response];
 repeatNum = [block.trial.repeatNum];
-% feedback = [block.trial.feedback];
-if any(structfun(@isempty, block.trial(end))) % strip incomplete trials
-    contrast = contrast(1:end-1);
-    response = response(1:end-1);
-    repeatNum = repeatNum(1:end-1);
+if any(structfun(@isnan, block.trial(end))) % strip incomplete trials
+  contrast = contrast(:,1:end-1);
+  response = response(1:end-1);
+  repeatNum = repeatNum(1:end-1);
 end
 respTypes = unique(response);
 numRespTypes = numel(respTypes);
 
-cVals = unique(contrast);
+if size(contrast, 1) > 1
+  allContrast = contrast;
+  contrast = diff(contrast, [], 1);
+else
+  allContrast = [0;0];
+end
 
-psychoM = zeros(numRespTypes,length(cVals));
-psychoMCI = zeros(numRespTypes,length(cVals));
-numTrials = zeros(1,length(cVals));
-numChooseR = zeros(numRespTypes, length(cVals));
-for r = 1:numRespTypes
-    for c = 1:length(cVals)
-        incl = repeatNum==1&contrast==cVals(c);
-        numTrials(c) = sum(incl);
-        numChooseR(r,c) = sum(response==respTypes(r)&incl);
+if any(allContrast(1,:)>0 & allContrast(2,:)>0)
+  
+  % mode for plotting task with two stimuli at once
+  cValsLeft = unique(allContrast(1,:));
+  cValsRight = unique(allContrast(2,:));
+  nCL = numel(cValsLeft);
+  nCR = numel(cValsRight);
+  %     pedVals = cVals(1:end-1);
+  %     numPeds = numel(pedVals);
+  
+  respTypes = unique(response);
+  numRespTypes = numel(respTypes);
+  numTrials = nan(1, nCL, nCR);
+  numChooseR = nan(numRespTypes, nCL, nCR);
+  psychoM = nan(numRespTypes, nCL, nCR);
+  for r = 1:numRespTypes
+    for c1 = 1:nCL
+      for c2 = 1:nCR
+        incl = repeatNum==1&allContrast(1,:)==cValsLeft(c1)&allContrast(2,:) == cValsRight(c2);
+        numTrials(1,c1,c2) = sum(incl);
+        numChooseR(r,c1,c2) = sum(response==respTypes(r)&incl);
         
-        psychoM(r, c) = numChooseR(r,c)/numTrials(c);
-        psychoMCI(r, c) = 1.96*sqrt(psychoM(r, c)*(1-psychoM(r, c))/numTrials(c));
-        
+        psychoM(r,c1,c2) = numChooseR(r,c1,c2)/numTrials(1,c1,c2);
+        %psychoMCI(r, c,las) = 1.96*sqrt(psychoM(r, c,las)*(1-psychoM(r, c,las))/numTrials(1,c,las));
+      end
     end
-end
-
-colors = [0 1 1
-          1 0 0
-          0 1 0];%hsv(numRespTypes);
-% hsv(3)
-
-for r = 1:numRespTypes
-    
-    xdata = 100*cVals;
-    ydata = 100*psychoM(r,:);
-%     errBars = 100*psychoMCI(r,:);
-    
-    plot(ax, xdata, ydata, '-o', 'Color', colors(r,:), 'LineWidth', 1.0);
-    
-    % set all NaN values to 0 so the fill function can proceed just
-    % skipping over those points. 
-%     ydata(isnan(ydata)) = 0;
-%     errBars(isnan(errBars)) = 0;
-    
-    %TODO:update to use plt.hshade
-%     fillhandle = fill([xdata xdata(end:-1:1)],...
-%       [ydata+errBars ydata(end:-1:1)-errBars(end:-1:1)], colors(r,:),...
-%       'Parent', ax);
-%     set(fillhandle, 'FaceAlpha', 0.15, 'EdgeAlpha', 0);
-    %,...
+  end
+  cla(ax)
+  psychoMCmap = reshape(permute(psychoM, [2 1 3]), numRespTypes*nCR, nCL)';
+  psychoMCmap(isnan(psychoMCmap))=-1;
+  imagesc(ax, psychoMCmap)
+  colormap(colormap_pinkgreyscale)
+  
+  set(ax, 'XTick', 1:nCR*numRespTypes, 'XTickLabel', cValsRight(repmat(1:nCR, [1 numRespTypes])));
+  set(ax, 'YTick', 1:nCL, 'YTickLabel', cValsLeft(1:nCL));
+  
+  for r = 1:numRespTypes-1
+    plot(ax, nCR*r+[0.5 0.5], [0.5 nCL+0.5], 'Color', [0.8 0.8 0.8], 'LineWidth', 2.0);
+  end
+  
+  xlim(ax, [0.5 nCR*numRespTypes+0.5])
+  ylim(ax, [0.5 nCL+0.5])
+  caxis(ax, [-1 1]);
+  axis(ax, 'image')
+else
+  
+  cVals = unique(contrast);
+  colors = iff(numRespTypes>2,[0 1 1; 0 1 0; 1 0 0], [0 1 1; 1 0 0]);
+  psychoM = zeros(numRespTypes,length(cVals));
+  psychoMCI = zeros(numRespTypes,length(cVals));
+  numTrials = zeros(1,length(cVals));
+  numChooseR = zeros(numRespTypes, length(cVals));
+  for r = 1:numRespTypes
+    for c = 1:length(cVals)
+      incl = repeatNum==1&contrast==cVals(c);
+      numTrials(c) = sum(incl);
+      numChooseR(r,c) = sum(response==respTypes(r)&incl);
       
-    
-%     hold on;
-
-    
+      psychoM(r, c) = numChooseR(r,c)/numTrials(c);
+      psychoMCI(r, c) = 1.96*sqrt(psychoM(r, c)*(1-psychoM(r, c))/numTrials(c));
+    end
+    errorbar(ax, 100*cVals, 100*psychoM(r,:), 100*psychoMCI(r,:),...
+      '-o', 'Color', colors(r,:), 'LineWidth', 1.0);
+  end
+  
+  ylim(ax, [-1 101]);
+  xdata = cVals(~isnan(cVals))*100;
+  if numel(xdata) > 1
+    xlim(ax, xdata([1 end])*1.1);
+  end
 end
-ylim(ax, [-1 101]);
-xdata = xdata(~isnan(xdata));
-if numel(xdata) > 1
-  xlim(ax, xdata([1 end])*1.1);
 end
