@@ -131,13 +131,15 @@ classdef BasicUDPService < srv.Service
       fopen(obj.Socket);
     end
     
-    function start(obj, expRef)
+    function start(obj, expRef, ai)
+      ref = Alyx.parseAlyxInstance(expRef, ai);
       % Send start message to remotehost and await confirmation
-      obj.confirmedSend(sprintf('GOGO%s*%s', expRef, hostname));
+      obj.confirmedSend(sprintf('GOGO%s*%s', ref, hostname));
       while obj.AwaitingConfirmation&&...
           ~strcmp(obj.LastReceivedMessage, obj.LastSentMessage)
         pause(0.2);
       end
+      if strcmp(obj.Status, 'exception'); error('Confirmation failed'); end
     end
     
     function stop(obj)
@@ -163,14 +165,13 @@ classdef BasicUDPService < srv.Service
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimeout)
         obj.ResponseTimer = timer('StartDelay', obj.ResponseTimeout,...
-          'TimerFcn', @(src,evt)obj.processMsg(src,evt), 'StopFcn', @(src,~)delete(src));
+          'TimerFcn', @(src,evt)obj.processMsg(src,evt), 'StopFcn', @(src,~)stop(src));
         start(obj.ResponseTimer) % start the timer
       end
     end
     
     function receiveUDP(obj)
       obj.LastReceivedMessage = strtrim(fscanf(obj.Socket));
-      
       % Remove any more accumulated inputs to the listener
 %       obj.Socket.flushinput();
       notify(obj, 'MessageReceived')
@@ -196,16 +197,24 @@ classdef BasicUDPService < srv.Service
         return
       end
       % We no longer need the timer, stop it
-      if ~isempty(obj.ResponseTimer); stop(obj.ResponseTimer); end
+      if ~isempty(obj.ResponseTimer)
+        stop(obj.ResponseTimer);
+        delete(obj.ResponseTimer);
+        obj.ResponseTimer = [];
+      end
       
       if obj.AwaitingConfirmation
         % Reset AwaitingConfirmation
         obj.AwaitingConfirmation = false;
-        % Check the confirmation message is the same as the sent message
-        assert(~isempty(response)&&... % something received
-          strcmp(response.status, 'WHAT')||... % status update
-          strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
-          'Confirmation failed')
+        try % Check the confirmation message is the same as the sent message
+          assert(~isempty(response)&&... % something received
+            strcmp(response.status, 'WHAT')||... % status update
+            strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
+            'Confirmation failed')
+        catch ex
+          obj.Status = 'exception';
+          rethrow(ex)
+        end
       end
       % At the moment we just disply some stuff, other functions listening
       % to the MessageReceived event can do their thing
@@ -224,6 +233,7 @@ classdef BasicUDPService < srv.Service
               obj.LocalStatus = 'running';
               obj.sendUDP(obj.LastReceivedMessage)
               catch ex
+                obj.LocalStatus = 'exception';
                 error('Failed to start service: %s', ex.message)
               end
             end
@@ -241,6 +251,7 @@ classdef BasicUDPService < srv.Service
               obj.LocalStatus = 'idle';
               obj.sendUDP(obj.LastReceivedMessage)
               catch
+                obj.LocalStatus = 'exception';
                 error('Failed to stop service')
               end
             end
@@ -261,7 +272,7 @@ classdef BasicUDPService < srv.Service
               obj.Status = 'unavailable';
             end
           else
-            % Ignore if it is our on 
+            % Ignore if it is our own 
             if strcmp(response.host, hostname); return; end
             try
               obj.sendUDP(['WHAT' parsed.id obj.LocalStatus '*' obj.RemoteHost])

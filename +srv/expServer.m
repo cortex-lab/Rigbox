@@ -7,7 +7,7 @@ function expServer(useTimelineOverride, bgColour)
 % 2013-06 CB created
 
 %% Parameters
-global AGL GL GLU
+global AGL GL GLU %#ok<NUSED>
 listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
@@ -46,6 +46,7 @@ rig = hw.devices;
 
 cleanup = onCleanup(@() fun.applyForce({
   @() communicator.close(),...
+  @() delete(listener),...
   @ShowCursor,...
   @KbQueueRelease,...
   @() rig.stimWindow.close(),...
@@ -170,6 +171,7 @@ ShowCursor();
         case 'run'
           % exp run request
           [expRef, preDelay, postDelay, Alyx] = args{:};
+          Alyx.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);

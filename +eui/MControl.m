@@ -121,7 +121,7 @@ classdef MControl < handle
     
     function tabChanged(obj)
     % Function to change which subject Alyx uses when user changes tab
-      if isempty(obj.AlyxPanel.AlyxInstance); return; end
+      if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn; return; end
       if obj.TabPanel.SelectedChild == 1 % Log tab
         obj.AlyxPanel.dispWaterReq(obj.LogSubject);
       else % SelectedChild == 2 Experiment tab
@@ -264,6 +264,7 @@ classdef MControl < handle
       matchTypes = factory(strcmp({factory.label}, typeName)).matchTypes();
       subject = obj.NewExpSubject.Selected; % Find which subject is selected
       label = 'none';
+      set(obj.BeginExpButton, 'Enable', 'off') % Can't run experiment without params!
       switch lower(profile)
         case '<defaults>'
           %           if strcmp(obj.NewExpType.Selected, '<custom...>')
@@ -308,6 +309,9 @@ classdef MControl < handle
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
         obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
+        end
       end
     end
     
@@ -332,14 +336,16 @@ classdef MControl < handle
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
       obj.log('''%s'' on ''%s'' stopped', evt.Ref, rig.Name);
       if rig == obj.RemoteRigs.Selected
-        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
+        set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options'
+      end
+      if obj.Parameters.Struct~=nil % If params loaded
+        set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
       % Alyx water reporting: indicate amount of water this mouse still needs     
-      if ~isempty(rig.AlyxInstance)
+      if rig.AlyxInstance.IsLoggedIn
           try
               subject = dat.parseExpRef(evt.Ref);
-              sd = alyx.getData(rig.AlyxInstance, ...
-                  sprintf('subjects/%s', subject));
+              sd = rig.AlyxInstance.getData(sprintf('subjects/%s', subject));
               obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
                   subject, sd.water_requirement_remaining, ...
                   sd.water_requirement_total-sd.water_requirement_remaining);
@@ -347,7 +353,10 @@ classdef MControl < handle
               subject = dat.parseExpRef(evt.Ref);
               obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
           end
-          rig.AlyxInstance = []; % remove AlyxInstance from rig; no longer required
+          % Remove AlyxInstance from rig; no longer required
+%           delete(rig.AlyxInstance); % Line invalid now Alyx no longer
+%           handel class
+          rig.AlyxInstance = [];
       end
     end
     
@@ -392,7 +401,10 @@ classdef MControl < handle
       else % The rig is idle...
         obj.log('Connected to ''%s''', rig.Name); % ...say so in the log box
         if rig == obj.RemoteRigs.Selected
-          set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on'); % Enable 'Start' button
+          set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options' button
+        end
+        if obj.Parameters.Struct~=nil % If parameters loaded
+          set(obj.BeginExpButton, 'Enable', 'on');
         end
       end
     end
@@ -443,7 +455,10 @@ classdef MControl < handle
           obj.log('Could not connect to ''%s'' (%s)', rig.Name, errmsg);
         end
       elseif strcmp(rig.Status, 'idle')
-        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'on');
+        set(obj.RigOptionsButton, 'Enable', 'on');
+        if obj.Parameters.Struct~=nil
+          set(obj.BeginExpButton, 'Enable', 'on');
+        end
       else
         obj.rigConnected(rig);
       end
@@ -532,11 +547,12 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-        if isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.NewExpSubject.Selected,'default')
+        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
           try
             obj.AlyxPanel.login();
+            assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn);
           catch
-            log('Warning: Must be logged in to Alyx before running an experiment')
+            obj.log('Warning: Must be logged in to Alyx before running an experiment')
             return
           end
         end
@@ -546,12 +562,12 @@ classdef MControl < handle
         obj.Parameters.set('services', services(:),...
             'List of experiment services to use during the experiment');
         % Create new experiment reference
-        [expRef, ~, url] = dat.newExp(obj.NewExpSubject.Selected, now,...
-            obj.Parameters.Struct, obj.AlyxPanel.AlyxInstance); 
+        [expRef, ~, url] = obj.AlyxPanel.AlyxInstance.newExp(...
+          obj.NewExpSubject.Selected, now, obj.Parameters.Struct); 
         % Add a copy of the AlyxInstance to the rig object for later
         % water registration, &c.
         rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
-        rig.AlyxInstance.subsessionURL = url;
+        rig.AlyxInstance.SessionURL = url;
         
         panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
         obj.LastExpPanel = panel;
@@ -569,7 +585,7 @@ classdef MControl < handle
       entries = obj.Log.entriesByType('weight-grams');
       datenums = floor([entries.date]);
       obj.WeightAxes.clear();
-      if ~isempty(obj.AlyxPanel.AlyxInstance)&&~strcmp(obj.LogSubject.Selected,'default')
+      if obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.LogSubject.Selected,'default')
         obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
       else

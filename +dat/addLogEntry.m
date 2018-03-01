@@ -26,6 +26,7 @@ end
 %% create and store entry
 e = entry(nextidx);
 log(nextidx) = e;
+% Store an instance of Alyx for narrative registration
 if nargin > 5; e.AlyxInstance = AlyxInstance; end
 
 %% store updated log to *all* repos locations

@@ -81,7 +81,7 @@ tls.tlObj = tlObj;
       case 'alyx'
         fprintf(1, 'received alyx token message\n');
         idx = find(msg==' ', 1, 'last');
-        [~, ai] = dat.parseAlyxInstance(msg(idx+1:end));
+        [~, ai] = Alyx.parseAlyxInstance(msg(idx+1:end));
         tls.AlyxInstance = ai;
       case 'expstart'
         % create a file path & experiment ref based on experiment info
@@ -132,7 +132,7 @@ tls.tlObj = tlObj;
         
         if isempty(tls.AlyxInstance)
           % first get an alyx instance
-          ai = alyx.loginWindow();
+          ai = Alyx;
         else
           ai = tls.AlyxInstance;
         end
@@ -142,8 +142,8 @@ tls.tlObj = tlObj;
         if ~isempty(mouseName)
           clear expParams;
           expParams.experimentType = 'timelineManualStart';
-          [newExpRef, ~, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
-          ai.subsessionURL = subsessionURL;
+          [newExpRef, ~, subsessionURL] = ai.newExp(mouseName, now, expParams);
+          ai.SessionURL = subsessionURL;
           tls.AlyxInstance = ai;
           tlObj.start(newExpRef, ai);
         end
