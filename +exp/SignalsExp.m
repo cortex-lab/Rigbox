@@ -184,7 +184,8 @@ classdef SignalsExp < handle
         globalPars, allCondPars, advanceTrial);
       
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
-      
+      binSave = map2(obj.Events.trialNum, 150, @mod);
+      binSave = binSave.keepWhen(binSave == false);
       lastTrialOver = then(~hasNext, true);
       
       %       obj.Events.expStop = then(~hasNext, true);
@@ -203,6 +204,7 @@ classdef SignalsExp < handle
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
+        binSave.onValue(@(~)binarySave(obj))
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         lastTrialOver.onValue(@(~)quit(obj));];
       %         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
@@ -903,6 +905,33 @@ classdef SignalsExp < handle
       if handler.InvalidateStimWindow
         obj.StimWindow.invalidate;
       end
+    end
+    
+    function binarySave(obj)
+      tic
+      disp('saving binary')
+      events = logs(obj.Events, obj.Clock.ReferenceTime);
+      localPath = dat.expFilePath(obj.Data.expRef, 'block', 'local'); % get the local exp data path
+      obj.DataFID(2) = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
+      names = fieldnames(events);
+      for i = 1:length(names)
+        fid = fopen([localPath(1:end-4) names{i} '.dat'], 'w'); % open a binary data file
+        data = [events.(names{i})];
+        switch class(data)
+          case 'double'
+            precision = 'double';
+          case 'int'
+            precision = 'int';
+          case 'string'
+            precision = 'double';
+          case 'char'
+            precision = 'char';
+          otherwise
+        end
+        fwrite(fid, data, precision);
+        fclose(fid);
+      end
+      toc
     end
     
     function saveData(obj)
