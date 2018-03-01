@@ -36,7 +36,7 @@ log('Bound UDP sockets');
 tls.close = @closeConns;
 tls.process = @process;
 tls.listen = @listen;
-tls.AlyxInstance = [];
+tls.AlyxInstance = Alyx('','');
 
 
 %% Initialize timeline
