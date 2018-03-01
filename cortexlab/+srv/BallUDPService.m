@@ -86,8 +86,15 @@ classdef BallUDPService < srv.Service
       obj.Socket = udp(remoteHost, 'LocalPort', obj.ListenPort);
       obj.Socket.ReadAsyncMode = 'continuous';
       obj.Socket.DatagramReceivedFcn = @(~,~)obj.processMsg;
-      % Set ball origin signal
-      obj.Ball = ball;
+      % Set ball origin signals
+      obj.Ball = cell(1, 5);
+      obj.Ball{1} = ball.Node.Net.origin('ballTime');
+      obj.Ball{2} = ball.Node.Net.origin('Ax');
+      obj.Ball{3} = ball.Node.Net.origin('Ay');
+      obj.Ball{4} = ball.Node.Net.origin('Bx');
+      obj.Ball{5} = ball.Node.Net.origin('By');
+      post(ball, struct('ballTime', obj.Ball{1}, 'Ax', obj.Ball{2},...
+          'Ay', obj.Ball{3}, 'Bx', obj.Ball{4}, 'By', obj.Ball{5}));
       obj.bind;
     end
             
@@ -112,7 +119,9 @@ classdef BallUDPService < srv.Service
       function processMsg(obj)
        obj.LastReceivedMessage = strtrim(char(fread(obj.Socket)'));
        C = cellfun(@str2num,strsplit(obj.LastReceivedMessage), 'uni', 0);
-       [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});
+       cellfun(@(s,v)s.post(v), obj.Ball, C);
+       
+%        [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});
        post(obj.Ball, s);
        disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
       end
