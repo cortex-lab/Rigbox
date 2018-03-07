@@ -1,6 +1,17 @@
 function [expRef, expSeq] = newExp(subject, expDate, expParams)
 %DAT.NEWEXP Create a new unique experiment in the database
-%   [ref, seq] = DAT.NEWEXP(subject, expDate, expParams) TODO
+%   [ref, seq, url] = DAT.NEWEXP(subject, expDate, expParams[, AlyxInstance])
+%   Create a new experiment by creating the relevant folder tree in the
+%   local and main data repositories in the following format:
+%
+%   subject/
+%          |_ YYYY-MM-DD/
+%                       |_ expSeq/
+%
+%   If experiment parameters are passed into the function, they are saved
+%   here.
+%
+%   See also DAT.PATHS
 %
 % Part of Rigbox
 
@@ -29,8 +40,7 @@ assert(exists, sprintf('"%" does not exist', subject));
 [~, dateList, seqList] = dat.listExps(subject);
 
 % filter the list by expdate
-expDate = floor(expDate);
-filterIdx = dateList == expDate;
+filterIdx = dateList == floor(expDate);
 
 % find the next sequence number
 expSeq = max(seqList(filterIdx)) + 1;
@@ -40,13 +50,14 @@ if isempty(expSeq)
 end
 
 % expInfo repository is the reference location for which experiments exist
-[expPath, expRef] = dat.expPath(subject, expDate, expSeq, 'expInfo');
+[expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'expInfo');
 % ensure nothing went wrong in making a "unique" ref and path to hold
 assert(~any(file.exists(expPath)), ...
   sprintf('Something went wrong as experiment folders already exist for "%s".', expRef));
 
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
+
 
 % if the parameters had an experiment definition function, save a copy in
 % the experiment's folder
@@ -60,6 +71,5 @@ end
 
 % now save the experiment parameters variable
 superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
-
 
 end

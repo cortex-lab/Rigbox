@@ -68,6 +68,9 @@ classdef Experiment < handle
     PostDelay = 0
     
     IsPaused = false %flag indicating whether the experiment is paused
+    
+    %AlyxToken from client
+    AlyxInstance
   end
   
   properties (SetAccess = protected)
@@ -87,6 +90,7 @@ classdef Experiment < handle
     
     %Data from the currently running experiment, if any.
     Data
+    
   end
   
   properties (Access = protected)
@@ -281,9 +285,16 @@ classdef Experiment < handle
       
       % start the experiment loop
       mainLoop(obj);
+      
       % last flip, if needed
       if obj.StimWindow.Invalid
         flip(obj.StimWindow);
+      end
+      
+        %post comms notification with event name and time
+      if isempty(obj.AlyxInstance)
+        post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
+        pause(0.2) 
       end
       try
         %Trigger the 'experimentCleanup' event so any handlers will be called
@@ -440,7 +451,7 @@ classdef Experiment < handle
         %but still shut down with usual cleanup delays etc
         obj.Data.endStatus = 'quit';
       end
-
+      
       if immediately || obj.PostDelay == 0
         %unset looping flag now
         stopLooping(obj);
@@ -761,6 +772,27 @@ classdef Experiment < handle
         % save the data to the appropriate locations indicated by expRef
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
+        
+        if ~obj.AlyxInstance.IsLoggedIn
+            warning('No Alyx token set');
+        else
+            try
+                [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject, 'default'); return; end
+                % Register saved files
+                obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+                    {subject, expDate, seq}, 'Block', []);
+                % Save the session end time
+                if ~isempty(obj.AlyxInstance.SessionURL)
+                  obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
+                      struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                else
+                  % Infer from date session and retrieve using expFilePath
+                end
+            catch ex
+                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+            end
+        end
     end
   end
   

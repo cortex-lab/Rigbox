@@ -71,7 +71,7 @@ classdef Parameters < handle
       n = numel(obj.pNames);
       obj.IsTrialSpecific = struct;
       isTrialSpecificDefault = @(n) ...
-        ~any(strcmp(n, {'defFunction'})) &&...
+        ~any(strcmp(n, {'defFunction', 'expPanelFun'})) &&...
         (strcmp(n, {'numRepeats'})...
         || size(obj.pStruct.(n), 2) > 1);
       for i = 1:n
@@ -183,7 +183,7 @@ classdef Parameters < handle
       % concatenate trial parameter
       trialParamValues = cat(1, trialParamValues{:});
       if isempty(trialParamValues)
-        trialParamValues = {};
+        trialParamValues = {1};
       end
       trialParams = cell2struct(trialParamValues, trialParamNames, 1)';
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);

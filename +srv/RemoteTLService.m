@@ -1,5 +1,5 @@
-classdef BasicUDPService < srv.Service
-  %SRV.BASICUDPSERVICE Interface to a dumb UDP-based service
+classdef RemoteTLService < srv.Service
+  %SRV.REMOTETLSERVICE UDP-based service for starting and stopping Timeline
   %   A UDP interface that uses the udp function of the Instument Control
   %   Toolbox. Unlike SRV.PRIMITIVEUDPSERVICE, this can send and recieve
   %   messages asynchronously and can be used both to start remote services
@@ -38,8 +38,7 @@ classdef BasicUDPService < srv.Service
   properties
     LocalStatus % Local status to send upon request
     ResponseTimeout = Inf % How long to wait for confirmation of receipt
-    StartCallback % Function to be run upon receiving remote start command
-    StopCallback % Function to be run upon receiving remote stop command
+    Timeline % Holds an instance of Timeline
   end
   
   properties (SetObservable, AbortSet = true)
@@ -85,10 +84,17 @@ classdef BasicUDPService < srv.Service
       end
     end
     
-    function obj = BasicUDPService(remoteHost, remotePort, listenPort)
-      % SRV.BASICUDPSERVICE(remoteHost [remotePort, listenPort])
+    function obj = RemoteTLService(remoteHost, remotePort, listenPort)
+      % SRV.REMOTETLSERVICE(remoteHost [remotePort, listenPort])
       %   remoteHost is the hostname of the service with which to send and
       %   receive messages.
+      paths = dat.paths(hostname); % Get list of paths for timeline
+      try
+        load(fullfile(paths.rigConfig, 'hardware.mat'), 'timeline');
+      catch
+        timeline = hw.Timeline;
+      end
+      obj.Timeline = timeline; % Load timeline object
       obj.RemoteHost = remoteHost; % Set hostname
       obj.RemoteIP = ipaddress(remoteHost); % Get IP address
       if nargin >= 3; obj.ListenPort = listenPort; end % Set local port
@@ -97,24 +103,24 @@ classdef BasicUDPService < srv.Service
         'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
       obj.Socket.ReadAsyncMode = 'continuous';
       obj.Socket.BytesAvailableFcnCount = 10; % Number of bytes in buffer required to trigger BytesAvailableFcn
-      obj.Socket.BytesAvailableFcn = @(~,~)obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
+      obj.Socket.BytesAvailableFcn = @(~,~)obj.receiveUDP(); % Add callback to receiveUDP when enough bytes arrive in the buffer
       % Add listener to MessageReceived event, notified when receiveUDP is
       % called.  This event can be listened to by anyone.
-      obj.Listener = event.listener(obj, 'MessageReceived', @(src,evt)obj.processMsg(src,evt));
+      obj.Listener = event.listener(obj, 'MessageReceived', @(~,~)obj.processMsg);
       % Add listener for when the observable properties are set 
       obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
-        'PostSet',@(src,~)obj.update(src));
+        'PostSet',@obj.update);
       % Add listener for when the remote service's status is requested
       obj.addlistener('Status', 'PreGet', @(~,~)obj.requestStatus);
     end
     
-    function update(obj, src)
+    function update(obj, evt, ~)
       % Callback for setting udp relevant properties.  Some properties can
       % only be set when the socket is closed.
       % Check if socket is open
       isOpen = strcmp(obj.Socket.Status, 'open');
       % Close connection before setting, if required to do so
-      if any(strcmp(src.Name, {'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'}))&&isOpen
+      if any(strcmp(evt.name, {'RemoteHost', 'LocalPort', 'EnablePortSharing'}))&&isOpen
         fclose(obj.Socket);
       end
       % Set all the relevant properties
@@ -131,25 +137,14 @@ classdef BasicUDPService < srv.Service
       fopen(obj.Socket);
     end
     
-    function start(obj, expRef, ai)
-      ref = Alyx.parseAlyxInstance(expRef, ai);
+    function start(obj, expRef)
       % Send start message to remotehost and await confirmation
-      obj.confirmedSend(sprintf('GOGO%s*%s', ref, hostname));
-      while obj.AwaitingConfirmation&&...
-          ~strcmp(obj.LastReceivedMessage, obj.LastSentMessage)
-        pause(0.2);
-      end
-      if strcmp(obj.Status, 'exception'); error('Confirmation failed'); end
+      obj.confirmedSend(sprintf('GOGO%s*%s', expRef, hostname));
     end
     
     function stop(obj)
       % Send stop message to remotehost and await confirmation
       obj.confirmedSend(sprintf('STOP*%s', hostname));
-      while obj.AwaitingConfirmation&&...
-          ~strcmp(obj.LastReceivedMessage, obj.LastSentMessage)
-        pause(0.1)
-      end
-      obj.delete
     end
     
     function requestStatus(obj)
@@ -164,8 +159,8 @@ classdef BasicUDPService < srv.Service
       obj.AwaitingConfirmation = true;
       % Add timer to impose a response timeout
       if ~isinf(obj.ResponseTimeout)
-        obj.ResponseTimer = timer('StartDelay', obj.ResponseTimeout,...
-          'TimerFcn', @(src,evt)obj.processMsg(src,evt), 'StopFcn', @(src,~)stop(src));
+        obj.ResponseTimer = timer('StartDelay', obj.ResponseTimout,...
+          'TimerFcn', @(~,~)obj.processMsg);
         start(obj.ResponseTimer) % start the timer
       end
     end
@@ -182,43 +177,34 @@ classdef BasicUDPService < srv.Service
       if strcmp(obj.Socket.Status, 'closed'); bind(obj); end
       fprintf(obj.Socket, msg); % Send message
       obj.LastSentMessage = msg; % Save a copy of the message
-      disp(['Sent message to ' obj.RemoteHost]) % Display success
     end
   end
   
   methods (Access = protected)
-      function processMsg(obj, src, evt)
+    function processMsg(obj)
       % Parse the message into its constituent parts
       response = regexp(obj.LastReceivedMessage,...
-        '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>\w*)', 'names');
+          '(?<status>[A-Z]{4})(?<body>.*)\*(?<host>[a-z]*)', 'names');
       % Check that the message was from the correct host, otherwise ignore
       if ~isempty(response)&&~any(strcmp(response.host, {obj.RemoteHost hostname}))
-        warning('Received message from %s, ignoring', response.host);
-        return
+          warning('Received message from %s, ignoring', response.host);
+          return
       end
-      % We no longer need the timer, stop it
+      % We no longer need the timer, stop and delete it
       if ~isempty(obj.ResponseTimer)
-        stop(obj.ResponseTimer);
-        delete(obj.ResponseTimer);
-        obj.ResponseTimer = [];
+          stop(obj.ResponseTimer)
+          delete(obj.ResponseTimer)
+          obj.ResponseTimer = [];
       end
-      
       if obj.AwaitingConfirmation
-        % Reset AwaitingConfirmation
-        obj.AwaitingConfirmation = false;
-        try % Check the confirmation message is the same as the sent message
-          assert(~isempty(response)&&... % something received
+      % Check the confirmation message is the same as the sent message
+        assert(~isempty(response)&&... % something received
             strcmp(response.status, 'WHAT')||... % status update
             strcmp(obj.LastReceivedMessage, obj.LastSentMessage),... % is echo
-            'Confirmation failed')
-        catch ex
-          obj.Status = 'exception';
-          rethrow(ex)
-        end
+          'Confirmation failed')
       end
       % At the moment we just disply some stuff, other functions listening
       % to the MessageReceived event can do their thing
-      if isempty(response); return; end
       switch response.status
         case 'GOGO'
           if obj.AwaitingConfirmation
@@ -227,16 +213,10 @@ classdef BasicUDPService < srv.Service
           else
             disp('Received start request')
             obj.LocalStatus = 'starting';
-            if ~isempty(obj.StartCallback)&&isa(obj.StartCallback,'function_handle')
-              try
-              feval(obj.StartCallback, src, evt);
-              obj.LocalStatus = 'running';
-              obj.sendUDP(obj.LastReceivedMessage)
-              catch ex
-                obj.LocalStatus = 'exception';
-                error('Failed to start service: %s', ex.message)
-              end
-            end
+            [expRef, Alyx] = dat.parseAlyxInstance(response.body);
+            obj.Timeline.start(expRef, Alyx)
+            obj.LocalStatus = 'running';
+            obj.sendUDP(obj.LastReceivedMessage)
           end
         case 'STOP'
           if obj.AwaitingConfirmation
@@ -245,16 +225,9 @@ classdef BasicUDPService < srv.Service
           else
             disp('Received stop request')
             obj.LocalStatus = 'stopping';
-            if ~isempty(obj.StopCallback)&&isa(obj.StopCallback,'function_handle')
-              try
-              feval(obj.StopCallback, src, evt);
-              obj.LocalStatus = 'idle';
-              obj.sendUDP(obj.LastReceivedMessage)
-              catch
-                obj.LocalStatus = 'exception';
-                error('Failed to stop service')
-              end
-            end
+            obj.Timeline.stop
+            obj.LocalStatus = 'idle';
+            obj.sendUDP(obj.LastReceivedMessage)
           end
         case 'WHAT'
           parsed = regexp(response.body, '(?<id>\d+)(?<update>[a-z]*)', 'names');
@@ -271,11 +244,9 @@ classdef BasicUDPService < srv.Service
             catch
               obj.Status = 'unavailable';
             end
-          else
-            % Ignore if it is our own 
-            if strcmp(response.host, hostname); return; end
+          else % Received status request NB: Currently no way of determining status
             try
-              obj.sendUDP(['WHAT' parsed.id obj.LocalStatus '*' obj.RemoteHost])
+              obj.sendUDP(['WHAT' parsed.id obj.LocalStatus obj.RemoteHost])
               disp(['Sent status update to ' obj.RemoteHost]) % Display success
             catch
               error('Failed to send status update to %s', obj.RemoteHost)
@@ -284,6 +255,8 @@ classdef BasicUDPService < srv.Service
         otherwise
           disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
       end
+      % Reset AwaitingConfirmation
+      obj.AwaitingConfirmation = false;
     end
   end
 end

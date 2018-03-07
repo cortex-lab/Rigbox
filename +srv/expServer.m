@@ -7,7 +7,7 @@ function expServer(useTimelineOverride, bgColour)
 % 2013-06 CB created
 
 %% Parameters
-global AGL GL GLU
+global AGL GL GLU %#ok<NUSED>
 listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
@@ -15,6 +15,7 @@ rewardPulseKey = KbName('space');
 rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
+toggleBackground = KbName('b');
 rewardId = 1;
 
 %% Initialisation
@@ -45,6 +46,7 @@ rig = hw.devices;
 
 cleanup = onCleanup(@() fun.applyForce({
   @() communicator.close(),...
+  @() delete(listener),...
   @ShowCursor,...
   @KbQueueRelease,...
   @() rig.stimWindow.close(),...
@@ -128,7 +130,12 @@ while running
       log('Performing a gamma calibration');
       calibrateGamma();
   end
-    
+  
+  if firstPress(toggleBackground) > 0
+      log('Changing background to white');
+      whiteScreen();
+  end
+  
   if firstPress(KbName('1')) > 0
     rewardId = 1;
   end
@@ -163,13 +170,14 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay] = args{:};
+          [expRef, preDelay, postDelay, Alyx] = args{:};
+          Alyx.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay);
+              runExp(expRef, preDelay, postDelay, Alyx);
               log('Experiment ''%s'' completed', expRef);
               communicator.send('status', {'completed', expRef});
             catch runEx
@@ -185,21 +193,31 @@ ShowCursor();
         case 'quit'
           if ~isempty(experiment)
             immediately = args{1};
+            AlyxInstance = args{2};
             if immediately
               log('Aborting experiment');
             else
               log('Ending experiment');
+            end
+            if ~isempty(AlyxInstance)&&isempty(experiment.AlyxInstance)
+              experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
             send(communicator, id, []);
           else
             log('Quit message received but no experiment is running\n');
           end
+        case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
+            AlyxInstance = args{1}; %get struct
+            if ~isempty(AlyxInstance)
+              experiment.AlyxInstance = AlyxInstance; %set property for current experiment
+            end
+            send(communicator, id, []); %notify Stimulus Controllor of success
       end
     end
   end
 
-  function runExp(expRef, preDelay, postDelay)
+  function runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -216,7 +234,7 @@ ShowCursor();
         idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      rig.timeline.start(expRef, []);
+      rig.timeline.start(expRef, Alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -227,6 +245,7 @@ ShowCursor();
     experiment = srv.prepareExp(params, rig, preDelay, postDelay,...
       communicator);
     communicator.EventMode = true; % use event-based callback mode
+    experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
     % clear the active experiment var
@@ -256,26 +275,33 @@ ShowCursor();
     ul = [calibration.volumeMicroLitres];
     log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
     
+    %     rigData = load(fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat'));
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
   end
 
+  function whiteScreen()
+    rig.stimWindow.BackgroundColour = 255;
+    rig.stimWindow.flip();
+    rig.stimWindow.BackgroundColour = bgColour;
+  end
+
   function calibrateGamma()
-        stimWindow = rig.stimWindow;
-        DaqDev = rig.daqController.DaqIds;
-        lightIn = 'ai0'; % defaults from hw.psy.Window
-        clockIn = 'ai1';
-        clockOut = 'port1/line0 (PFI4)';
-        log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-            'Press any key to contiue\n'],lightIn,clockIn,clockOut);
-        pause; % wait for keypress
-        stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-        pause(1);
-        saveGamma(stimWindow.Calibration);
-        stimWindow.applyCalibration(stimWindow.Calibration);
-        clear('lightIn','clockIn','clockOut','cal');
-        log('Gamma calibration complete');
+    stimWindow = rig.stimWindow;
+    DaqDev = rig.daqController.DaqIds;
+    lightIn = 'ai0'; % defaults from hw.psy.Window
+    clockIn = 'ai1';
+    clockOut = 'port1/line0 (PFI4)';
+    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
+        'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    pause; % wait for keypress
+    stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+    pause(1);
+    saveGamma(stimWindow.Calibration);
+    stimWindow.applyCalibration(stimWindow.Calibration);
+    clear('lightIn','clockIn','clockOut','cal');
+    log('Gamma calibration complete');
   end
 
   function saveGamma(cal)
@@ -311,7 +337,7 @@ ShowCursor();
     end
     rig.clock = clock;
     cellfun(@(user) setClock(user, clock),...
-      {'mouseInput', 'rewardController', 'lickDetector'});
+      {'mouseInput', 'lickDetector'});
     
     t = rig.timeline.UseTimeline;
     if enable

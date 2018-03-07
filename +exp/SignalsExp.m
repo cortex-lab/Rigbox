@@ -1,5 +1,5 @@
 classdef SignalsExp < handle
-  %exp.SignalsExp Base class for stimuli-delivering experiments
+  %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
   %   The class defines a framework for event- and state-based experiments.
   %   Visual and auditory stimuli can be controlled by experiment phases.
   %   Phases changes are managed by an event-handling system.
@@ -33,6 +33,8 @@ classdef SignalsExp < handle
     %saved into the block data field 'rigName'.
     RigName
     
+    %Communcator object for sending signals updates to mc.  Set by
+    %expServer
     Communicator = io.DummyCommunicator
     
     %Delay (secs) before starting main experiment phase after experiment
@@ -44,21 +46,30 @@ classdef SignalsExp < handle
     %wasn't requested).
     PostDelay = 0
     
-    IsPaused = false %flag indicating whether the experiment is paused
+    %Flag indicating whether the experiment is paused
+    IsPaused = false 
     
+    %Holds the wheel object, 'mouseInput' from the rig object.  See also
+    %USERIG, HW.DAQROTARYENCODER
     Wheel
     
+    %Holds the object for interating with the lick detector.  See also
+    %HW.DAQEDGECOUNTER
     LickDetector
     
+    %Holds the object for interating with the DAQ outputs (reward valve,
+    %etc.)  See also HW.DAQCONTROLLER
     DaqController
     
+    %Get the handle to the PTB window opened by expServer
     StimWindowPtr
     
     TextureById
     
     LayersByStim
     
-    Occ % occulus model
+    %Occulus viewing model
+    Occ
     
     Time
     
@@ -70,18 +81,25 @@ classdef SignalsExp < handle
     
     Visual
     
-    Audio
+    Audio % = aud.AudioRegistry
     
+    %Holds the parameters structure for this experiment
     Params
     
     ParamsLog
     
+    %The bounds for the photodiode square
     SyncBounds
     
+    %Sync colour cycle (usually [0, 255]) - cycles through these each
+    %time the screen flips.
     SyncColourCycle
     
-    NextSyncIdx %index into SyncColourCycle for next sync colour
-%     Audio = aud.AudioRegistry
+    %Index into SyncColourCycle for next sync colour
+    NextSyncIdx
+    
+    %Alyx instance from client.  See also SAVEDATA
+    AlyxInstance = []
   end
   
   properties (SetAccess = protected)     
@@ -101,6 +119,7 @@ classdef SignalsExp < handle
     
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    
   end
   
   properties (Access = protected)
@@ -124,9 +143,9 @@ classdef SignalsExp < handle
       obj.Inputs = sig.Registry(clockFun);
       obj.Outputs = sig.Registry(clockFun);
       obj.Visual = StructRef;
-      nAudChannels = getOr(paramStruct, 'numAudChannels', 2);
-      audSampleRate = getOr(paramStruct, 'audSampleRate', 192e3); % Hz
-      audDevIdx = getOr(paramStruct, 'audDevIdx', -1); % -1 means use system default
+      nAudChannels = getOr(paramStruct, 'numAudChannels', rig.audioDevice.NrOutputChannels);
+      audSampleRate = getOr(paramStruct, 'audSampleRate', rig.audioDevice.DefaultSampleRate); % Hz
+      audDevIdx = getOr(paramStruct, 'audDevIdx', rig.audioDevice.DeviceIndex); % -1 means use system default
       obj.Audio = audstream.Registry(audSampleRate, nAudChannels, audDevIdx);
       obj.Events = sig.Registry(clockFun);
       %% configure signals
@@ -136,8 +155,8 @@ classdef SignalsExp < handle
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
-      obj.Inputs.keyboard = net.origin('keyboard');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -211,7 +230,7 @@ classdef SignalsExp < handle
                   obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
               if id % if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
                     obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
               elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
@@ -335,6 +354,12 @@ classdef SignalsExp < handle
         % start the experiment loop
         mainLoop(obj);
         
+        %post comms notification with event name and time
+        if isempty(obj.AlyxInstance)
+          post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
+          pause(0.2) 
+        end
+        
         %Trigger the 'experimentCleanup' event so any handlers will be called
         cleanupInfo = exp.EventInfo('experimentCleanup', obj.Clock.now, obj);
         fireEvent(obj, cleanupInfo);
@@ -344,7 +369,7 @@ classdef SignalsExp < handle
         
         %return the data structure that has been built up
         data = obj.Data;
-        
+                
         if ~isempty(ref)
           saveData(obj); %save the data
         end
@@ -632,7 +657,6 @@ classdef SignalsExp < handle
         %% check for and process any input
         checkInput(obj);
 
-        
         %% execute pending event handlers that have become due
         for i = 1:ndue
           due = obj.Pending(dueIdx(i));
@@ -714,6 +738,8 @@ classdef SignalsExp < handle
             pause(obj);
           end
         else
+%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
+%               keysPressed~=obj.PauseKey,1,'first'));
           key = KbName(keysPressed);
           if ~isempty(key)
             post(obj.Inputs.keyboard, key(1));
@@ -812,9 +838,32 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
-      % save the data to the appropriate locations indicated by expRef
-      savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-      superSave(savepaths, struct('block', obj.Data));
+        % save the data to the appropriate locations indicated by expRef
+        savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+        superSave(savepaths, struct('block', obj.Data));
+        
+        if ~obj.AlyxInstance.IsLoggedIn
+            warning('No Alyx token set');
+        else
+            try
+                [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject, 'default'); return; end
+                % Register saved files
+                obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+                    obj.AlyxInstance.SessionURL, 'Block', []);
+%                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+%                     {subject, expDate, seq}, 'Block', []);
+                % Save the session end time
+                if ~isempty(obj.AlyxInstance.SessionURL)
+                  obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
+                      struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                else
+                  % Infer from date session and retrieve using expFilePath
+                end
+            catch ex
+                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+            end
+        end
     end
   end
   

@@ -1,25 +1,27 @@
 classdef StimulusControl < handle
   %SRV.STIMULUSCONTROL Interface to, and info about a remote rig setup
-  %   This interface is used by srv.expServer and mc to communicate with
+  %   This interface is used and mc to communicate with
   %   one another.  The data are sent over TCP/IP through a java Web Socket
   %   (net.entropy_mill.websocket).  This object can be used to send
   %   arbitraty data over the network.  It is used by expServer to send a
   %   receive parrameter structures and status updates in the form of
   %   strings.
   %
-  %   NB: This class replaces SRV.REMOTERIG.  See also SRV.SERVICE.
+  %   NB: This class replaces SRV.REMOTERIG.  See also SRV.SERVICE,
+  %   IO.WSJCOMMUNICATOR, EUI.MCONTROL
   %
   % Part of Rigbox
   
   % 2013-06 CB created
   
   properties
-    Uri
+    Uri % 
     Services = {}  % List of remote services that are to be interfaced with during an experiment.  Should be a list of string ids or hostnames
-    Name
-    ExpPreDelay = 0
-    ExpPostDelay = 0
-    ResponseTimeout = 15
+    SelectedServices % Logical array the size of Services, indicating which services to use (set by eui.MControl)
+    Name % The name of the remote rig, usually the host name
+    ExpPreDelay = 0 % The delay in seconds before the experiment is to start, set by mc
+    ExpPostDelay = 0 % The delay in seconds after the experiment has ended before data are saved, listeners deleted, etc.  Set by mc
+    ResponseTimeout = 15 % Time to wait for a response from the remote host before throwing an error
   end
   
   properties (Dependent = true)
@@ -38,6 +40,10 @@ classdef StimulusControl < handle
     Responses %Map from message IDs to responses
     LogTimes = zeros(10000,2)
     LogCount = 0
+  end
+  
+  properties (Transient, Hidden)
+    AlyxInstance = [] % Property to store rig specific Alyx token
   end
   
   properties (Constant)
@@ -94,18 +100,12 @@ classdef StimulusControl < handle
         end
       end
     end
-    
-    function setAlyxInstance(obj, AlyxInstance)
-      % send AlyxInstance to experiment server
-      r = obj.exchange({'updateAlyxInstance', AlyxInstance});
-      obj.errorOnFail(r);
-    end
-    
+        
     function quitExperiment(obj, immediately)
       if nargin < 2
         immediately = false;
       end
-      r = obj.exchange({'quit', immediately});
+      r = obj.exchange({'quit', immediately, obj.AlyxInstance});
       obj.errorOnFail(r);
     end
     
@@ -116,8 +116,7 @@ classdef StimulusControl < handle
       
       preDelay = obj.ExpPreDelay;
       postDelay = obj.ExpPostDelay;
-      
-      r = obj.exchange({'run', expRef, preDelay, postDelay});
+      r = obj.exchange({'run', expRef, preDelay, postDelay, obj.AlyxInstance});
       obj.errorOnFail(r);
     end
     
@@ -219,8 +218,12 @@ classdef StimulusControl < handle
 %                 end
             end
           case 'AlyxRequest'
+            % expServer requested the AlyxInstance
             ref = data; % expRef
-            % notify listeners i.e. ExpPanel of request for AlyxInstance
+            % send AlyxInstance to experiment server
+            r = obj.exchange({'updateAlyxInstance', obj.AlyxInstance});
+            obj.errorOnFail(r);
+            % notify listeners of request for AlyxInstance
             notify(obj, 'AlyxRequest', srv.ExpEvent('AlyxRequest', ref));
         end
       end
@@ -265,8 +268,10 @@ classdef StimulusControl < handle
       assert(~isNil(msg), 'Timed out waiting for message with id ''%s''', id);
       remove(obj.Responses, id); % no longer waiting, remove place holder
     end
-    
-    function errorOnFail(obj, r)
+  end
+  
+  methods (Static)
+    function errorOnFail(r)
       if iscell(r) && strcmp(r{1}, 'fail')
         error(r{3});
       end

@@ -6,7 +6,11 @@ classdef MControl < handle
   %     - improve it.
   %     - ensure all Parent objects specified explicitly (See GUI Layout
   %     Toolbox 2.3.1/layoutdoc/Getting_Started2.html)
-  %   See also MC.
+  %     - Do PrePostExpDelayEdits still store handles now it's moved to new
+  %     dialog?
+  %     - Tidy Options dialog
+  %     - Comment rigOptions function
+  %   See also MC, EUI.ALYXPANEL, EUI.EXPPANEL, EUI.LOG, EUI.PARAMEDITOR
   %
   % Part of Rigbox
   
@@ -14,35 +18,40 @@ classdef MControl < handle
   % 2017-02 MW Updated to work with new GUILayoutToolbox
   % 2017-02 MW Changed expFactory to allow loading of last params for the
   % specific expDef that was selected
-    
+  
+  properties
+    LoggingDisplay % control for showing log output
+  end
+  
   properties (SetAccess = private)
-    LogSubject %subject selector control
-    NewExpSubject
-    NewExpType
-    WeighingScale
-    Log %log control
-    RemoteRigs
-    TabPanel
-    LastExpPanel
+    LogSubject % Subject selector control
+    NewExpSubject % Experiment selector control
+    NewExpType % Experiment type selector control
+    WeighingScale % HW.WEIGHINGSCALE object for interacting with a balance
+    Log % Handle to the UI element containing the Log tabs
+    RemoteRigs % An array of SRV.STIMULUSCONTROL objects with connection information for each romote rig
+    TabPanel % Handle to the UI element containing the Log and Experiment tabs
+    LastExpPanel % Handle to the most recently instantiated EUI.EXPPANEL object
   end
   
   properties (Access = private)
-    LoggingDisplay %control for showing log output
     ParamEditor
     ParamPanel
-    BeginExpButton
-    NewExpFactory
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
+    BeginExpButton % The 'Start' button that begins an experiment
+    RigOptionsButton % The 'Options' button that opens the rig options dialog
+    NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
     RootContainer
-    Parameters
-    WeightAxes
+    Parameters % A structure containing the currently selected set of parameters
+    WeightAxes % Handle to the BUI.AXES object that holds the axes for the weight plot in the Log tab
     WeightReadingPlot
     NewExpParamProfile
     LogTabs
     ExpTabs
     ActiveExpsGrid
     Listeners
-    %handles to pre (i=1) and post (i=2) experiment delay edit text controls
-    PrePostExpDelayEdits
+    PrePostExpDelayEdits % Handles to pre (i=1) and post (i=2) experiment delay edit text cotrols
+    Services % Cell array of selected services
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
@@ -61,17 +70,18 @@ classdef MControl < handle
         'matchTypes', {{'ChoiceWorld' 'SingleTargetChoiceWorld'},...
         {'custom' ''}},...
         'defaultParamsFun',...
-        {@exp.choiceWorldParams,...
-        @exp.inferParameters}); % in signals/ this function returns a struct of parameters
+        {@exp.choiceWorldParams, @exp.inferParameters}); % in signals/ this function returns a struct of parameters
       obj.buildUI(parent);
       set(obj.RootContainer, 'Visible', 'on');
       %obj.LogSubject.Selected = '';
       obj.NewExpSubject.Selected = 'default'; % Make default selected subject 'default'
-      obj.expTypeChanged();
+      %obj.expTypeChanged();
       rig = hw.devices([], false);
       obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
         'TimerFcn', @(~,~)notify(obj, 'Refresh'));
       start(obj.RefreshTimer);
+      addlistener(obj.AlyxPanel, 'Connected', @obj.expSubjectChanged);
+      addlistener(obj.AlyxPanel, 'Disconnected', @obj.expSubjectChanged);
       try
         if isfield(rig, 'scale') && ~isempty(rig.scale)
           obj.WeighingScale = fieldOrDefault(rig, 'scale');
@@ -79,7 +89,7 @@ classdef MControl < handle
           obj.Listeners = [obj.Listeners,...
             {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}];
         end
-      catch ex
+      catch
         obj.log('Warning: could not connect to weighing scales');
       end      
       
@@ -93,16 +103,49 @@ classdef MControl < handle
       end
     end
   end
-%   
-methods (Access = protected) 
+  
+  methods (Access = protected)
     function newScalesReading(obj, ~, ~)
       if obj.TabPanel.SelectedChild == 1 && obj.LogTabs.SelectedChild == 2
         obj.plotWeightReading(); %refresh weighing scale reading
       end
     end
     
-    function expSubjectChanged(obj)
-      obj.expTypeChanged();
+    function tabChanged(obj)
+    % Function to change which subject Alyx uses when user changes tab
+      if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn; return; end
+      if obj.TabPanel.SelectedChild == 1 % Log tab
+        obj.AlyxPanel.dispWaterReq(obj.LogSubject);
+      else % SelectedChild == 2 Experiment tab
+        obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
+      end
+    end
+    
+    function expSubjectChanged(obj, ~, src)
+        % Function deals with subject dropdown list changes
+        switch src.EventName
+            case 'SelectionChanged' % user selected a new subject
+                % 'refresh' experiment type - this method allows the relevent parameters to be loaded for the new subject
+                obj.expTypeChanged(); 
+            case 'Connected' % user logged in to Alyx
+                % Change subject list to database list
+                obj.NewExpSubject.Option = obj.AlyxPanel.SubjectList;
+                obj.LogSubject.Option = obj.AlyxPanel.SubjectList;
+                % if selected is not in the database list, switch to
+                % default
+                if ~any(strcmp(obj.NewExpSubject.Selected, obj.AlyxPanel.SubjectList))
+                    obj.NewExpSubject.Selected = 'default';
+                    obj.expTypeChanged();
+                end
+                if ~any(strcmp(obj.LogSubject.Selected, obj.AlyxPanel.SubjectList))
+                    obj.LogSubject.Selected = 'default';
+                    obj.expTypeChanged();
+                end
+                obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
+            case 'Disconnected' % user logged out of Alyx
+                obj.NewExpSubject.Option = dat.listSubjects;
+                obj.LogSubject.Option = dat.listSubjects;
+        end
     end
     
     function expTypeChanged(obj)
@@ -119,7 +162,6 @@ methods (Access = protected)
           @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
         obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
       end
-      stdProfiles = {'<last for subject>'; '<defaults>'};
       
       if strcmp(obj.NewExpType.Selected, '<custom...>')
         type = 'custom';
@@ -127,6 +169,7 @@ methods (Access = protected)
         type = obj.NewExpType.Selected;
       end
       
+      stdProfiles = {'<last for subject>'; '<defaults>'};
       savedProfiles = fieldnames(dat.loadParamProfiles(type));
       obj.NewExpParamProfile.Option = [stdProfiles; savedProfiles];
       str = iff(strcmp('default', obj.NewExpSubject.Selected) &...
@@ -213,6 +256,7 @@ methods (Access = protected)
       matchTypes = factory(strcmp({factory.label}, typeName)).matchTypes();
       subject = obj.NewExpSubject.Selected; % Find which subject is selected
       label = 'none';
+      set(obj.BeginExpButton, 'Enable', 'off') % Can't run experiment without params!
       switch lower(profile)
         case '<defaults>'
           %           if strcmp(obj.NewExpType.Selected, '<custom...>')
@@ -257,6 +301,9 @@ methods (Access = protected)
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
         obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
+        end
       end
     end
     
@@ -275,33 +322,107 @@ methods (Access = protected)
     end
     
     function rigExpStarted(obj, rig, evt) % Announce that the experiment has started in the log box
-      obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
+        obj.log('''%s'' on ''%s'' started', evt.Ref, rig.Name);
     end
     
     function rigExpStopped(obj, rig, evt) % Announce that the experiment has stopped in the log box
       obj.log('''%s'' on ''%s'' stopped', evt.Ref, rig.Name);
       if rig == obj.RemoteRigs.Selected
+        set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options'
+      end
+      if obj.Parameters.Struct~=nil % If params loaded
         set(obj.BeginExpButton, 'Enable', 'on'); % Re-enable 'Start' button so a new experiment can be started on that rig
       end
-    end
-          
-    function rigConnected(obj, rig, evt) % If rig is connected...
-      obj.log('Connected to ''%s''', rig.Name); % Say so in the log box
-      if rig == obj.RemoteRigs.Selected
-        set(obj.BeginExpButton, 'Enable', 'on'); % Enable 'Start' button
-        set(obj.PrePostExpDelayEdits, 'Enable', 'on'); % % Enable 'Delays' boxes
+      % Alyx water reporting: indicate amount of water this mouse still needs     
+      if rig.AlyxInstance.IsLoggedIn
+          try
+              subject = dat.parseExpRef(evt.Ref);
+              sd = rig.AlyxInstance.getData(sprintf('subjects/%s', subject));
+              obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
+                  subject, sd.water_requirement_remaining, ...
+                  sd.water_requirement_total-sd.water_requirement_remaining);
+          catch
+              subject = dat.parseExpRef(evt.Ref);
+              obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
+          end
+          % Remove AlyxInstance from rig; no longer required
+%           delete(rig.AlyxInstance); % Line invalid now Alyx no longer
+%           handel class
+          rig.AlyxInstance = [];
       end
     end
     
-    function rigDisconnected(obj, rig, evt) % If rig is disconnected...
-      obj.log('Disconnected from ''%s''', rig.Name); % Say so in the log box
+    function rigConnected(obj, rig, ~)
+      % RIGDCONNECTED Callback when notified of the rig object's 'Connected' event
+      %   Called when the rig object status is changed to 'connected', i.e.
+      %   when the mc computer has successfully connected to the remote
+      %   rig.  Enables the 'Start' and 'Rig optoins' buttons and logs the
+      %   event in the Logging Display Now that the rig is connected, this
+      %   function queries the status of the remote rig.  If the remote rig
+      %   is running an experiment, it returns the expRef for the
+      %   experiment that is running.  In this case a dialog is spawned
+      %   notifying the user.  The user can either do nothing or choose to
+      %   view the active experiment, in which case a new EXPPANEL is
+      %   created
+      %
+      % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL, EUI.EXPPANEL
+        
+      % If rig is connected check no experiments are running...
+      expRef = rig.ExpRunnning; % returns expRef if running
+      if expRef
+%           error('Experiment %s already running of %s', expDef, rig.Name)
+          choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
+              upper(rig.Name), 'View', 'Cancel', 'Cancel');
+          switch choice
+              case 'View'
+                  % Load the parameters from file
+                  paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
+                  if ~isfield(paramStruct.parameters, 'type')
+                      paramStruct.type = 'custom'; % override type name with preferred
+                  end
+                  % Instantiate an ExpPanel and pass it the expRef and parameters
+                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct.parameters);
+                  obj.LastExpPanel = panel;
+                  % Add a listener for the new panel
+                  panel.Listeners = [panel.Listeners
+                      event.listener(obj, 'Refresh', @(~,~)panel.update())];
+                  obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
+              case 'Cancel'
+                  return
+          end
+      else % The rig is idle...
+        obj.log('Connected to ''%s''', rig.Name); % ...say so in the log box
+        if rig == obj.RemoteRigs.Selected
+          set(obj.RigOptionsButton, 'Enable', 'on'); % Enable 'Options' button
+        end
+        if obj.Parameters.Struct~=nil % If parameters loaded
+          set(obj.BeginExpButton, 'Enable', 'on');
+        end
+      end
+    end
+    
+    function rigDisconnected(obj, rig, ~)
+      % RIGDISCONNECTED Callback when notified of the rig object's 'Disconnected' event
+      %   Called when the rig object status is changed to 'disconnected',
+      %   i.e. when the rig is no longer connected to the mc computer.
+      %   Disables the 'Start' and 'Rig optoins' buttons and logs the event
+      %   in the Logging Display
+      %
+      % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL
+      %
+      % If rig is disconnected...
+      obj.log('Disconnected from ''%s''', rig.Name); % ...say so in the log box
       if rig == obj.RemoteRigs.Selected 
-        set(obj.BeginExpButton, 'enable', 'off'); % Grey out 'Start' button
-        set(obj.PrePostExpDelayEdits, 'Enable', 'off'); % Grey out 'Delays' boxes
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out 'Start' button
       end
     end
     
     function log(obj, varargin)
+      % LOG Displayes timestamped information about occurrences in mc
+      %   The log is stored in the LoggingDisplay property.
+      % log(formatSpec, A1,... An)
+      %
+      % See also FPRINTF
       message = sprintf(varargin{:});
       timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
       str = sprintf('[%s] %s', timestamp, message);
@@ -310,7 +431,7 @@ methods (Access = protected)
     end
     
     function remoteRigChanged(obj)
-      set([obj.BeginExpButton obj.PrePostExpDelayEdits], 'enable', 'off');
+      set(obj.RigOptionsButton, 'Enable', 'off');
       rig = obj.RemoteRigs.Selected;
       if ~isempty(rig) && strcmp(rig.Status, 'disconnected')
         %attempt to connect to rig
@@ -326,47 +447,154 @@ methods (Access = protected)
           obj.log('Could not connect to ''%s'' (%s)', rig.Name, errmsg);
         end
       elseif strcmp(rig.Status, 'idle')
-        set([obj.BeginExpButton obj.PrePostExpDelayEdits], 'enable', 'on');
+        set(obj.RigOptionsButton, 'Enable', 'on');
+        if obj.Parameters.Struct~=nil
+          set(obj.BeginExpButton, 'Enable', 'on');
+        end
+      else
+        obj.rigConnected(rig);
       end
-      set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
-      set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
     end
     
+    function rigOptions(obj)
+        % RIGOPTIONS A callback for the 'Rig Options' button
+        %   Opens a dialog allowing one to select which of the selected
+        %   rig's services to start during experiment initialization, and
+        %   to set any pre- and post-experiment delays.
+        %
+        %   See also SRV.STIMULUSCONTROL
+        rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        % Create a dialog to display the selected rig options
+        d = dialog('Position',[300 300 150 150],'Name', [upper(rig.Name) ' options']);
+        vbox = uix.VBox('Parent', d, 'Padding', 5);
+        bui.label('Services:', vbox); % Add 'Services' label
+        c = gobjects(1, length(rig.Services));
+        % Ensure that SelectedServices is the correct size
+        if length(rig.SelectedServices)~=length(rig.Services)
+          rig.SelectedServices = true(size(rig.Services));
+        end
+        if numel(rig.Services) % If the rig has any services...
+          for i = 1:length(rig.Services) % ...create a check box for each of them
+            c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
+                'String', rig.Services{i}, 'Value', rig.SelectedServices(i));
+          end
+        else % Otherwise indicate that no services are availible
+          bui.label('No services available', vbox);
+          i = 1; % The number of services+1, used to set the container heights
+        end
+        uix.Empty('Parent', vbox);
+        bui.label('Delays:', vbox); % Add 'Delyas' label next to rig dropdown
+        preDelaysBox = uix.HBox('Parent', vbox);
+        bui.label('Pre', preDelaysBox);
+        pre = uicontrol('Parent', preDelaysBox,... % Add 'Pre' textbox
+            'Style', 'edit',...
+            'BackgroundColor', [1 1 1],...
+            'HorizontalAlignment', 'left',...
+            'Enable', 'on',...
+            'Callback', @(src, evt) put(obj.RemoteRigs.Selected,... % SetField 'ExpPreDelay' in obj.RemoteRigs.Selected to what ever was enetered
+            'ExpPreDelay', str2double(get(src, 'String'))));
+        postDelaysBox = uix.HBox('Parent', vbox);
+        bui.label('Post', postDelaysBox); % Add 'Post' label
+        post = uicontrol('Parent', postDelaysBox,... % Add 'Post' textbox
+            'Style', 'edit',...
+            'BackgroundColor', [1 1 1],...
+            'HorizontalAlignment', 'left',...
+            'Enable', 'on',...
+            'Callback', @(src, evt) put(obj.RemoteRigs.Selected,...  % SetField 'ExpPostDelay' in obj.RemoteRigs.Selected to what ever was enetered
+            'ExpPostDelay', str2double(get(src, 'String'))));
+        obj.PrePostExpDelayEdits = [pre post]; % Store Pre and Post values in obj
+        uix.Empty('Parent', vbox);
+        uicontrol('Parent',vbox,...
+            'Position',[89 20 70 25],...
+            'String','Okay',...
+            'Callback',@rigOptions_callback);
+        vbox.Heights = [20 repmat(15,1,i) -1 15 15 15 15 20];
+        set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
+        set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
+        function rigOptions_callback(varargin)
+            % RIGOPTIONS_CALLBACK A callback for the rig options 'Okay'
+            %   button.  Here we process the state of each services
+            %   check-box and set the selected services accordingly
+            %
+            %   See also SRV.STIMULUSCONTROL
+            vals = get(c,'Value');
+            if iscell(vals); vals = cell2mat(vals); end
+            rig.SelectedServices = logical(vals');
+            close(gcf) % close the 
+        end
+    end
+        
     function beginExp(obj)
-      set(obj.BeginExpButton, 'enable', 'off'); % Grey out 'Start' button
-      rig = obj.RemoteRigs.Selected; % Find which rig is selected
-      obj.Parameters.set('services', rig.Services(:),...
-        'List of experiment services to use during the experiment');
-      expRef = dat.newExp(obj.NewExpSubject.Selected, now, obj.Parameters.Struct); % Create new experiment reference
-      panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
-      obj.LastExpPanel = panel;
-      panel.Listeners = [panel.Listeners
-        event.listener(obj, 'Refresh', @(~,~)panel.update())];
-      obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
-      rig.startExperiment(expRef); % Tell rig to start experiment
-      %update the parameter set label to indicate used for this experiment
-      subject = dat.parseExpRef(expRef);
-      parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
-      set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
+        % BEGINEXP The callback for the 'Start' button
+        %   Disables the start buttons, commands the remote rig to being an
+        %   experiment and calls the EXPPANEL object for monitoring the
+        %   experiment.  Additionally if the user is not logged into Alyx
+        %   (i.e. no Alyx token is set), the user is prompted to log in and
+        %   the token is stored in the rig object so that EXPPANEL can
+        %   later post any events to Alyx (for example the amount of water
+        %   received during the task).  An Alyx Experiment and, if required, Base
+        %   session are also created here.
+        % 
+        % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
+        set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
+        rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
+        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
+          try
+            obj.AlyxPanel.login();
+            assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn);
+          catch
+            obj.log('Warning: Must be logged in to Alyx before running an experiment')
+            return
+          end
+        end
+        % Find which services should be started by expServer
+        services = rig.Services(rig.SelectedServices);
+        % Add these services to the parameters
+        obj.Parameters.set('services', services(:),...
+            'List of experiment services to use during the experiment');
+        % Create new experiment reference
+        [expRef, ~, url] = obj.AlyxPanel.AlyxInstance.newExp(...
+          obj.NewExpSubject.Selected, now, obj.Parameters.Struct); 
+        % Add a copy of the AlyxInstance to the rig object for later
+        % water registration, &c.
+        rig.AlyxInstance = obj.AlyxPanel.AlyxInstance;
+        rig.AlyxInstance.SessionURL = url;
+        
+        panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, obj.Parameters.Struct);
+        obj.LastExpPanel = panel;
+        panel.Listeners = [panel.Listeners
+            event.listener(obj, 'Refresh', @(~,~)panel.update())];
+        obj.ExpTabs.SelectedChild = 2; % switch to the active exps tab
+        rig.startExperiment(expRef); % Tell rig to start experiment
+        %update the parameter set label to indicate used for this experiment
+        subject = dat.parseExpRef(expRef);
+        parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
+        set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
     end
     
     function updateWeightPlot(obj)
       entries = obj.Log.entriesByType('weight-grams');
       datenums = floor([entries.date]);
       obj.WeightAxes.clear();
-      if numel(datenums) > 0
-        obj.WeightAxes.plot(datenums, [entries.value], '-o');
-        dateticks = min(datenums):floor(now);
-        set(obj.WeightAxes.Handle, 'XTick', dateticks);
-        obj.WeightAxes.XTickLabel = datestr(dateticks, 'dd-mm');
-        obj.WeightAxes.yLabel('Weight (g)');
-        xl = [min(datenums) floor(now)];
-        if diff(xl) <= 0
-          xl(1) = xl(2) - 0.5;
-          xl(2) = xl(2) + 0.5;
-        end
-        obj.WeightAxes.XLim = xl;
+      if obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.LogSubject.Selected,'default')
+        obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
+      else
+        if numel(datenums) > 0
+          obj.WeightAxes.plot(datenums, [entries.value], '-o');
+          dateticks = min(datenums):floor(now);
+          set(obj.WeightAxes.Handle, 'XTick', dateticks);
+          obj.WeightAxes.XTickLabel = datestr(dateticks, 'dd-mm');
+          obj.WeightAxes.yLabel('Weight (g)');
+          xl = [min(datenums) floor(now)];
+          if diff(xl) <= 0
+            xl(1) = xl(2) - 0.5;
+            xl(2) = xl(2) + 0.5;
+          end
+          obj.WeightAxes.XLim = xl;
+          rotateticklabel(obj.WeightAxes.Handle, 45);
+        end
       end
     end
     
@@ -397,6 +625,8 @@ methods (Access = protected)
         delete(obj.RefreshTimer);
         obj.RefreshTimer = [];
       end
+      % delete the AlyxPanel object
+      if ~isempty(obj.AlyxPanel); delete(obj.AlyxPanel); end
       %close connectiong to weighing scales
       if ~isempty(obj.WeighingScale)
         obj.WeighingScale.cleanup();
@@ -416,7 +646,9 @@ methods (Access = protected)
       dat.addLogEntry(subject, now, 'weight-grams', grams, '');            
       
       obj.log('Logged weight of %.1fg for ''%s''', grams, subject);
-                  
+      % post weight to Alyx
+      obj.AlyxPanel.recordWeight(grams, subject)
+      
       %refresh log entries so new weight reading is plotted
       obj.Log.setSubject(obj.LogSubject.Selected);
       obj.updateWeightPlot();
@@ -430,7 +662,7 @@ methods (Access = protected)
       % tabs for doing different things with the selected subject
       obj.TabPanel = uiextras.TabPanel('Parent', obj.RootContainer, 'Padding', 5);
       obj.LoggingDisplay = uicontrol('Parent', obj.RootContainer, 'Style', 'listbox',...
-        'Enable', 'inactive', 'String', {}); % This is the messege area at the bottom of mc
+        'Enable', 'inactive', 'String', {}, 'Tag', 'Logging Display'); % This is the messege area at the bottom of mc
       obj.RootContainer.Sizes = [-1 72]; % TabPanel variable size with wieght 1; LoggingDisplay fixed height of 72px
       
       %% Log tab
@@ -482,7 +714,7 @@ methods (Access = protected)
       obj.NewExpSubject = bui.Selector(topgrid, dat.listSubjects); % Subject dropdown box
       set(subjectLabel, 'FontSize', 11); % Make 'Subject' label larger
       set(obj.NewExpSubject.UIControl, 'FontSize', 11); % Make dropdown box text larger
-      obj.NewExpSubject.addlistener('SelectionChanged', @(~,~) obj.expSubjectChanged()); % Add listener for subject selection
+      obj.NewExpSubject.addlistener('SelectionChanged', @obj.expSubjectChanged); % Add listener for subject selection
       obj.NewExpType = bui.Selector(topgrid, {obj.NewExpFactory.label}); % Make experiment type dropdown box
       obj.NewExpType.addlistener('SelectionChanged', @(~,~) obj.expTypeChanged()); % Add listener for experiment type change
       
@@ -495,32 +727,25 @@ methods (Access = protected)
       obj.RemoteRigs = bui.Selector(controlbox, srv.stimulusControllers); % Rig dropdown box
       obj.RemoteRigs.addlistener('SelectionChanged', @(src,~) obj.remoteRigChanged); % Add listener for rig selection change
       obj.Listeners = arrayfun(@obj.listenToRig, obj.RemoteRigs.Option, 'Uni', false); % Add listeners for each rig (keep track of whether they're connected, running, etc.)
-      bui.label('Delays: Pre', controlbox); % Add 'Delyas' label next to rig dropdown
-      pre = uicontrol('Parent', controlbox,... % Add 'Pre' textbox
-        'Style', 'edit',...
-        'BackgroundColor', [1 1 1],...
-        'HorizontalAlignment', 'left',...
-        'Enable', 'off',...
-        'Callback', @(src, evt) put(obj.RemoteRigs.Selected,... % SetField 'ExpPreDelay' in obj.RemoteRigs.Selected to what ever was enetered
-        'ExpPreDelay', str2double(get(src, 'String'))));
-      bui.label('Post', controlbox); % Add 'Post' label
-      post = uicontrol('Parent', controlbox,... % Add 'Post' textbox
-        'Style', 'edit',...
-        'BackgroundColor', [1 1 1],...
-        'HorizontalAlignment', 'left',...
-        'Enable', 'off',...
-        'Callback', @(src, evt) put(obj.RemoteRigs.Selected,...  % SetField 'ExpPostDelay' in obj.RemoteRigs.Selected to what ever was enetered
-        'ExpPostDelay', str2double(get(src, 'String'))));
-      obj.PrePostExpDelayEdits = [pre post]; % Store Pre and Post values in obj
+      obj.RigOptionsButton = uicontrol('Parent', controlbox, 'Style', 'pushbutton',... % Add 'Options' button
+        'String', 'Options',...
+        'TooltipString', 'Set services and delays',...
+        'Callback', @(~,~) obj.rigOptions(),... % When pressed run 'rigOptions' function
+        'Enable', 'off');
       obj.BeginExpButton = uicontrol('Parent', controlbox, 'Style', 'pushbutton',... % Add 'Start' button
         'String', 'Start',...
         'TooltipString', 'Start an experiment using the parameters',...
         'Callback', @(~,~) obj.beginExp(),... % When pressed run 'beginExp' function
         'Enable', 'off');
-      controlbox.Sizes = [80 200 60 50 30 50 80]; % Resize the Rig and Delay boxes
+      controlbox.Sizes = [80 200 80 80]; % Resize the Rig and Delay boxes
       
       leftSideBox.Heights = [55 22];
-            
+      
+      % Create the Alyx panel
+      obj.AlyxPanel = eui.AlyxPanel(headerBox);
+      addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
+      addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
+      
       % a titled panel for the parameters editor
       param = uiextras.Panel('Parent', newExpBox, 'Title', 'Parameters', 'Padding', 5);
       obj.ParamPanel = uiextras.VBox('Parent', param, 'Padding', 5); % Make verticle container for parameters
@@ -560,8 +785,8 @@ methods (Access = protected)
       obj.TabPanel.SelectedChild = 2;
       obj.ExpTabs.TabNames = {'New' 'Current'};
       obj.ExpTabs.SelectedChild = 1;
+      obj.TabPanel.SelectionChangedFcn = @(~,~)obj.tabChanged;
     end
   end
+  
 end
-
-

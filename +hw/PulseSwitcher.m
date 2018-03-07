@@ -1,6 +1,9 @@
 classdef PulseSwitcher < hw.ControlSignalGenerator
   %HW.PULSESWITCHER Generates a train of pulses
   %   Detailed explanation goes here
+  % See also HW.DAQCONTROLLER
+  %
+  % Part of Rigbox
   
   properties
     OpenValue = 5

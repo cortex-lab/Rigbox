@@ -1,6 +1,42 @@
 classdef DaqController < handle
-  %HW.DAQCONTROLLER Summary of this class goes here
-  %   Detailed explanation goes here
+  %HW.DAQCONTROLLER The main class for organizing DAQ outputs
+  %   This class deals with creating DAQ sessions, assigning output
+  %   channels and generating the relevant waveforms to output to each
+  %   channel. 
+  %
+  %   Example: Setting up water valve interface for a Signals behavour task
+  %     %In the romote rig's hardware.mat, instantiate a HW.DAQCONTROLLER
+  %     %object to interface with an NI DAQ
+  %       daqController = hw.DaqController;
+  %     %Set the DAQ id (can be found with daq.getDevices)
+  %       daqController.DaqIds = 'Dev1';
+  %     %Add a new channel
+  %       daqController.ChannelNames = {'rewardValve'};
+  %     %Define the channel ID to output on
+  %       daqController.DaqChannelIds = {'ai0'};
+  %     %As it is an analogue output, set the AnalogueChannelsIdx to true
+  %       daqController.AnalogueChannelIdx(1) = true;
+  %     %Add a signal generator that will return the correct samples for
+  %     %delivering a reward of a specified volume
+  %       daqController.SignalGenerators(1) = hw.RewardValveControl;
+  %     %Set some of the required fields (see HW.REWARDVALVECONTROL for
+  %     %more info
+  %       daqController.SignalGenerators(1).OpenValue = 5;
+  %       daqController.SignalGenerators(1).Calibrations =
+  %       valveDeliveryCalibration(openTimeRange, scalesPort, openValue,...
+  %       closedValue, daqChannel, daqDevice);
+  %     %Save your hardware file
+  %       save('hardware.mat', 'daqController', '-append');
+  % 
+  %   TODO:
+  %    * Currently can not deal with having no analogue channels
+  %    * The digital channels must be output only (no support for
+  %      bi-directional digital channels
+  %    * Untested with multiple devices
+  %
+  % See also HW.CONTROLSIGNALGENERATOR, HW.DAQROTARYENCODER
+  % 2013    CB created
+  % 2017-07 MW added digital output support
   
   properties
     ChannelNames = {} % name to refer to each channel
@@ -12,12 +48,14 @@ classdef DaqController < handle
   end
   
   properties (Transient)
-    DaqSession % should be a DAQ session containing just one output channel
+    DaqSession % should be a DAQ session containing at least one analogue output channel
+    DigitalDaqSession % a DAQ session containing only digital output channels
   end
   
   properties (Dependent)
     Value %The current voltage on each DAQ channel
     NumChannels %Number of channels controlled
+    AnalogueChannelsIdx %Logical array of analogue channel IDs
   end
   
   properties (Access = private, Transient)
@@ -29,6 +67,9 @@ classdef DaqController < handle
       if isempty(obj.DaqSession)
         obj.DaqSession = daq.createSession('ni');
       end
+      if isempty(obj.DigitalDaqSession)&&any(~obj.AnalogueChannelsIdx)
+        obj.DigitalDaqSession = daq.createSession('ni');
+      end
       n = obj.NumChannels;
       if n > 0
         for ii = 1:n
@@ -37,11 +78,19 @@ classdef DaqController < handle
           else
             daqid = obj.DaqIds;
           end
-          obj.DaqSession.addAnalogOutputChannel(...
-            daqid, obj.DaqChannelIds{ii}, 'Voltage');
+          if obj.AnalogueChannelsIdx(ii) % is channal analogue?
+            obj.DaqSession.addAnalogOutputChannel(...
+              daqid, obj.DaqChannelIds{ii}, 'Voltage');
+          else % assume digital, always output only
+            obj.DigitalDaqSession.addDigitalChannel(...
+              daqid, obj.DaqChannelIds{ii}, 'OutputOnly');
+          end
         end
         v = [obj.SignalGenerators.DefaultValue];
-        obj.DaqSession.outputSingleScan(v);
+        obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
+        if any(~obj.AnalogueChannelsIdx)
+          obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+        end
         obj.CurrValue = v;
       else
         obj.CurrValue = [];
@@ -103,11 +152,25 @@ classdef DaqController < handle
           % to the default value
           reset(obj);
         end
-        queue(obj, obj.ChannelNames(1:n), waveforms);
-        if foreground
-          startForeground(obj.DaqSession);
-        else
-          startBackground(obj.DaqSession);
+        channelNames = obj.ChannelNames(1:n);
+        analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
+        if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
+          queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
+          if foreground
+            startForeground(obj.DaqSession);
+          else
+            startBackground(obj.DaqSession);
+          end
+          readyWait(obj);
+          obj.DaqSession.release;
+        elseif any(~analogueChannelsIdx)
+            waveforms = waveforms(~analogueChannelsIdx);
+            for n = 1:length(waveforms)
+              digitalValues = waveforms{n};
+              for m = 1:length(digitalValues)
+                obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
+              end
+            end
         end
       end
     end
@@ -116,20 +179,33 @@ classdef DaqController < handle
       v = numel(obj.DaqChannelIds);
     end
     
+    function v = get.AnalogueChannelsIdx(obj)
+      v = cellfun(@(ch) any(lower(ch=='a')), obj.DaqChannelIds);
+    end
+    
     function v = get.Value(obj)
       v = obj.CurrValue;
     end
     
     function set.Value(obj, v)
       readyWait(obj);
-      obj.DaqSession.outputSingleScan(v);
+      obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
+      if any(~obj.AnalogueChannelsIdx)
+        obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+      end
       obj.CurrValue = v;
     end
     
     function reset(obj)
       stop(obj.DaqSession);
+      if ~isempty(obj.DigitalDaqSession)
+        stop(obj.DigitalDaqSession);
+      end
       v = [obj.SignalGenerators.DefaultValue];
-      outputSingleScan(obj.DaqSession, v);
+      outputSingleScan(obj.DaqSession, v(obj.AnalogueChannelsIdx));
+      if any(~obj.AnalogueChannelsIdx)
+        outputSingleScan(obj.DigitalDaqSession, v(~obj.AnalogueChannelsIdx));
+      end
       obj.CurrValue = v;
     end
   end
@@ -141,7 +217,8 @@ classdef DaqController < handle
       assert(numel(names) == numel(waveforms),...
         'Number of channel names and waveforms not equal');
       len = cellfun(@numel, waveforms);
-      samples = repmat([obj.SignalGenerators.DefaultValue], max(len), 1);
+      defaultValues = [obj.SignalGenerators.DefaultValue];
+      samples = repmat(defaultValues(obj.AnalogueChannelsIdx), max(len), 1);
       for ii = 1:numel(waveforms)
         cidx = strcmp(names{ii}, obj.ChannelNames);
         assert(sum(cidx) == 1, 'Channel name mismatch');
@@ -157,6 +234,9 @@ classdef DaqController < handle
     function readyWait(obj)
       if obj.DaqSession.IsRunning
         obj.DaqSession.wait();
+      end
+      if ~isempty(obj.DigitalDaqSession)&&obj.DigitalDaqSession.IsRunning
+        obj.DigitalDaqSession.wait();
       end
     end
   end

@@ -2,7 +2,8 @@ classdef StartServices < exp.Action
   %EXP.STARTSERVICES Starts experiment services
   %   Convenience action for use with an EventHandler. This will start the
   %   associated services, by calling start(ref) on them, where 'ref' is
-  %   taken from the Experiment's reference. See also SRV.SERVICE.
+  %   taken from the Experiment's reference and the current instance of
+  %   Alyx (if any). See also SRV.SERVICE, EXP.STOPSERVICES
   %
   % Part of Rigbox
 
@@ -26,12 +27,16 @@ classdef StartServices < exp.Action
       obj.Services = value;
     end
 
-    function perform(obj, eventInfo, dueTime)
-      ref = eventInfo.Experiment.Data.expRef;
+    function perform(obj, eventInfo, ~)
+      %PERFORM Starts each service sequentially
+      % perform(obj, eventInfo, dueTime)
+      %
+      expRef = eventInfo.Experiment.Data.expRef;
+      ai = eventInfo.Experiment.AlyxInstance;
       n = numel(obj.Services);
       for i = 1:n
         try
-          obj.Services{i}.start(ref);
+          obj.Services{i}.start(expRef, ai);
           fprintf('Started ''%s''\n', obj.Services{i}.Title);
         catch ex
           %stop services that were started up till now
