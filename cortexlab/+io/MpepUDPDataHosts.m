@@ -6,6 +6,7 @@ classdef MpepUDPDataHosts < srv.Service
   
   % 2014-01 CB created
   % 2015-07 DS record UDP message to timeline
+  % 2016-12 MW update for new timeline object
   
   properties (Dependent, SetAccess = protected)
     Connected
@@ -18,6 +19,8 @@ classdef MpepUDPDataHosts < srv.Service
     DaqDevId
     DigitalOutDaqChannelId
     Verbose = false % whether to output I/O messages etc
+    Timeline % An instance of timeline for for recording UDP messages
+    AlyxInstance
   end
   
   properties (SetAccess = protected)
@@ -47,7 +50,9 @@ classdef MpepUDPDataHosts < srv.Service
   end
   
   methods
-    function obj = MpepUDPDataHosts(remoteHosts)
+    function obj = MpepUDPDataHosts(remoteHosts, timeline)
+      if nargin<2; timeline = []; end
+      obj.Timeline = timeline;
       obj.RemoteHosts = remoteHosts;
     end
     
@@ -166,8 +171,8 @@ classdef MpepUDPDataHosts < srv.Service
         msg = sprintf('StimEnd %s %d %d 1 %d', subject, seriesNum, expNum, num);
         broadcast(obj, msg);
         
-         if tl.running %copied from bindMpepServer.m
-             tl.record('mpepUDP', msg); % record the UDP event in Timeline
+         if ~isempty(obj.Timeline)&&isfield(obj.Timeline, 'IsRunning')&&obj.Timeline.IsRunning
+           obj.Timeline.record('mpepUDP', msg); % record the UDP event in Timeline
          end
          dt = toc;
          if obj.Verbose
@@ -196,7 +201,13 @@ classdef MpepUDPDataHosts < srv.Service
       obj.ExpRef = [];
     end
     
-    function start(obj, expRef)
+    function start(obj, ref)        
+      [expRef, ai] = dat.parseAlyxInstance(ref);
+      obj.AlyxInstance = ai;
+      [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+      alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, ref);
+      confirmedBroadcast(obj, alyxmsg);
+      
       % equivalent to startExp(expRef)
       expStarted(obj, expRef);
     end
@@ -226,11 +237,9 @@ classdef MpepUDPDataHosts < srv.Service
     function confirmedBroadcast(obj, msg)
       broadcast(obj, msg);
       validateResponses(obj);
-
-      if tl.running %copied from bindMpepServer.m
-          tl.record('mpepUDP', msg); % record the UDP event in Timeline
+      if ~isempty(obj.Timeline)&&isfield(obj.Timeline, 'IsRunning')&&obj.Timeline.IsRunning
+        obj.Timeline.record('mpepUDP', msg); % record the UDP event in Timeline
       end
-
     end
     
     function broadcast(obj, msg)

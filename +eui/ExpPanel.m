@@ -1,56 +1,71 @@
 classdef ExpPanel < handle
   %EUI.EXPPANEL Basic UI control for monitoring an experiment
-  %   TODO
+  %   The EXPPANEL superclass is instantiated by MCONTROL when an
+  %   experiment is started through MC.  The object adds listeners for
+  %   updates broadcast by the rig (defined in the _rig_ object) and
+  %   updates plots and text as the experiment progresses.  Additionally
+  %   there are buttons to end or abort the experiment and to view the
+  %   experimental parameters (the _paramStruct_).  
+  %   EXPPANEL is not stand-alone and thus requires a handle to a parent
+  %   window.  This class has a number of subclasses, one for each
+  %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
+  %   SQUEAKEXPPANEL for Signals experiments.  
+  %
+  %   
+  %
+  % See also SQUEAKEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
   %
   % Part of Rigbox
   
   % 2013-06 CB created
+  % 2017-05 MW added Alyx compatibility
   
   properties
-    Block = struct('numCompletedTrials', 0, 'trial', struct([]))
+    Block = struct('numCompletedTrials', 0, 'trial', struct([])) % A structure to hold update information relevant for the plotting of psychometics and performance calculations
     %log entry pertaining to this experiment
     LogEntry
     Listeners
-    Alyx
   end
   
   properties (Access = protected)
-    ExpRunning = false
+    ExpRunning = false % A flag indicating whether the experiment is still running
     ActivePhases = {}
     Root
-    Ref
-    SubjectRef
-    InfoGrid
+    Ref % The experimental reference (expRef).  
+    SubjectRef % A string representing the subject's name
+    InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
     InfoLabels %label text controls for each info field
     InfoFields %field controls for each info field
-    StatusLabel
-    TrialCountLabel
+    StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
+    TrialCountLabel % A counter displaying the current trial number
     ConditionLabel
     DurationLabel
-    StopButtons
+    StopButtons % Handles to the End and Abort buttons, used to terminate an experiment through the UI
     StartedDateTime
 %     ElapsedTimer
-    CloseButton
-    CommentsBox
-    CustomPanel
-    MainVBox
-    Parameters
+    CloseButton % The little x at the top right of the panel.  Deletes the object.
+    CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
+    CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
+    MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
+    Parameters % A structure of experimental parameters used by this experiment
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct, Alyx)
+    function p = live(parent, ref, remoteRig, paramsStruct)
       subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
       try
         logEntry = dat.addLogEntry(... % Add new entry to log
-          subject, now, 'experiment-info', struct('ref', ref), '');
+          subject, now, 'experiment-info', struct('ref', ref), '', remoteRig.AlyxInstance);
       catch ex
         logEntry.comments = '';
         warning(ex.getReport());
       end
       params = exp.Parameters(paramsStruct); % Get parameters
-      if isfield(params.Struct, 'expPanelFun') % Can define your own experiment panel
-        p = params.Struct.expPanelFun(parent, ref, params, logEntry);
-      else
+      % Can define your own experiment panel
+      if isfield(params.Struct, 'expPanelFun')&&~isempty(params.Struct.expPanelFun)
+        if isempty(which(params.Struct.expPanelFun)); addpath(fileparts(params.Struct.defFunction)); end
+        p = feval(params.Struct.expPanelFun, parent, ref, params, logEntry);
+      else % otherwise use the default
         switch params.Struct.type
           case {'SingleTargetChoiceWorld' 'ChoiceWorld' 'DiscWorld' 'SurroundChoiceWorld'}
             p = eui.ChoiceExpPanel(parent, ref, params, logEntry);
@@ -69,21 +84,19 @@ classdef ExpPanel < handle
       
       set(p.StopButtons(1), 'Callback',...
         @(src, ~) fun.run(true,...
-        @() remoteRig.quitExperiment(false, Alyx),...
+        @() remoteRig.quitExperiment(false),...
         @() set(src, 'Enable', 'off')));
       set(p.StopButtons(2), 'Callback',...
         @(src, ~) fun.run(true,...
-        @() remoteRig.quitExperiment(true, Alyx),...
+        @() remoteRig.quitExperiment(true),...
         @() set(p.StopButtons, 'Enable', 'off')));
-      p.Alyx = Alyx;
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
         event.listener(remoteRig, 'ExpStarted', @p.expStarted)
         event.listener(remoteRig, 'ExpStopped', @p.expStopped)
-        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate);
-        event.listener(remoteRig, 'AlyxRequest', @p.AlyxRequest)]; % request from expServer for Alyx Instance
+        event.listener(remoteRig, 'ExpUpdate', @p.expUpdate)];
 %       p.ElapsedTimer = timer('Period', 0.9, 'ExecutionMode', 'fixedSpacing',...
 %         'TimerFcn', @(~,~) set(p.DurationLabel, 'String',...
 %         sprintf('%i:%02.0f', floor(p.elapsed/60), mod(p.elapsed, 60))));
@@ -174,6 +187,11 @@ classdef ExpPanel < handle
     end
     
     function expStarted(obj, rig, evt)
+      % EXPSTARTED Callback for the ExpStarted event.
+      %   Updates the ExpRunning flag, the panel title and status label to
+      %   show that the experiment has officially begun.
+      %   
+      % See also EXPSTOPPED
       if strcmp(evt.Ref, obj.Ref)
         set(obj.StatusLabel, 'String', 'Running'); %staus to running
         set(obj.StopButtons, 'Enable', 'on', 'Visible', 'on'); %enable stop buttons
@@ -190,6 +208,13 @@ classdef ExpPanel < handle
     end
     
     function expStopped(obj, rig, evt)
+      % EXPSTOPPED Callback for the ExpStopped event.
+      %   Updates the ExpRunning flag, the panel title and status label to
+      %   show that the experiment has ended.  This function also records to Alyx the
+      %   amount of water, if any, that the subject received during the
+      %   task.
+      %   
+      % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
       obj.ExpRunning = false;
       set(obj.StopButtons, 'Enable', 'off'); %disable stop buttons
@@ -197,15 +222,10 @@ classdef ExpPanel < handle
       obj.Listeners = [];
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
       %post water to Alyx
-      ai = obj.Alyx.AlyxInstance;
+      ai = rig.AlyxInstance;
       subject = obj.SubjectRef;
       if ~isempty(ai)&&~strcmp(subject,'default')
           switch class(obj)
-              case 'eui.SqueakExpPanel'
-                  infoFields = {obj.InfoFields.String};
-                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
-                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
-                  amount = iff(isempty(reward),0,@()reward);
               case 'eui.ChoiceExpPanel'
                   if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
                   if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
@@ -218,16 +238,18 @@ classdef ExpPanel < handle
                   end
                   if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
               otherwise
-                  return
+                  infoFields = {obj.InfoFields.String};
+                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
+                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
+                  amount = iff(isempty(reward),0,@()reward);
           end
           if ~any(amount); return; end % Return if no water was given
           try
             alyx.postWater(ai, subject, amount*0.001, now, false);
           catch
-              log('Water administration of %.2f for %s failed to post to alyx', amount, subject);
+            warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
-     end
-
+      end
     end
     
     function expUpdate(obj, rig, evt)
@@ -253,15 +275,15 @@ classdef ExpPanel < handle
           obj.event(evt.Data{2}, evt.Data{3});
       end
     end
-    
-    function AlyxRequest(obj, rig, evt)
-        ref = evt.Data; % expRef
-        try rig.setAlyxInstance(obj.Alyx.AlyxInstance); % StimulusControl obj
-        catch %log(['Failed to submit Alyx token for' ref ' to ' rig.Name]);
-        end
-    end
-    
+        
     function mergeTrialData(obj, idx, data)
+      % MERGETRIALDATA Update the local block structure with data from the
+      % last trial
+      %   This is only used by CHOICEEXPPANEL, etc. where trial data we
+      %   constant and had a predefined structure.  This is not used by the
+      %   SQEUEAKEXPPANEL sub-class.
+      %
+      % See also EXPUPDATE
       fields = fieldnames(data);
       for i = 1:numel(fields)
         f = fields{i};
@@ -270,10 +292,22 @@ classdef ExpPanel < handle
     end
     
     function saveLogEntry(obj)
+      % SAVELOGENTRY Saves the obj.LogEntry to disk and to Alyx
+      %  As the log entry has been updated throughout the experiment with
+      %  comments and experiment end times, it must be saved to disk.  In
+      %  addition if an Alyx Instance is set, the comments are saved to the
+      %  subsession's narrative field.
+      % 
+      % See also DAT.UPDATELOGENTRY, COMMENTSCHANGED
       dat.updateLogEntry(obj.SubjectRef, obj.LogEntry.id, obj.LogEntry);
     end
     
     function viewParams(obj)
+      % VIEWPARAMS The callback for the Parameters button.
+      %   Creates a new figure to display the current experimental
+      %   parameters (the sructure in obj.Parameters).  
+      %
+      %   See also EUI.PARAMEDITOR
       f = figure('Name', sprintf('%s Parameters', obj.Ref),...
         'MenuBar', 'none',...
         'Toolbar', 'none',...
@@ -282,7 +316,7 @@ classdef ExpPanel < handle
       %         'OuterPosition', [0.1 0.2 0.8 0.7]);
       params = obj.Parameters;
       editor = eui.ParamEditor(params, f);
-      editor.Enable = 'off';
+      editor.Enable = 'off'; % The parameter field should not be editable as the experiment has already started
     end
     
     function [fieldCtrl] = addInfoField(obj, label, field)
@@ -299,7 +333,12 @@ classdef ExpPanel < handle
       obj.MainVBox.Sizes(1) = FieldHeight*nRows;
     end
     
-    function commentsChanged(obj, src, evt)
+    function commentsChanged(obj, src, ~)
+      % COMMENTSCHANGED Callback for saving comments to server and Alyx
+      %  This function is called when text in the comments box is changed
+      %  and reports this in the command window
+      %
+      %  See also SAVELOGENTRY, LIVE
       disp('saving comments');
       obj.LogEntry.comments = get(src, 'String');
       obj.saveLogEntry();

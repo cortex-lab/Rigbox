@@ -1,6 +1,8 @@
 classdef WeighingScale < handle
   %HW.WEIGHINGSCALE Interface to a weighing scale connected via serial
-  %   Allows you to read the current weight from scales and tare it.
+  %   Allows you to read the current weight from scales and tare it.  This
+  %   class has been tested only with the ES-300HA 300gx0.01g Precision
+  %   Scale + RS232 to USB Converter.
   %
   % Part of Rigbox
 

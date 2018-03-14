@@ -571,8 +571,7 @@ classdef Window < hw.Window
         list = find(diff(thisTable) <= 0, 1);
         
         if ~isempty(list)
-          announce = sprintf('Gamma table %d NOT MONOTONIC.  We are adjusting.',igun);
-          disp(announce)
+          fprintf('Gamma table %d NOT MONOTONIC.  We are adjusting.',igun);
           
           % We assume that the non-monotonic points only differ due to noise
           % and so we can resort them without any consequences
@@ -606,12 +605,12 @@ classdef Window < hw.Window
           interp1(monTable,posLocs-1,(0:(numEntries-1))/(numEntries-1))';
         
       end
-      if any(isnan(c.monitorGamInv)),
+      if any(isnan(c.monitorGamInv))
         msgbox('Warning: NaNs in inverse gamma table -- may need to recalibrate.');
       end
     end
     
-    function storeDaqData(obj, src, event)
+    function storeDaqData(obj, ~, event)
       n = length(event.TimeStamps);
       ii = obj.DaqData.nSamples+(1:n);
       obj.DaqData.timeStamps(ii) = event.TimeStamps;

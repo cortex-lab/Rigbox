@@ -149,7 +149,7 @@ classdef TCPCommunicator < io.Communicator
         case 'request'
           obj.requestConnection(obj.pRequestHost, obj.pRequestPort, obj.pConnectionTimeout);
         otherwise
-          error('Invalide connection mode ''%s''', obj.pConnectionMode);
+          error('Invalid connection mode ''%s''', obj.pConnectionMode);
       end
     end
     

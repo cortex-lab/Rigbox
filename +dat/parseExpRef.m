@@ -1,5 +1,5 @@
 function [subjectRef, expDate, expSequence] = parseExpRef(ref)
-%DATA.PARSEEXPREF Extracts subject, date and seq from an experiment ref
+%DAT.PARSEEXPREF Extracts subject, date and seq from an experiment ref
 %   [subject, date, seq] = DATA.PARSEEXPREF(ref)
 %
 %   The pattern for 'ref' should be '{date}_{seq#}_{subject}', with two

@@ -38,10 +38,7 @@ addpath(...
   cortexLabAddonsPath,... % add the Rigging cortexlab add-ons
   rigboxPath,... % add Rigbox itself
   cbToolsPath,... % add cb-tools root dir
-  fullfile(cbToolsPath, 'burgbox'),... % Burgbox
-  fullfile(cbToolsPath, 'jsonlab'),... % jsonlab for JSON encoding
-  fullfile(cbToolsPath, 'urlread2')... % urlread2 for http requests
-  );
+  fullfile(cbToolsPath, 'burgbox')); % Burgbox
 %   guiLayoutPath,... % add GUI Layout toolbox
 %   fullfile(guiLayoutPath, 'layout'),...
 %   fullfile(guiLayoutPath, 'Patch'),...

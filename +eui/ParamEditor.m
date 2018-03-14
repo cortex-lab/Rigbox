@@ -205,8 +205,38 @@ classdef ParamEditor < handle
     end
     
     function deleteSelectedConditions(obj)
+      %DELETESELECTEDCONDITIONS Removes the selected conditions from table
+      % The callback for the 'Delete condition' button.  This removes the
+      % selected conditions from the table and if less than two conditions
+      % remain, globalizes them.
+      %     TODO: comment function better, index in a clearer fashion
+      %
+      % See also EXP.PARAMETERS, GLOBALISESELECTEDPARAMETERS
       rows = unique(obj.SelectedCells(:,1));
+      % If the number of remaining conditions is 1 or less...
+      names = obj.Parameters.TrialSpecificNames;
+      numConditions = size(obj.Parameters.Struct.(names{1}),2);
+      if numConditions-length(rows) <= 1
+          remainingIdx = find(all(1:numConditions~=rows,1));
+          if isempty(remainingIdx); remainingIdx = 1; end
+          % change selected cells to be all fields (except numRepeats which
+          % is assumed to always be the last column)
+          obj.SelectedCells =[ones(length(names)-1,1)*remainingIdx, (1:length(names)-1)'];
+          %... globalize them
+          obj.globaliseSelectedParameters;
+          obj.Parameters.removeConditions(rows)
+%           for i = 1:numel(names)
+%               newValue = iff(any(remainingIdx), obj.Struct.(names{i})(:,remainingIdx), obj.Struct.(names{i})(1));
+%               % If the parameter is Num repeats, set the value
+%               if strcmp(names{i}, 'numRepeats')
+%                   obj.Struct.(names{i}) = newValue;
+%               else
+%                   obj.makeGlobal(names{i}, newValue);
+%               end
+%           end
+      else % Otherwise delete the selected conditions as usual
       obj.Parameters.removeConditions(rows);
+      end
       obj.fillConditionTable(); %refresh the table of conditions
     end
     
