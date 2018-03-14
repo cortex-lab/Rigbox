@@ -37,6 +37,7 @@ log('Bound UDP sockets');
 tls.close = @closeConns;
 tls.process = @process;
 tls.listen = @listen;
+tls.AlyxInstance = [];
 
 listenPort = io.WSJCommunicator.DefaultListenPort;
 communicator = io.WSJCommunicator.server(listenPort);
@@ -44,6 +45,12 @@ listener = event.listener(communicator, 'MessageReceived',...
     @(~,msg) handleMessage(msg.Id, msg.Data, msg.Sender));
 communicator.EventMode = false;
 communicator.open();
+
+%% initialize timeline
+
+rig = hw.devices([], false);
+tlObj = rig.timeline;
+tls.tlObj = tlObj;
 
 %% Helper functions
 
@@ -61,10 +68,10 @@ communicator.open();
     function processListener(listener)
         sz = pnet(listener.socket, 'readpacket', 1000, 'noblock');
         if sz > 0
-            t = tl.time(false); % save the time we got the UDP packet
+            t = tlObj.time(false); % save the time we got the UDP packet
             msg = pnet(listener.socket, 'read');
-            if tl.running
-                tl.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
+            if tlObj.IsRunning
+                tlObj.record([listener.name 'UDP'], msg, t); % record the UDP event in Timeline
             end
             listener.callback(listener, msg); % call special handling function
         end
@@ -76,19 +83,29 @@ communicator.open();
         ipstr = sprintf('%i.%i.%i.%i', ip{:});
         log('%s: ''%s'' from %s:%i', listener.name, msg, ipstr, port);
         % parse the message
-        info = dat.mpepMessageParse(msg);
+        info = dat.mpepMessageParse(msg);                
+        
         failed = false; % flag for preventing UDP echo
         %% Experiment-level events start/stop timeline
         switch lower(info.instruction)
+            case 'alyx'
+                fprintf(1, 'received alyx token message\n');
+                idx = find(msg==' ', 1, 'last');
+                [expref, ai] = dat.parseAlyxInstance(msg(idx+1:end));                
+                disp(ai)
+                
+                tls.AlyxInstance = ai;
             case 'expstart'
                 % create a file path & experiment ref based on experiment info
                 try
                     % start Timeline
+                    communicator.send('AlyxSend', {tls.AlyxInstance});
                     communicator.send('status', { 'starting', info.expRef});
-                    tl.start(info.expRef);
+                    
+                    tlObj.start(info.expRef, tls.AlyxInstance);
                     % re-record the UDP event in Timeline since it wasn't started
                     % when we tried earlier. Treat it as having arrived at time zero.
-                    tl.record('mpepUDP', msg, 0);
+                    tlObj.record('mpepUDP', msg, 0);
                 catch ex
                     % flag up failure so we do not echo the UDP message back below
                     failed = true;
@@ -96,11 +113,11 @@ communicator.open();
                 end
             case 'expend'
                 
-                tl.stop(); % stop Timeline
+                tlObj.stop(); % stop Timeline
                 communicator.send('status', { 'completed', info.expRef});
             case 'expinterrupt'
                 
-                tl.stop(); % stop Timeline
+                tlObj.stop(); % stop Timeline
                 communicator.send('status', { 'completed', info.expRef});
         end
         if ~failed
@@ -135,20 +152,34 @@ communicator.open();
             if firstPress(quitKey)
                 running = false;
             end
-            if firstPress(manualStartKey) && ~tl.running
-                [mouseName, ~] = dat.subjectSelector();
+            if firstPress(manualStartKey) && ~tlObj.IsRunning
+                
+                if isempty(tls.AlyxInstance)
+                    % first get an alyx instance
+                    ai = alyx.loginWindow();
+                else
+                    ai = tls.AlyxInstance;
+                end
+                
+                [mouseName, ~] = dat.subjectSelector([],ai);
+                
                 if ~isempty(mouseName)                    
                     clear expParams;
                     expParams.experimentType = 'timelineManualStart';
-                    newExpRef = dat.newExp(mouseName, now, expParams);
+                    [newExpRef, newExpSeq, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
+                    ai.subsessionURL = subsessionURL;
+                    tls.AlyxInstance = ai;
+                    
                     %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);
                     %newExpRef = dat.constructExpRef(mouseName, now, expNum);
+                    communicator.send('AlyxSend', {tls.AlyxInstance});
                     communicator.send('status', { 'starting', newExpRef});
-                    tl.start(newExpRef);
+                    tlObj.start(newExpRef, ai);
                 end
-            elseif firstPress(manualStartKey) && tl.running && ~isempty(newExpRef)
-                
-                tl.stop();
+                KbQueueFlush;
+            elseif firstPress(manualStartKey) && tlObj.IsRunning && ~isempty(newExpRef)
+                fprintf(1, 'stopping timeline\n');
+                tlObj.stop();
                 communicator.send('status', { 'completed', newExpRef});
                 newExpRef = [];
             end
@@ -172,8 +203,8 @@ communicator.open();
             % client disconnected
             log('WS: ''%s'' disconnected', host);
         else
-            command = data{1};
-            args = data(2:end);
+            command = data{1}
+            args = data(2:end)
             if ~strcmp(command, 'status')
                 % log the command received
                 log('WS: Received ''%s''', command);
@@ -181,7 +212,7 @@ communicator.open();
             switch command
                 case 'status'
                     % status request
-                    if ~tl.running
+                    if ~tlObj.IsRunning
                         communicator.send(id, {'idle'});
                     else
                         communicator.send(id, {'running'});

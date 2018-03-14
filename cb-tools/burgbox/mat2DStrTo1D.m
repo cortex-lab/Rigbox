@@ -9,7 +9,7 @@ function str = mat2DStrTo1D(str)
 % 2013-09 CB created
 
 if iscellstr(str)
-  str = mapToCellArray(@matStr2Lines, str);
+  str = mapToCell(@mat2DStrTo1D, str);
 else
   str = strJoin(deblank(num2cell(str, 2)), '\n');
 end

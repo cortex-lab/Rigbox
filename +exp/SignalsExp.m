@@ -128,9 +128,9 @@ classdef SignalsExp < handle
       obj.Inputs = sig.Registry(clockFun);
       obj.Outputs = sig.Registry(clockFun);
       obj.Visual = StructRef;
-      nAudChannels = getOr(paramStruct, 'numAudChannels', 2);
-      audSampleRate = getOr(paramStruct, 'audSampleRate', 192e3); % Hz
-      audDevIdx = getOr(paramStruct, 'audDevIdx', -1); % -1 means use system default
+      nAudChannels = getOr(paramStruct, 'numAudChannels', rig.audioDevice.NrOutputChannels);
+      audSampleRate = getOr(paramStruct, 'audSampleRate', rig.audioDevice.DefaultSampleRate); % Hz
+      audDevIdx = getOr(paramStruct, 'audDevIdx', rig.audioDevice.DeviceIndex); % -1 means use system default
       obj.Audio = audstream.Registry(audSampleRate, nAudChannels, audDevIdx);
       obj.Events = sig.Registry(clockFun);
       %% configure signals
@@ -215,7 +215,7 @@ classdef SignalsExp < handle
                   obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
               if id % if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(1,id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
                     obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
               elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
@@ -607,6 +607,10 @@ classdef SignalsExp < handle
       deleteGlTextures(obj);
       KbQueueStop();
       KbQueueRelease();
+      
+      % delete cached experiment definition function from memory
+      [~, exp_func] = fileparts(obj.Data.expDef);
+      clear(exp_func)
     end
     
     function deleteGlTextures(obj)
@@ -828,11 +832,17 @@ classdef SignalsExp < handle
             warning('No Alyx token set');
         else
             try
-                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
+                [subject,~,~] = dat.parseExpRef(obj.Data.expRef); 
                 if strcmp(subject,'default'); return; end
-                alyx.registerFile(subject,[],'Block',savepaths{end},'zserver',obj.AlyxInstance);
-            catch
-                warning('couldnt register files to alyx because no subsession found');
+                % Register saved files
+                alyx.registerFile(savepaths{end}, 'mat',...
+                    obj.AlyxInstance.subsessionURL, 'Block', [], obj.AlyxInstance);
+                % Save the session end time
+                alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
+                    struct('end_time', alyx.datestr(now), 'subject', subject));
+            catch ex
+                warning('couldnt register files to alyx');
+                disp(ex)
             end
         end
 

@@ -1,4 +1,4 @@
-function e = addLogEntry(subject, timestamp, type, value, comments)
+function e = addLogEntry(subject, timestamp, type, value, comments, AlyxInstance)
 %DAT.ADDLOGENTRY Adds a new entry to the experiment log
 %   e = DAT.ADDLOGENTRY(subject, timestamp, type, value, comments) files a
 %   new log entry for 'subject' with the corresponding info.
@@ -26,6 +26,7 @@ end
 %% create and store entry
 e = entry(nextidx);
 log(nextidx) = e;
+if nargin > 5; e.AlyxInstance = AlyxInstance; end
 
 %% store updated log to *all* repos locations
 superSave(dat.logPath(subject, 'all'), struct('log', log));

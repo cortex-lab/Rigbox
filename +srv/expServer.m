@@ -16,7 +16,6 @@ rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
-useTimeline = false;
 rewardId = 1;
 
 %% Initialisation
@@ -72,7 +71,7 @@ log('Started presentation server on port %i', listenPort);
 
 if nargin < 1 || isempty(useTimelineOverride)
   % toggle use of timeline according to rig default setting
-  toggleTimeline(rig.useTimeline);
+  toggleTimeline(rig.timeline.UseTimeline);
 else
   toggleTimeline(useTimelineOverride);
 end
@@ -170,13 +169,13 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay] = args{:};
+          [expRef, preDelay, postDelay, Alyx] = args{:};
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay);
+              runExp(expRef, preDelay, postDelay, Alyx);
               log('Experiment ''%s'' completed', expRef);
               communicator.send('status', {'completed', expRef});
             catch runEx
@@ -198,7 +197,7 @@ ShowCursor();
             else
               log('Ending experiment');
             end
-            if ~isempty(AlyxInstance)
+            if ~isempty(AlyxInstance)&&isempty(experiment.AlyxInstance)
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
@@ -216,22 +215,24 @@ ShowCursor();
     end
   end
 
-  function runExp(expRef, preDelay, postDelay)
+  function runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
     rig.stimWindow.flip(); % clear the screen before
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %start the timeline system
-      if isfield(rig, 'disregardTimelineInputs')
-        disregardInputs = rig.disregardTimelineInputs;
+      if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
+        [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
+        rig.timeline.UseInputs(idx) = [];
       else
         % turn off rotary encoder recording in timeline by default so
         % experiment can access it
-        disregardInputs = {'rotaryEncoder'};
+        idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+        rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      tl.start(expRef, disregardInputs);
+      rig.timeline.start(expRef, Alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -242,6 +243,7 @@ ShowCursor();
     experiment = srv.prepareExp(params, rig, preDelay, postDelay,...
       communicator);
     communicator.EventMode = true; % use event-based callback mode
+    experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
     % clear the active experiment var
@@ -249,9 +251,9 @@ ShowCursor();
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
-    if useTimeline
+    if rig.timeline.UseTimeline
       %stop the timeline system
-      tl.stop();
+      rig.timeline.stop();
     end
     
     % re-enable ptb keyboard listening
@@ -275,53 +277,29 @@ ShowCursor();
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
-    %     disp('TODO: implement saving');
-    %save the updated rewardCalibrations struct
-    %     save(, 'rewardCalibrations', '-append');
-    %apply the calibration to rewardcontroller
-    %     rig.rewardController.MeasuredDeliveries = calibration;
-    %     log('Measured deliveries for reward calibrations saved');
   end
 
-   function whiteScreen()
-%       stimWindow = rig.stimWindow;
-%       set.BackgroundColour(stimWindow, stimWindow.White);
-rig.stimWindow.BackgroundColour = 255;
-rig.stimWindow.flip();
-rig.stimWindow.BackgroundColour = bgColour;
-%       stimWindow.pBackgroundColour = stimWindow.White;
-%       if stimWindow.PtbHandle > -1
-        % performing a ptb FillRect will set the new background colour
-%         Screen('FillRect', stimWindow.PtbHandle, 255);
-%       end
-%       pause(30);
-%       rig.stimWindow.flip();
-%       set.BackgroundColour(stimWindow, stimWindow.White);
-%       rig.stimWindow.BackgroundColour = bgColour;
-% rig.stimWindow.flip();
-%       stimWindow.pBackgroundColour = bgColour;
-%       if stimWindow.PtbHandle > -1
-        % performing a ptb FillRect will set the new background colour
-%         Screen('FillRect', stimWindow.PtbHandle, bgColour);
-%       end
-
+  function whiteScreen()
+    rig.stimWindow.BackgroundColour = 255;
+    rig.stimWindow.flip();
+    rig.stimWindow.BackgroundColour = bgColour;
   end
 
   function calibrateGamma()
-        stimWindow = rig.stimWindow;
-        DaqDev = rig.daqController.DaqIds;
-        lightIn = 'ai0'; % defaults from hw.psy.Window
-        clockIn = 'ai1';
-        clockOut = 'port1/line0 (PFI4)';
-        log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-            'Press any key to contiue\n'],lightIn,clockIn,clockOut);
-        pause; % wait for keypress
-        stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-        pause(1);
-        saveGamma(stimWindow.Calibration);
-        stimWindow.applyCalibration(stimWindow.Calibration);
-        clear('lightIn','clockIn','clockOut','cal');
-        log('Gamma calibration complete');
+    stimWindow = rig.stimWindow;
+    DaqDev = rig.daqController.DaqIds;
+    lightIn = 'ai0'; % defaults from hw.psy.Window
+    clockIn = 'ai1';
+    clockOut = 'port1/line0 (PFI4)';
+    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
+        'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    pause; % wait for keypress
+    stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+    pause(1);
+    saveGamma(stimWindow.Calibration);
+    stimWindow.applyCalibration(stimWindow.Calibration);
+    clear('lightIn','clockIn','clockOut','cal');
+    log('Gamma calibration complete');
   end
 
   function saveGamma(cal)
@@ -346,20 +324,20 @@ rig.stimWindow.BackgroundColour = bgColour;
 
   function t = toggleTimeline(enable)
     if nargin < 1
-      enable = ~useTimeline;
+      enable = ~rig.timeline.UseTimeline;
     end
     if ~enable
-      useTimeline = false;
+      rig.timeline.UseTimeline = false;
       clock = hw.ptb.Clock; % use psychtoolbox clock
     else
-      useTimeline = true;
-      clock = hw.TimelineClock; % use timeline clock
+      rig.timeline.UseTimeline = true;
+      clock = hw.TimelineClock(rig.timeline); % use timeline clock
     end
     rig.clock = clock;
     cellfun(@(user) setClock(user, clock),...
-      {'mouseInput', 'rewardController', 'lickDetector'});
+      {'mouseInput', 'lickDetector'});
     
-    t = useTimeline;
+    t = rig.timeline.UseTimeline;
     if enable
       log('Use of timeline enabled');
     else
