@@ -950,6 +950,7 @@ classdef SignalsExp < handle
         % Write feedback
         
         feedback = getOr(obj.Data.events, 'feedbackValues', NaN);
+        feedback = double(feedback);
         feedback(feedback == 0) = -1;
         if ~isnan(feedback)
           writeNPY(feedback(:), fullfile(expPath, 'cwFeedback.type.npy'));
@@ -961,7 +962,7 @@ classdef SignalsExp < handle
         
         % Write go cue
         interactiveOn = getOr(obj.Data.events, 'interactiveOnTimes', NaN);
-        if ~isnan(feedback)
+        if ~isnan(interactiveOn)
           alf.writeEventseries(expPath, 'cwGoCue', interactiveOn, [], []);
         else
           warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
@@ -974,7 +975,7 @@ classdef SignalsExp < handle
           response(response == 1) = 2;
           response(response == -1) = 1;
         end
-        if ~isnan(feedback)
+        if ~isnan(response)
           writeNPY(response(:), fullfile(expPath, 'cwResponse.choice.npy'));
           alf.writeEventseries(expPath, 'cwResponse',...
             obj.Data.events.responseTimes, [], []);
