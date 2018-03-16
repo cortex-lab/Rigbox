@@ -32,17 +32,14 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
       obj.InputSensorPos = nan(1000*60*60*2, 1);
       obj.InputSensorPosTime = nan(1000*60*60*2, 1);
       obj.InputSensorPosCount = 0;
+      obj.Block.newTrialTimes = [];
     end
     
     function update(obj)
       update@eui.ExpPanel(obj);
       processUpdates(obj); % update labels with latest signal values
-%       labels = cell2mat(values(obj.LabelsMap))';
       labelsMapVals = values(obj.LabelsMap)';
-      labels = gobjects(size(values(obj.LabelsMap)));
-      for i=1:length(labelsMapVals) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
-          labels(i) = labelsMapVals{i};
-      end
+      labels = deal([labelsMapVals{:}]);
       if ~isempty(labels) % colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
@@ -103,7 +100,8 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
         switch signame
           case {'events.azimuth', 'events.contrast', 'outputs.reward', ...
                   'events.stimulusOn', 'events.expStart', 'events.response', ...
-                  'events.feedback', 'events.endTrial'}
+                  'events.feedback', 'events.endTrial', 'events.interactiveDealy'...
+                  'events.preStimulusDelay'}
                 % Don't show these signals as labels
           otherwise
             if ~isKey(obj.LabelsMap, signame)
@@ -147,8 +145,8 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
             x = updates(find(idx, 1, 'last')).value;
             t = (24*3600*datenum(updates(find(idx, 1, 'last')).timestamp))-(24*3600*obj.StartedDateTime);
             % Downsample wheel trace plot to 10Hz
-            if obj.InputSensorPosCount==0||...
-                    t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
+%             if obj.InputSensorPosCount==0||...
+%                     t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
               %update our record of sensor positions
               lastidx = obj.InputSensorPosCount + 1;
               obj.InputSensorPosCount = lastidx;
@@ -169,21 +167,31 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
               end
               
               set(obj.ExperimentAxes.Handle, 'YLim', plotwindow + t(end));
-            end
+%             end
           end
           
           % Build block structure for plotting
           idx = strcmp('events.newTrial', {updates.name});
-          if any(idx) && obj.Block.numCompletedTrials == 0
-              obj.Block.startTime = datenum(updates(idx).timestamp);
+          if any(idx); obj.Block.newTrialTimes(end+1) = datenum(updates(idx).timestamp); end
+%           if obj.Block.numCompletedTrials == 0; i = 1; else; i = obj.Block.numCompletedTrials+1; end
+          idx = strcmp('events.contrastLeft', {updates.name});
+          if any(idx)
+            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            obj.Block.trial(i).contrastLeft = updates(idx).value;
           end
-          if obj.Block.numCompletedTrials == 0; i = 1; else; i = obj.Block.numCompletedTrials+1; end
-          idx = strcmp('events.contrast', {updates.name});
-          if any(idx); obj.Block.trial(i).contrast = updates(idx).value; end
+          idx = strcmp('events.contrastRight', {updates.name});
+          if any(idx)
+            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            obj.Block.trial(i).contrastRight = updates(idx).value;
+          end
           idx = strcmp('events.repeatNum', {updates.name});
-          if any(idx); obj.Block.trial(i).repeatNum = updates(idx).value; end
+          if any(idx)
+            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            obj.Block.trial(i).repeatNum = updates(idx).value;
+          end
           idx = strcmp('events.response', {updates.name});
           if any(idx)
+            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).response = updates(idx).value; 
             t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
             lastidx = obj.InputSensorPosCount + 1;
@@ -192,18 +200,22 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
             obj.InputSensorPosTime(lastidx) = t(end);
           end
           idx = strcmp('events.feedback', {updates.name});
-          if any(idx); obj.Block.trial(i).feedback = updates(idx).value; end
+          if any(idx)
+            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            obj.Block.trial(i).feedback = updates(idx).value;
+          end
           idx = strcmp('events.trialNum', {updates.name});
-          contrast = obj.Block.trial(end).contrast;
+          contrast = diff([obj.Block.trial(end).contrastLeft obj.Block.trial(end).contrastRight]);
           if any(idx)
             obj.Block.numCompletedTrials = updates(idx).value-1; 
             obj.PsychometricAxes.clear();
             % make plot
-            if ~isempty(contrast)
+            if ~isempty(contrast)&&...
+                any(obj.Block.trial(end).contrastLeft>0 & obj.Block.trial(end).contrastRight>0)
               % Plot a dotted line to indicate the current trial's contrast
               obj.PsychometricAxes.plot(contrast*[100 100], [-10 110], 'k:', 'LineWidth', 3)
             end
-            if i > 2
+            if obj.Block.numCompletedTrials > 2
               psy.plot2AUFC(obj.PsychometricAxes.Handle, obj.Block);
             end
           end
@@ -330,9 +342,7 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
       obj.ExperimentAxes.NextPlot = 'add';
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
-      
-      obj.PsychometricAxes.yLabel('% right-ward');
-      
+            
       plotgrid.ColumnSizes = [50 -1 10];
       plotgrid.RowSizes = [-1 50 -2 40];
     end

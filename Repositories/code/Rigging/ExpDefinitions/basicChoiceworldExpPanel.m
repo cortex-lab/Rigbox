@@ -36,12 +36,8 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
     function update(obj)
       update@eui.ExpPanel(obj);
       processUpdates(obj); % update labels with latest signal values
-%       labels = cell2mat(values(obj.LabelsMap))';
       labelsMapVals = values(obj.LabelsMap)';
-      labels = gobjects(size(values(obj.LabelsMap)));
-      for i=1:length(labelsMapVals) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
-          labels(i) = labelsMapVals{i};
-      end
+      labels = deal([labelsMapVals{:}]);
       if ~isempty(labels) % colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
@@ -101,8 +97,8 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
         signame = updates(ui).name;
         switch signame
           case {'events.newTrial', 'events.stimAzimuth', 'outputs.reward',...
-                  'events.stimOn', 'events.expStart', 'events.response',...
-                  'events.sessionPerformance', 'events.stimOff',...
+                  'events.stimulusOn', 'events.expStart', 'events.response',...
+                  'events.sessionPerformance', 'events.stimulusOff', ...
                   'events.endTrial', 'events.repeatOnMiss', 'events.staircase',...
                   'events.hitBuffer', 'events.interactiveOn', 'events.contrasts',...
                   'events.azimuth'}
@@ -137,7 +133,8 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
           try
             obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
           catch
-            warning('Error caught in signals updates: length of updates = %g, length newNUpdates = %g', length(updates), newNUpdates-(obj.NumSignalUpdates+1))
+            warning('Error caught in signals updates: length of updates = %g, length newNUpdates = %g',...
+              length(updates), newNUpdates-(obj.NumSignalUpdates+1))
           end
           obj.NumSignalUpdates = newNUpdates;
           
@@ -151,25 +148,14 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
           else
             side = [];
           end
-          % After a response has been given set the threshold bars to be
-          % white
-          idx = strcmp('events.response',{updates.name});
-          if any(idx)
-            side = [];
-            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
-            lastidx = obj.InputSensorPosCount + 1;
-            obj.InputSensorPosCount = lastidx;
-            obj.InputSensorPos(lastidx) = NaN;
-            obj.InputSensorPosTime(lastidx) = t(end);
-          end
           % Update wheel trace
           idx = strcmp('events.azimuth', {updates.name});
           if any(idx)
-            x = updates(idx).value-(side*90);
+            x = updates(find(idx, 1, 'last')).value-(side*90);
             t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
-            % Downsample wheel trace plot to 10Hz
+            % Downsample wheel trace plot to 6Hz
             if obj.InputSensorPosCount==0||...
-                    t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.1
+                    t(end)-obj.InputSensorPosTime(obj.InputSensorPosCount) > 0.06
               %update our record of sensor positions
               lastidx = obj.InputSensorPosCount + 1;
               obj.InputSensorPosCount = lastidx;
@@ -191,6 +177,18 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
               
               set(obj.ExperimentAxes.Handle, 'YLim', plotwindow + t(end));
             end
+          end
+          
+          % After a response has been given set the threshold bars to be
+          % white
+          idx = strcmp('events.response',{updates.name});
+          if any(idx)
+            side = [];
+            t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
+            lastidx = obj.InputSensorPosCount + 1;
+            obj.InputSensorPosCount = lastidx;
+            obj.InputSensorPos(lastidx) = NaN;
+            obj.InputSensorPosTime(lastidx) = t(end);
           end
           
           if sign(side)==1
@@ -324,7 +322,7 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
       obj.PsychometricAxes.XLim = [-1 1];
       obj.PsychometricAxes.NextPlot = 'add';
       xLabel(obj.PsychometricAxes,'Condition');
-      yLabel(obj.PsychometricAxes,'% Left');
+      yLabel(obj.PsychometricAxes,'% right-ward');
       hold(obj.PsychometricAxes.Handle, 'off');
 
       
@@ -336,9 +334,7 @@ classdef basicChoiceworldExpPanel < eui.ExpPanel
       obj.ExperimentAxes.NextPlot = 'add';
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
-      
-      obj.PsychometricAxes.yLabel('% right-ward');
-      
+            
       plotgrid.ColumnSizes = [50 -1 10];
       plotgrid.RowSizes = [-1 50 -2 40];    
     end

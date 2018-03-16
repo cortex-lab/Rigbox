@@ -14,7 +14,6 @@ function basicChoiceworld(t, events, parameters, visStim, inputs, outputs, audio
 % Short ITI on reward, long ITI on punish, then turn stim off
 % End trial
 
-
 %% Fixed parameters
 
 % Trial choice parameters
@@ -47,8 +46,8 @@ rewardSize = 3;
 
 
 % Timing
-prestimQuiescentTime = 0.5;
-cueInteractiveDelay = 0.5;
+prestimQuiescentTime = 0.1;
+cueInteractiveDelay = 0.2;
 itiHit = 1;
 itiMiss = 2;
 
@@ -70,10 +69,11 @@ missNoiseSamples = missNoiseAmplitude*events.expStart.map(@(x) ...
     randn(2, audioSampleRate*missNoiseDuration));
 
 % Wheel parameters
-quiescThreshold = 1;
+quiescThreshold = 10;
 encoderRes = 1024; % Resolution of the rotary encoder
 millimetersFactor = events.newTrial.map2(31*2*pi/(encoderRes*4), @times); % convert the wheel gain to a value in mm/deg
-wheelGain = 5;
+% gain = events.expStart.map(@initWheelGain);
+wheelGain = 5; %iff(gain > 5 & events.trialNum < 200, gain, 5);
 
 %% Initialize trial data
 
@@ -176,16 +176,19 @@ visStim.stim = stim;
 events.azimuth = azimuth;
 
 % Trial times
-events.stimOn = stimOn;
-events.stimOff = stimOff;
+events.stimulusOn = stimOn;
+events.stimulusOff = stimOff;
 events.interactiveOn = interactiveOn;
 events.response = response;
+feedback = iff(trialData.hit==1, true, -1);
+events.feedback = feedback;
 events.endTrial = at(~trialData.repeatTrial, stimOff);
 
 % Performance
 events.contrasts = trialData.contrasts;
 events.repeatOnMiss = trialData.repeatOnMiss;
-events.trialContrast = trialData.trialContrast;
+events.contrastLeft = iff(trialData.trialSide == -1, trialData.trialContrast, trialData.trialContrast*0);
+events.contrastRight = iff(trialData.trialSide == 1, trialData.trialContrast, trialData.trialContrast*0);
 events.trialSide = trialData.trialSide;
 events.hit = trialData.hit.at(response);
 events.staircase = trialData.staircase;
@@ -195,6 +198,32 @@ events.hitBuffer = trialData.hitBuffer;
 events.sessionPerformance = trialData.sessionPerformance;
 events.totalWater = water.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
 end
+% function wheelGain = initWheelGain(expRef)
+% subject = dat.parseExpRef(expRef);
+% expRef = dat.listExps(subject);
+% wheelGain = 10;
+% if length(expRef) > 1
+%     % Loop through blocks from latest to oldest, if any have the relevant
+%     % parameters then carry them over
+%     for check_expt = length(expRef)-1:-1:1
+%         previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
+%         if exist(previousBlockFilename,'file')
+%             previousBlock = load(previousBlockFilename);
+%             if isfield(previousBlock.block,'events')&&isfield(previousBlock.block.events,'newTrialValues')
+%                 previousBlock = previousBlock.block.events.newTrialValues;
+%             else
+%                 previousBlock = [];
+%             end
+%         end
+%         % Check if the relevant fields exist
+%         if length(previousBlock) > 200
+%             % Break the loop and use these parameters
+%             wheelGain = 5;
+%             break
+%         end       
+%     end        
+% end
+% end
 
 function trialDataInit = initializeTrialData(expRef, ...
     contrasts,startingContrasts,repeatOnMiss,trialsToBuffer, ...
@@ -246,7 +275,9 @@ if length(expRef) > 1
         previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
         if exist(previousBlockFilename,'file')
             previousBlock = load(previousBlockFilename);
-            if ~isfield(previousBlock.block, 'outputs')||isempty(previousBlock.block.outputs.rewardValues)
+            if ~isfield(previousBlock.block, 'outputs')||...
+                    ~isfield(previousBlock.block.outputs, 'rewardValues')||...
+                    isempty(previousBlock.block.outputs.rewardValues)
                 lastRewardSize = rewardSize;
             else
                 lastRewardSize = previousBlock.block.outputs.rewardValues(end);
@@ -407,7 +438,7 @@ switch current_min_contrast
 
     case 0.25
         % Lower from 0.25 contrast after > 50% correct
-        min_hit_percentage = 0.5;
+        min_hit_percentage = 0.70;
         
         contrast_buffer_idx = ismember(trialData.contrasts,current_min_contrast);
         contrast_total_trials = sum(~isnan(trialData.hitBuffer(:,contrast_buffer_idx,:)));
@@ -426,7 +457,7 @@ switch current_min_contrast
         
     case 0.125
         % Lower from 0.25 contrast after > 50% correct
-        min_hit_percentage = 0.5;
+        min_hit_percentage = 0.65;
         
         contrast_buffer_idx = ismember(trialData.contrasts,current_min_contrast);
         contrast_total_trials = sum(~isnan(trialData.hitBuffer(:,contrast_buffer_idx,:)));
