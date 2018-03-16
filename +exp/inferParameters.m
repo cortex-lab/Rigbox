@@ -42,7 +42,9 @@ try
   end
   sz = iff(isempty(fieldnames(parsStruct)), 1,... % if there are no paramters sz = 1
       structfun(@(a)size(a,2), parsStruct)); % otherwise get number of columns
-  parsStruct.numRepeats = ones(1,max(sz)); % add 'numRepeats' parameter
+  isChar = structfun(@ischar, parsStruct); % we disregard charecter arrays
+  % add 'numRepeats' parameter, where total number of trials = 1000
+  parsStruct.numRepeats = ones(1,max(sz(~isChar)))*floor(1000/max(sz(~isChar)));
   parsStruct.defFunction = expdef;
   parsStruct.type = 'custom';
   % Define the ExpPanel to use (automatically by name convention for now)
