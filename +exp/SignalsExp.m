@@ -905,7 +905,7 @@ classdef SignalsExp < handle
           end
           contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
           contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
-          if ~isnan(contL)&&~isnan(contR)
+          if ~any(isnan(contL))&&~any(isnan(contR))
             writeNPY(contL(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
             writeNPY(contR(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
           else
@@ -928,7 +928,7 @@ classdef SignalsExp < handle
           writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
           
           % Register them to Alyx
-          obj.AlyxInstance.registerALFtoAlyx(expPath);
+          obj.AlyxInstance.registerALF(expPath);
         catch ex
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
