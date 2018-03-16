@@ -104,7 +104,7 @@ trialEndTimes = [events.endTrialTimes]-startTime(end);
 numCompletedTrials = sum(cell2mat(numCompletedTrials));
 if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     rt = [events.responseTimes]-[events.interactiveOnTimes];
-    contrast = [events.trialContrastValues].*[events.trialSideValues];
+    contrast = diff(vertcat([events.contrastLeftValues],[events.contrastRightValues]));
     correct = [events.hitValues];
     leftResp = [events.trialSideValues]==-1&correct==1;
     resp = double(resp);
