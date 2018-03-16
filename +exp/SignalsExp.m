@@ -156,6 +156,7 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -674,6 +675,14 @@ classdef SignalsExp < handle
 %         tic
         wx = readAbsolutePosition(obj.Wheel);
         post(obj.Inputs.wheel, wx);
+        if ~isempty(obj.LickDetector)
+          % read and log the current lick count
+          [nlicks, ~, licked] = readPosition(obj.LickDetector);
+          if licked
+            post(obj.Inputs.lick, nlicks);
+            fprintf('lick count now %i\n', nlicks);
+          end
+        end
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         
