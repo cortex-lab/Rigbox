@@ -781,7 +781,9 @@ classdef Experiment < handle
                 if strcmp(subject, 'default'); return; end
                 % Register saved files
                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-                    {subject, expDate, seq}, 'Block', []);
+                    obj.AlyxInstance.SessionURL, 'Block', []);
+%                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+%                     {subject, expDate, seq}, 'Block', []);
                 % Save the session end time
                 if ~isempty(obj.AlyxInstance.SessionURL)
                   obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
