@@ -45,6 +45,9 @@ classdef DaqController < handle
     SignalGenerators = hw.PulseSwitcher.empty
     DaqIds = 'Dev1' % device ID's for each channel, e.g. 'Dev1'
     DaqChannelIds = {} % DAQ's ID for each channel, e.g. 'ao0'
+    SampleRate = 1000 % output sample rate ("scans/sec") of the daq device
+        % 1000 is also the default of the ni daq devices themselves, so if
+        % you don't change this, it doesn't actually do anything. 
   end
   
   properties (Transient)
@@ -66,6 +69,7 @@ classdef DaqController < handle
     function createDaqChannels(obj)
       if isempty(obj.DaqSession)
         obj.DaqSession = daq.createSession('ni');
+        obj.DaqSession.Rate = obj.SampleRate; 
       end
       if isempty(obj.DigitalDaqSession)&&any(~obj.AnalogueChannelsIdx)
         obj.DigitalDaqSession = daq.createSession('ni');
