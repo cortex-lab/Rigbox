@@ -43,7 +43,7 @@ classdef StimulusControl < handle
   end
   
   properties (Transient, Hidden)
-    AlyxInstance = [] % Property to store rig specific Alyx token
+    AlyxInstance = Alyx('','') % Property to store rig specific Alyx token
   end
   
   properties (Constant)
