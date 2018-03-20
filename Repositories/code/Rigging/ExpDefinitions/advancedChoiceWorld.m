@@ -167,8 +167,8 @@ p.wheelGain = 5;
 p.audDevIdx = 1;
 p.encoderRes = 1024;
 p.preStimulusDelay = [0 0.1 0.09]';
-catch ex
-   disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
+catch
+%    disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
 end
 
 %% Helper functions
