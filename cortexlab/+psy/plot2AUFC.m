@@ -10,11 +10,15 @@ contrast(2,:) = [block.trial.contrastRight];
 % contrast = diff(contrast);
 response = [block.trial.response];
 repeatNum = [block.trial.repeatNum];
-if any(structfun(@isnan, block.trial(end))) % strip incomplete trials
-  contrast = contrast(:,1:end-1);
-  response = response(1:end-1);
-  repeatNum = repeatNum(1:end-1);
-end
+incl = ~any(isnan([contrast;response;repeatNum]));
+contrast = contrast(incl);
+response = response(incl);
+repeatNum = repeatNum(incl);
+% if any(structfun(@isnan, block.trial(end))) % strip incomplete trials
+%   contrast = contrast(:,1:end-1);
+%   response = response(1:end-1);
+%   repeatNum = repeatNum(1:end-1);
+% end
 respTypes = unique(response);
 numRespTypes = numel(respTypes);
 
