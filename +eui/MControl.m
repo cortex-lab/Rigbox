@@ -6,10 +6,6 @@ classdef MControl < handle
   %     - improve it.
   %     - ensure all Parent objects specified explicitly (See GUI Layout
   %     Toolbox 2.3.1/layoutdoc/Getting_Started2.html)
-  %     - Do PrePostExpDelayEdits still store handles now it's moved to new
-  %     dialog?
-  %     - Tidy Options dialog
-  %     - Comment rigOptions function
   %   See also MC, EUI.ALYXPANEL, EUI.EXPPANEL, EUI.LOG, EUI.PARAMEDITOR
   %
   % Part of Rigbox
@@ -539,7 +535,9 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
+        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn &&...
+            ~obj.AlyxPanel.AlyxInstance.Headless &&...
+            ~strcmp(obj.NewExpSubject.Selected,'default')
           try
             obj.AlyxPanel.login();
             assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn);
@@ -742,7 +740,7 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox);
+      obj.AlyxPanel = eui.AlyxPanel(headerBox, false); % Second argument false; Alyx inactive
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
