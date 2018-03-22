@@ -57,12 +57,15 @@ classdef AlyxPanel < handle
   end
   
   methods
-    function obj = AlyxPanel(parent)
-      % Constructor to build all the UI elements and set callbacks to
-      % the relevant functions.  If a handle to parant UI object is
-      % not specified, a seperate figure is created.  An optional
-      % handle to a logging display panal may be provided, otherwise
-      % one is created.
+    function obj = AlyxPanel(parent, active)
+      % Constructor to build all the UI elements and set callbacks to the
+      % relevant functions.  If a handle to parant UI object is not
+      % specified, a seperate figure is created.  An optional handle to a
+      % logging display panal may be provided, otherwise one is created. If
+      % the active flag is set to false (default is true), the panel is
+      % inactive and the instance of Alyx will be set to headless.
+      %
+      % See also Alyx
       
       if ~nargin % No parant object: create new figure
         f = figure('Name', 'alyx GUI',...
@@ -84,6 +87,9 @@ classdef AlyxPanel < handle
         obj.NewExpSubject.addlistener('SelectionChanged', @(src, evt)obj.dispWaterReq(src, evt));
       end
       
+      % Default to active AlyxPanel
+      if nargin < 2; active = true; end
+      
       obj.RootContainer = uix.Panel('Parent', parent, 'Title', 'Alyx');
       alyxbox = uiextras.VBox('Parent', obj.RootContainer);
       
@@ -97,6 +103,12 @@ classdef AlyxPanel < handle
         'Enable', 'on',...
         'Callback', @(~,~)obj.login);
       loginbox.Widths = [-1 75];
+      
+      % If active flag set as false, make Alyx headless
+      if ~active
+        obj.AlyxInstance.Headless = true;
+        set(obj.LoginButton, 'Enable', 'off')
+      end
       
       waterReqbox = uix.HBox('Parent', alyxbox);
       obj.WaterRequiredText = bui.label('Log in to see water requirements', waterReqbox); % water required text
