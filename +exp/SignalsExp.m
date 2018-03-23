@@ -740,6 +740,7 @@ classdef SignalsExp < handle
             fprintf('lick count now %i\n', nlicks);
           end
         end
+%         post(obj.Inputs.ball, obj.BallSocket.Ball);
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         

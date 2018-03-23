@@ -80,7 +80,7 @@ classdef BallUDPService < srv.Service
       % SRV.BASICUDPSERVICE(remoteHost [remotePort, listenPort])
       %   remoteHost is the hostname of the service with which to send and
       %   receive messages.
-      if nargin < 3; remoteHost = ''; end
+      if nargin < 2; remoteHost = ''; end
       obj.RemoteHost = remoteHost;
       obj.ListenPort = 9999;
       obj.Socket = udp(remoteHost, 'LocalPort', obj.ListenPort);
