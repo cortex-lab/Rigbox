@@ -6,10 +6,6 @@ classdef MControl < handle
   %     - improve it.
   %     - ensure all Parent objects specified explicitly (See GUI Layout
   %     Toolbox 2.3.1/layoutdoc/Getting_Started2.html)
-  %     - Do PrePostExpDelayEdits still store handles now it's moved to new
-  %     dialog?
-  %     - Tidy Options dialog
-  %     - Comment rigOptions function
   %   See also MC, EUI.ALYXPANEL, EUI.EXPPANEL, EUI.LOG, EUI.PARAMEDITOR
   %
   % Part of Rigbox
