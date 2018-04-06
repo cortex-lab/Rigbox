@@ -170,7 +170,7 @@ classdef SignalsExp < handle
       obj.Inputs.ball = net.subscriptableOrigin('ball');
       ballHost = getOr(paramStruct, 'ballHostname', []);
       if ~isempty(ballHost)
-        obj.BallSocket = srv.BallUDPService(obj.Inputs.ball, ballHost);
+        obj.BallSocket = srv.BallUDPService(ballHost, obj.Inputs.ball);
       end
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
