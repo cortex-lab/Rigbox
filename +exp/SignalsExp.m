@@ -869,6 +869,7 @@ classdef SignalsExp < handle
             writeNPY(feedback(:), fullfile(expPath, 'cwFeedback.type.npy'));
             alf.writeEventseries(expPath, 'cwFeedback',...
               obj.Data.events.feedbackTimes, [], []);
+            writeNPY([obj.Data.outputs.rewardValues]', fullfile(expPath, 'cwFeedback.rewardVolume.npy'));
           else
             warning('No ''feedback'' events recorded, cannot register to Alyx')
           end
