@@ -521,6 +521,8 @@ classdef AlyxPanel < handle
       
       plot(ax, dates, [records.weight_measured], '.-');
       hold(ax, 'on');
+      % FIXME:  This weights are inaccurate - should be
+      % ([records.weight_expected]-implantWeight)*0.7 + implantWeight
       plot(ax, dates, [records.weight_expected]*0.7, 'r', 'LineWidth', 2.0);
       plot(ax, dates, [records.weight_expected]*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
