@@ -907,8 +907,8 @@ classdef SignalsExp < handle
           contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
           contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
           if ~any(isnan(contL))&&~any(isnan(contR))
-            writeNPY(contL(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
-            writeNPY(contR(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
+            writeNPY(contL(:)*100, fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
+            writeNPY(contR(:)*100, fullfile(expPath, 'cwStimOn.contrastRight.npy'));
           else
             warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
           end
@@ -929,7 +929,10 @@ classdef SignalsExp < handle
           writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
           
           % Register them to Alyx
-          obj.AlyxInstance.registerALF(expPath);
+          files = dir(expPath);
+          isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
+          files = files(isNPY);
+          obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
         catch ex
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
@@ -939,19 +942,20 @@ classdef SignalsExp < handle
         warning('No Alyx token set');
       else
         try
-          [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
+          [subject, seq] = dat.parseExpRef(obj.Data.expRef);
           if strcmp(subject, 'default'); return; end
           % Register saved files
-          obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-            obj.AlyxInstance.SessionURL, 'Block', []);
+          obj.AlyxInstance.registerFile(savepaths{end});
 %           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           if ~isempty(obj.AlyxInstance.SessionURL)
-            obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
-              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+            obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
+              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
           else
-            % Infer from date session and retrieve using expFilePath
+            % Retrieve session from endpoint
+%             subsessions = obj.AlyxInstance.getData(...
+%               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
           end
         catch ex
           warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);

@@ -18,13 +18,12 @@ Rigbox has a number of essential and optional software dependencies, listed belo
 	* Signal Processing Toolbox
 	* Instrument Control Toolbox
 
-Additionally, Rigbox works with a number of extra repositories:
+Additionally, Rigbox works with a number of extra submodules (included):
 * [Signals](https://github.com/dendritic/signals) (for running bespoke experiment designs)
 	* Statistics and Machine Learning Toolbox
 	* [Microsoft Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 * [Alyx-matlab](https://github.com/cortex-lab/alyx-matlab) (for registering data to, and retrieving from, an Alyx database
-	* [Missing HTTP v1](https://github.com/psexton/missing-http/releases/tag/missing-http-1.0.0) or later
-	* [JSONlab](https://uk.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files)
+* [NPY-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
 
 ## Installing
 1. To install Rigbox, first ensure that all the above dependencies are installed.  
