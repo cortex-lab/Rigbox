@@ -453,18 +453,12 @@ classdef Timeline < handle
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
             
             %  write hardware info to a JSON file for compatibility with database
-            if exist('savejson', 'file')
-                % save local copy
-                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json'));
-                % save server copy
-                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'));
-            else
-                warning('JSONlab not found - hardware information not saved to ALF')
-            end
+            hw = jsonencode(obj.Data.hw); %#ok<NASGU>
+            save(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'hw', '-ascii');
             
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
-            % conversion is provided
+            % conversion is provided. TODO: Make timelineToALF a class method
             if ~isempty(which('alf.timelineToALF'))&&~isempty(which('writeNPY'))
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
@@ -602,7 +596,14 @@ classdef Timeline < handle
             end
             
             %If plotting the channels live, plot the new data
-            if obj.LivePlot; obj.livePlot(event.Data); end
+            if obj.LivePlot
+              obj.livePlot(event.Data)
+            else % If LivePlot has been toggled to false, delete the figure
+              if ~isempty(obj.Axes)
+                close(obj.Axes.Parent)
+                obj.Axes = [];
+              end
+            end
         end
         
         function livePlot(obj, data)

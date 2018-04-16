@@ -1,6 +1,9 @@
 function b = expExists(expRef)
 %DAT.EXPEXISTS Confirm existence of experiment(s) with reference
-%   b = DAT.EXPEXISTS(expRef) TODO
+%   b = DAT.EXPEXISTS(expRef) Returns true is expRef exists, where expRef
+%   is an experiment reference string or cell array thereof.
+%
+% See Also DAT.LISTEXPS, DAT.PATHS
 %
 % Part of Rigbox
 
