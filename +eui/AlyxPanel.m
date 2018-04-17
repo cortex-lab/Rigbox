@@ -323,7 +323,7 @@ classdef AlyxPanel < handle
       % Refresh the timer as the user isn't inactive
       stop(obj.LoginTimer); start(obj.LoginTimer) 
       try
-        s = catStructs(ai.getData('water-restricted-subjects')); % struct with data about restricted subjects
+        s = ai.getData('water-restricted-subjects'); % struct with data about restricted subjects
         idx = strcmp(obj.Subject, {s.nickname});
         if ~any(idx) % Subject not on water restriction
           set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
@@ -334,7 +334,7 @@ classdef AlyxPanel < handle
             obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
           wr = ai.getData(endpnt); % Get today's weight and water record
           if ~isempty(wr.records)
-            record = wr.records{end};
+            record = wr.records(end);
           else
             record = struct();
           end
@@ -362,7 +362,7 @@ classdef AlyxPanel < handle
           obj.WaterRemaining = s(idx).water_requirement_remaining;
         end
       catch me
-        d = loadjson(me.message);
+        d = me.message; %FIXME: JSON no longer returned
         if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
           set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
             'String', sprintf('Subject %s not found in alyx', obj.Subject));
