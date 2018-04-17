@@ -96,7 +96,7 @@ if ~any(strcmp(javaclasspath, jcp)); javaaddpath(jcp); end
 % Add the paths for Alyx-matlab.  This submodule allows one to interact
 % with an instance of an Alyx database.  For more information please visit:
 % http://alyx.readthedocs.io/en/latest/
-addpath(fullfile(root, 'alyx-matlab'), fullfile(root, 'helpers'));
+addpath(fullfile(root, 'alyx-matlab'), fullfile(root, 'alyx-matlab', 'helpers'));
 
 % Add paths for the npy-matlab.  This submodule is maintained by the
 % Kwik Team (https://github.com/kwikteam).  It allows for the saving of
