@@ -466,16 +466,19 @@ classdef Timeline < handle
                 warning('did not write files into alf format. Check that alyx-matlab and npy-matlab repositories are in path');
             end
             
-            % register Timeline.mat file to Alyx database
+            %Register ALF components and hardware structures to Alyx
+            %database. TODO: Make this process more robust.
             subject = dat.parseExpRef(obj.Data.expRef);
             if ~isempty(obj.AlyxInstance) && obj.AlyxInstance.IsLoggedIn && ~strcmp(subject,'default')
                 try
-                    obj.AlyxInstance.registerFile(obj.Data.savePaths{2});
+                    files = dir(fileparts(obj.Data.savePaths{2}));
+                    files = fullfile(files(1).folder, {files(endsWith({files.name},...
+                      {'HW.json', '.raw.npy', '_Timeline.npy'})).name});
+                    obj.AlyxInstance.registerFile([obj.Data.savePaths{2} files]);
                 catch ex
                     warning(ex.identifier, 'couldn''t register files to Alyx: %s', ex.message);
                 end
             end
-            %TODO: Register ALF components to alyx, incl TimelineHW.json
             
             % delete data from memory, tl is now officially no longer running
             obj.Data = [];
