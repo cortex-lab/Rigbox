@@ -88,7 +88,9 @@ addpath(fullfile(root, 'cortexlab'));
 
 % Add signals paths, this includes all the core code for running signals
 % experiments.  This submodule is maintained by Chris Burgess.
-addpath(fullfile(root, 'signals', 'util'), fullfile(root, 'signals', 'mexnet'));
+addpath(fullfile(root, 'signals'),...
+    fullfile(root, 'signals', 'mexnet'),...
+    fullfile(root, 'signals', 'util'));
 % Add the Java paths for signals
 jcp = fullfile(root, 'signals', 'java');
 if ~any(strcmp(javaclasspath, jcp)); javaaddpath(jcp); end
