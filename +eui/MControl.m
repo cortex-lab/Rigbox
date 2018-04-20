@@ -543,10 +543,12 @@ classdef MControl < handle
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
-        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.NewExpSubject.Selected,'default')
+        if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn &&...
+            ~strcmp(obj.NewExpSubject.Selected,'default') &&...
+            ~obj.AlyxPanel.AlyxInstance.Headless
           try
             obj.AlyxPanel.login();
-            assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn);
+            assert(obj.AlyxPanel.AlyxInstance.IsLoggedIn||obj.AlyxPanel.AlyxInstance.Headless);
           catch
             obj.log('Warning: Must be logged in to Alyx before running an experiment')
             return
