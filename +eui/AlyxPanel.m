@@ -214,6 +214,8 @@ classdef AlyxPanel < handle
       % Logging out does not cause the token to expire, instead the
       % token is simply deleted from this object.
       
+      % Reset headless flag in case user wishes to retry connection
+      obj.AlyxInstance.Headless = false; 
       % Are we logging in or out?
       if ~obj.AlyxInstance.IsLoggedIn % logging in
         % attempt login
@@ -227,7 +229,8 @@ classdef AlyxPanel < handle
           start(obj.LoginTimer)
           % Enable all buttons
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
-          set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
+          set(obj.LoginText, 'ForegroundColor', 'black',...
+            'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
           set(obj.LoginButton, 'String', 'Logout');
           
           % try updating the subject selectors in other panels
@@ -248,6 +251,13 @@ classdef AlyxPanel < handle
               mkdir(thisDir);
             end
           end
+        elseif obj.AlyxInstance.Headless
+          % Panel inactive or login failed due to Alyx being down
+          set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
+          set(obj.LoginText, 'ForegroundColor', [0.91, 0.41, 0.17],...
+            'String', 'Unable to reach Alyx, posts to be queued');
+          set(obj.LoginButton, 'String', 'Retry'); % Retry button
+          obj.log('Failed to reach Alyx server, please retry later');
         else
           obj.log('Did not log into Alyx');
         end
