@@ -32,7 +32,9 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
       obj.InputSensorPos = nan(1000*60*60*2, 1);
       obj.InputSensorPosTime = nan(1000*60*60*2, 1);
       obj.InputSensorPosCount = 0;
-      obj.Block.newTrialTimes = [];
+      obj.Block.newTrialTimes = now;
+      obj.Block.trial = struct('contrastLeft', [], 'contrastRight', [],...
+        'response', [], 'feedback', [], 'repeatNum', []);
     end
     
     function update(obj)

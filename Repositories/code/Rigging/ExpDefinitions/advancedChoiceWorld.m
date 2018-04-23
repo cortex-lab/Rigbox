@@ -22,9 +22,9 @@ contrastRight = p.stimulusContrast(2);
 % stimulus should come on after the wheel has been held still for the
 % duration of the preStimulusDelay.  The quiescence threshold is a tenth of
 % the rotary encoder resolution.
-preStimulusDelay = p.preStimulusDelay.map(@timeSampler);
+preStimulusDelay = p.preStimulusDelay.map(@timeSampler).at(evts.newTrial); % at(evts.newTrial) fix for rig pre-delay 
 stimulusOn = sig.quiescenceWatch(preStimulusDelay, t, wheel, floor(p.encoderRes/100));
-interactiveDelay = p.interactiveDelay.map(timeSampler);
+interactiveDelay = p.interactiveDelay.map(@timeSampler);
 interactiveOn = stimulusOn.delay(interactiveDelay); % the closed-loop period starts when the stimulus comes on, plus an 'interactive delay'
 
 onsetToneSamples = p.onsetToneAmplitude*...
@@ -117,7 +117,6 @@ nextCondition = feedback > 0 | p.repeatIncorrect == false;
 % names:
 evts.stimulusOn = stimulusOn;
 evts.preStimulusDelay = preStimulusDelay;
-evts.interactiveDelay = interactiveDelay;
 % save the contrasts as a difference between left and right
 evts.contrast = p.stimulusContrast.map(@diff); 
 evts.contrastLeft = contrastLeft;
@@ -167,8 +166,8 @@ p.wheelGain = 5;
 p.audDevIdx = 1;
 p.encoderRes = 1024;
 p.preStimulusDelay = [0 0.1 0.09]';
-catch
-%    disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
+catch ex
+   disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
 end
 
 %% Helper functions
