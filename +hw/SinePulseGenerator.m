@@ -38,6 +38,8 @@ classdef SinePulseGenerator < hw.ControlSignalGenerator
       
       % add a zero so it turns off at the end
       samples = [samples'; 0];
+      
+      samples = samples+obj.Offset;
     end
   end
   

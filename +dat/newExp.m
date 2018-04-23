@@ -1,4 +1,4 @@
-function [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstance)
+function [expRef, expSeq] = newExp(subject, expDate, expParams)
 %DAT.NEWEXP Create a new unique experiment in the database
 %   [ref, seq, url] = DAT.NEWEXP(subject, expDate, expParams[, AlyxInstance])
 %   Create a new experiment by creating the relevant folder tree in the
@@ -9,10 +9,7 @@ function [expRef, expSeq, url] = newExp(subject, expDate, expParams, AlyxInstanc
 %                       |_ expSeq/
 %
 %   If experiment parameters are passed into the function, they are saved
-%   here, as a mat and in JSON (if possible).  If an instance of Alyx is
-%   passed and a base session for the experiment date is not found, one is
-%   created in the Alyx database. A corresponding subsession is also
-%   created and the parameters file is registered with the sub-session.
+%   here.
 %
 %   See also DAT.PATHS
 %
@@ -28,11 +25,6 @@ end
 if nargin < 3
   % default parameters is empty variable
   expParams = [];
-end
-
-if (nargin < 4 || isempty(AlyxInstance)) && ~strcmp(subject, 'default')
-  % no instance of Alyx, don't create session on Alyx
-  AlyxInstance = alyx.loginWindow;
 end
 
 if ischar(expDate)

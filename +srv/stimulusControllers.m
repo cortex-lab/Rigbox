@@ -9,6 +9,8 @@ function sc = stimulusControllers
 p = dat.paths;
 
 sc = loadVar(fullfile(p.globalConfig, 'remote.mat'), 'stimulusControllers');
-
+% Order alphabetically
+[~, I] = sort(arrayfun(@(o)o.Name, sc, 'UniformOutput', false));
+sc = sc(I);
 end
 

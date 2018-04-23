@@ -6,7 +6,7 @@ function [subjectName, expNum] = subjectSelector(varargin)
 % from alyx; otherwise, from dat.listSubjects
 %
 % example usage:
-% >> alyxInstance = alyx.loginWindow();
+% >> alyxInstance = Alyx.login;
 % >> [subj, expNum] = subjectSelector([], alyxInstance);
 %
 % Created by NS 2017
@@ -44,7 +44,7 @@ subjectDropdown = uicontrol('Style', 'popupmenu', 'Parent', f, ...
 if nargin>1
     ai = varargin{2};
         
-    set(subjectDropdown, 'String', dat.listSubjects(ai));
+    set(subjectDropdown, 'String', ai.listSubjects);
 else
     set(subjectDropdown, 'String', dat.listSubjects);
 end

@@ -1,0 +1,9 @@
+[submodule "alyx-matlab"]
+	path = alyx-matlab
+	url = https://github.com/cortex-lab/alyx-matlab/
+[submodule "signals"]
+	path = signals
+	url = https://github.com/dendritic/signals
+[submodule "npy-matlab"]
+	path = npy-matlab
+	url = https://github.com/kwikteam/npy-matlab

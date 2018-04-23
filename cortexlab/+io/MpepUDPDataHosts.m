@@ -20,7 +20,7 @@ classdef MpepUDPDataHosts < srv.Service
     DigitalOutDaqChannelId
     Verbose = false % whether to output I/O messages etc
     Timeline % An instance of timeline for for recording UDP messages
-    AlyxInstance
+    AlyxInstance % An instance of Alyx for registering files, etc.
   end
   
   properties (SetAccess = protected)
@@ -41,8 +41,8 @@ classdef MpepUDPDataHosts < srv.Service
   properties (Access = private)
     ExpRef
     pResponseTimeout = 10
-    %When an mpep UDP is sent out, the message is saved here to later check
-    %the same message is received back
+    % When an mpep UDP is sent out, the message is saved here to later check
+    % the same message is received back
     LastSentMessage
     DigitalOutSession
     Timer
@@ -62,11 +62,11 @@ classdef MpepUDPDataHosts < srv.Service
     
     function open(obj)
       obj.Socket = pnet('udpsocket', obj.LocalPort); % bind listening socket
-      % set timeout to intial value
+      % Set timeout to intial value
       pnet(obj.Socket, 'setreadtimeout', obj.ResponseTimeout);
-      % save IP addresses for remote hosts
+      % Save IP addresses for remote hosts
       obj.RemoteIPs = ipaddress(obj.RemoteHosts);
-      % open the DAQ session, if configured
+      % Open the DAQ session, if configured
       if ~isempty(obj.DigitalOutDaqChannelId)
         obj.DigitalOutSession = daq.createSession(obj.DaqVendor);
         obj.DigitalOutSession.addDigitalChannel(...
@@ -76,7 +76,7 @@ classdef MpepUDPDataHosts < srv.Service
     end
     
     function close(obj)
-      % cleanup timeout timer, close network socket and release DAQ session
+      % Cleanup timeout timer, close network socket and release DAQ session
       if ~isempty(obj.Timer)
         stop(obj.Timer);
         delete(obj.Timer);
@@ -109,12 +109,12 @@ classdef MpepUDPDataHosts < srv.Service
     
     function expStarted(obj, ref)
       obj.ExpRef = ref; % save the experiment reference
-      %% send the ExpStart UDP
+      % Send the ExpStart UDP
       [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
       expStartMsg = sprintf('ExpStart %s %d %d', subject, seriesNum, expNum);
       confirmedBroadcast(obj, expStartMsg);
       
-      %% send the BlockStart UDP
+      % Send the BlockStart UDP
       % start a block (we only use one per experiment)
       blockStartMsg = sprintf('BlockStart %s %d %d 1', subject, seriesNum, expNum);
       confirmedBroadcast(obj, blockStartMsg);
@@ -123,16 +123,16 @@ classdef MpepUDPDataHosts < srv.Service
     function stimStarted(obj, num, duration)
       validateResponses(obj); % validate any outstanding responses
       obj.StimNum = num;
-      %% send the StimStart UDP
+      % Send the StimStart UDP
       [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
       msg = sprintf('StimStart %s %d %d 1 %d %d',...              %2014/4/8 DS: why trial number is always 1???
         subject, seriesNum, expNum, obj.StimNum, duration + 1);
       confirmedBroadcast(obj, msg);
       
      
-      % create a timeout timer
+      % Create a timeout timer
       timeoutTimer = timer('StartDelay', duration, 'TimerFcn', @(t,d) stimEnded(obj, num));
-      %% set digital out line up if any
+      % Set digital out line up if any
       if ~isempty(obj.DigitalOutSession)
         obj.DigitalOutSession.outputSingleScan(true);
         if obj.Verbose
@@ -159,14 +159,14 @@ classdef MpepUDPDataHosts < srv.Service
           delete(obj.Timer);
           obj.Timer = [];
         end
-        %% set digital out line down if any
+        % Set digital out line down if any
         if ~isempty(obj.DigitalOutSession)
           obj.DigitalOutSession.outputSingleScan(false);
           if obj.Verbose
             fprintf('DAQ digital out -> false\n');
           end
         end
-        %% send the StimEnd UDP
+        % Send the StimEnd UDPS
         [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
         msg = sprintf('StimEnd %s %d %d 1 %d', subject, seriesNum, expNum, num);
         broadcast(obj, msg);
@@ -182,38 +182,41 @@ classdef MpepUDPDataHosts < srv.Service
     end
     
     function expEnded(obj)
-      %% If StimStart was sent without corresponding StimEnd, send it now
+      % If StimStart was sent without corresponding StimEnd, send it now
       if obj.StimOn
         stimEnded(obj);
       end
       validateResponses(obj); % validate any outstanding responses
       
-      %% send the BlockEnd UDP
+      % Send the BlockEnd UDP
       [subject, seriesNum, expNum] = dat.expRefToMpep(obj.ExpRef);
       blockEndMsg = sprintf('BlockEnd %s %d %d 1', subject, seriesNum, expNum);
       confirmedBroadcast(obj, blockEndMsg);
       
-      %% send the ExpEnd UDP
-      % start a block (we only use one per experiment)
+      % Send the ExpEnd UDP
+      % Start a block (we only use one per experiment)
       expEndMsg = sprintf('ExpEnd %s %d %d', subject, seriesNum, expNum);
       confirmedBroadcast(obj, expEndMsg);
       
       obj.ExpRef = [];
     end
     
-    function start(obj, ref)        
-      [expRef, ai] = dat.parseAlyxInstance(ref);
-      obj.AlyxInstance = ai;
-      [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
-      alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, ref);
-      confirmedBroadcast(obj, alyxmsg);
+    function start(obj, expRef, ai)  
+      % Deal with Alyx instance first
+      if ~isempty(ai)
+        obj.AlyxInstance = ai;
+        UDP_msg = Alyx.parseAlyxInstance(expRef, ai);
+        [subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+        alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, UDP_msg);
+        confirmedBroadcast(obj, alyxmsg);
+      end
       
-      % equivalent to startExp(expRef)
+      % Equivalent to startExp(expRef)
       expStarted(obj, expRef);
     end
     
     function stop(obj)
-      % equivalent to endExp()
+      % Equivalent to endExp()
       expEnded(obj);
     end
     
@@ -221,7 +224,7 @@ classdef MpepUDPDataHosts < srv.Service
       obj.broadcast('hello');
       try
         ok = awaitResponses(obj);
-      catch ex
+      catch
         ok = false;
       end
     end
@@ -243,14 +246,14 @@ classdef MpepUDPDataHosts < srv.Service
     end
     
     function broadcast(obj, msg)
-      % send UDP to all remote hosts
+      % Send UDP to all remote hosts
       cellfun(@(host) obj.sendPacket(msg, host), obj.RemoteHosts);
       obj.LastSentMessage = msg;
     end
     
     function validateResponses(obj)
-      %If a recent UDP message was sent and the response hasn't been
-      %received and checked that it matches what was sent, check it now.
+      % If a recent UDP message was sent and the response hasn't been
+      % received and checked that it matches what was sent, check it now.
       if ~isempty(obj.LastSentMessage)
         ok = awaitResponses(obj);
         assert(all(ok), 'A valid UDP confirmation was not received within timeout period');
@@ -258,20 +261,20 @@ classdef MpepUDPDataHosts < srv.Service
     end
     
     function ok = awaitResponses(obj)
-      %% check response is what we sent (with Timeout)
+      % Check response is what we sent (with Timeout)
       expecting = obj.LastSentMessage;
       % IP address of remote hosts we are expecting confirmation from
       waiting = ipaddress(obj.RemoteHosts);
       ok = false(size(waiting));
-      % receive 'num remote hosts' of packets
+      % Receive 'num remote hosts' of packets
       for i = 1:numel(obj.RemoteHosts)
         tic
         [msg, ip] = obj.readPacket;
         dt = toc;
         match = find(strcmp(waiting, ip), 1);
         assert(~isempty(match),...
-          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''',...
-          dt, ip, msg);
+          'Received UDP packet after %.2fs from unexpected IP address ''%s'',\nmessage was ''%s''\nAwaiting response from %s',...
+          dt, ip, msg, strjoin(obj.RemoteHosts, ', '));
         waiting(match) = []; % remove matching IP from confirmation list
         ok(i) = isequal(expecting, msg);
       end
@@ -279,7 +282,7 @@ classdef MpepUDPDataHosts < srv.Service
     end
     
     function sendPacket(obj, msg, host)
-      % send the packet with 'msg'
+      % Send the packet with 'msg'
       pnet(obj.Socket, 'write', msg);
       pnet(obj.Socket, 'writepacket', host, obj.RemotePort);
       if obj.Verbose
