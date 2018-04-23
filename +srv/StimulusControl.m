@@ -43,7 +43,7 @@ classdef StimulusControl < handle
   end
   
   properties (Transient, Hidden)
-    AlyxInstance = [] % Property to store rig specific Alyx token
+    AlyxInstance = Alyx('','') % Property to store rig specific Alyx token
   end
   
   properties (Constant)
@@ -268,8 +268,10 @@ classdef StimulusControl < handle
       assert(~isNil(msg), 'Timed out waiting for message with id ''%s''', id);
       remove(obj.Responses, id); % no longer waiting, remove place holder
     end
-    
-    function errorOnFail(obj, r)
+  end
+  
+  methods (Static)
+    function errorOnFail(r)
       if iscell(r) && strcmp(r{1}, 'fail')
         error(r{3});
       end

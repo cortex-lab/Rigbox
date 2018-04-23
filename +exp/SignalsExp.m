@@ -1,5 +1,5 @@
 classdef SignalsExp < handle
-  %exp.SignalsExp Base class for stimuli-delivering experiments
+  %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
   %   The class defines a framework for event- and state-based experiments.
   %   Visual and auditory stimuli can be controlled by experiment phases.
   %   Phases changes are managed by an event-handling system.
@@ -33,6 +33,8 @@ classdef SignalsExp < handle
     %saved into the block data field 'rigName'.
     RigName
     
+    %Communcator object for sending signals updates to mc.  Set by
+    %expServer
     Communicator = io.DummyCommunicator
     
     %Delay (secs) before starting main experiment phase after experiment
@@ -44,21 +46,30 @@ classdef SignalsExp < handle
     %wasn't requested).
     PostDelay = 0
     
-    IsPaused = false %flag indicating whether the experiment is paused
+    %Flag indicating whether the experiment is paused
+    IsPaused = false 
     
+    %Holds the wheel object, 'mouseInput' from the rig object.  See also
+    %USERIG, HW.DAQROTARYENCODER
     Wheel
     
+    %Holds the object for interating with the lick detector.  See also
+    %HW.DAQEDGECOUNTER
     LickDetector
     
+    %Holds the object for interating with the DAQ outputs (reward valve,
+    %etc.)  See also HW.DAQCONTROLLER
     DaqController
     
+    %Get the handle to the PTB window opened by expServer
     StimWindowPtr
     
     TextureById
     
     LayersByStim
     
-    Occ % occulus model
+    %Occulus viewing model
+    Occ
     
     Time
     
@@ -70,20 +81,24 @@ classdef SignalsExp < handle
     
     Visual
     
-    Audio
+    Audio % = aud.AudioRegistry
     
+    %Holds the parameters structure for this experiment
     Params
     
     ParamsLog
     
+    %The bounds for the photodiode square
     SyncBounds
     
+    %Sync colour cycle (usually [0, 255]) - cycles through these each
+    %time the screen flips.
     SyncColourCycle
     
-    NextSyncIdx %index into SyncColourCycle for next sync colour
-%     Audio = aud.AudioRegistry
-
-    %AlyxToken from client
+    %Index into SyncColourCycle for next sync colour
+    NextSyncIdx
+    
+    %Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
   end
   
@@ -141,6 +156,7 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -642,7 +658,6 @@ classdef SignalsExp < handle
         %% check for and process any input
         checkInput(obj);
 
-        
         %% execute pending event handlers that have become due
         for i = 1:ndue
           due = obj.Pending(dueIdx(i));
@@ -660,6 +675,14 @@ classdef SignalsExp < handle
 %         tic
         wx = readAbsolutePosition(obj.Wheel);
         post(obj.Inputs.wheel, wx);
+        if ~isempty(obj.LickDetector)
+          % read and log the current lick count
+          [nlicks, ~, licked] = readPosition(obj.LickDetector);
+          if licked
+            post(obj.Inputs.lick, nlicks);
+            fprintf('lick count now %i\n', nlicks);
+          end
+        end
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         
@@ -824,30 +847,121 @@ classdef SignalsExp < handle
     end
     
     function saveData(obj)
-        % save the data to the appropriate locations indicated by expRef
-        savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-        superSave(savepaths, struct('block', obj.Data));
-        
-        if isempty(obj.AlyxInstance)
-            warning('No Alyx token set');
-        else
-            try
-                [subject,~,~] = dat.parseExpRef(obj.Data.expRef); 
-                if strcmp(subject,'default'); return; end
-                % Register saved files
-                alyx.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.subsessionURL, 'Block', [], obj.AlyxInstance);
-                % Save the session end time
-                alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
-                    struct('end_time', alyx.datestr(now), 'subject', subject));
-            catch ex
-                warning('couldnt register files to alyx');
-                disp(ex)
-            end
+      % save the data to the appropriate locations indicated by expRef
+      savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+      superSave(savepaths, struct('block', obj.Data));
+      [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
+      
+      % if this is a 'ChoiceWorld' experiment, let's save out for
+      % relevant data for basic behavioural analysis and register them to
+      % Alyx
+      if contains(lower(obj.Data.expDef), 'choiceworld') ...
+          && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
+          && ~strcmp(obj.Data.endStatus,'aborted')
+        try
+          expPath = dat.expPath(obj.Data.expRef, 'main', 'master');
+          % Write feedback
+          
+          feedback = getOr(obj.Data.events, 'feedbackValues', NaN);
+          feedback = double(feedback);
+          feedback(feedback == 0) = -1;
+          if ~isnan(feedback)
+            writeNPY(feedback(:), fullfile(expPath, 'cwFeedback.type.npy'));
+            alf.writeEventseries(expPath, 'cwFeedback',...
+              obj.Data.events.feedbackTimes, [], []);
+            writeNPY([obj.Data.outputs.rewardValues]', fullfile(expPath, 'cwFeedback.rewardVolume.npy'));
+          else
+            warning('No ''feedback'' events recorded, cannot register to Alyx')
+          end
+          
+          % Write go cue
+          interactiveOn = getOr(obj.Data.events, 'interactiveOnTimes', NaN);
+          if ~isnan(interactiveOn)
+            alf.writeEventseries(expPath, 'cwGoCue', interactiveOn, [], []);
+          else
+            warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
+          end
+          
+          % Write response
+          response = getOr(obj.Data.events, 'responseValues', NaN);
+          if min(response) == -1
+            response(response == 0) = 3;
+            response(response == 1) = 2;
+            response(response == -1) = 1;
+          end
+          if ~isnan(response)
+            writeNPY(response(:), fullfile(expPath, 'cwResponse.choice.npy'));
+            alf.writeEventseries(expPath, 'cwResponse',...
+              obj.Data.events.responseTimes, [], []);
+          else
+            warning('No ''feedback'' events recorded, cannot register to Alyx')
+          end
+          
+          % Write stim on times
+          stimOnTimes = getOr(obj.Data.events, 'stimulusOnTimes', NaN);
+          if ~isnan(stimOnTimes)
+            alf.writeEventseries(expPath, 'cwStimOn', stimOnTimes, [], []);
+          else
+            warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
+          end
+          contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
+          contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
+          if ~any(isnan(contL))&&~any(isnan(contR))
+            writeNPY(contL(:)*100, fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
+            writeNPY(contR(:)*100, fullfile(expPath, 'cwStimOn.contrastRight.npy'));
+          else
+            warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
+          end
+          
+          % Write trial intervals
+          alf.writeInterval(expPath, 'cwTrials',...
+            obj.Data.events.newTrialTimes(:), obj.Data.events.endTrialTimes(:), [], []);
+          repNum = obj.Data.events.repeatNumValues(:);
+          writeNPY(repNum == 1, fullfile(expPath, 'cwTrials.inclTrials.npy'));
+          writeNPY(repNum, fullfile(expPath, 'cwTrials.repNum.npy'));
+          
+          % Write wheel times, position and velocity
+          wheelValues = obj.Data.inputs.wheelValues(:);
+          wheelValues = wheelValues*(3.1*2*pi/(4*1024));
+          wheelTimes = obj.Data.inputs.wheelTimes(:);
+          alf.writeTimeseries(expPath, 'Wheel', wheelTimes, [], []);
+          writeNPY(wheelValues, fullfile(expPath, 'Wheel.position.npy'));
+          writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
+          
+          % Register them to Alyx
+          files = dir(expPath);
+          isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
+          files = files(isNPY);
+          obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
+        catch ex
+          warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
-
+      end
+      
+      if isempty(obj.AlyxInstance)
+        warning('No Alyx token set');
+      else
+        try
+          [subject, seq] = dat.parseExpRef(obj.Data.expRef);
+          if strcmp(subject, 'default'); return; end
+          % Register saved files
+          obj.AlyxInstance.registerFile(savepaths{end});
+%           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+%             {subject, expDate, seq}, 'Block', []);
+          % Save the session end time
+          if ~isempty(obj.AlyxInstance.SessionURL)
+            obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
+              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+          else
+            % Retrieve session from endpoint
+%             subsessions = obj.AlyxInstance.getData(...
+%               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
+          end
+        catch ex
+          warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+        end
+      end
     end
   end
   
 end
-

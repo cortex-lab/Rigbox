@@ -21,6 +21,7 @@ end
 % mpepSendPort = 1103; % send responses back to this remote port
 quitKey = KbName('esc');
 manualStartKey = KbName('t');
+livePlotKey = KbName('p');
 
 %% Start UDP communication
 listeners = struct(...
@@ -36,7 +37,7 @@ log('Bound UDP sockets');
 tls.close = @closeConns;
 tls.process = @process;
 tls.listen = @listen;
-tls.AlyxInstance = [];
+tls.AlyxInstance = Alyx('','');
 
 
 %% Initialize timeline
@@ -81,7 +82,7 @@ tls.tlObj = tlObj;
       case 'alyx'
         fprintf(1, 'received alyx token message\n');
         idx = find(msg==' ', 1, 'last');
-        [~, ai] = dat.parseAlyxInstance(msg(idx+1:end));
+        [~, ai] = Alyx.parseAlyxInstance(msg(idx+1:end));
         tls.AlyxInstance = ai;
       case 'expstart'
         % create a file path & experiment ref based on experiment info
@@ -119,7 +120,10 @@ tls.tlObj = tlObj;
     KbQueueCreate();
     KbQueueStart();
     cleanup1 = onCleanup(@KbQueueRelease);
-    log('Polling for UDP messages. PRESS <%s> TO QUIT', KbName(quitKey));
+    log(['Polling for UDP messages. PRESS <%s> TO QUIT, '...
+      '<%s> to manually start/stop timeline, and ',...
+      '<%s> to toggle live plotting'],...
+      KbName(quitKey), KbName(manualStartKey), KbName(livePlotKey));
     running = true;
     tid = tic;
     while running
@@ -128,11 +132,14 @@ tls.tlObj = tlObj;
       if firstPress(quitKey)
         running = false;
       end
+      if firstPress(livePlotKey)
+        tlObj.LivePlot = ~tlObj.LivePlot;
+      end
       if firstPress(manualStartKey) && ~tlObj.IsRunning
         
         if isempty(tls.AlyxInstance)
           % first get an alyx instance
-          ai = alyx.loginWindow();
+          ai = Alyx;
         else
           ai = tls.AlyxInstance;
         end
@@ -142,8 +149,8 @@ tls.tlObj = tlObj;
         if ~isempty(mouseName)
           clear expParams;
           expParams.experimentType = 'timelineManualStart';
-          [newExpRef, ~, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
-          ai.subsessionURL = subsessionURL;
+          [newExpRef, ~, subsessionURL] = ai.newExp(mouseName, now, expParams);
+          ai.SessionURL = subsessionURL;
           tls.AlyxInstance = ai;
           tlObj.start(newExpRef, ai);
         end

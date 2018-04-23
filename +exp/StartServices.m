@@ -27,13 +27,16 @@ classdef StartServices < exp.Action
       obj.Services = value;
     end
 
-    function perform(obj, eventInfo, dueTime)
-      ref = dat.parseAlyxInstance(eventInfo.Experiment.Data.expRef,...
-          eventInfo.Experiment.AlyxInstance);
+    function perform(obj, eventInfo, ~)
+      %PERFORM Starts each service sequentially
+      % perform(obj, eventInfo, dueTime)
+      %
+      expRef = eventInfo.Experiment.Data.expRef;
+      ai = eventInfo.Experiment.AlyxInstance;
       n = numel(obj.Services);
       for i = 1:n
         try
-          obj.Services{i}.start(ref);
+          obj.Services{i}.start(expRef, ai);
           fprintf('Started ''%s''\n', obj.Services{i}.Title);
         catch ex
           %stop services that were started up till now

@@ -773,20 +773,26 @@ classdef Experiment < handle
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
         
-        if isempty(obj.AlyxInstance)
+        if ~obj.AlyxInstance.IsLoggedIn
             warning('No Alyx token set');
         else
             try
-                [subject,~,~] = dat.parseExpRef(obj.Data.expRef);
-                if strcmp(subject,'default'); return; end
+                [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject, 'default'); return; end
                 % Register saved files
-                alyx.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.subsessionURL, 'Block', [], obj.AlyxInstance);
+                obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+                    obj.AlyxInstance.SessionURL, 'Block', []);
+%                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
+%                     {subject, expDate, seq}, 'Block', []);
                 % Save the session end time
-                alyx.putData(obj.AlyxInstance, obj.AlyxInstance.subsessionURL,...
-                    struct('end_time', alyx.datestr(now), 'subject', subject));
-            catch
-                warning('couldnt register files to alyx because no subsession found');
+                if ~isempty(obj.AlyxInstance.SessionURL)
+                  obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
+                      struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                else
+                  % Infer from date session and retrieve using expFilePath
+                end
+            catch ex
+                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
             end
         end
     end
