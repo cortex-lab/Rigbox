@@ -19,13 +19,6 @@ end
 
 paths = dat.paths(name);
 
-% if strcmp(name, 'zen')
-%   baseDir = 'D:\Users\Chris\Documents\MATLAB\Experiments';
-%   configDir = fullfile(fullfile(baseDir, 'config'), name);
-% else
-%   baseDir = '\\zserver\code\Rigging';
-%   configDir = fullfile(fullfile(baseDir, 'config'), name);
-% end
 %% Basic initialisation
 fn = fullfile(paths.rigConfig, 'hardware.mat');
 if ~file.exists(fn)
@@ -43,26 +36,7 @@ rig.useDaq = pick(rig, 'useDaq', 'def', true);
 
 %% Configure common devices, if present
 configure('mouseInput');
-% configure('rewardController');
 configure('lickDetector');
-if isfield(rig, 'laser')
-  configure('laser', rig.rewardController.DaqSession);
-end
-
-%% Deal with reward controller calibrations
-% if init && isfield(rig, 'rewardController')
-%   if isfield(rig, 'rewardCalibrations')
-%     % use most recent reward calibration
-%     [newestDate, idx] = max([rig.rewardCalibrations.dateTime]);
-%     rig.rewardController.MeasuredDeliveries =...
-%       rig.rewardCalibrations(idx).measuredDeliveries;
-%     fprintf('\nApplying reward calibration performed on %s\n', datestr(newestDate));
-%   else
-%     %create an empty structure
-%     rig.rewardCalibrations = struct('dateTime', {}, 'measuredDeliveries', {});
-%     warning('Rigbox:hw:calibration', 'No reward calibrations found');
-%   end
-% end
 
 %% Set up controllers
 if init 

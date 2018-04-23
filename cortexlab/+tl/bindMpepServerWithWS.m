@@ -156,7 +156,7 @@ tls.tlObj = tlObj;
                 
                 if isempty(tls.AlyxInstance)
                     % first get an alyx instance
-                    ai = alyx.loginWindow();
+                    ai = Alyx;
                 else
                     ai = tls.AlyxInstance;
                 end
@@ -166,8 +166,8 @@ tls.tlObj = tlObj;
                 if ~isempty(mouseName)                    
                     clear expParams;
                     expParams.experimentType = 'timelineManualStart';
-                    [newExpRef, newExpSeq, subsessionURL] = dat.newExp(mouseName, now, expParams, ai);
-                    ai.subsessionURL = subsessionURL;
+                    [newExpRef, ~, subsessionURL] = ai.newExp(mouseName, now, expParams);
+                    ai.SessionURL = subsessionURL;
                     tls.AlyxInstance = ai;
                     
                     %[subjectRef, expDate, expSequence] = dat.parseExpRef(newExpRef);

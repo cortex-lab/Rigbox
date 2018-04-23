@@ -14,13 +14,13 @@ classdef Timeline < handle
 %   assumed that the time between sending the chrono pulse and recieving it
 %   is negligible.
 %
-%   There are other available clocking signals, for instance: 'acqLive' and 'clock'.
-%   The former outputs a high (+5V) signal the entire time tl is aquiring
-%   (0V otherwise), and can be used to trigger devices with a TTL input.
-%   The 'clock' output is a regular pulse at a frequency of
+%   There are other available clocking signals, for instance: 'acqLive' and
+%   'clock'. The former outputs a high (+5V) signal the entire time tl is
+%   aquiring (0V otherwise), and can be used to trigger devices with a TTL
+%   input. The 'clock' output is a regular pulse at a frequency of
 %   ClockOutputFrequency and duty cycle of ClockOutputDutyCycle.  This can
-%   be used to trigger a camera at a specific frame rate. See "properties" below for
-%   further details on output configurations.
+%   be used to trigger a camera at a specific frame rate. See "properties"
+%   below for further details on output configurations.
 %
 %   Besides the chrono signal, tl can aquire any number of inputs and
 %   record their values on the same clock.  For example a photodiode to
@@ -43,9 +43,9 @@ classdef Timeline < handle
 %   timeline.Outputs(1).DaqChannelID and timeline.Inputs(1).daqChannelID
 %     timeline.wiringInfo('chrono');
 %   %Add the rotary encoder
-%     timeline.addInput('rotaryEncoder', 'ctr0', 'Position'); 
+%     timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
 %   %For a lick detector
-%     timeline.addInput('lickDetector', 'ctr2', 'EdgeCount'); 
+%     timeline.addInput('lickDetector', 'ctr2', 'EdgeCount');
 %   %We want use camera frame acquisition trigger by default
 %     timeline.UseOutputs{end+1} = 'clock';
 %   %Save your hardware.mat file
@@ -64,7 +64,7 @@ classdef Timeline < handle
 
 %   2014-01 CB created
 %   2017-10 MW updated
-
+    
     properties
         DaqVendor = 'ni' % 'ni' is using National Instruments USB-6211 DAQ
         DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
@@ -78,26 +78,26 @@ classdef Timeline < handle
             'terminalConfig', 'SingleEnded',...
             'axesScale', 1) % multiplicative vertical scaling for when live plotting the input
         UseInputs = {'chrono'} % array of inputs to record while tl is running
-        StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session
-        MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)        
+        StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session to allow
+        MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)
         AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
         UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
         LivePlot = false % if true the data are plotted as the data are aquired
         FigureScale = []; % figure position in normalized units, default is [0 0 1 1] (full screen)
         WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
     end
-        
+    
     properties (Dependent)
         SamplingInterval % defined as 1/DaqSampleRate
         IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped (and everything saved), see tl.process and tl.stop
     end
-        
+    
     properties (Transient, Access = protected)
         Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
-        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()    
+        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
         LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         Ref % the expRef string.  See tl.start()
-        AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start() 
+        AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start()
         Data % A structure containing timeline data
         Axes % A figure handle for plotting the aquired data as it's processed
         DataFID % The data file ID for writing aquired data directly to disk
@@ -111,7 +111,7 @@ classdef Timeline < handle
             %   Adds chrono, aquireLive and clock to the outputs list,
             %   along with default ports and delays
             
-            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify            
+            obj.DaqSamplesPerNotify = 1/obj.SamplingInterval; % calculate DaqSamplesPerNotify
             if nargin % if old tl hardware struct provided, use these to populate properties
                 % Configure the inputs
                 obj.Inputs = hw.inputs;
@@ -139,7 +139,7 @@ classdef Timeline < handle
             end
             obj.Ref = expRef; % set the current experiment ref
             obj.AlyxInstance = ai; % set the current instance of Alyx
-            init(obj); % start the relevent sessions and add channels            
+            init(obj); % start the relevent sessions and add channels
             
             obj.Listener = obj.Sessions('main').addlistener('DataAvailable', @obj.process); % add listener
             
@@ -162,7 +162,7 @@ classdef Timeline < handle
                 fprintf(parfid, 'Fs = %d\n', obj.DaqSampleRate); % record the DAQ sample date
                 fclose(parfid); % close the file
             end
-
+            
             obj.Data.rawDAQData = zeros(numSamples, numInputChannels, obj.AquiredDataType);
             obj.Data.rawDAQSampleCount = 0;
             obj.Data.startDateTime = now;
@@ -233,7 +233,7 @@ classdef Timeline < handle
             %   Timeline data acquistion. 'strict' is optional (defaults to true), and
             %   if true, this function will fail if Timeline is not running. If false,
             %   it will just return the time using Psychtoolbox GetSecs if it's not
-            %   running. 
+            %   running.
             % See also TL.PTBSECSTOTIMELINE().
             if nargin < 2; strict = true; end
             if obj.IsRunning
@@ -259,7 +259,7 @@ classdef Timeline < handle
         end
         
         function addInput(obj, name, channelID, measurement,...
-            terminalConfig, axesScale, use)
+                terminalConfig, axesScale, use)
             % Add a new input to the object's Input property
             %   ADDINPUT(name, channelID, measurement, terminalConfig, use)
             %   adds a new input 'name' to the Inputs list.  If use is
@@ -268,7 +268,7 @@ classdef Timeline < handle
             % if no terminal config specified, leave empty which means use the
             % DAQ default for that port
             if nargin < 5; terminalConfig = []; end
-                
+            
             % if use is not specified, assume user wants normal scaling
             if nargin < 6; axesScale = 1; end
             
@@ -322,7 +322,7 @@ classdef Timeline < handle
                 outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
                 if strcmp(name, 'chrono') % Chrono wiring info
                     idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);                    
+                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);
                     fprintf('Bridge terminals %s and %s\n',...
                         obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
                 elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
@@ -351,33 +351,43 @@ classdef Timeline < handle
             if isfield(obj.Data, 'rawDAQSampleCount')&&...
                     obj.Data.rawDAQSampleCount > 0
                 % obj.Data.rawDAQSampleCount is greater than 0 during the first call to tl.process
-                bool = true; 
+                bool = true;
             else % obj.Data is cleared in tl.stop, after all data are saved
-                bool = false; 
+                bool = false;
             end
+        end
+        
+        function set.StopDelay(obj, delay)
+            if delay < 2
+                warning('Timeline:StopDelay:DelayTooShort',...
+                    'A stop delay less than 2s may cause some output samples to be missed upon stopping');
+            end
+            obj.StopDelay = delay;
         end
         
         function stop(obj)
             %TL.STOP Stops Timeline data acquisition
             %   TL.STOP() Deletes the listener, saves the aquired data,
-            %   stops all running DAQ sessions 
-            % 
+            %   stops all running DAQ sessions
+            %
             % See Also HW.TLOUTPUT/STOP
             if ~obj.IsRunning
                 warning('Nothing to do, Timeline is not running!')
                 return
             end
-            pause(obj.StopDelay)
-
+            
             % stop acquisition output signals
             arrayfun(@stop, obj.Outputs)
+            % wait for the final samples to be aquired
+            pause(obj.StopDelay)
+            
             % stop actual DAQ aquisition
             stop(obj.Sessions('main'));
             
-            % wait before deleting the listener to ensure most recent samples are
-            % collected
+            % wait before deleting the listener to ensure most recent
+            % samples are processed
             pause(1.5);
-            delete(obj.Listener) % now delete the data listener                        
+            delete(obj.Listener) % now delete the data listener
             
             % only keep the used part of the daq input array
             obj.Data.rawDAQData((obj.Data.rawDAQSampleCount + 1):end,:) = [];
@@ -403,7 +413,7 @@ classdef Timeline < handle
                 nextChrono = obj.Outputs(chronoOutputIdx).NextChronoSign;
                 LastClockSentSysTime = obj.Outputs(chronoOutputIdx).LastClockSentSysTime;
                 CurrSysTimeTimelineOffset = obj.Outputs(chronoOutputIdx).CurrSysTimeTimelineOffset;
-            end                            
+            end
             acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputAcqLive'),1);
             if ~isempty(acqLiveOutputIdx)
                 acqLiveChan = obj.Outputs(acqLiveOutputIdx).DaqChannelID;
@@ -411,7 +421,7 @@ classdef Timeline < handle
             clockOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputClock'),1);
             if ~isempty(clockOutputIdx)
                 useClock = true;
-                clockF = obj.Outputs(clockOutputIdx).Frequency; 
+                clockF = obj.Outputs(clockOutputIdx).Frequency;
                 clockD = obj.Outputs(clockOutputIdx).DutyCycle;
             end
             
@@ -430,7 +440,7 @@ classdef Timeline < handle
             obj.Data.lastClockSentSysTime = LastClockSentSysTime;
             obj.Data.currSysTimeTimelineOffset = CurrSysTimeTimelineOffset;
             
-            % saving hardware metadata for each output 
+            % saving hardware metadata for each output
             warning('off', 'MATLAB:structOnObject'); % sorry, don't care
             for outIdx = 1:numel(obj.Outputs)
                 s = struct(obj.Outputs(outIdx));
@@ -441,38 +451,34 @@ classdef Timeline < handle
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
-                        
+            
             %  write hardware info to a JSON file for compatibility with database
-            if exist('savejson', 'file')
-                % save local copy
-                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{1}), 'TimelineHW.json')); 
-                % save server copy
-                savejson('hw', obj.Data.hw, fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'));
-            else
-                warning('JSONlab not found - hardware information not saved to ALF')
-            end
+            hw = jsonencode(obj.Data.hw); %#ok<NASGU>
+            save(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'hw', '-ascii');
             
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
-            % conversion is provided
+            % conversion is provided. TODO: Make timelineToALF a class method
             if ~isempty(which('alf.timelineToALF'))&&~isempty(which('writeNPY'))
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
             else
                 warning('did not write files into alf format. Check that alyx-matlab and npy-matlab repositories are in path');
             end
-
-            % register Timeline.mat file to Alyx database
-            [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
+            
+            %Register ALF components and hardware structures to Alyx
+            %database. TODO: Make this process more robust.
+            subject = dat.parseExpRef(obj.Data.expRef);
             if ~isempty(obj.AlyxInstance) && obj.AlyxInstance.IsLoggedIn && ~strcmp(subject,'default')
                 try
-                    obj.AlyxInstance.registerFile(obj.Data.savePaths{end}, 'mat',...
-                        obj.AlyxInstance.SessionURL, 'Timeline', []);
+                    files = dir(fileparts(obj.Data.savePaths{2}));
+                    files = fullfile(files(1).folder, {files(endsWith({files.name},...
+                      {'HW.json', '.raw.npy', '_Timeline.npy'})).name});
+                    obj.AlyxInstance.registerFile([obj.Data.savePaths{2} files]);
                 catch ex
                     warning(ex.identifier, 'couldn''t register files to Alyx: %s', ex.message);
                 end
             end
-            %TODO: Register ALF components to alyx, incl TimelineHW.json
             
             % delete data from memory, tl is now officially no longer running
             obj.Data = [];
@@ -507,10 +513,10 @@ classdef Timeline < handle
             %   TL.INIT() creates all the DAQ sessions
             %   and stores them in the Sessions map by their Outputs name.
             %   Also add a 'main' session to which all input channels are
-            %   added.  
+            %   added.
             %
-            % See Also DAQ.CREATESESSION            
-
+            % See Also DAQ.CREATESESSION
+            
             %%reate channels for each input
             [use, idx] = intersect({obj.Inputs.name}, obj.UseInputs);% find which inputs to use
             assert(numel(idx) == numel(obj.UseInputs), 'Not all inputs were recognised');
@@ -553,8 +559,8 @@ classdef Timeline < handle
             %   flipped on each call (at LastClockSentSysTime), and the
             %   time of the previous flip is found in the data and its
             %   timestamp noted. This is used by tl.time() to convert
-            %   between system time and acquisition time. 
-            %   
+            %   between system time and acquisition time.
+            %
             %   LastTimestamp is the time of the last scan in the previous
             %   data chunk, and is used to ensure no data samples have been
             %   lost.
@@ -565,7 +571,7 @@ classdef Timeline < handle
             assert(abs(event.TimeStamps(1) - obj.LastTimestamp - obj.SamplingInterval) < 1e-8,...
                 'Discontinuity of DAQ acquistion detected: last timestamp was %f and this one is %f',...
                 obj.LastTimestamp, event.TimeStamps(1));
-                        
+            
             %Process methods for outputs
             arrayfun(@(out)out.process(obj, event), obj.Outputs);
             
@@ -592,7 +598,14 @@ classdef Timeline < handle
             end
             
             %If plotting the channels live, plot the new data
-            if obj.LivePlot; obj.livePlot(event.Data); end
+            if obj.LivePlot
+              obj.livePlot(event.Data)
+            else % If LivePlot has been toggled to false, delete the figure
+              if ~isempty(obj.Axes)
+                close(obj.Axes.Parent)
+                obj.Axes = [];
+              end
+            end
         end
         
         function livePlot(obj, data)
@@ -621,7 +634,7 @@ classdef Timeline < handle
             % figure and scale by scrolling the one that's hovered over
             scales = pick([obj.Inputs.axesScale], cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs));
             
-            traces = get(obj.Axes, 'Children'); 
+            traces = get(obj.Axes, 'Children');
             if isempty(traces)
                 Fs = obj.DaqSampleRate;
                 plot((1:Fs*10)/Fs, zeros(Fs*10, length(names))+repmat(offsets, Fs*10, 1));
@@ -650,7 +663,7 @@ classdef Timeline < handle
                     % necessary to prevent the value from wandering way off
                     % the range and making it impossible to see any of the
                     % other traces. Plus it is probably more useful,
-                    % anyway. 
+                    % anyway.
                     yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
                         gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
                 else

@@ -21,6 +21,7 @@ end
 % mpepSendPort = 1103; % send responses back to this remote port
 quitKey = KbName('esc');
 manualStartKey = KbName('t');
+livePlotKey = KbName('p');
 
 %% Start UDP communication
 listeners = struct(...
@@ -119,7 +120,10 @@ tls.tlObj = tlObj;
     KbQueueCreate();
     KbQueueStart();
     cleanup1 = onCleanup(@KbQueueRelease);
-    log('Polling for UDP messages. PRESS <%s> TO QUIT', KbName(quitKey));
+    log(['Polling for UDP messages. PRESS <%s> TO QUIT, '...
+      '<%s> to manually start/stop timeline, and ',...
+      '<%s> to toggle live plotting'],...
+      KbName(quitKey), KbName(manualStartKey), KbName(livePlotKey));
     running = true;
     tid = tic;
     while running
@@ -127,6 +131,9 @@ tls.tlObj = tlObj;
       [~, firstPress] = KbQueueCheck;
       if firstPress(quitKey)
         running = false;
+      end
+      if firstPress(livePlotKey)
+        tlObj.LivePlot = ~tlObj.LivePlot;
       end
       if firstPress(manualStartKey) && ~tlObj.IsRunning
         

@@ -9,7 +9,7 @@ function subjects = listSubjects(varargin)
 % Part of Rigbox
 
 % 2013-03 CB created
-% 2018-01 NS added alyx compatibility
+% 2018-01 NS added Alyx compatibility
 
 if nargin>0 && ~isempty(varargin{1}) % user provided an alyx instance
     ai = varargin{1}; % an alyx instance
@@ -38,6 +38,6 @@ else
     expInfoPath = dat.reposPath('expInfo', 'master');
     
     dirs = file.list(expInfoPath, 'dirs');
-    subjects = setdiff(dirs, {'misc'}); %exclude the misc directory
+    subjects = dirs(~cellfun(@(d)startsWith(d, '@'), dirs)); % exclude misc directories
 end
 end

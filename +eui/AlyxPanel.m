@@ -214,6 +214,8 @@ classdef AlyxPanel < handle
       % Logging out does not cause the token to expire, instead the
       % token is simply deleted from this object.
       
+      % Reset headless flag in case user wishes to retry connection
+      obj.AlyxInstance.Headless = false; 
       % Are we logging in or out?
       if ~obj.AlyxInstance.IsLoggedIn % logging in
         % attempt login
@@ -227,7 +229,8 @@ classdef AlyxPanel < handle
           start(obj.LoginTimer)
           % Enable all buttons
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
-          set(obj.LoginText, 'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
+          set(obj.LoginText, 'ForegroundColor', 'black',...
+            'String', ['You are logged in as ', obj.AlyxInstance.User]); % display which user is logged in
           set(obj.LoginButton, 'String', 'Logout');
           
           % try updating the subject selectors in other panels
@@ -248,6 +251,13 @@ classdef AlyxPanel < handle
               mkdir(thisDir);
             end
           end
+        elseif obj.AlyxInstance.Headless
+          % Panel inactive or login failed due to Alyx being down
+          set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
+          set(obj.LoginText, 'ForegroundColor', [0.91, 0.41, 0.17],...
+            'String', 'Unable to reach Alyx, posts to be queued');
+          set(obj.LoginButton, 'String', 'Retry'); % Retry button
+          obj.log('Failed to reach Alyx server, please retry later');
         else
           obj.log('Did not log into Alyx');
         end
@@ -323,7 +333,7 @@ classdef AlyxPanel < handle
       % Refresh the timer as the user isn't inactive
       stop(obj.LoginTimer); start(obj.LoginTimer) 
       try
-        s = catStructs(ai.getData('water-restricted-subjects')); % struct with data about restricted subjects
+        s = ai.getData('water-restricted-subjects'); % struct with data about restricted subjects
         idx = strcmp(obj.Subject, {s.nickname});
         if ~any(idx) % Subject not on water restriction
           set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
@@ -334,7 +344,7 @@ classdef AlyxPanel < handle
             obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
           wr = ai.getData(endpnt); % Get today's weight and water record
           if ~isempty(wr.records)
-            record = wr.records{end};
+            record = wr.records(end);
           else
             record = struct();
           end
@@ -343,7 +353,7 @@ classdef AlyxPanel < handle
           gel = getOr(record, 'hydrogel_given', 0); % Get total gel given
           weight_expected = getOr(record, 'weight_expected', NaN);
           % Set colour based on weight percentage
-          weight_pct = weight/weight_expected;
+          weight_pct = (weight-wr.implant_weight)/(weight_expected-wr.implant_weight);
           if weight_pct < 0.8 % Mouse below 80% original weight
             colour = [0.91, 0.41, 0.17]; % Orange
             weight_pct = '< 80%';
@@ -362,7 +372,7 @@ classdef AlyxPanel < handle
           obj.WaterRemaining = s(idx).water_requirement_remaining;
         end
       catch me
-        d = loadjson(me.message);
+        d = me.message; %FIXME: JSON no longer returned
         if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
           set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
             'String', sprintf('Subject %s not found in alyx', obj.Subject));
@@ -408,7 +418,7 @@ classdef AlyxPanel < handle
       % convert to double if weight is a string
       weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
       try
-        w = postWeight(ai, weight, subject); %FIXME: If multiple things flushed, length(w)>1
+        w = postWeight(ai, weight, subject);
         obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
       catch
         if ~ai.IsLoggedIn % if not logged in, save the weight for later
@@ -501,7 +511,10 @@ classdef AlyxPanel < handle
       % collect the data for the table
       endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
       wr = obj.AlyxInstance.getData(endpnt);
+      iw = wr.implant_weight;
       records = catStructs(wr.records, nan);
+      expected = [records.weight_expected];
+      expected(expected==0) = nan;
       % no weighings found
       if isempty(wr.records)
         obj.log('No weight data found for subject %s', obj.Subject);
@@ -521,8 +534,8 @@ classdef AlyxPanel < handle
       
       plot(ax, dates, [records.weight_measured], '.-');
       hold(ax, 'on');
-      plot(ax, dates, [records.weight_expected]*0.7, 'r', 'LineWidth', 2.0);
-      plot(ax, dates, [records.weight_expected]*0.8, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+      plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
+      plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
       if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
       if nargin == 1
@@ -534,7 +547,7 @@ classdef AlyxPanel < handle
       
       if nargin==1
         ax = axes('Parent', plotBox);
-        plot(ax, dates, [records.weight_measured]./[records.weight_expected], '.-');
+        plot(ax, dates, ([records.weight_measured]-iw)./(expected-iw), '.-');
         hold(ax, 'on');
         plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
         plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -562,14 +575,14 @@ classdef AlyxPanel < handle
         weightsByDate = num2cell([records.weight_measured]);
         weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
         weightsByDate(isnan([records.weight_measured])) = {[]};
-        weightPctByDate = num2cell([records.weight_measured]./[records.weight_expected]);
+        weightPctByDate = num2cell(([records.weight_measured]-iw)./(expected-iw));
         weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
         weightPctByDate(isnan([records.weight_measured])) = {[]};
         
         dat = horzcat(...
           arrayfun(@(x)datestr(x), dates', 'uni', false), ...
           weightsByDate', ...
-          arrayfun(@(x)sprintf('%.1f', 0.8*x), [records.weight_expected]', 'uni', false), ...
+          arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)), [records.weight_expected]', 'uni', false), ...
           weightPctByDate');
         waterDat = (...
           num2cell(horzcat([records.water_given]', [records.hydrogel_given]', ...
@@ -589,11 +602,7 @@ classdef AlyxPanel < handle
       ai = obj.AlyxInstance;
       if ai.IsLoggedIn
         wr = ai.getData(ai.makeEndpoint('water-restricted-subjects'));
-        
-        subjs = cellfun(@(x)x.nickname, wr, 'uni', false);
-        waterReqTotal = cellfun(@(x)x.water_requirement_total, wr, 'uni', false);
-        waterReqRemain = cellfun(@(x)x.water_requirement_remaining, wr, 'uni', false);
-        
+      
         % build a figure to show it
         f = figure; % popup a new figure for this
         wrBox = uix.VBox('Parent', f);
@@ -605,11 +614,12 @@ classdef AlyxPanel < handle
         %             colorgen = @(colorNum,text) ['<html><table border=0 width=400 bgcolor=#',htmlColor(colorNum),'><TR><TD>',text,'</TD></TR> </table></html>'];
         colorgen = @(colorNum,text) ['<html><body bgcolor=#',htmlColor(colorNum),'>',text,'</body></html>'];
         
-        wrdat = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3], sprintf('%.2f',x)), waterReqRemain, 'uni', false);
+        wrdat = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3],...
+          sprintf('%.2f',x)), {wr.water_requirement_remaining}, 'uni', false);
         
         set(wrTable, 'ColumnName', {'Name', 'Water Required', 'Remaining Requirement'}, ...
-          'Data', horzcat(subjs', ...
-          cellfun(@(x)sprintf('%.2f',x),waterReqTotal', 'uni', false), ...
+          'Data', horzcat({wr.nickname}', ...
+          cellfun(@(x)sprintf('%.2f',x),{wr.water_requirement_total}', 'uni', false), ...
           wrdat'), ...
           'ColumnEditable', false(1,3));
       end

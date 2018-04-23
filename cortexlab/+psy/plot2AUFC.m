@@ -10,26 +10,23 @@ contrast(2,:) = [block.trial.contrastRight];
 % contrast = diff(contrast);
 response = [block.trial.response];
 repeatNum = [block.trial.repeatNum];
-if any(structfun(@isnan, block.trial(end))) % strip incomplete trials
-  contrast = contrast(:,1:end-1);
-  response = response(1:end-1);
-  repeatNum = repeatNum(1:end-1);
-end
+incl = ~any(isnan([contrast;response;repeatNum]));
+contrast = contrast(:,incl);
+response = response(incl);
+repeatNum = repeatNum(incl);
+% if any(structfun(@isnan, block.trial(end))) % strip incomplete trials
+%   contrast = contrast(:,1:end-1);
+%   response = response(1:end-1);
+%   repeatNum = repeatNum(1:end-1);
+% end
 respTypes = unique(response);
 numRespTypes = numel(respTypes);
 
-if size(contrast, 1) > 1
-  allContrast = contrast;
-  contrast = diff(contrast, [], 1);
-else
-  allContrast = [0;0];
-end
-
-if any(allContrast(1,:)>0 & allContrast(2,:)>0)
+if any(contrast(1,:)>0 & contrast(2,:)>0)
   
   % mode for plotting task with two stimuli at once
-  cValsLeft = unique(allContrast(1,:));
-  cValsRight = unique(allContrast(2,:));
+  cValsLeft = unique(contrast(1,:));
+  cValsRight = unique(contrast(2,:));
   nCL = numel(cValsLeft);
   nCR = numel(cValsRight);
   %     pedVals = cVals(1:end-1);
@@ -43,7 +40,7 @@ if any(allContrast(1,:)>0 & allContrast(2,:)>0)
   for r = 1:numRespTypes
     for c1 = 1:nCL
       for c2 = 1:nCR
-        incl = repeatNum==1&allContrast(1,:)==cValsLeft(c1)&allContrast(2,:) == cValsRight(c2);
+        incl = repeatNum==1&contrast(1,:)==cValsLeft(c1)&contrast(2,:) == cValsRight(c2);
         numTrials(1,c1,c2) = sum(incl);
         numChooseR(r,c1,c2) = sum(response==respTypes(r)&incl);
         
@@ -70,7 +67,7 @@ if any(allContrast(1,:)>0 & allContrast(2,:)>0)
   caxis(ax, [-1 1]);
   axis(ax, 'image')
 else
-  
+  contrast = diff(contrast, [], 1);
   cVals = unique(contrast);
   colors = iff(numRespTypes>2,[0 1 1; 0 1 0; 1 0 0], [0 1 1; 1 0 0]);
   psychoM = zeros(numRespTypes,length(cVals));
