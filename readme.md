@@ -26,11 +26,24 @@ Additionally, Rigbox works with a number of extra submodules (included):
 * [NPY-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
 
 ## Installing
-1. To install Rigbox, first ensure that all the above dependencies are installed.  
+1. To install Rigbox, clone the repository in git.  It is *not* recommended to clone directly into the MATLAB folder
+```git clone https://github.com/cortex-lab/Rigbox.git```
 2. Pull the latest Rigbox-lite branch.  This branch is currently the 'cleanest' one, however in the future it will likely be merged with the master branch.  
+```
+cd Rigbox/
+git checkout rigbox-lite
+```
+3. Run the following to clone the submodules:
+```git submodules update --init```
 3. In MATLAB run 'addRigboxPaths.m' and restart the program.
 4. Set the correct paths by following the instructions in Rigbox\+dat\paths.m on both computers.
 5. On the stimulus server, load the hardware.mat file in Rigbox\Repositories\code\config\exampleRig and edit according to your specific hardware setup (link to detailed instructions above, under 'Getting started').
+
+To keep up to date, run the following:
+```
+git pull
+git submodules update --remote
+```
 
 ## Running an experiment
 
@@ -76,6 +89,7 @@ NB: Lower-level communication protocol code is found in the +io package
 
 ## cb-tools\burgbox
 Burgbox contains many simply helper functions that are used by the main packages.  Within this directory are further packages:
+
 * +bui --- Classes for managing graphics objects such as axes
 * +aud --- Functions for interacting with PsychoPortAudio
 * +file --- Functions for simplifying directory and file management, for instance returning the modified dates for specified folders or filtering an array of directories by those that exist
@@ -88,6 +102,9 @@ Burgbox contains many simply helper functions that are used by the main packages
 
 ## cortexlab
 The cortexlab directory is intended for functions and classes that are rig or lab specific, for instance code that allows compatibility with other stimulus presentation packages used by cortexlab (i.e. MPEP)
+
+## alyx-matlab/@Alyx
+This class allows interation with an instance of the Alyx database.  More information about Alyx can be found [here](http://alyx.readthedocs.io/en/latest/).  Information about using the alyx-matlab class can be found in [alyx-matlab/Examples.m](https://github.com/cortex-lab/alyx-matlab/blob/alyx-as-class/Examples.m).
 
 ## Authors
 The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013.  It is now maintained and developed by a number of people at [CortexLab](https://www.ucl.ac.uk/cortexlab).
