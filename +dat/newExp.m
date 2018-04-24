@@ -58,53 +58,6 @@ assert(~any(file.exists(expPath)), ...
 % now make the folder(s) to hold the new experiment
 assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
 
-if ~strcmp(subject, 'default') % Ignore fake subject
-  % if the Alyx Instance is set, find or create BASE session
-  expDate = alyx.datestr(expDate); % date in Alyx format
-  % Get list of base sessions
-  sessions = alyx.getData(AlyxInstance,...
-    ['sessions?type=Base&subject=' subject]);
-  
-  %If the date of this latest base session is not the same date as
-  %today, then create a new base session for today
-  if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), expDate(1:10))
-    d = struct;
-    d.subject = subject;
-    d.procedures = {'Behavior training/tasks'};
-    d.narrative = 'auto-generated session';
-    d.start_time = expDate;
-    d.type = 'Base';
-    %       d.users = {AlyxInstance.username};
-    
-    base_submit = alyx.postData(AlyxInstance, 'sessions', d);
-    assert(isfield(base_submit,'subject'),...
-      'Submitted base session did not return appropriate values');
-    
-    %Now retrieve the sessions again
-    sessions = alyx.getData(AlyxInstance,...
-      ['sessions?type=Base&subject=' subject]);
-  end
-  latest_base = sessions{end};
-  
-  %Now create a new SUBSESSION, using the same experiment number
-  d = struct;
-  d.subject = subject;
-  d.procedures = {'Behavior training/tasks'};
-  d.narrative = 'auto-generated session';
-  d.start_time = expDate;
-  d.type = 'Experiment';
-  d.parent_session = latest_base.url;
-  d.number = expSeq;
-  %   d.users = {AlyxInstance.username};
-  
-  subsession = alyx.postData(AlyxInstance, 'sessions', d);
-  assert(isfield(subsession,'subject'),...
-    'Failed to create new sub-session in Alyx for %s', subject);
-  url = subsession.url;
-else
-  url = [];
-end
-
 % if the parameters had an experiment definition function, save a copy in
 % the experiment's folder
 if isfield(expParams, 'defFunction')
@@ -131,16 +84,8 @@ if ~isempty(expParams)
       [expRef, '_parameters.json']);
     savejson('parameters', expParams, jsonPath);
     % Register our JSON parameter set to Alyx
-    if ~strcmp(subject, 'default')
-      alyx.registerFile(jsonPath, 'json', url, 'Parameters', [], AlyxInstance);
-    end
   catch ex
-    warning(ex.identifier, 'Failed to save paramters as JSON: %s.\n Registering mat file instead', ex.message)
-    % Register our parameter set to Alyx
-    if ~strcmp(subject, 'default')
-      alyx.registerFile(dat.expFilePath(expRef, 'parameters', 'master'), 'mat',...
-        url, 'Parameters', [], AlyxInstance);
-    end
+    warning(ex.identifier, 'Failed to save paramters as JSON: %s.', ex.message)
   end
 end
 end
