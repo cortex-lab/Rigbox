@@ -59,13 +59,13 @@ if init
     InitializePsychSound;
     IsPsychSoundInitialize = true;
   end
-  idx = pick(rig, 'audioDevice', 'def', 0);
-  rig.audioDevice = PsychPortAudio('GetDevices', [], idx);
-  % setup playback audio device - no configurable settings for now
-  % 96kHz sampling rate, 2 channels, try to very low audio latency
-  rig.audio = aud.open(rig.audioDevice.DeviceIndex,...
-  rig.audioDevice.NrOutputChannels,...
-  rig.audioDevice.DefaultSampleRate, 1);
+  % Get list of audio devices
+  devs = getOr(rig, 'audioDevices', PsychPortAudio('GetDevices'));
+  % Sanitize the names
+  names = matlab.lang.makeValidName([{'default'} {devs(2:end).DeviceName}],...
+    'ReplacementStyle', 'delete');
+  for i = 1:length(names); devs(i).DeviceName = names{i}; end
+  rig.audioDevices = devs;
 end
 
 rig.paths = paths;
