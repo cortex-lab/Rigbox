@@ -556,6 +556,9 @@ classdef Experiment < handle
 
       % destroy video texures created during intialisation
       deleteTextures(obj.StimWindow);
+      
+      % close audio
+      aud.close(obj.Audio);
     end
     
     function mainLoop(obj)
@@ -777,17 +780,14 @@ classdef Experiment < handle
             warning('No Alyx token set');
         else
             try
-                [subject, expDate, seq] = dat.parseExpRef(obj.Data.expRef);
+                subject = dat.parseExpRef(obj.Data.expRef);
                 if strcmp(subject, 'default'); return; end
                 % Register saved files
-                obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-                    obj.AlyxInstance.SessionURL, 'Block', []);
-%                 obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-%                     {subject, expDate, seq}, 'Block', []);
+                obj.AlyxInstance.registerFile(savepaths{end});
                 % Save the session end time
                 if ~isempty(obj.AlyxInstance.SessionURL)
-                  obj.AlyxInstance.putData(obj.AlyxInstance.SessionURL,...
-                      struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject));
+                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
+                    struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
                 else
                   % Infer from date session and retrieve using expFilePath
                 end

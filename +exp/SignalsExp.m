@@ -143,10 +143,7 @@ classdef SignalsExp < handle
       obj.Inputs = sig.Registry(clockFun);
       obj.Outputs = sig.Registry(clockFun);
       obj.Visual = StructRef;
-      nAudChannels = getOr(paramStruct, 'numAudChannels', rig.audioDevice.NrOutputChannels);
-      audSampleRate = getOr(paramStruct, 'audSampleRate', rig.audioDevice.DefaultSampleRate); % Hz
-      audDevIdx = getOr(paramStruct, 'audDevIdx', rig.audioDevice.DeviceIndex); % -1 means use system default
-      obj.Audio = audstream.Registry(audSampleRate, nAudChannels, audDevIdx);
+      obj.Audio = audstream.Registry(rig.audioDevices);
       obj.Events = sig.Registry(clockFun);
       %% configure signals
       net = sig.Net;
@@ -942,7 +939,7 @@ classdef SignalsExp < handle
         warning('No Alyx token set');
       else
         try
-          [subject, seq] = dat.parseExpRef(obj.Data.expRef);
+          subject = dat.parseExpRef(obj.Data.expRef);
           if strcmp(subject, 'default'); return; end
           % Register saved files
           obj.AlyxInstance.registerFile(savepaths{end});

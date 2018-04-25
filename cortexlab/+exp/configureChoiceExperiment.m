@@ -17,6 +17,13 @@ params = exp.Parameters;
 params.Struct = paramStruct;
 
 %% Generate audio samples at device sample rate
+% setup playback audio device - no configurable settings for now
+% 96kHz sampling rate, 2 channels, try to very low audio latency
+dev = rig.audioDevices(strcmp('default', {rig.audioDevices.DeviceName}));
+rig.audio = aud.open(dev.DeviceIndex,...
+dev.NrOutputChannels,...
+dev.DefaultSampleRate, 1);
+
 %Sound samples are wrapped in a cell for storing to a parameter
 %(to ensure they're used as one global parameter)
 audSampleRate = aud.rate(rig.audio);
