@@ -1,7 +1,14 @@
-function basicChoiceworld(t, events, parameters, visStim, inputs, outputs, audio)
+function basicChoiceworld2(t, events, parameters, visStim, inputs, outputs, audio)
 % basicChoiceworld(t, events, parameters, visStim, inputs, outputs, audio)
 % 2017-03 - AP created
 % 2018-01 - MW updated: automatic reward reduction, L-R performance
+% 2018-04 - MW changes: 
+%   onsetToneAmplitude - 0.2 -> 0.15
+%   wheelGain - 15 for first 200 trials
+%   prestimQuiescentTime - 0.5 -> 0.1
+%   cueInteractiveDelay - 0.5 -> 0.2
+%   reward after 2min inactivity
+%   lower reward - 0.1 -> 0.2
 %
 % Choice world that adapts with behavior
 %
@@ -35,7 +42,7 @@ repeatOnMiss = [true,true,false,false,false,false];
 % (number of trials to judge rolling performance)
 trialsToBuffer = 50;
 % (number of trials after introducing 12.5% contrast to introduce 0%)
-trialsToZeroContrast = 500;
+trialsToZeroContrast = 200;
 sigma = [20,20];
 spatialFreq = 1/15;
 % stimFlickerFrequency = 5; % DISABLED BELOW
@@ -43,6 +50,9 @@ startingAzimuth = 90;
 responseDisplacement = 90;
 % Starting reward size
 rewardSize = 3;
+% Initial wheel gain
+initialGain = 15;
+normalGain = 5;
 
 
 % Timing
@@ -71,15 +81,16 @@ missNoiseSamples = missNoiseAmplitude*events.expStart.map(@(x) ...
 quiescThreshold = 10;
 encoderRes = 1024; % Resolution of the rotary encoder
 millimetersFactor = events.newTrial.map2(31*2*pi/(encoderRes*4), @times); % convert the wheel gain to a value in mm/deg
-% gain = events.expStart.map(@initWheelGain);
-wheelGain = 5; %iff(gain > 5 & events.trialNum < 200, gain, 5);
+gain = events.expStart.mapn(initialGain, normalGain, @initWheelGain);
+enoughTrials = events.trialNum > 200;
+wheelGain = iff(enoughTrials, normalGain, gain);
 
 %% Initialize trial data
 
 trialDataInit = events.expStart.mapn( ...
     contrasts,startingContrasts,repeatOnMiss, ...
     trialsToBuffer,trialsToZeroContrast,staircaseTrials,...
-    staircaseHit,staircaseMiss,rewardSize, wheelGain,...
+    staircaseHit,staircaseMiss,rewardSize,...
     @initializeTrialData).subscriptable;
 
 %% Set up wheel 
@@ -91,7 +102,7 @@ wheel = inputs.wheel.skipRepeats();
 % condition can be chosen in a performance-dependent manner)
 
 % Resetting pre-stim quiescent period
-prestimQuiescentPeriod = at(prestimQuiescentTime,events.newTrial.delay(0)); 
+prestimQuiescentPeriod = at(prestimQuiescentTime, events.newTrial); 
 preStimQuiescence = sig.quiescenceWatch(prestimQuiescentPeriod, t, wheel, quiescThreshold); 
 
 % Stimulus onset
@@ -111,6 +122,8 @@ stimDisplacement = wheelGain*millimetersFactor*(wheel - wheel.at(interactiveOn))
 threshold = interactiveOn.setTrigger(abs(stimDisplacement) ...
     >= responseDisplacement);
 response = at(-sign(stimDisplacement), threshold);
+% bah = t.Node.Net.origin('response');
+% sign(stimDisplacement).into(bah);%.at(threshold);
 
 % A rolling buffer of trial response times
 dt = t.scan(@(a,b)diff([a,b]),0).at(response);
@@ -127,11 +140,13 @@ trialContrast = trialData.trialContrast;
 
 %% Give feedback and end trial
 
-% Give reward on hit
+% Give reward on hit or if the mouse hasn't given a response for 2 minutes.
+inactive = setTrigger(mod(t-t.at(stimOn), 120) > 119, mod(t-t.at(stimOn), 120) < 1);
+reward = merge(trialData.hit==true, inactive);
+rewardSize = trialData.rewardSize.at(events.newTrial); % Ensures reward size is not re-calculated at the response time
 % NOTE: there is a 10ms delay for water output, because otherwise water and
 % stim output compete and stim is delayed
-water = at(trialDataInit.rewardSize,trialData.hit.delay(0.01));  
-outputs.reward = water;
+outputs.reward = rewardSize.at(reward).delay(0.01);
 
 % Play noise on miss
 audio.default = missNoiseSamples.at(trialData.miss.delay(0.01));
@@ -190,44 +205,48 @@ events.contrastLeft = iff(trialData.trialSide == -1, trialData.trialContrast, tr
 events.contrastRight = iff(trialData.trialSide == 1, trialData.trialContrast, trialData.trialContrast*0);
 events.trialSide = trialData.trialSide;
 events.hit = trialData.hit.at(response);
+events.response = response;
 events.staircase = trialData.staircase;
 events.useContrasts = trialData.useContrasts;
 events.trialsToZeroContrast = trialData.trialsToZeroContrast;
+events.trialsToRwdSwitch = trialData.trialsToSwitch;
+events.highRewardSide = trialData.highRewardSide;
 events.hitBuffer = trialData.hitBuffer;
 events.sessionPerformance = trialData.sessionPerformance;
-events.totalWater = water.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
+events.gain = gain;
+events.wheelGain = wheelGain;
+events.totalWater = outputs.reward.scan(@plus, 0).map(fun.partial(@sprintf, '%.1fµl'));
 end
-% function wheelGain = initWheelGain(expRef)
-% subject = dat.parseExpRef(expRef);
-% expRef = dat.listExps(subject);
-% wheelGain = 10;
-% if length(expRef) > 1
-%     % Loop through blocks from latest to oldest, if any have the relevant
-%     % parameters then carry them over
-%     for check_expt = length(expRef)-1:-1:1
-%         previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
-%         if exist(previousBlockFilename,'file')
-%             previousBlock = load(previousBlockFilename);
-%             if isfield(previousBlock.block,'events')&&isfield(previousBlock.block.events,'newTrialValues')
-%                 previousBlock = previousBlock.block.events.newTrialValues;
-%             else
-%                 previousBlock = [];
-%             end
-%         end
-%         % Check if the relevant fields exist
-%         if length(previousBlock) > 200
-%             % Break the loop and use these parameters
-%             wheelGain = 5;
-%             break
-%         end       
-%     end        
-% end
-% end
+function wheelGain = initWheelGain(expRef, initialGain, normalGain)
+subject = dat.parseExpRef(expRef);
+expRef = dat.listExps(subject);
+wheelGain = initialGain;
+if length(expRef) > 1
+    % Loop through blocks from latest to oldest, if any have the relevant
+    % parameters then carry them over
+    for check_expt = length(expRef)-1:-1:1
+        previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
+        trialNum = [];
+        if exist(previousBlockFilename,'file')
+            previousBlock = load(previousBlockFilename);
+            if isfield(previousBlock.block,'events')&&isfield(previousBlock.block.events,'newTrialValues')
+                trialNum = previousBlock.block.events.newTrialValues;
+            end
+        end
+        % Check if the relevant fields exist
+        if length(trialNum) > 200
+            % Break the loop and use these parameters
+            wheelGain = normalGain;
+            break
+        end       
+    end        
+end
+end
 
 function trialDataInit = initializeTrialData(expRef, ...
     contrasts,startingContrasts,repeatOnMiss,trialsToBuffer, ...
     trialsToZeroContrast,staircaseTrials,staircaseHit,...
-    staircaseMiss,rewardSize,wheelGain)
+    staircaseMiss,rewardSize)
 
 %%%% Get the subject
 % (from events.expStart - derive subject from expRef)
@@ -235,6 +254,11 @@ subject = dat.parseExpRef(expRef);
 
 %%%% Initialize all of the session-independent performance values
 trialDataInit = struct;
+
+% Initialize trial countdown for reward contigency switch
+trialDataInit.trialsToSwitch = 200;
+% Initialize which side is the 'high reward side'
+trialDataInit.highRewardSide = randsample([-1,1],1);
 
 % Store the contrasts which are used
 trialDataInit.contrasts = contrasts;
@@ -314,15 +338,12 @@ if useOldParams
     
     % If the subject did over 200 trials last session, reduce the reward by
     % 0.1, unless it is 2ml
-    if length(previousBlock.newTrialValues) > 200 && lastRewardSize > 2
-        trialDataInit.rewardSize = lastRewardSize-0.1;
+    if length(previousBlock.newTrialValues) > 200 && lastRewardSize > 1.6
+        trialDataInit.rewardSize = lastRewardSize-0.2;
     else
         trialDataInit.rewardSize = lastRewardSize;
     end
-    
-    % What wheel gain should we use?
-%     trialDataInit.wheelGain = previousBlock.wheelGainValues(end);
-    
+        
 else
     % If this animal has no previous experiments, initialize performance
     trialDataInit.useContrasts = startingContrasts;
@@ -330,7 +351,6 @@ else
     trialDataInit.trialsToZeroContrast = trialsToZeroContrast;  
     % Initialize water reward size & wheel gain
     trialDataInit.rewardSize = rewardSize;
-    trialDataInit.wheelGain = wheelGain;
 end
 end
 
@@ -338,13 +358,13 @@ function trialData = updateTrialData(trialData,responseData)
 % Update the performance and pick the next contrast
 
 stimDisplacement = responseData(1);
-avgResponseTime = responseData(2);
-trialNum = responseData(3);
+% avgResponseTime = responseData(2);
+% trialNum = responseData(3);
 
-if trialNum > 50 && avgResponseTime < 60
-    trialData.wheelGain = 3;
-end
-
+% if trialNum > 50 && avgResponseTime < 60
+%     trialData.wheelGain = 3;
+% end
+% 
 %%%% Get index of current trial contrast
 currentContrastIdx = trialData.trialContrast == trialData.contrasts;
 
@@ -455,7 +475,7 @@ switch current_min_contrast
         end
         
     case 0.125
-        % Lower from 0.25 contrast after > 50% correct
+        % Lower from 0.25 contrast after > 65% correct
         min_hit_percentage = 0.65;
         
         contrast_buffer_idx = ismember(trialData.contrasts,current_min_contrast);
@@ -510,5 +530,22 @@ end
 
 %%%% Pick next side (this is done at random)
 trialData.trialSide = randsample([-1,1],1);
+
+%%%% Pick reward volume
+if trialData.rewardSize <= 2.2 &&...
+     min(trialData.contrasts(trialData.useContrasts)) == 0
+   % If enough trials have passed, switch high reward contingency
+   trialData.trialsToSwitch = trialData.trialsToSwitch - 1;
+   if trialData.trialsToSwitch == 0
+     trialData.highRewardSide = -trialData.highRewardSide;
+     trialData.trialsToSwitch = round(150 + (250 - 150)*rand); % New countdown
+   end
+   % Pick the reward size
+   if trialData.trialSide == trialData.highRewardSide
+     trialData.rewardSize = 2.2; % High reward
+   else
+     trialData.rewardSize = 1.5; % Normal reward
+   end
+end
 
 end

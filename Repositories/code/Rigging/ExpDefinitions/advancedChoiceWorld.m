@@ -12,9 +12,6 @@ function advancedChoiceWorld(t, evts, p, vs, in, out, audio)
 wheel = in.wheel.skipRepeats(); % skipRepeats means that this signal doesn't update if the new value is the same of the previous one (i.e. if the wheel doesn't move)
 rewardKey = p.rewardKey.at(evts.expStart); % get value of rewardKey at experiemnt start, otherwise it will take the same value each new trial
 rewardKeyPressed = in.keyboard.strcmp(rewardKey); % true each time the reward key is pressed
-nAudChannels = 2;
-p.audDevIdx; % Windows' audio device index (default is 1)
-audSampleRate = 44100; % Check PTB Snd('DefaultRate');
 contrastLeft = p.stimulusContrast(1);
 contrastRight = p.stimulusContrast(2);
 
@@ -27,9 +24,11 @@ stimulusOn = sig.quiescenceWatch(preStimulusDelay, t, wheel, floor(p.encoderRes/
 interactiveDelay = p.interactiveDelay.map(@timeSampler);
 interactiveOn = stimulusOn.delay(interactiveDelay); % the closed-loop period starts when the stimulus comes on, plus an 'interactive delay'
 
+audioDevice = audio.Devices('default');
 onsetToneSamples = p.onsetToneAmplitude*...
-    mapn(p.onsetToneFrequency, 0.1, audSampleRate, 0.02, nAudChannels, @aud.pureTone); % aud.pureTone(freq, duration, samprate, "ramp duration", nAudChannels)
-audio.onsetTone = onsetToneSamples.at(interactiveOn); % At the time of 'interative on', send samples to audio device and log as 'onsetTone'
+    mapn(p.onsetToneFrequency, 0.1, audioDevice.DefaultSampleRate,...
+    0.02, audioDevice.NrOutputChannels, @aud.pureTone); % aud.pureTone(freq, duration, samprate, "ramp duration", nAudChannels)
+audio.default = onsetToneSamples.at(interactiveOn); % At the time of 'interative on', send samples to audio device and log as 'onsetTone'
 
 %% wheel position to stimulus displacement
 % Here we define the multiplication factor for changing the wheel signal
@@ -68,7 +67,7 @@ feedback = feedback.at(threshold).delay(0.1);
 
 noiseBurstSamples = p.noiseBurstAmp*...
     mapn(nAudChannels, p.noiseBurstDur*audSampleRate, @randn);
-audio.noiseBurst = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
+audio.default = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
 reward = merge(rewardKeyPressed, feedback > 0);% only update when feedback changes to greater than 0, or reward key is pressed
 out.reward = p.rewardSize.at(reward); % output this signal to the reward controller

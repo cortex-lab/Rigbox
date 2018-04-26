@@ -52,16 +52,15 @@ itiHit = 1;
 itiMiss = 2;
 
 % Sounds
-audioSampleRate = 192e3;
+audioDevice = audio.Devices('default');
 
-onsetToneAmplitude = 1;
-onsetToneFreq = 12000;
+onsetToneAmplitude = 0.2;
+onsetToneFreq = 6000;
 onsetToneDuration = 0.1;
 onsetToneRampDuration = 0.01;
-audioChannels = 2;
 toneSamples = onsetToneAmplitude*events.expStart.map(@(x) ...
-    aud.pureTone(onsetToneFreq,onsetToneDuration,audioSampleRate, ...
-    onsetToneRampDuration,audioChannels));
+    aud.pureTone(onsetToneFreq, onsetToneDuration, audioDevice.DefaultSampleRate, ...
+    onsetToneRampDuration, audioDevice.NrOutputChannels));
 
 missNoiseDuration = itiMiss;
 missNoiseAmplitude = 0.05;
@@ -100,7 +99,7 @@ stimOn = at(true,preStimQuiescence);
 interactiveOn = stimOn.delay(cueInteractiveDelay); 
 
 % Play tone at interactive onset
-audio.onsetTone = toneSamples.at(interactiveOn);
+audio.default = toneSamples.at(interactiveOn);
 
 % Response
 % (wheel displacement zeroed at interactiveOn)
@@ -129,7 +128,7 @@ outputs.reward = water;
 totalWater = water.scan(@plus,0);
 
 % Play noise on miss
-audio.missNoise = missNoiseSamples.at(trialData.miss.delay(0.01));
+audio.default = missNoiseSamples.at(trialData.miss.delay(0.01));
 
 % ITI defined by outcome
 iti = response.delay(trialData.hit.at(response)*itiHit + trialData.miss.at(response)*itiMiss);
