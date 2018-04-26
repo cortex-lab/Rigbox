@@ -66,7 +66,7 @@ feedback = correctResponse == response;
 feedback = feedback.at(threshold).delay(0.1); 
 
 noiseBurstSamples = p.noiseBurstAmp*...
-    mapn(nAudChannels, p.noiseBurstDur*audSampleRate, @randn);
+    mapn(audioDevice.NrOutputChannels, p.noiseBurstDur*audioDevice.DefaultSampleRate, @randn);
 audio.default = noiseBurstSamples.at(feedback==0); % When the subject gives an incorrect response, send samples to audio device and log as 'noiseBurst'
 
 reward = merge(rewardKeyPressed, feedback > 0);% only update when feedback changes to greater than 0, or reward key is pressed
@@ -162,7 +162,6 @@ p.stimulusOrientation = 0;
 p.spatialFrequency = 0.19; % Prusky & Douglas, 2004
 p.interTrialDelay = 0.5;
 p.wheelGain = 5;
-p.audDevIdx = 1;
 p.encoderRes = 1024;
 p.preStimulusDelay = [0 0.1 0.09]';
 catch ex

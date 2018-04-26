@@ -65,7 +65,7 @@ toneSamples = onsetToneAmplitude*events.expStart.map(@(x) ...
 missNoiseDuration = 0.5;
 missNoiseAmplitude = 0.02;
 missNoiseSamples = missNoiseAmplitude*events.expStart.map(@(x) ...
-    randn(2, audioSampleRate*missNoiseDuration));
+    randn(2, audioDevice.DefaultSampleRate*missNoiseDuration));
 
 % Wheel parameters
 quiescThreshold = 10;
