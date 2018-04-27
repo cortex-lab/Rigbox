@@ -87,4 +87,3 @@ rig.paths = paths;
   end
 
 end
-

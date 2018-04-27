@@ -19,14 +19,12 @@ e.events = net.subscriptableOrigin('events');
 e.pars = net.subscriptableOrigin('pars');
 e.pars.CacheSubscripts = true;
 e.visual = net.subscriptableOrigin('visual');
-e.audio = net.subscriptableOrigin('audio');
-e.audio.SampleRate = 44100;
-e.audio.NChannels = 2;
+e.audio.Devices = @dummyDev;
 e.inputs = net.subscriptableOrigin('inputs');
 e.outputs = net.subscriptableOrigin('outputs');
 
 try
-  expdeffun(e.t, e.events, e.pars, e.visual, e.inputs , e.outputs);
+  expdeffun(e.t, e.events, e.pars, e.visual, e.inputs , e.outputs, e.audio);
   % paramNames will be the strings corresponding to the fields of e.pars
   % that the user tried to reference in her expdeffun.
   paramNames = e.pars.Subscripts.keys';
@@ -60,5 +58,13 @@ end
 
 net.delete();
 
-
+  function dev = dummyDev(~)
+    % Returns a dummy audio device structure, regardless of input
+    %   Returns a standard structure with values for generating tone
+    %   samples.  This function gets around the problem of querying the
+    %   rig's audio devices when inferring parameters.
+    dev = struct('DeviceIndex', -1,...
+          'DefaultSampleRate', 44100,...
+          'NrOutputChannels', 2);
+  end
 end
