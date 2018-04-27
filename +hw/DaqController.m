@@ -165,8 +165,14 @@ classdef DaqController < handle
           else
             startBackground(obj.DaqSession);
           end
-          readyWait(obj);
-          obj.DaqSession.release;
+          
+          % These two commands below were commented out by NS on 2018-03-22
+          % in order to return control immediately so the experiment can
+          % keep going on. We're not sure why they were here in the first
+          % place. 
+%           readyWait(obj);
+%           obj.DaqSession.release;
+
         elseif any(~analogueChannelsIdx)
             waveforms = waveforms(~analogueChannelsIdx);
             for n = 1:length(waveforms)
@@ -228,8 +234,10 @@ classdef DaqController < handle
         assert(sum(cidx) == 1, 'Channel name mismatch');
         samples(1:len(ii),cidx) = waveforms{ii};
       end
-      readyWait(obj);
-      %       plot(samples,'-x'), xlim([-1 300])
+      %readyWait(obj); % this readyWait also commented by NS on 2018-03-22, see comment above in command function
+      
+      whos samples
+            %plot(samples,'-x'), xlim([-1 300])
       obj.DaqSession.queueOutputData(samples);
       %       samplelen = size(samples,1)/1000
       %       dur = obj.DaqSession.DurationInSeconds
