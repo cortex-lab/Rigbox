@@ -175,13 +175,20 @@ classdef SignalsExp < handle
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
         obj.Data.expDef = paramStruct.defFunction;
+        [~, mfile] = fileparts(paramStruct.defFunction);
+        funArgs = nargin(str2func(mfile));
       else
         expDefFun = paramStruct.defFunction;
         obj.Data.expDef = func2str(expDefFun);
+        funArgs = nargin(expDefFun);
       end
-      fprintf('takes %i args\n', nargout(expDefFun));
-      expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
-        obj.Outputs, obj.Audio);
+      if funArgs == 7 
+        expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
+          obj.Outputs, obj.Audio);
+      else
+        expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
+          obj.Outputs, obj.Audio, rig);
+      end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
@@ -223,18 +230,19 @@ classdef SignalsExp < handle
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
+          nSigGen = sum(obj.DaqController.AnalogueChannelsIdx);
           for m = 1:length(outputNames)
               id = find(strcmp(outputNames{m},...
                   obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
               if id % if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v]))
                     obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
               elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
-                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
+                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command([v zeros(1,nSigGen-1)])) % NS added zero padding so all channels get asked for a waveform
+                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f with zeros\n', v))
                     ];   
               end
           end
