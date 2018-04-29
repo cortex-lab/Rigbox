@@ -168,15 +168,17 @@ classdef DaqController < handle
           end
           waveforms{ii} = gen(ii).waveform(rate, v);
         end
-        if obj.DaqSession.IsRunning
-          % if a daq operation is in progress, stop it, and set its output
-          % to the default value
-          reset(obj);
-        end
+        
         channelNames = obj.ChannelNames(1:n);
         analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
         if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
+            if obj.DaqSession.IsRunning
+                % if a daq operation is in progress, stop it, and set its output
+                % to the default value
+                reset(obj);
+            end
           queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
+          %fprintf(1, 'starting analog out\n');
           if foreground
             startForeground(obj.DaqSession);
           else
@@ -196,7 +198,7 @@ classdef DaqController < handle
                         obj.ClockDaqSession.DurationInSeconds=dur+0.01;
                         obj.ClockDaqSession.Channels.Frequency = 1/dur/2;
                         obj.ClockDaqSession.Channels.DutyCycle = 0.5;
-                        startForeground(obj.ClockDaqSession);
+                        startBackground(obj.ClockDaqSession);
 
 %                         tmr = timer('StartDelay', dur+0.002, ...
 %                             'TimerFcn', @(~,~)stop(obj.ClockDaqSession),...
@@ -246,8 +248,9 @@ classdef DaqController < handle
       end
       v = [obj.SignalGenerators.DefaultValue];
       outputSingleScan(obj.DaqSession, v(obj.AnalogueChannelsIdx));
-      if any(~obj.AnalogueChannelsIdx)
-        outputSingleScan(obj.DigitalDaqSession, v(~obj.AnalogueChannelsIdx));
+      digOutNonClock = ~obj.AnalogueChannelsIdx & arrayfun(@(x)isa(x,'hw.DigiRewardValveControl'), obj.SignalGenerators);
+      if any(digOutNonClock)
+        outputSingleScan(obj.DigitalDaqSession, v(digOutNonClock));
       end
       obj.CurrValue = v;
     end
@@ -263,12 +266,18 @@ classdef DaqController < handle
       defaultValues = [obj.SignalGenerators.DefaultValue];
       samples = repmat(defaultValues(obj.AnalogueChannelsIdx), max(len), 1);
       for ii = 1:numel(waveforms)
-        cidx = strcmp(names{ii}, obj.ChannelNames);
-        assert(sum(cidx) == 1, 'Channel name mismatch');
-        samples(1:len(ii),cidx) = waveforms{ii};
+          % changed by NS - the old version here assumes that the first N
+          % channels are analog out. if they aren't, this is wrong. 
+        %cidx = strcmp(names{ii}, obj.ChannelNames);
+        %assert(sum(cidx) == 1, 'Channel name mismatch');
+        %samples(1:len(ii),cidx) = waveforms{ii};
+        samples(1:len(ii),ii) = waveforms{ii};
       end
-      readyWait(obj);
-      %       plot(samples,'-x'), xlim([-1 300])
+
+      %readyWait(obj); % this readyWait also commented by NS on 2018-03-22, see comment above in command function
+      
+      %whos samples
+            %plot(samples,'-x'), xlim([-1 300])
       obj.DaqSession.queueOutputData(samples);
       %       samplelen = size(samples,1)/1000
       %       dur = obj.DaqSession.DurationInSeconds
