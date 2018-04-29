@@ -32,11 +32,15 @@ classdef DaqController < handle
   %    * Currently can not deal with having no analogue channels
   %    * The digital channels must be output only (no support for
   %      bi-directional digital channels
-  %    * Untested with multiple devices
   %
   % See also HW.CONTROLSIGNALGENERATOR, HW.DAQROTARYENCODER
   % 2013    CB created
   % 2017-07 MW added digital output support
+  % 2018-04 NS and MW added clock output for reward delivery. 
+  %
+  % See bottom of this file for test code for clock output.
+  
+
   
   properties
     ChannelNames = {} % name to refer to each channel
@@ -53,6 +57,9 @@ classdef DaqController < handle
   properties (Transient)
     DaqSession % should be a DAQ session containing at least one analogue output channel
     DigitalDaqSession % a DAQ session containing only digital output channels
+    % a DAQ session containing a digital clock channel for outputting an
+    % asynchronous pulse to the valve controller
+    ClockDaqSession
   end
   
   properties (Dependent)
@@ -74,6 +81,12 @@ classdef DaqController < handle
       if isempty(obj.DigitalDaqSession)&&any(~obj.AnalogueChannelsIdx)
         obj.DigitalDaqSession = daq.createSession('ni');
       end
+      % The first index must always be valve reward controller.  If it is
+      % not an analogue channel, add a session for clocked outputs
+      if isempty(obj.ClockDaqSession)&&~obj.AnalogueChannelsIdx(1)
+        obj.ClockDaqSession = daq.createSession('ni');
+        obj.ClockDaqSession.Rate = obj.SampleRate; 
+      end
       n = obj.NumChannels;
       if n > 0
         for ii = 1:n
@@ -85,6 +98,11 @@ classdef DaqController < handle
           if obj.AnalogueChannelsIdx(ii) % is channal analogue?
             obj.DaqSession.addAnalogOutputChannel(...
               daqid, obj.DaqChannelIds{ii}, 'Voltage');
+          elseif ii == 1 && ~obj.AnalogueChannelsIdx(ii)
+            % The first index must always be valve reward controller.  If
+            % the channel is not analogue, add a clock output channel
+            obj.ClockDaqSession.addCounterOutputChannel(...
+              daqid, obj.DaqChannelIds{ii}, 'PulseGeneration');
           else % assume digital, always output only
             obj.DigitalDaqSession.addDigitalChannel(...
               daqid, obj.DaqChannelIds{ii}, 'OutputOnly');
@@ -168,11 +186,32 @@ classdef DaqController < handle
           readyWait(obj);
           obj.DaqSession.release;
         elseif any(~analogueChannelsIdx)
-            waveforms = waveforms(~analogueChannelsIdx);
+            %waveforms = waveforms(~analogueChannelsIdx);
             for n = 1:length(waveforms)
-              digitalValues = waveforms{n};
-              for m = 1:length(digitalValues)
-                obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
+              if ~analogueChannelsIdx(n) 
+                  if isa(obj.SignalGenerators(n), 'hw.DigiRewardValveControl')
+                      
+                    dur = waveforms{n};
+                    if dur>0
+                        obj.ClockDaqSession.DurationInSeconds=dur+0.01;
+                        obj.ClockDaqSession.Channels.Frequency = 1/dur/2;
+                        obj.ClockDaqSession.Channels.DutyCycle = 0.5;
+                        startBackground(obj.ClockDaqSession);
+
+%                         tmr = timer('StartDelay', dur+0.002, ...
+%                             'TimerFcn', @(~,~)stop(obj.ClockDaqSession),...
+%                             'StopFcn', @(s,~)delete(s));
+%                         start(tmr);
+                    end
+                    
+                  else
+                      
+                      digitalValues = waveforms{n};
+                      for m = 1:length(digitalValues)
+                        obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
+                      end
+                      
+                  end
               end
             end
         end
@@ -242,8 +281,31 @@ classdef DaqController < handle
       if ~isempty(obj.DigitalDaqSession)&&obj.DigitalDaqSession.IsRunning
         obj.DigitalDaqSession.wait();
       end
+      if ~isempty(obj.ClockDaqSession)&&obj.ClockDaqSession.IsRunning
+        obj.ClockDaqSession.wait();
+      end
     end
   end
   
 end
 
+% % test code for clock output
+
+% % create session for clock reward output
+% ClockDaqSession = daq.createSession('ni');
+% daqid = 'Dev2';
+% daqch = 'ctr0';
+% ClockDaqSession.addCounterOutputChannel(daqid, daqch, 'PulseGeneration')
+% dur = 0.25;
+% ClockDaqSession.DurationInSeconds=dur+0.01
+% ClockDaqSession.Channels.Frequency = 1/dur/2
+% ClockDaqSession.Channels.DutyCycle = 0.5
+% 
+% % create session for simultaneous analog output
+% DaqSession = daq.createSession('ni');
+% DaqSession.addAnalogOutputChannel(daqid, 'ao0', 'Voltage')
+% dat = sin(linspace(0,2*pi,1000));
+% DaqSession.queueOutputData(dat')
+% 
+% % run them both, and the point is that they do not collide
+% startBackground(DaqSession); pause(0.1); startBackground(ClockDaqSession);
