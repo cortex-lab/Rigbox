@@ -85,7 +85,7 @@ classdef DaqController < handle
       % not an analogue channel, add a session for clocked outputs
       if isempty(obj.ClockDaqSession)&&~obj.AnalogueChannelsIdx(1)
         obj.ClockDaqSession = daq.createSession('ni');
-        obj.ClockDaqSession.Rate = obj.SampleRate; 
+        %obj.ClockDaqSession.Rate = obj.SampleRate; 
       end
       n = obj.NumChannels;
       if n > 0
@@ -98,9 +98,7 @@ classdef DaqController < handle
           if obj.AnalogueChannelsIdx(ii) % is channal analogue?
             obj.DaqSession.addAnalogOutputChannel(...
               daqid, obj.DaqChannelIds{ii}, 'Voltage');
-          elseif ii == 1 && ~obj.AnalogueChannelsIdx(ii)
-            % The first index must always be valve reward controller.  If
-            % the channel is not analogue, add a clock output channel
+          elseif isa(obj.SignalGenerators(ii), 'hw.DigiRewardValveControl')            
             obj.ClockDaqSession.addCounterOutputChannel(...
               daqid, obj.DaqChannelIds{ii}, 'PulseGeneration');
           else % assume digital, always output only
@@ -110,8 +108,9 @@ classdef DaqController < handle
         end
         v = [obj.SignalGenerators.DefaultValue];
         obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
-        if any(~obj.AnalogueChannelsIdx)
-          obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
+        digOutNonClock = ~obj.AnalogueChannelsIdx & arrayfun(@(x)isa(x,'hw.DigiRewardValveControl'), obj.SignalGenerators);
+        if any(digOutNonClock)
+          obj.DigitalDaqSession.outputSingleScan(v(digOutNonClock));
         end
         obj.CurrValue = v;
       else
@@ -193,10 +192,11 @@ classdef DaqController < handle
                       
                     dur = waveforms{n};
                     if dur>0
+                        %fprintf(1, 'commanding clock output: dur=%.2f\n', dur);
                         obj.ClockDaqSession.DurationInSeconds=dur+0.01;
                         obj.ClockDaqSession.Channels.Frequency = 1/dur/2;
                         obj.ClockDaqSession.Channels.DutyCycle = 0.5;
-                        startBackground(obj.ClockDaqSession);
+                        startForeground(obj.ClockDaqSession);
 
 %                         tmr = timer('StartDelay', dur+0.002, ...
 %                             'TimerFcn', @(~,~)stop(obj.ClockDaqSession),...
@@ -291,15 +291,15 @@ end
 
 % % test code for clock output
 
-% % create session for clock reward output
+% % % create session for clock reward output
 % ClockDaqSession = daq.createSession('ni');
 % daqid = 'Dev2';
 % daqch = 'ctr0';
-% ClockDaqSession.addCounterOutputChannel(daqid, daqch, 'PulseGeneration')
-% dur = 0.25;
-% ClockDaqSession.DurationInSeconds=dur+0.01
-% ClockDaqSession.Channels.Frequency = 1/dur/2
-% ClockDaqSession.Channels.DutyCycle = 0.5
+% ClockDaqSession.addCounterOutputChannel(daqid, daqch, 'PulseGeneration');
+% dur = 0.13;
+% ClockDaqSession.DurationInSeconds=dur+0.01;
+% ClockDaqSession.Channels.Frequency = 1/dur/2;
+% ClockDaqSession.Channels.DutyCycle = 0.5;
 % 
 % % create session for simultaneous analog output
 % DaqSession = daq.createSession('ni');
