@@ -15,11 +15,11 @@ classdef SinePulseGenerator < hw.ControlSignalGenerator
     end
 
     function samples = waveform(obj, sampleRate, pars)
-        pars
+        %pars
       dt = pars(1);
       
       if dt>0 || numel(pars)>1 % we have a new request for output!
-          fprintf(1, 'new request\n')
+          %fprintf(1, 'new request\n')
           % btw, if you want to set output to zero then ask for amp=0 like
           % pars=[0 40 0]. But it will go back to DefaultValue actually!
           
