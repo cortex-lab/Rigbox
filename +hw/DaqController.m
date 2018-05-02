@@ -279,6 +279,8 @@ classdef DaqController < handle
         %samples(1:len(ii),cidx) = waveforms{ii};
         samples(1:len(ii),ii) = waveforms{ii};
       end
+
+      
       %readyWait(obj); % this readyWait also commented by NS on 2018-03-22, see comment above in command function
       
       %whos samples
