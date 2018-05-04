@@ -7,15 +7,15 @@ function [expRef, expDate, expSequence] = listExps(subjects)
 
 % 2013-03 CB created
 
-% The master 'expInfo' repository is the reference for the existence of
+% The master 'main' repository is the reference for the existence of
 % experiments, as given by the folder structure
-expInfoPath = dat.reposPath('expInfo', 'master');
+mainPath = dat.reposPath('main', 'master');
 
   function [expRef, expDate, expSeq] = subjectExps(subject)
     % finds experiments for individual subjects
     % experiment dates correpsond to date formated folders in subject's
     % folder
-    subjectPath = fullfile(expInfoPath, subject);
+    subjectPath = fullfile(mainPath, subject);
     subjectDirs = file.list(subjectPath, 'dirs');
     dateRegExp = '^(?<year>\d\d\d\d)\-?(?<month>\d\d)\-?(?<day>\d\d)$';
     dateMatch = regexp(subjectDirs, dateRegExp, 'names');

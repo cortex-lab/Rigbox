@@ -56,7 +56,7 @@ end
 if init
   % intialise psychportaudio
   if isempty(IsPsychSoundInitialize) || ~IsPsychSoundInitialize
-    InitializePsychSound;
+    InitializePsychSound
     IsPsychSoundInitialize = true;
   end
   % Get list of audio devices

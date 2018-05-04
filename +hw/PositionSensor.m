@@ -35,7 +35,10 @@ classdef PositionSensor < hw.DataLogging
     end
     
     function value = get.LastPosition(obj)
-      value = obj.DataBuffer(obj.SampleCount);
+      value = [];
+      if obj.SampleCount
+        value = obj.DataBuffer(obj.SampleCount);
+      end
     end
 
     function zero(obj, log)

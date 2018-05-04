@@ -242,12 +242,12 @@ classdef AlyxPanel < handle
           obj.log('Logged into Alyx successfully as %s', obj.AlyxInstance.User);
           
           % any database subjects that weren't in the old list of
-          % subjects will need a folder in expInfo.
+          % subjects will need a folder in the main repository.
           firstTimeSubs = newSubs(~ismember(newSubs, dat.listSubjects));
           for fts = 1:length(firstTimeSubs)
-            thisDir = fullfile(dat.reposPath('expInfo', 'master'), firstTimeSubs{fts});
+            thisDir = fullfile(dat.reposPath('main', 'master'), firstTimeSubs{fts});
             if ~exist(thisDir, 'dir')
-              fprintf(1, 'making expInfo directory for %s\n', firstTimeSubs{fts});
+              fprintf(1, 'making directory for %s\n', firstTimeSubs{fts});
               mkdir(thisDir);
             end
           end

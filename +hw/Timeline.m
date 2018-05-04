@@ -94,13 +94,16 @@ classdef Timeline < handle
     
     properties (Transient, Access = protected)
         Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
-        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
         LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
         Ref % the expRef string.  See tl.start()
         AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start()
         Data % A structure containing timeline data
         Axes % A figure handle for plotting the aquired data as it's processed
         DataFID % The data file ID for writing aquired data directly to disk
+    end
+    
+    properties (Transient, SetAccess = protected, GetAccess = {?hw.Timeline, ?hw.TLOutput})
+        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
     end
     
     methods
@@ -495,18 +498,8 @@ classdef Timeline < handle
             % Report successful stop
             fprintf('Timeline for ''%s'' stopped and saved successfully.\n', obj.Ref);
         end
-        
-        function s = getSessions(obj, name)
-            % GETSESSIONS() Returns the Sessions property
-            % returns the Sessions property. Some things (e.g. output
-            % classes) need this.
-            %
-            % See Also HW.TLOUTPUT
-            s = obj.Sessions(name);
-        end
-        
     end
-    
+        
     methods (Access = private)
         function init(obj)
             % Create DAQ session and add channels

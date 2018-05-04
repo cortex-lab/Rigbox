@@ -1,7 +1,7 @@
 function subjects = listSubjects(varargin)
 %DAT.LISTSUBJECTS Lists recorded subjects
 %   subjects = DAT.LISTSUBJECTS([alyxInstance]) Lists the experimental subjects present
-%   in experiment info repository ('expInfo').
+%   in experiment info repository ('main').
 %
 % Optional input argument of an alyx instance will enable generating this
 % list from alyx rather than from the directory structure on zserver
@@ -33,11 +33,11 @@ if nargin>0 && ~isempty(varargin{1}) % user provided an alyx instance
     subjects = [{'default'}, thisUserSubs, otherUserSubs]';
 else
     
-    % The master 'expInfo' repository is the reference for the existence of
+    % The master 'main' repository is the reference for the existence of
     % experiments, as given by the folder structure
-    expInfoPath = dat.reposPath('expInfo', 'master');
+    mainPath = dat.reposPath('main', 'master');
     
-    dirs = file.list(expInfoPath, 'dirs');
+    dirs = file.list(mainPath, 'dirs');
     subjects = dirs(~cellfun(@(d)startsWith(d, '@'), dirs)); % exclude misc directories
 end
 end
