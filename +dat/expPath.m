@@ -9,10 +9,10 @@ function [p, expRef] = expPath(varargin)
 %   sames as the above, but returns paths for an experiment with a
 %   specified 'subject', on a particular 'date', and numbered 'seq'.
 %
-% e.g. to get the paths for the 'expInfo' repository, for the first
+% e.g. to get the paths for the 'main' repository, for the first
 % experiment of the day for 'SUBJECTA':
 % 
-% paths = DAT.EXPPATH('SUBJECTA', now, 1, 'expInfo');
+% paths = DAT.EXPPATH('SUBJECTA', now, 1, 'main');
 %
 % Part of Rigbox
 

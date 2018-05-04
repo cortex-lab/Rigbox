@@ -8,6 +8,6 @@ function b = subjectExists(ref)
 
 % 2013-03 CB created
 
-b = file.exists(fullfile(dat.reposPath('expInfo', 'master'), ref));
+b = file.exists(fullfile(dat.reposPath('main', 'master'), ref));
 
 end
