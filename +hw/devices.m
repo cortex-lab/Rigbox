@@ -34,6 +34,13 @@ else
 end
 rig.useDaq = pick(rig, 'useDaq', 'def', true);
 
+%% If Git is installed, determine hash of latest commit to code
+[status, hash] = system(sprintf('git -C "%s" rev-parse HEAD',...
+  fileparts(which('addRigboxPaths'))));
+if status == 0
+  rig.GitHash = hash;
+end
+
 %% Configure common devices, if present
 configure('mouseInput');
 configure('lickDetector');
