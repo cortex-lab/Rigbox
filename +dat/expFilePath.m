@@ -44,65 +44,48 @@ reposArgs = cat(2, {repos}, location);
 
   function [repos, suff, dateLevel] = typeInfo(type)
     % whether this repository is at the date level or otherwise deeper at the sequence
-    % level (default)
+    % level (default). FIXME: Date level doesn't work, perhaps this should
+    % be modified to work with deeper sequences also? E.g.
+    % default\2018-05-04\1\2
     dateLevel = false;
+    repos = 'main';
     switch lower(type)
       case 'block' % MAT-file with info about each set of trials
-        repos = 'expInfo';
         suff = '_Block.mat';
       case 'hw-info' % MAT-file with info about the hardware used for an experiment
-        repos = 'expInfo';
         suff = '_hardwareInfo.mat';
       case '2p-raw' % TIFF with 2-photon raw fluorescence movies
-        repos = 'twoPhoton';
         suff = '_2P.tif';
       case 'calcium-preview'
-        repos = 'twoPhoton';
         suff = '_2P_CalciumPreview.tif';
       case 'calcium-reg'
-        repos = 'twoPhoton';
         suff = '_2P_CalciumReg';
       case 'calcium-regframe'
-        repos = 'twoPhoton';
         suff = '_2P_CalciumRegFrame.tif';
       case 'timeline' % MAT-file with acquired timing information
-        repos = 'expInfo';
         suff = '_Timeline.mat';
       case 'calcium-roi'
-        repos = 'twoPhoton';
         suff = '_ROI.mat';
       case 'calcium-fc' % minimally filtered fractional change frames
-        repos = 'twoPhoton';
         suff = '_2P_CalciumFC';
       case 'calcium-ffc' % ROI filtered fractional change frames
-        repos = 'twoPhoton';
         suff = '_2P_CalciumFFC';
       case 'calcium-widefield-svd'
-        repos = 'widefield';
         suff = '_SVD';
       case 'eyetracking'
-        repos = 'eyeTracking';
         suff = '_eye';
       case 'parameters' % MAT-file with parameters used for experiment
-        repos = 'expInfo';
         suff = '_parameters.mat';
       case 'lasermanip'
-        repos = 'expInfo';
         suff = '_laserManip.mat';
       case 'img-info'
-        repos = 'twoPhoton';
         suff = '_imgInfo.mat';
       case 'tmaze'
-        repos = 'expInfo';
         suff = '_TMaze.mat';
       case 'expdeffun'
-        repos = 'expInfo';
         suff = '_expDef.m';
       case 'svdspatialcomps'
         dateLevel = true;
-        %               expPath = mapToCell(@fileparts, expPath);
-        %                 repos = 'expInfo';
-        %                 suff = '_expDef.m';
       otherwise
         error('"%s" is not a valid file type', type);
     end

@@ -1,5 +1,4 @@
 function experiment = prepareExp(params, rig, preDelay, postDelay, comm)
-
 % parameters should have a create experiment function that takes three
 % arguments:
 % 1st, the parameters structure for configuring the experiment
@@ -30,16 +29,4 @@ if isfield(params, 'services') && ~isempty(params.services)
     exp.EventHandler('experimentInit', startServices),...
     exp.EventHandler('experimentCleanup', stopServices));
 end
-
-%   % add a log entry for the experiment
-%   %TODO: in future logging will be handled by the client so that e.g.
-%   %comments can be entered by the supervisor and added
-% %   expInfo.ref = block.expRef;
-% %   expInfo.proportionCorrect = psycho.proportionCorrect(block);
-% %   expInfo.rewardType = 'water';
-% %   expInfo.rewardTotal = sum([block.rewardDeliveredSizes]); % in microlitres
-% %   expInfo.rewardUnits = 'µl'; % in microlitres
-% %   data.addLogEntry(subjectRef, block.startDateTime, 'experiment-info', expInfo, '');
-% end
-
 end

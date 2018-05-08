@@ -8,7 +8,7 @@ function p = loadParamProfiles(expType)
 % 2017-02 MW Param struct now sorted in ASCII dictionary order
 
 fn = 'parameterProfiles.mat';
-masterPath = fullfile(dat.reposPath('expInfo', 'master'), fn);
+masterPath = fullfile(dat.reposPath('main', 'master'), fn);
 
 p = struct; %default is to return an empty struct
 

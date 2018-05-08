@@ -197,7 +197,7 @@ ShowCursor();
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
-            send(communicator, id, []);
+            send(communicator, id, immediately);
           else
             log('Quit message received but no experiment is running\n');
           end
@@ -247,6 +247,11 @@ ShowCursor();
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
+    % save a copy of the hardware in JSON
+    jsonData = obj2json(rig); %#ok<NASGU>
+    name = dat.expFilePath(expRef, 'hw-info', 'master');
+    save([name(1:end-3) 'json'], 'jsonData', '-ascii');
+
     if rig.timeline.UseTimeline
       %stop the timeline system
       rig.timeline.stop();
