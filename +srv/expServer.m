@@ -203,7 +203,7 @@ ShowCursor();
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
-            send(communicator, id, []);
+            send(communicator, id, immediately);
           else
             log('Quit message received but no experiment is running\n');
           end
