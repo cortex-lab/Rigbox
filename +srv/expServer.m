@@ -55,7 +55,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+% HideCursor();
 
 if nargin < 2
   bgColour = 127*[1 1 1]; % mid gray by default
@@ -177,9 +177,9 @@ ShowCursor();
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay, Alyx);
+              aborted = runExp(expRef, preDelay, postDelay, Alyx);
               log('Experiment ''%s'' completed', expRef);
-              communicator.send('status', {'completed', expRef});
+              communicator.send('status', {'completed', expRef, aborted});
             catch runEx
               communicator.send('status', {'expException', expRef, runEx.message});
               log('Exception during experiment ''%s'' because ''%s''', expRef, runEx.message);
@@ -203,7 +203,7 @@ ShowCursor();
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
-            send(communicator, id, immediately);
+            send(communicator, id, []);
           else
             log('Quit message received but no experiment is running\n');
           end
@@ -217,7 +217,7 @@ ShowCursor();
     end
   end
 
-  function runExp(expRef, preDelay, postDelay, Alyx)
+  function aborted = runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -248,6 +248,7 @@ ShowCursor();
     experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
+    aborted = strcmp(experiment.Data.endStatus, 'aborted');
     % clear the active experiment var
     experiment = [];
     rig.stimWindow.BackgroundColour = bgColour;
