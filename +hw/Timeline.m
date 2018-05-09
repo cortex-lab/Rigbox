@@ -456,8 +456,9 @@ classdef Timeline < handle
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
             
             %  write hardware info to a JSON file for compatibility with database
-            hw = jsonencode(obj.Data.hw); %#ok<NASGU>
-            save(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'hw', '-ascii');
+            fid = fopen(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'));
+            fprintf(fid, '%s', jsonencode(obj.Data.hw));
+            fclose(fid);
             
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if

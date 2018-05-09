@@ -255,9 +255,10 @@ ShowCursor();
     rig.stimWindow.flip(); % clear the screen after
     
     % save a copy of the hardware in JSON
-    jsonData = obj2json(rig); %#ok<NASGU>
     name = dat.expFilePath(expRef, 'hw-info', 'master');
-    save([name(1:end-3) 'json'], 'jsonData', '-ascii');
+    fid = fopen([name(1:end-3) 'json']);
+    fprintf(fid, '%s', obj2json(rig));
+    fclose(fid);
 
     if rig.timeline.UseTimeline
       %stop the timeline system
