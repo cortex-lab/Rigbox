@@ -256,7 +256,7 @@ ShowCursor();
     
     % save a copy of the hardware in JSON
     name = dat.expFilePath(expRef, 'hw-info', 'master');
-    fid = fopen([name(1:end-3) 'json']);
+    fid = fopen([name(1:end-3) 'json'], 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
 
