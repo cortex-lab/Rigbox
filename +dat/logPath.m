@@ -10,8 +10,8 @@ function p = logPath(subject, varargin)
 
 %ensure the subject exists
 assert(dat.subjectExists(subject), 'Subject "%s" does not exist', subject);
-% get path(s) to expInfo repository
-reposPath = dat.reposPath('expInfo', varargin{:});
+% get path(s) to main repository
+reposPath = dat.reposPath('main', varargin{:});
 
 filename = sprintf('%s_log.mat', subject);
 subjectPath = file.mkPath(reposPath, subject);

@@ -21,24 +21,18 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 serverName = fullfile(p.rigbox, 'Repositories');
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
-% for all data types, under the new system of having data grouped by mouse
-% rather than data type
+% Under the new system of having data grouped by mouse
+% rather than data type, all experimental data are saved here.
 p.mainRepository = fullfile(serverName, 'data', 'subjects');
-% Repository for info about experiments, i.e. stimulus, behavioural,
-% Timeline etc
-p.expInfoRepository = p.mainRepository;
-
-% Repository for storing eye tracking movies
-p.eyeTrackingRepository = fullfile(serverName, 'data', 'eyeCamera');
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
 % p.globalConfig = fullfile(p.rigbox, 'config');
-p.globalConfig = fullfile(serverName, 'code', 'rigging', 'config');
+p.globalConfig = fullfile(serverName, 'code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
-p.expDefinitions = fullfile(serverName, 'code', 'rigging', 'expDefinitions');
+p.expDefinitions = fullfile(serverName, 'code', 'Rigging', 'ExpDefinitions');
 
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
@@ -48,9 +42,13 @@ if file.exists(customPathsFile)
     % 'centralRepository' is deprecated, remove field, if any
     customPaths = rmfield(customPaths, 'centralRepository');
   end
+  if isfield(customPaths, 'expInfoRepository')
+    % 'expInfo' is deprecated, change to 'main'
+    p.mainRepository = customPaths.expInfoRepository;
+    customPaths = rmfield(customPaths, 'expInfoRepository');
+  end
   % merge paths structures, with precedence on the loaded custom paths
   p = mergeStructs(customPaths, p);
 end
-
 
 end

@@ -198,8 +198,8 @@ classdef StimulusControl < handle
                 notify(obj, 'ExpStarting', srv.ExpEvent('starting', ref));
               case 'completed'
                 %experiment stopped without any exceptions
-                ref = data{2};
-                notify(obj, 'ExpStopped', srv.ExpEvent('completed', ref));
+                ref = data{2}; aborted = data{3};
+                notify(obj, 'ExpStopped', srv.ExpEvent('completed', ref, aborted));
               case 'expException'
                 %experiment stopped with an exception
                 ref = data{2}; err = data{3};

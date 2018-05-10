@@ -68,7 +68,7 @@ classdef TLOutputChrono < hw.TLOutput
             % Add on-demand digital channel
             obj.Session.addDigitalChannel(obj.DaqDeviceID, obj.DaqChannelID, 'OutputOnly');
             warning('on', 'daq:Session:onDemandOnlyChannelsAdded');
-            tls = timeline.getSessions('main');
+            tls = timeline.Sessions('main');
 
             %%Send a test pulse low, then high to clocking channel & check we read it back
             idx = cellfun(@(s2)strcmp('chrono',s2), {timeline.Inputs.name});

@@ -1,5 +1,4 @@
 function experiment = prepareExp(params, rig, preDelay, postDelay, comm)
-
 % parameters should have a create experiment function that takes three
 % arguments:
 % 1st, the parameters structure for configuring the experiment
@@ -30,5 +29,4 @@ if isfield(params, 'services') && ~isempty(params.services)
     exp.EventHandler('experimentInit', startServices),...
     exp.EventHandler('experimentCleanup', stopServices));
 end
-
 end

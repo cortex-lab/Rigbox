@@ -2,6 +2,12 @@ function s = mergeStructs(varargin)
 %MERGESTRUCTS Concatenates different structures into one structure array
 %   s = MERGESTRUCTS(struct1, struct2,...)
 %
+%   If there are any repeated fields, the first instance of that field
+%   takes precedence.  Therefore the order of the input structs affects the
+%   resulting merged struct.
+%
+% See also CATSTRUCTS
+%
 % Part of Burgbox
 
 % 2013-11 CB created

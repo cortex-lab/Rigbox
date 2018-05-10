@@ -17,7 +17,7 @@ end
 
   function b = check(expRef)
     % ensure the standard folder given the reference exists
-    b = file.exists(dat.expPath(expRef, 'expInfo', 'master'));
+    b = file.exists(dat.expPath(expRef, 'main', 'master'));
   end
 
 end

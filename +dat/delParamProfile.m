@@ -8,14 +8,14 @@ function delParamProfile(expType, profileName)
 
 %path to repositories
 fn = 'parameterProfiles.mat';
-repos = fullfile(dat.reposPath('expInfo'), fn);
+repos = fullfile(dat.reposPath('main'), fn);
 
 %load existing profiles for specified expType
 profiles = dat.loadParamProfiles(expType);
 %remove the params with the field named by profile
 profiles = rmfield(profiles, profileName);
 %wrap in a struct for saving
-set.(expType) = profiles;
+set.(expType) = profiles; %#ok<STRNU>
 
 %save the updated set of profiles to each repos
 %where files exist already, append
