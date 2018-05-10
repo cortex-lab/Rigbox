@@ -178,22 +178,22 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
 %           if obj.Block.numCompletedTrials == 0; i = 1; else; i = obj.Block.numCompletedTrials+1; end
           idx = strcmp('events.contrastLeft', {updates.name});
           if any(idx)
-            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            i = find(datenum(updates(idx).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).contrastLeft = updates(idx).value;
           end
           idx = strcmp('events.contrastRight', {updates.name});
           if any(idx)
-            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            i = find(datenum(updates(idx).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).contrastRight = updates(idx).value;
           end
           idx = strcmp('events.repeatNum', {updates.name});
           if any(idx)
-            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            i = find(datenum(updates(idx).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).repeatNum = updates(idx).value;
           end
           idx = strcmp('events.response', {updates.name});
           if any(idx)
-            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            i = find(datenum(updates(idx).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).response = updates(idx).value; 
             t = (24*3600*datenum(updates(idx).timestamp))-(24*3600*obj.StartedDateTime);
             lastidx = obj.InputSensorPosCount + 1;
@@ -203,7 +203,7 @@ classdef advancedChoiceWorldExpPanel < eui.ExpPanel
           end
           idx = strcmp('events.feedback', {updates.name});
           if any(idx)
-            i = find(datenum(updates(idx).timestamp) > [obj.Block.newTrialTimes], 1, 'last');
+            i = find(datenum(updates(idx).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
             obj.Block.trial(i).feedback = updates(idx).value;
           end
           idx = strcmp('events.trialNum', {updates.name});
