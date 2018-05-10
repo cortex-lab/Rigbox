@@ -20,10 +20,11 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 % computers)
 serverName = fullfile(p.rigbox, 'Repositories');
 % Repository for local copy of everything generated on this rig
-p.localRepository = 'C:\LocalExpData';
+p.localRepository = fullfile(serverName, 'LocalExpData');
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
 p.mainRepository = fullfile(serverName, 'data', 'subjects');
+p.localAlyxQueue = fullfile(serverName, 'AlyxQueue');
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver

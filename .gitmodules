@@ -1,6 +1,7 @@
 [submodule "alyx-matlab"]
 	path = alyx-matlab
 	url = https://github.com/cortex-lab/alyx-matlab
+	branch = demo
 [submodule "signals"]
 	path = signals
 	url = https://github.com/cortex-lab/signals

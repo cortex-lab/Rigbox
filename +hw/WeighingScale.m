@@ -12,10 +12,15 @@ classdef WeighingScale < handle
     ComPort = 'COM1'
     TareCommand = hex2dec('54')
     Port = []
+    WeightRange = [20, 25]; % Weight range for fake reading
   end
   
   properties (Access = protected)
     LastGrams = []
+  end
+  
+  properties (Hidden)
+    Timer = []
   end
   
   events
@@ -24,8 +29,9 @@ classdef WeighingScale < handle
   
   methods
     function tare(obj)
-      fprintf(obj.Port, obj.TareCommand);
+%       fprintf(obj.Port, obj.TareCommand);
       obj.LastGrams = 0;
+      obj.WeightRange = [-1, 1];
     end
     
     function g = readGrams(obj)
@@ -33,18 +39,24 @@ classdef WeighingScale < handle
     end
     
     function init(obj)
-      if isempty(obj.Port)
-        obj.Port = serial(obj.ComPort, 'InputBufferSize', 32768);
-        set(obj.Port, 'BytesAvailableFcn', @obj.onBytesAvail);
-        fopen(obj.Port);
-        fprintf('Opened scales on "%s"\n', obj.ComPort);
-      end
+      fprintf('Opened scales on "%s"\n', obj.ComPort);
+      obj.Timer = timer('Period', 0.5, 'ExecutionMode', 'fixedSpacing',...
+        'BusyMode', 'drop', 'StartDelay', 5,...
+        'TimerFcn', @(src, evt)onBytesAvail(obj, src, evt));
+      start(obj.Timer);
     end
     
     function cleanup(obj)
+      if ~isempty(obj.Timer)
+        if strcmp(obj.Timer.Running, 'on')
+          stop(obj.Timer);
+        end
+        delete(obj.Timer);
+        obj.Timer = [];
+      end
       if ~isempty(obj.Port)
-        set(obj.Port, 'BytesAvailableFcn', '');
-        fclose(obj.Port);
+%         set(obj.Port, 'BytesAvailableFcn', '');
+%         fclose(obj.Port);
         obj.Port = [];
         fprintf('Closed scales on "%s"\n', obj.ComPort);
       end
@@ -54,17 +66,11 @@ classdef WeighingScale < handle
       cleanup(obj);
     end
     
-    function onBytesAvail(obj, src, evt)
-      nr = src.BytesAvailable/13;
-      for i = 1:nr
-        d = sscanf(fscanf(src),'%s %f %*s');
-        g = d(2);
-        if d(1) == 45
-          g = -g;
-        end
-        obj.LastGrams = g;
+    function onBytesAvail(obj, ~, ~)
+        g = obj.WeightRange;
+        obj.LastGrams = (g(2)-g(1)).*rand(1,1) + g(1);
+        pause(randi([0, 2],1,1))
         notify(obj, 'NewReading');
-      end
     end
   end
   

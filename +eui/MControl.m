@@ -72,7 +72,7 @@ classdef MControl < handle
       %obj.LogSubject.Selected = '';
       obj.NewExpSubject.Selected = 'default'; % Make default selected subject 'default'
       %obj.expTypeChanged();
-      rig = hw.devices([], false);
+      rig = hw.devices('trainingRig', false);
       obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
         'TimerFcn', @(~,~)notify(obj, 'Refresh'));
       start(obj.RefreshTimer);
@@ -112,8 +112,12 @@ classdef MControl < handle
       if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn; return; end
       if obj.TabPanel.SelectedChild == 1 % Log tab
         obj.AlyxPanel.dispWaterReq(obj.LogSubject);
+        if obj.LogTabs.SelectedChild == 2
+          start(obj.WeighingScale.Timer);
+        end
       else % SelectedChild == 2 Experiment tab
         obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
+        stop(obj.WeighingScale.Timer);
       end
     end
     
@@ -578,6 +582,7 @@ classdef MControl < handle
       if obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.LogSubject.Selected,'default')
         obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
+        obj.WeighingScale.WeightRange = [obj.AlyxPanel.LastWeight-1, obj.AlyxPanel.LastWeight+1];
       else
         if numel(datenums) > 0
           obj.WeightAxes.plot(datenums, [entries.value], '-o');
@@ -608,7 +613,7 @@ classdef MControl < handle
         g = obj.WeighingScale.readGrams;
         MinSignificantWeight = 5; %grams
         if g >= MinSignificantWeight
-          obj.WeightReadingPlot = obj.WeightAxes.scatter(floor(now), g, 20^2, 'p', 'filled');
+          obj.WeightReadingPlot = scatter(obj.WeightAxes.Handle, floor(now), g, 20^2, 'p', 'filled');
           set(obj.RecordWeightButton, 'Enable', 'on', 'String', sprintf('Record %.1fg', g));
         end
       end
@@ -740,7 +745,7 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox, false); % Second argument false; Alyx inactive
+      obj.AlyxPanel = eui.AlyxPanel(headerBox); % Second argument false; Alyx inactive
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       

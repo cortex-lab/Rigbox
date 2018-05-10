@@ -19,7 +19,7 @@ e.events = net.subscriptableOrigin('events');
 e.pars = net.subscriptableOrigin('pars');
 e.pars.CacheSubscripts = true;
 e.visual = net.subscriptableOrigin('visual');
-e.audio.Devices = @dummyDev;
+e.audio.Devices = @aud.dummyDev;
 e.inputs = net.subscriptableOrigin('inputs');
 e.outputs = net.subscriptableOrigin('outputs');
 
@@ -58,13 +58,4 @@ end
 
 net.delete();
 
-  function dev = dummyDev(~)
-    % Returns a dummy audio device structure, regardless of input
-    %   Returns a standard structure with values for generating tone
-    %   samples.  This function gets around the problem of querying the
-    %   rig's audio devices when inferring parameters.
-    dev = struct('DeviceIndex', -1,...
-          'DefaultSampleRate', 44100,...
-          'NrOutputChannels', 2);
-  end
 end

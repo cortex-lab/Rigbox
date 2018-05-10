@@ -19,8 +19,9 @@ contrastRight = p.stimulusContrast(2);
 % stimulus should come on after the wheel has been held still for the
 % duration of the preStimulusDelay.  The quiescence threshold is a tenth of
 % the rotary encoder resolution.
+encoderRes = 360;
 preStimulusDelay = p.preStimulusDelay.map(@timeSampler).at(evts.newTrial); % at(evts.newTrial) fix for rig pre-delay 
-stimulusOn = sig.quiescenceWatch(preStimulusDelay, t, wheel, floor(p.encoderRes/100));
+stimulusOn = sig.quiescenceWatch(preStimulusDelay, t, wheel, floor(encoderRes/100));
 interactiveDelay = p.interactiveDelay.map(@timeSampler);
 interactiveOn = stimulusOn.delay(interactiveDelay); % the closed-loop period starts when the stimulus comes on, plus an 'interactive delay'
 
@@ -38,7 +39,7 @@ audio.default = onsetToneSamples.at(interactiveOn); % At the time of 'interative
 % e.g. a KÜBLER 2400 with 100 pulses per revolution will actually generate
 % *400* position ticks per full revolution.
 wheelOrigin = wheel.at(interactiveOn); % wheel position sampled at 'interactiveOn'
-millimetersFactor = map2(p.wheelGain, 31*2*pi/(p.encoderRes*4), @times); % convert the wheel gain to a value in mm/deg
+millimetersFactor = map2(p.wheelGain, 31*2*pi/(encoderRes*4), @times); % convert the wheel gain to a value in mm/deg
 stimulusDisplacement = millimetersFactor*(wheel - wheelOrigin); % yoke the stimulus displacment to the wheel movement during closed loop
 
 %% define response and response threshold 
@@ -164,8 +165,8 @@ p.interTrialDelay = 0.5;
 p.wheelGain = 5;
 p.encoderRes = 1024;
 p.preStimulusDelay = [0 0.1 0.09]';
-catch ex
-   disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
+catch
+%    disp(getReport(ex, 'extended', 'hyperlinks', 'on'))
 end
 
 %% Helper functions

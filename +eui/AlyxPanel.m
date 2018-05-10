@@ -35,6 +35,7 @@ classdef AlyxPanel < handle
     AlyxInstance = Alyx('',''); % An Alyx object to interfacing with the database
     SubjectList % List of active subjects from database
     Subject = 'default' % The name of the currently selected subject
+    LastWeight = 25 % Last weight for fake weight plot update
   end
   
   properties (Access = private)
@@ -515,6 +516,7 @@ classdef AlyxPanel < handle
       records = catStructs(wr.records, nan);
       expected = [records.weight_expected];
       expected(expected==0) = nan;
+      obj.LastWeight = records(end).weight_measured;
       % no weighings found
       if isempty(wr.records)
         obj.log('No weight data found for subject %s', obj.Subject);
@@ -537,7 +539,16 @@ classdef AlyxPanel < handle
       plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
       plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
-      if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
+      % Change the plot x axis limits
+      if numel(dates) > 1
+        xl = [min(dates) floor(now)];
+        if diff(xl) <= 0
+          xl(1) = xl(2) - 0.5;
+          xl(2) = xl(2) + 0.5;
+        end
+      xlim(ax, xl);
+      end
+      
       if nargin == 1
         set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
       else

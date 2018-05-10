@@ -189,10 +189,7 @@ classdef Parameters < handle
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);
     end
     
-    function [cs, globalParams, trialParams] = toConditionServer(obj, randomOrder)
-      if nargin < 2
-        randomOrder = pick(obj.Struct, 'randomiseConditions', 'def', true);
-      end
+    function [cs, globalParams, trialParams] = toConditionServer(obj, prevTrials)
       [globalParams, trialParams] = obj.assortForExperiment;
       % repeat conditions numRepeats times
       if obj.isTrialSpecific('numRepeats')
@@ -210,7 +207,9 @@ classdef Parameters < handle
         trialParams = repmat(trialParams, 1, nreps);
         globalParams = rmfield(globalParams, 'numRepeats');
       end
-      if randomOrder
+      if nargin > 1
+        trialParams = prevTrials;
+      else
         trialParams = trialParams(randperm(numel(trialParams)));
       end
       cs = exp.PresetConditionServer(globalParams, trialParams);

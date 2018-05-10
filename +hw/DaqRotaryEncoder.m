@@ -61,9 +61,10 @@ classdef DaqRotaryEncoder < hw.PositionSensor
   end
   
   methods
-    function value = get.DaqChannelIdx(obj)
-      inputs = find(strcmpi('input', io.daqSessionChannelDirections(obj.DaqSession)));
-      value = inputs(obj.DaqInputChannelIdx);
+    function value = get.DaqChannelIdx(~)
+%       inputs = find(strcmpi('input', io.daqSessionChannelDirections(obj.DaqSession)));
+%       value = inputs(obj.DaqInputChannelIdx);
+      value = [];
     end
     
     function set.DaqChannelIdx(obj, value)
