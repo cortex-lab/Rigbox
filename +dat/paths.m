@@ -23,6 +23,8 @@ lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
+p.localAlyxQueue = 'C:\localAlyxQueue';
+p.databaseURL = 'https://alyx.cortexlab.net';
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.

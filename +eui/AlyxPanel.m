@@ -537,7 +537,8 @@ classdef AlyxPanel < handle
       plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
       plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
-      if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
+      % Change the plot x axis limits
+      if numel(dates) > 1; xlim(ax, [min(dates) max(now)]); end
       if nargin == 1
         set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
       else
