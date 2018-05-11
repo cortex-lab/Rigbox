@@ -194,6 +194,7 @@ ShowCursor();
           if ~isempty(experiment)
             immediately = args{1};
             AlyxInstance = args{2};
+            AlyxInstance.Headless = true;
             if immediately
               log('Aborting experiment');
             else
@@ -209,6 +210,7 @@ ShowCursor();
           end
         case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
             AlyxInstance = args{1}; %get struct
+            AlyxInstance.Headless = true;
             if ~isempty(AlyxInstance)
               experiment.AlyxInstance = AlyxInstance; %set property for current experiment
             end
