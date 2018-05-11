@@ -134,7 +134,10 @@ end
     fid = fopen([name(1:end-3) 'json'], 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
-
+    try
+      Alyx.registerFile([name(1:end-3) 'json');
+    catch
+    end
   end
 
   function log(varargin)

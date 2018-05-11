@@ -516,7 +516,7 @@ classdef AlyxPanel < handle
       records = catStructs(wr.records, nan);
       expected = [records.weight_expected];
       expected(expected==0) = nan;
-      obj.LastWeight = records(end).weight_measured;
+      obj.LastWeight = records(find(~isnan([records.weight_measured]), 1, 'last')).weight_measured;
       % no weighings found
       if isempty(wr.records)
         obj.log('No weight data found for subject %s', obj.Subject);

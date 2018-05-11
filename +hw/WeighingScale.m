@@ -43,7 +43,7 @@ classdef WeighingScale < handle
       obj.Timer = timer('Period', 0.5, 'ExecutionMode', 'fixedSpacing',...
         'BusyMode', 'drop', 'StartDelay', 5,...
         'TimerFcn', @(src, evt)onBytesAvail(obj, src, evt));
-%       start(obj.Timer);
+      start(obj.Timer);
     end
     
     function cleanup(obj)
@@ -68,7 +68,7 @@ classdef WeighingScale < handle
     
     function onBytesAvail(obj, ~, ~)
         g = obj.WeightRange;
-        obj.LastGrams = (g(2)-g(1)).*rand(1,1) + g(1);
+        obj.LastGrams = round((g(2)-g(1)).*rand(1,1) + g(1), 2, 'decimals');
         pause(randi([0, 2],1,1))
         notify(obj, 'NewReading');
     end

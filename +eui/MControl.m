@@ -582,7 +582,7 @@ classdef MControl < handle
       if obj.AlyxPanel.AlyxInstance.IsLoggedIn && ~strcmp(obj.LogSubject.Selected,'default')
         obj.AlyxPanel.viewSubjectHistory(obj.WeightAxes.Handle)
         rotateticklabel(obj.WeightAxes.Handle, 45);
-        obj.WeighingScale.WeightRange = [obj.AlyxPanel.LastWeight-1, obj.AlyxPanel.LastWeight+1];
+        obj.WeighingScale.WeightRange = [obj.AlyxPanel.LastWeight-0.5, obj.AlyxPanel.LastWeight+0.5];
       else
         if numel(datenums) > 0
           obj.WeightAxes.plot(datenums, [entries.value], '-o');
