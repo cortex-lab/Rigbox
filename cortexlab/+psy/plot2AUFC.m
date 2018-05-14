@@ -83,7 +83,7 @@ else
       psychoM(r, c) = numChooseR(r,c)/numTrials(c);
       psychoMCI(r, c) = 1.96*sqrt(psychoM(r, c)*(1-psychoM(r, c))/numTrials(c));
     end
-    errorbar(ax, 100*cVals, 100*psychoM(r,:), 100*psychoMCI(r,:),...
+    plot(ax, 100*cVals, 100*psychoM(r,:),...
       '-o', 'Color', colors(r,:), 'LineWidth', 1.0);
   end
   
