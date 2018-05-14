@@ -7,6 +7,12 @@ function expServerDummy()
 % 2013-06 CB created
 
 %% Parameters
+warning('off', 'Rigbox:setup:toolboxRequired')
+warning('off', 'Rigbox:setup:javaNotSetup')
+warning('off', 'Rigbox:setup:libraryRequired')
+% warning('off', 'todo: implement toStr on structs');
+addRigboxPaths(false)
+
 global running
 listenPort = io.WSJCommunicator.DefaultListenPort;
 
@@ -135,7 +141,7 @@ end
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
     try
-      Alyx.registerFile([name(1:end-3) 'json');
+      Alyx.registerFile([name(1:end-3) 'json']);
     catch
     end
   end

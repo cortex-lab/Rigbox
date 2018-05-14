@@ -512,16 +512,16 @@ classdef AlyxPanel < handle
       % collect the data for the table
       endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
       wr = obj.AlyxInstance.getData(endpnt);
-      iw = wr.implant_weight;
+      iw = iff(isempty(wr.implant_weight), 0, wr.implant_weight);
       records = catStructs(wr.records, nan);
-      expected = [records.weight_expected];
-      expected(expected==0) = nan;
-      obj.LastWeight = records(find(~isnan([records.weight_measured]), 1, 'last')).weight_measured;
       % no weighings found
       if isempty(wr.records)
         obj.log('No weight data found for subject %s', obj.Subject);
         return
       end
+      obj.LastWeight = records(find(~isnan([records.weight_measured]), 1, 'last')).weight_measured;
+      expected = [records.weight_expected];
+      expected(expected==0) = nan;
       dates = cellfun(@(x)datenum(x), {records.date});
       
       % build the figure to show it
@@ -540,18 +540,11 @@ classdef AlyxPanel < handle
       plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
       % Change the plot x axis limits
-      if numel(dates) > 1
-        xl = [min(dates) floor(now)];
-        if diff(xl) <= 0
-          xl(1) = xl(2) - 0.5;
-          xl(2) = xl(2) + 0.5;
-        end
-      xlim(ax, xl);
-      end
-      
+      if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
       if nargin == 1
         set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
       else
+        xticks(ax, 'auto')
         ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false);
       end
       ylabel(ax, 'weight (g)');

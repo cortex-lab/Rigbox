@@ -613,6 +613,7 @@ classdef MControl < handle
         g = obj.WeighingScale.readGrams;
         MinSignificantWeight = 5; %grams
         if g >= MinSignificantWeight
+          obj.WeightAxes.XLim = [min(get(obj.WeightAxes.Handle, 'XTick')) max(now)];
           obj.WeightReadingPlot = scatter(obj.WeightAxes.Handle, floor(now), g, 20^2, 'p', 'filled');
           set(obj.RecordWeightButton, 'Enable', 'on', 'String', sprintf('Record %.1fg', g));
         end

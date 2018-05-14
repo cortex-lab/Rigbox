@@ -4,7 +4,10 @@ function m = mc
 % Part of Rigbox
 
 % 2013-06 CB created
-
+warning('off', 'Rigbox:setup:toolboxRequired')
+warning('off', 'Rigbox:setup:javaNotSetup')
+warning('off', 'Rigbox:setup:libraryRequired')
+addRigboxPaths(false)
 f = figure('Name', 'MC',...
         'MenuBar', 'none',...
         'Toolbar', 'none',...

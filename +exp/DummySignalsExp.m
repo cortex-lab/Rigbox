@@ -555,7 +555,10 @@ classdef DummySignalsExp < handle
           fieldnames(obj.Events), struct2cell(obj.Events));
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
-      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
+      inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
+          fieldnames(obj.Inputs), struct2cell(obj.Inputs));
+      parslist = queuefun('pars', obj.ParamsLog);
+      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:), inlist(:), parslist(:));
     end
     
     function cleanup(obj)
