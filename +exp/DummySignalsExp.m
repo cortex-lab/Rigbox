@@ -21,9 +21,9 @@ classdef DummySignalsExp < handle
     
     %Key for terminating an experiment whilst running. Shoud be a
     %Psychtoolbox keyscan code (see PTB KbName function).
-    QuitKey = KbName('q')
+    QuitKey = []
     
-    PauseKey = KbName('esc') %Key for pausing an experiment
+    PauseKey = [] %Key for pausing an experiment
     
     %String description of the type of experiment, to be saved into the
     %block data field 'expType'.

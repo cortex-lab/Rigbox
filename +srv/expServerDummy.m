@@ -11,7 +11,6 @@ warning('off', 'Rigbox:setup:toolboxRequired')
 warning('off', 'Rigbox:setup:javaNotSetup')
 warning('off', 'Rigbox:setup:libraryRequired')
 warning('off', 'toStr:isstruct:Unfinished')
-
 addRigboxPaths(false)
 
 global running
