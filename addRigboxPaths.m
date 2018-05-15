@@ -135,18 +135,18 @@ end
 %%% Attempt to move dll file for signals %%%
 fileName = fullfile(root, 'signals', 'msvcr120.dll');
 fileExists = any(strcmp('msvcr120.dll',{sys32.name}));
-copied = false;
+copied = true;
 if isWindowsAdmin % If user has admin privileges, attempt to copy dll file
   if fileExists % If there's already a dll file there prompt use to make backup
-    prompt = sprintf(['For signals to work propery, it is nessisary to copy ',...
-      'the file \n<strong>', strrep(fileName, '\', '\\'), '</strong> to ',...
-       '<strong>C:\\Windows\\System32</strong>.\n',...
-      'You may want to make a backup of your existing dll file before continuing.\n\n',...
-      'Do you want to proceed? Y/N [Y]: ']);
-    str = input(prompt,'s'); if isempty(str); str = 'y'; end
-    if strcmpi(str, 'n'); return; end % Return without copying
+%     prompt = sprintf(['For signals to work propery, it is nessisary to copy ',...
+%       'the file \n<strong>', strrep(fileName, '\', '\\'), '</strong> to ',...
+%        '<strong>C:\\Windows\\System32</strong>.\n',...
+%       'You may want to make a backup of your existing dll file before continuing.\n\n',...
+%       'Do you want to proceed? Y/N [Y]: ']);
+%     str = input(prompt,'s'); if isempty(str); str = 'y'; end
+%     if strcmpi(str, 'n'); return; end % Return without copying
   end
-  copied = copyfile(fileName, 'C:\Windows\System32');
+%   copied = copyfile(fileName, 'C:\Windows\System32');
 end
 % Check that the file was copied
 if ~copied

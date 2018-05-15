@@ -43,7 +43,7 @@ classdef WeighingScale < handle
       obj.Timer = timer('Period', 0.5, 'ExecutionMode', 'fixedSpacing',...
         'BusyMode', 'drop', 'StartDelay', 5,...
         'TimerFcn', @(src, evt)onBytesAvail(obj, src, evt));
-      start(obj.Timer);
+%       start(obj.Timer);
     end
     
     function cleanup(obj)

@@ -112,9 +112,7 @@ classdef MControl < handle
       if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn; return; end
       if obj.TabPanel.SelectedChild == 1 % Log tab
         obj.AlyxPanel.dispWaterReq(obj.LogSubject);
-        if obj.LogTabs.SelectedChild == 2
-          start(obj.WeighingScale.Timer);
-        end
+        start(obj.WeighingScale.Timer);
       else % SelectedChild == 2 Experiment tab
         obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
         stop(obj.WeighingScale.Timer);

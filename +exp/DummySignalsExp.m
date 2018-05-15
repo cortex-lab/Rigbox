@@ -632,6 +632,7 @@ classdef DummySignalsExp < handle
       obj.IsLooping = true;
       % begin the loop
       loopNum = 0;
+%       tSinceUpdate = -30e-3;
       while obj.IsLooping
         %% create a list of handlers that have become due
         loopNum = loopNum+1;
@@ -690,7 +691,10 @@ classdef DummySignalsExp < handle
 %           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        sendSignalUpdates(obj);
+%         if now(obj.Clock)-tSinceUpdate>=30e-3
+          sendSignalUpdates(obj);
+%           tSinceUpdate = now(obj.Clock);
+%         end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
