@@ -14,10 +14,6 @@ if nargin < 1 || isempty(rig)
 end
 
 server1Name = '\\zubjects.cortexlab.net';
-% server2Name = '\\zserver2.cortexlab.net';
-% server3Name = '\\zserver3.cortexlab.net'; % 2017-02-18 MW - Currently
-% unused by Rigbox
-server4Name = '\\zserver4.cortexlab.net';
 basketName = '\\basket.cortexlab.net'; % for working analyses
 lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 
@@ -27,23 +23,13 @@ lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
-% for all data types, under the new system of having data grouped by mouse
-% rather than data type
+p.localAlyxQueue = 'C:\localAlyxQueue';
+p.databaseURL = 'https://alyx.cortexlab.net';
+
+% Under the new system of having data grouped by mouse
+% rather than data type, all experimental data are saved here.
 p.mainRepository = fullfile(server1Name, 'Subjects');
-% Repository for info about experiments, i.e. stimulus, behavioural,
-% Timeline etc
-p.expInfoRepository = p.mainRepository;
-% Repository for storing two photon movies
-p.twoPhotonRepository = p.mainRepository;
 
-% for calcium widefield imaging
-p.widefieldRepository = fullfile(server1Name, 'data', 'GCAMP');
-% Repository for storing eye tracking movies
-p.eyeTrackingRepository = p.mainRepository;
-
-% electrophys repositories
-p.lfpRepository = fullfile(server1Name, 'Data', 'Cerebus');
-p.spikesRepository = fullfile(server1Name, 'Data', 'multichanspikes');
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
 % p.globalConfig = fullfile(p.rigbox, 'config');
@@ -64,7 +50,6 @@ p.tapeStagingRepository = fullfile(lugaroName, 'bigdrive', 'staging');
 p.tapeArchiveRepository = fullfile(lugaroName, 'bigdrive', 'toarchive');
 
 
-
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
 if file.exists(customPathsFile)
@@ -73,9 +58,13 @@ if file.exists(customPathsFile)
     % 'centralRepository' is deprecated, remove field, if any
     customPaths = rmfield(customPaths, 'centralRepository');
   end
+  if isfield(customPaths, 'expInfoRepository')
+    % 'expInfo' is deprecated, change to 'main'
+    p.mainRepository = customPaths.expInfoRepository;
+    customPaths = rmfield(customPaths, 'expInfoRepository');
+  end
   % merge paths structures, with precedence on the loaded custom paths
   p = mergeStructs(customPaths, p);
 end
-
 
 end

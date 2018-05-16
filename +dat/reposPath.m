@@ -13,11 +13,11 @@ function p = reposPath(name, location)
 %   that repository, and "master" will return the path to the master
 %   location.
 %
-%   e.g. to get all paths you should save to for the "expInfo" repository:
-%   savePaths = DAT.REPOSPATH('expInfo') % savePaths is a string cell array
+%   e.g. to get all paths you should save to for the "main" repository:
+%   savePaths = DAT.REPOSPATH('main') % savePaths is a string cell array
 %
-%   To get the master location for the "expInfo" repository:
-%   loadPath = DAT.REPOSPATH('expInfo', 'master') % loadPath is a string
+%   To get the master location for the "main" repository:
+%   loadPath = DAT.REPOSPATH('main', 'master') % loadPath is a string
 %
 % Part of Rigbox
 

@@ -242,12 +242,12 @@ classdef AlyxPanel < handle
           obj.log('Logged into Alyx successfully as %s', obj.AlyxInstance.User);
           
           % any database subjects that weren't in the old list of
-          % subjects will need a folder in expInfo.
+          % subjects will need a folder in the main repository.
           firstTimeSubs = newSubs(~ismember(newSubs, dat.listSubjects));
           for fts = 1:length(firstTimeSubs)
-            thisDir = fullfile(dat.reposPath('expInfo', 'master'), firstTimeSubs{fts});
+            thisDir = fullfile(dat.reposPath('main', 'master'), firstTimeSubs{fts});
             if ~exist(thisDir, 'dir')
-              fprintf(1, 'making expInfo directory for %s\n', firstTimeSubs{fts});
+              fprintf(1, 'making directory for %s\n', firstTimeSubs{fts});
               mkdir(thisDir);
             end
           end
@@ -511,15 +511,15 @@ classdef AlyxPanel < handle
       % collect the data for the table
       endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
       wr = obj.AlyxInstance.getData(endpnt);
-      iw = wr.implant_weight;
+      iw = iff(isempty(wr.implant_weight), 0, wr.implant_weight);
       records = catStructs(wr.records, nan);
-      expected = [records.weight_expected];
-      expected(expected==0) = nan;
       % no weighings found
       if isempty(wr.records)
         obj.log('No weight data found for subject %s', obj.Subject);
         return
       end
+      expected = [records.weight_expected];
+      expected(expected==0) = nan;
       dates = cellfun(@(x)datenum(x), {records.date});
       
       % build the figure to show it
@@ -537,10 +537,12 @@ classdef AlyxPanel < handle
       plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
       plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
       box(ax, 'off');
+      % Change the plot x axis limits
       if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
       if nargin == 1
         set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
       else
+        xticks(ax, 'auto')
         ax.XTickLabel = arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false);
       end
       ylabel(ax, 'weight (g)');

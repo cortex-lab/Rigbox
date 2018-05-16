@@ -49,8 +49,8 @@ if isempty(expSeq)
   expSeq = 1;
 end
 
-% expInfo repository is the reference location for which experiments exist
-[expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'expInfo');
+% main repository is the reference location for which experiments exist
+[expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
 % ensure nothing went wrong in making a "unique" ref and path to hold
 assert(~any(file.exists(expPath)), ...
   sprintf('Something went wrong as experiment folders already exist for "%s".', expRef));

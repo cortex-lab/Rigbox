@@ -34,6 +34,13 @@ else
 end
 rig.useDaq = pick(rig, 'useDaq', 'def', true);
 
+%% If Git is installed, determine hash of latest commit to code
+[status, hash] = system(sprintf('git -C "%s" rev-parse HEAD',...
+  fileparts(which('addRigboxPaths'))));
+if status == 0
+  rig.GitHash = strtrim(hash);
+end
+
 %% Configure common devices, if present
 configure('mouseInput');
 configure('lickDetector');
@@ -56,7 +63,7 @@ end
 if init
   % intialise psychportaudio
   if isempty(IsPsychSoundInitialize) || ~IsPsychSoundInitialize
-    InitializePsychSound;
+    InitializePsychSound
     IsPsychSoundInitialize = true;
   end
   % Get list of audio devices

@@ -177,9 +177,9 @@ ShowCursor();
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay, Alyx);
+              aborted = runExp(expRef, preDelay, postDelay, Alyx);
               log('Experiment ''%s'' completed', expRef);
-              communicator.send('status', {'completed', expRef});
+              communicator.send('status', {'completed', expRef, aborted});
             catch runEx
               communicator.send('status', {'expException', expRef, runEx.message});
               log('Exception during experiment ''%s'' because ''%s''', expRef, runEx.message);
@@ -194,6 +194,7 @@ ShowCursor();
           if ~isempty(experiment)
             immediately = args{1};
             AlyxInstance = args{2};
+            AlyxInstance.Headless = true;
             if immediately
               log('Aborting experiment');
             else
@@ -209,6 +210,7 @@ ShowCursor();
           end
         case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
             AlyxInstance = args{1}; %get struct
+            AlyxInstance.Headless = true;
             if ~isempty(AlyxInstance)
               experiment.AlyxInstance = AlyxInstance; %set property for current experiment
             end
@@ -217,7 +219,7 @@ ShowCursor();
     end
   end
 
-  function runExp(expRef, preDelay, postDelay, Alyx)
+  function aborted = runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -248,11 +250,18 @@ ShowCursor();
     experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
+    aborted = strcmp(experiment.Data.endStatus, 'aborted');
     % clear the active experiment var
     experiment = [];
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
+    % save a copy of the hardware in JSON
+    name = dat.expFilePath(expRef, 'hw-info', 'master');
+    fid = fopen([name(1:end-3) 'json'], 'w');
+    fprintf(fid, '%s', obj2json(rig));
+    fclose(fid);
+
     if rig.timeline.UseTimeline
       %stop the timeline system
       rig.timeline.stop();
