@@ -34,7 +34,7 @@ toneLen = params.Struct.onsetToneDuration; % seconds
 toneMaxAmp = params.Struct.onsetToneMaxAmp;
 rampLen = 0.01; %secs - length of amplitude ramp up/down
 toneSamples = toneMaxAmp*aud.pureTone(toneFreq, toneLen, audSampleRate, rampLen);
-toneSamples = repmat(toneSamples, 2, 1); % replicate across two channels/stereo
+toneSamples = repmat(toneSamples, dev.NrOutputChannels, 1); % replicate across channels/stereo
 params.set('onsetToneSamples', {toneSamples},...
   sprintf('The data samples for the onset tone, sampled at %iHz', audSampleRate), 'normalised');
 
