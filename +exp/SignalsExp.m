@@ -100,6 +100,9 @@ classdef SignalsExp < handle
     
     %Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
+    
+    %
+    PassiveMode = false
   end
   
   properties (SetAccess = protected)     
@@ -132,6 +135,8 @@ classdef SignalsExp < handle
     AsyncFlipping = false
     
     StimWindowInvalid = false
+    % The loop index for retrieving wheel values during passive experiments
+    PassiveLoopIdx = 1
   end
   
   methods
@@ -156,8 +161,19 @@ classdef SignalsExp < handle
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
-      [~, globalStruct, allCondStruct] = toConditionServer(...
-        exp.Parameters(paramStruct));
+      if isfield(paramStruct, 'Passive')&&~isempty(paramStruct.Passive)
+        obj.PassiveMode = true;
+        expRef = paramStruct.Passive;
+        block = loadVar(dat.expFilePath(expRef, 'Block', 'master'));
+        obj.Wheel = block.inputs.wheelValues;
+        paramStruct = loadVar(dat.expFilePath(expRef, 'Parameters', 'master'));
+        [~, globalStruct] = toConditionServer(...
+          exp.Parameters(paramStruct));
+        allCondStruct = block.paramsValues;
+      else
+        [~, globalStruct, allCondStruct] = toConditionServer(...
+          exp.Parameters(paramStruct));
+      end
       % start the first trial after expStart
       advanceTrial = net.origin('advanceTrial');
       % configure parameters signal
@@ -217,7 +233,7 @@ classdef SignalsExp < handle
         warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
       end
       obj.DaqController = rig.daqController;
-      obj.Wheel = rig.mouseInput;
+      obj.Wheel = iff(obj.PassiveMode, obj.Wheel, rig.mouseInput);
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
       end
@@ -670,7 +686,12 @@ classdef SignalsExp < handle
         
         %% signalling
 %         tic
-        wx = readAbsolutePosition(obj.Wheel);
+        if obj.PassiveMode
+          wx = obj.Wheel(obj.PassiveLoopIdx);
+          obj.PassiveLoopIdx = obj.PassiveLoopIdx+1;
+        else
+          wx = readAbsolutePosition(obj.Wheel);
+        end
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
           % read and log the current lick count

@@ -36,6 +36,7 @@ classdef MControl < handle
     AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
     BeginExpButton % The 'Start' button that begins an experiment
     RigOptionsButton % The 'Options' button that opens the rig options dialog
+    PassiveButton
     NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
     RootContainer
     Parameters % A structure containing the currently selected set of parameters
@@ -161,10 +162,13 @@ classdef MControl < handle
           obj.NewExpType.SelectedIdx = 1; % If no file selected, default back to ChoiceWorld
           return
         end
+        set(obj.PassiveButton, 'Enable', 'on'); % Allow passive experiments in Signals
         custidx = strcmp({obj.NewExpFactory.label},'<custom...>');
         obj.NewExpFactory(custidx).defaultParamsFun = ...
           @()exp.inferParameters(fullfile(fpath, mfile)); % change default paramters function handle to infer params for this specific expDef
         obj.NewExpFactory(custidx).matchTypes{2} = fullfile(fpath, mfile); % add specific expDef to NewExpFactory
+      else
+        set(obj.PassiveButton, 'Enable', 'off'); % Don't allow passive experiments
       end
       
       if strcmp(obj.NewExpType.Selected, '<custom...>')
@@ -173,7 +177,7 @@ classdef MControl < handle
         type = obj.NewExpType.Selected;
       end
       
-      stdProfiles = {'<last for subject>'; '<defaults>'};
+      stdProfiles = {'<last for subject>'; '<previous experiment>'; '<defaults>'};
       savedProfiles = fieldnames(dat.loadParamProfiles(type));
       obj.NewExpParamProfile.Option = [stdProfiles; savedProfiles];
       str = iff(strcmp('default', obj.NewExpSubject.Selected) &...
@@ -260,6 +264,7 @@ classdef MControl < handle
       matchTypes = factory(strcmp({factory.label}, typeName)).matchTypes();
       subject = obj.NewExpSubject.Selected; % Find which subject is selected
       label = 'none';
+      ref = '';
       set(obj.BeginExpButton, 'Enable', 'off') % Can't run experiment without params!
       switch lower(profile)
         case '<defaults>'
@@ -288,6 +293,24 @@ classdef MControl < handle
           if ~isempty(paramStruct) % found one
             paramStruct.type = typeNameFinal; % override type name with preferred
             label = sprintf('from last experiment of %s (%s)', subject, ref);
+          else % Load defaults
+            obj.log('No previous parameters found for this experiment; loading defaults')
+            label = 'defaults';
+            paramStruct = factory(strcmp({factory.label}, typeName)).defaultParamsFun();
+          end
+        case '<previous experiment>'
+          %% open a dialog for user to select a previous experiment
+          defdir = fullfile(fullfile(dat.reposPath('main', 'master'), subject));
+          [mfile, fpath] = uigetfile(...
+            '*.mat', 'Select the parameter set', defdir);
+          if ~mfile; return; end
+          ref = mfile(1:end-15);
+%           refs = flipud(dat.listExps(subject));
+          
+          paramStruct = loadVar(fullfile(fpath, mfile), 'parameters');
+          if ~isempty(paramStruct) % found one
+            paramStruct.type = typeNameFinal; % override type name with preferred
+            label = sprintf('from last experiment of %s (%s)', subject, ref);
           end
         otherwise
           label = profile;
@@ -304,6 +327,7 @@ classdef MControl < handle
       obj.Parameters.Struct = paramStruct;
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
+        obj.PassiveButton.Tag = ref; % Save the expRef of original params in case passive option is selected
         obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
         if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
           set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
@@ -542,6 +566,26 @@ classdef MControl < handle
         % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        
+        % Determine if experiment is to be run passively
+        if get(obj.PassiveButton, 'Value') == 1
+          if isempty(obj.PassiveButton.Tag) % No exp to run
+            refs = flipud(dat.listExps(obj.NewExpSubject.Selected));
+            [idx, tf] = listdlg('ListString', refs,...
+              'SelectionMode', 'single', 'Name', 'Experiment selection',...
+              'PromptString', 'Select a previous experiment');
+            if tf
+              ref = refs{idx};
+            else
+              obj.log('Warning: Could not run in passive mode')
+            end
+          else
+            ref = obj.PassiveButton.Tag;
+          end
+          obj.Parameters.set('Passive', ref,...
+            'ExpRef of previous experiment to re-run in passive mode');
+        end
+        
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
         if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn &&...
             ~strcmp(obj.NewExpSubject.Selected,'default') &&...
@@ -724,8 +768,13 @@ classdef MControl < handle
       obj.NewExpSubject.addlistener('SelectionChanged', @obj.expSubjectChanged); % Add listener for subject selection
       obj.NewExpType = bui.Selector(topgrid, {obj.NewExpFactory.label}); % Make experiment type dropdown box
       obj.NewExpType.addlistener('SelectionChanged', @(~,~) obj.expTypeChanged()); % Add listener for experiment type change
-      
-      topgrid.ColumnSizes = [80, 200]; % Set size of topgrig (containing Subject and Type dropdowns)
+      uiextras.Empty('Parent', topgrid);
+      obj.PassiveButton = uicontrol('Parent', topgrid, 'Style', 'togglebutton',... % Add 'Passive' checkbox
+        'String', 'Passive',...
+        'TooltipString', 'Rerun a previous experiment passively, using the parameters',...
+        'Enable', 'off');
+
+      topgrid.ColumnSizes = [80, 200, 80]; % Set size of topgrig (containing Subject and Type dropdowns, and passive box)
       topgrid.RowSizes = [30, 24]; % " 
       
       %configure new exp control box
@@ -744,7 +793,7 @@ classdef MControl < handle
         'TooltipString', 'Start an experiment using the parameters',...
         'Callback', @(~,~) obj.beginExp(),... % When pressed run 'beginExp' function
         'Enable', 'off');
-      controlbox.Sizes = [80 200 80 80]; % Resize the Rig and Delay boxes
+      controlbox.Sizes = [80 200 80 80]; % Resize the Rig and Options boxes
       
       leftSideBox.Heights = [55 22];
       
