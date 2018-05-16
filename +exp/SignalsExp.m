@@ -164,9 +164,9 @@ classdef SignalsExp < handle
       if isfield(paramStruct, 'Passive')&&~isempty(paramStruct.Passive)
         obj.PassiveMode = true;
         expRef = paramStruct.Passive;
-        block = loadVar(dat.expFilePath(expRef, 'Block', 'master'));
+        block = loadVar(dat.expFilePath(expRef, 'Block', 'master'), 'block');
         obj.Wheel = block.inputs.wheelValues;
-        paramStruct = loadVar(dat.expFilePath(expRef, 'Parameters', 'master'));
+        paramStruct = loadVar(dat.expFilePath(expRef, 'Parameters', 'master'), 'parameters');
         [~, globalStruct] = toConditionServer(...
           exp.Parameters(paramStruct));
         allCondStruct = block.paramsValues;
