@@ -14,6 +14,7 @@ if nargin < 1 || isempty(rig)
 end
 
 server1Name = '\\zubjects.cortexlab.net';
+server2Name = '\\zserver.cortexlab.net';
 basketName = '\\basket.cortexlab.net'; % for working analyses
 lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 
@@ -33,11 +34,11 @@ p.mainRepository = fullfile(server1Name, 'Subjects');
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
 % p.globalConfig = fullfile(p.rigbox, 'config');
-p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
+p.globalConfig = fullfile(server2Name, 'Code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
-p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
+p.expDefinitions = fullfile(server2Name, 'Code', 'Rigging', 'ExpDefinitions');
 
 % repository for working analyses that are not meant to be stored
 % permanently
