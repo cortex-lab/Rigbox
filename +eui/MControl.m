@@ -294,6 +294,7 @@ classdef MControl < handle
             paramStruct.type = typeNameFinal; % override type name with preferred
             label = sprintf('from last experiment of %s (%s)', subject, ref);
           else % Load defaults
+            ref = '';
             obj.log('No previous parameters found for this experiment; loading defaults')
             label = 'defaults';
             paramStruct = factory(strcmp({factory.label}, typeName)).defaultParamsFun();
