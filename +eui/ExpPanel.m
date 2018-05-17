@@ -223,6 +223,7 @@ classdef ExpPanel < handle
       %post water to Alyx
       ai = rig.AlyxInstance;
       aborted = evt.Data; % aborted experiment flag
+      if ischar(aborted); aborted = true; end
       subject = obj.SubjectRef;
       if ~isempty(ai)&&~strcmp(subject,'default')&&~aborted
           switch class(obj)
