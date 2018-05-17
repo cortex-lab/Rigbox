@@ -228,7 +228,7 @@ classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
                             
                             respWin = p.responseWindow; if respWin>1000; respWin = 1000; end
                             
-                            mm = 31*2*pi/(1024*4)*p.wheelGain;
+                            mm = 31*2*pi/(p.encoderRes*4)*p.wheelGain;
                             th = p.stimulusAzimuth/mm;
                             startPos = obj.InputSensorPos(find(obj.InputSensorPosTime<ioTime,1,'last'));
                             if isempty(startPos); startPos = obj.InputSensorPos(obj.InputSensorPosCount); end % for first trial
@@ -251,7 +251,7 @@ classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
                             p = obj.Block.trial(end).pars;
                             soTime = (24*3600*datenum(updates(ui).timestamp))-(24*3600*obj.StartedDateTime);              
                             
-                            mm = 31*2*pi/(1024*4)*p.wheelGain;
+                            mm = 31*2*pi/(p.encoderRes*4)*p.wheelGain;
                             th = p.stimulusAzimuth/mm;
                             startPos = obj.InputSensorPos(find(obj.InputSensorPosTime<soTime,1,'last'));
                             if isempty(startPos); startPos = obj.InputSensorPos(obj.InputSensorPosCount); end % for first trial

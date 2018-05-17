@@ -156,8 +156,8 @@ classdef DummySignalsExp < handle
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
-      load(dat.expFilePath('2018-01-17_1_Ochoa', 'Block', 'master')); %#ok<LOAD>
-      load(dat.expFilePath('2018-01-17_1_Ochoa', 'Parameters', 'master')); %#ok<LOAD>
+      load(dat.expFilePath('2018-05-16_3_MW45', 'Block', 'master')); %#ok<LOAD>
+      load(dat.expFilePath('2018-05-16_3_MW45', 'Parameters', 'master')); %#ok<LOAD>
       obj.Data = block;
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(parameters), block.paramsValues);
@@ -658,11 +658,11 @@ classdef DummySignalsExp < handle
         %% signalling
 %         tic
         post(obj.Inputs.wheel, obj.Wheel(loopNum));
-        if ~isempty(obj.LickDetector)
-          % read and log the current lick count
-          post(obj.Inputs.lick, obj.LickDetector(loopNum));
-          fprintf('lick count now %i\n', nlicks);
-        end
+%         if ~isempty(obj.LickDetector)
+%           % read and log the current lick count
+%           post(obj.Inputs.lick, obj.LickDetector(loopNum));
+%           fprintf('lick count now %i\n', nlicks);
+%         end
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         
