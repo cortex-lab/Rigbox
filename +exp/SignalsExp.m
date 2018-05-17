@@ -904,8 +904,8 @@ classdef SignalsExp < handle
           contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
           contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
           if ~any(isnan(contL))&&~any(isnan(contR))
-            writeNPY(contL(:)*100, fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
-            writeNPY(contR(:)*100, fullfile(expPath, 'cwStimOn.contrastRight.npy'));
+            writeNPY(contL(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
+            writeNPY(contR(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
           else
             warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
           end
