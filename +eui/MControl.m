@@ -585,11 +585,6 @@ classdef MControl < handle
           end
           obj.Parameters.set('Passive', ref,...
             'ExpRef of previous experiment to re-run in passive mode');
-        else
-          if isfield(obj.Parameters.Struct, 'Passive')
-            obj.Parameters.Struct = rmfield(obj.Parameters.Struct,...
-              {'Passive', 'PassiveDescription'});
-          end
         end
         
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
