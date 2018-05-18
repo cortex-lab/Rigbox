@@ -553,12 +553,12 @@ classdef DummySignalsExp < handle
       queuefun = @(n,s)s.onValue(fun.partial(@queueSignalUpdate, obj, n));
       evtlist = mapToCell(@(n,v)queuefun(['events.' n],v),...
           fieldnames(obj.Events), struct2cell(obj.Events));
-      outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
-          fieldnames(obj.Outputs), struct2cell(obj.Outputs));
+%       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
+%           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
           fieldnames(obj.Inputs), struct2cell(obj.Inputs));
       parslist = queuefun('pars', obj.ParamsLog);
-      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:), inlist(:), parslist(:));
+      obj.Listeners = vertcat(obj.Listeners, evtlist(:), inlist(:), parslist(:));
     end
     
     function cleanup(obj)
@@ -632,7 +632,7 @@ classdef DummySignalsExp < handle
       obj.IsLooping = true;
       % begin the loop
       loopNum = 0;
-%       tSinceUpdate = -30e-3;
+      tSinceUpdate = -30e-3;
       while obj.IsLooping
         %% create a list of handlers that have become due
         loopNum = loopNum+1;
@@ -691,10 +691,10 @@ classdef DummySignalsExp < handle
 %           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-%         if now(obj.Clock)-tSinceUpdate>=30e-3
+        if now(obj.Clock)-tSinceUpdate>=30e-3
           sendSignalUpdates(obj);
-%           tSinceUpdate = now(obj.Clock);
-%         end
+          tSinceUpdate = now(obj.Clock);
+        end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh

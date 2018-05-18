@@ -1,4 +1,4 @@
-classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
+classdef advancedChoiceWorldExpPanel < eui.ExpPanel
   %eui.SqueakExpPanel Basic UI control for monitoring an experiment
   %   TODO
   %
@@ -25,7 +25,7 @@ classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
   end
   
   methods
-    function obj = advancedChoiceWorldExpPanel2(parent, ref, params, logEntry)
+    function obj = advancedChoiceWorldExpPanel(parent, ref, params, logEntry)
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
       obj.LabelsMap = containers.Map();
       % Initialize InputSensor properties for speed
@@ -100,116 +100,11 @@ classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
       for ui = 1:length(updates)
         signame = updates(ui).name;
         switch signame
-          case {'events.contrast', 'outputs.reward', ...
-                  'events.stimulusOn', 'events.expStart', ...
-                  'events.endTrial', 'events.interactiveDealy'...
+          case {'events.azimuth', 'events.contrast', 'outputs.reward', ...
+                  'events.stimulusOn', 'events.expStart', 'events.response', ...
+                  'events.feedback', 'events.endTrial', 'events.interactiveDealy'...
                   'events.preStimulusDelay', 'pars', 'inputs.wheel'}
                 % Don't show these signals as labels
-                
-          case 'events.azimuth'
-            plotwindow = [-5 0]; t = 0;
-            x = [updates(ui).value];
-            t = (24*3600*datenum(updates(ui).timestamp))-(24*3600*obj.StartedDateTime);
-            lastidx = obj.InputSensorPosCount + 1;
-            obj.InputSensorPosCount = lastidx;
-            obj.InputSensorPos(lastidx) = x;
-            obj.InputSensorPosTime(lastidx) = t(end);
-            % little hack to look back twice the plot window in samples if
-            % they are received at 25Hz
-            firstidx = round(max(1, lastidx + 2*25*plotwindow(1)));
-            set(obj.InputSensorPlot,...
-              'XData', obj.InputSensorPos(firstidx:lastidx),...
-              'YData', obj.InputSensorPosTime(firstidx:lastidx));
-            set(obj.ExperimentAxes.Handle, 'YLim', plotwindow + t(end));
-            
-            contrast = diff([obj.Block.trial(end).contrastLeft obj.Block.trial(end).contrastRight]);
-
-            % make plot
-            if ~isempty(contrast)
-              % Plot a dotted line to indicate the current trial's contrast
-              contrast = diff([obj.Block.trial(end).contrastLeft obj.Block.trial(end).contrastRight]);
-              obj.PsychometricAxes.plot(contrast*[100 100], [-10 110], 'k:', 'LineWidth', 3)
-              if sign(contrast)==1
-                leftSpec = 'g';
-                rightSpec = 'r';
-              elseif sign(contrast)==-1
-                leftSpec = 'r';
-                rightSpec = 'g';
-              elseif isempty(contrast)
-                leftSpec = 'w';
-                rightSpec = 'w';
-              else
-                leftSpec = 'r';
-                rightSpec = 'r';
-              end
-              az = obj.Parameters.Struct.stimulusAzimuth;
-              set(obj.ThresholdLineAxes(1),...
-                'XData', [-az -az], 'YData', plotwindow + t,...
-                'Color', leftSpec);
-              set(obj.ThresholdLineAxes(2),...
-                'XData', [az az], 'YData', plotwindow + t,...
-                'Color', rightSpec);
-            end
-            if obj.Block.numCompletedTrials > 2
-              obj.PsychometricAxes.clear();
-              psy.plot2AUFC(obj.PsychometricAxes.Handle, obj.Block);
-            end
-            
-          case 'events.newTrial'
-            obj.Block.newTrialTimes(end+1) = datenum(updates(ui).timestamp);
-            
-          case 'events.trialNum'
-            obj.Block.numCompletedTrials = updates(ui).value-1; 
-            if ~isKey(obj.LabelsMap, signame)
-              obj.LabelsMap(signame) = obj.addInfoField(signame, '');
-            end
-            str = toStr(updates(ui).value);
-            set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-              'ForegroundColor', obj.RecentColour);
-            
-          case 'events.contrastLeft'
-            i = find(datenum(updates(ui).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
-            obj.Block.trial(i).contrastLeft = updates(ui).value;
-            if ~isKey(obj.LabelsMap, signame)
-              obj.LabelsMap(signame) = obj.addInfoField(signame, '');
-            end
-            str = toStr(updates(ui).value);
-            set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-              'ForegroundColor', obj.RecentColour);
-            
-          case 'events.contrastRight'
-            i = find(datenum(updates(ui).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
-            obj.Block.trial(i).contrastRight = updates(ui).value;
-            if ~isKey(obj.LabelsMap, signame)
-              obj.LabelsMap(signame) = obj.addInfoField(signame, '');
-            end
-            str = toStr(updates(ui).value);
-            set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-              'ForegroundColor', obj.RecentColour);
-            
-          case 'events.repeatNum'
-            i = find(datenum(updates(ui).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
-            obj.Block.trial(i).repeatNum = updates(ui).value;
-            if ~isKey(obj.LabelsMap, signame)
-              obj.LabelsMap(signame) = obj.addInfoField(signame, '');
-            end
-            str = toStr(updates(ui).value);
-            set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-              'ForegroundColor', obj.RecentColour);
-            
-          case 'events.response'
-            i = find(datenum(updates(ui).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
-            obj.Block.trial(i).response = updates(ui).value; 
-            t = (24*3600*datenum(updates(ui).timestamp))-(24*3600*obj.StartedDateTime);
-            lastidx = obj.InputSensorPosCount + 1;
-            obj.InputSensorPosCount = lastidx;
-            obj.InputSensorPos(lastidx) = NaN;
-            obj.InputSensorPosTime(lastidx) = t(end);
-            
-          case 'events.feedback'
-            i = find(datenum(updates(ui).timestamp) >= [obj.Block.newTrialTimes], 1, 'last');
-            obj.Block.trial(i).feedback = updates(ui).value;
-                        
           otherwise
             if ~isKey(obj.LabelsMap, signame)
               obj.LabelsMap(signame) = obj.addInfoField(signame, '');
@@ -338,14 +233,6 @@ classdef advancedChoiceWorldExpPanel2 < eui.ExpPanel
       obj.ExperimentAxes.NextPlot = 'add';
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
       uiextras.Empty('Parent', plotgrid, 'Visible', 'off');
-      
-      obj.InputSensorPlot = plot(obj.ExperimentAxes, nan, nan, 'Color', .75*[1 1 1]);
-      az = obj.Parameters.Struct.stimulusAzimuth;
-      plotwindow = [-5 0]; t = 0;
-      obj.ThresholdLineAxes = obj.ExperimentAxes.plot(...
-        [-az -az], plotwindow + t, 'w',... %L boundary
-        [az  az], plotwindow + t, 'w','LineWidth', 4);%R boundary
-
             
       plotgrid.ColumnSizes = [50 -1 10];
       plotgrid.RowSizes = [-1 50 -2 40];
