@@ -261,6 +261,13 @@ ShowCursor();
     fid = fopen([name(1:end-3) 'json'], 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
+    if ~strcmp(dat.parseExpRef(expRef), 'default')
+      try
+        Alyx.registerFile([name(1:end-3) 'json']);
+      catch ex
+        warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
+      end
+    end
 
     if rig.timeline.UseTimeline
       %stop the timeline system
