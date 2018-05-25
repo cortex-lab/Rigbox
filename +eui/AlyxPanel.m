@@ -43,11 +43,13 @@ classdef AlyxPanel < handle
     NewExpSubject % Drop-down menu subject list
     LoginText % Text displaying whether/which user is logged in
     LoginButton % Button to log in to Alyx
+    WeightButton % Button to submit weight to Alyx
     WaterEntry % Text box for entering the amout of water to give
     IsHydrogel % UI checkbox indicating whether to water to be given is in gel form
     WaterRequiredText % Handle to text UI element displaying the water required
     WaterRemainingText % Handle to text UI element displaying the water remaining
     LoginTimer % Timer to keep track of how long the user has been logged in, when this expires the user is automatically logged out
+    WeightTimer % Timer to reset weight button text when scale no longer gives new readings
     WaterRemaining % Holds the current water required for the selected subject
   end
   
@@ -134,7 +136,7 @@ classdef AlyxPanel < handle
         'Enable', 'off',...
         'Callback', @(~,~)obj.viewAllSubjects);
       % Button to open a dialog for manually submitting a mouse weight
-      uicontrol('Parent', waterbox,...
+      obj.WeightButton = uicontrol('Parent', waterbox,...
         'Style', 'pushbutton', ...
         'String', 'Manual weighing', ...
         'Enable', 'off',...
@@ -206,6 +208,11 @@ classdef AlyxPanel < handle
         delete(obj.LoginTimer) % ... delete it...
         obj.LoginTimer = []; % ... and remove it
       end
+      if ~isempty(obj.WeightTimer) % If there is a timer object
+        stop(obj.WeightTimer) % Stop the timer...
+        delete(obj.WeightTimer) % ... delete it...
+        obj.WeightTimer = []; % ... and remove it
+      end
     end
     
     function login(obj)
@@ -225,7 +232,7 @@ classdef AlyxPanel < handle
           % minutes of 'inactivity' (defined as not calling
           % dispWaterReq)
           obj.LoginTimer = timer('StartDelay', 30*60, 'TimerFcn',...
-            @(~,~)obj.login, 'BusyMode', 'queue');
+            @(~,~)obj.login, 'BusyMode', 'queue', 'Name', 'Login Timer');
           start(obj.LoginTimer)
           % Enable all buttons
           set(findall(obj.RootContainer, '-property', 'Enable'), 'Enable', 'on');
@@ -584,7 +591,7 @@ classdef AlyxPanel < handle
         dat = horzcat(...
           arrayfun(@(x)datestr(x), dates', 'uni', false), ...
           weightsByDate', ...
-          arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)), [records.weight_expected]', 'uni', false), ...
+          arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.weight_expected]', 'uni', false), ...
           weightPctByDate');
         waterDat = (...
           num2cell(horzcat([records.water_given]', [records.hydrogel_given]', ...
@@ -625,6 +632,26 @@ classdef AlyxPanel < handle
           wrdat'), ...
           'ColumnEditable', false(1,3));
       end
+    end
+    
+    function updateWeightButton(obj, src, ~)
+      % Function for changing the text on the weight button to reflect the
+      % current weight value obtained by the scale.  This function must be
+      % a callback for the hw.WeighingScale NewReading event.  If a new
+      % reading isn't read for 10 sec the manual weighing option is made
+      % available instead.
+      %
+      % Example:
+      %  aiPanel = eui.AlyxPanel;
+      %  lh = event.listener(obj.WeighingScale, 'NewReading',...
+      %     @(src,evt)aiPanel.updateWeightButton(src,evt));
+      %
+      % See also hw.WeighingScale, eui.MControl
+      set(obj.WeightButton, 'String', sprintf('Record %.1fg', src.readGrams), 'Callback', @(~,~)obj.recordWeight(src.readGrams))
+      obj.WeightTimer = timer('Name', 'Last Weight',...
+        'TimerFcn', @(~,~)set(obj.WeightButton, 'String', 'Manual weighing', 'Callback', @(~,~)obj.recordWeight),...
+        'StopFcn', @(src,~)delete(src), 'StartDelay', 10);
+      start(obj.WeightTimer)
     end
     
     function log(obj, varargin)
