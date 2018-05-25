@@ -90,8 +90,11 @@ classdef MControl < handle
         if isfield(rig, 'scale') && ~isempty(rig.scale)
           obj.WeighingScale = fieldOrDefault(rig, 'scale');
           init(obj.WeighingScale);
+          % Add listners for new reading, both for the log tab and also for
+          % the weigh button in the Alyx Panel.
           obj.Listeners = [obj.Listeners,...
-            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}];
+            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}...
+            {event.listener(obj.WeighingScale, 'NewReading', @(src,evt)obj.AlyxPanel.updateWeightButton(src,evt))}];
         end
       catch
         obj.log('Warning: could not connect to weighing scales');
