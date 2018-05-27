@@ -175,8 +175,7 @@
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
         obj.Data.expDef = paramStruct.defFunction;
-        [~, mfile] = fileparts(paramStruct.defFunction);
-        funArgs = nargin(str2func(mfile));
+        funArgs = nargin(expDefFun);
       else
         expDefFun = paramStruct.defFunction;
         obj.Data.expDef = func2str(expDefFun);
