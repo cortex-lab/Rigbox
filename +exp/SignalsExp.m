@@ -1,4 +1,4 @@
-classdef SignalsExp < handle
+  classdef SignalsExp < handle
   %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
   %   The class defines a framework for event- and state-based experiments.
   %   Visual and auditory stimuli can be controlled by experiment phases.
@@ -582,7 +582,13 @@ classdef SignalsExp < handle
           fieldnames(obj.Events), struct2cell(obj.Events));
       outlist = mapToCell(@(n,v)queuefun(['outputs.' n],v),...
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
-      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:));
+      inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
+          fieldnames(obj.Inputs), struct2cell(obj.Inputs));
+%       parslist = mapToCell(@(n,v)queuefun(['pars.' n],v),...
+%           fieldnames(obj.ParamsLog), struct2cell(obj.ParamsLog));
+%         parslist = [];
+        parslist = queuefun('pars', obj.ParamsLog);
+      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:), inlist(:), parslist(:));
     end
     
     function cleanup(obj)
@@ -689,10 +695,13 @@ classdef SignalsExp < handle
           end
         end
         post(obj.Time, now(obj.Clock));
-        runSchedule(obj.Net);
         
-%         runSchedule(obj.Net);
-%         nChars = overfprintf(nChars, 'post took %.1fms\n', 1000*toc);
+        tic; 
+        runSchedule(obj.Net);
+        q = toc;
+        if q>0.005
+            fprintf(1, 'post took %.1fms\n', 1000*toc);
+        end
         
         %% redraw the stimulus window if it has been invalidated
         if obj.StimWindowInvalid
@@ -717,7 +726,12 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
+        tic
         sendSignalUpdates(obj);
+        q = toc;
+        if q>0.005
+            fprintf(1, 'send updates took %.1fms\n', 1000*toc);
+        end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
