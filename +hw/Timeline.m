@@ -444,20 +444,18 @@ classdef Timeline < handle
             obj.Data.currSysTimeTimelineOffset = CurrSysTimeTimelineOffset;
             
             % saving hardware metadata for each output
-            warning('off', 'MATLAB:structOnObject'); % sorry, don't care
             for outIdx = 1:numel(obj.Outputs)
-                s = struct(obj.Outputs(outIdx));
-                s.Class = class(obj.Outputs(outIdx));
+                s = obj2struct(obj.Outputs(outIdx));
                 obj.Data.hw.Outputs{outIdx} = s;
             end
-            warning('on', 'MATLAB:structOnObject');
             
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
             
             %  write hardware info to a JSON file for compatibility with database
-            hw = jsonencode(obj.Data.hw); %#ok<NASGU>
-            save(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'hw', '-ascii');
+            fid = fopen(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'w');
+            fprintf(fid, '%s', jsonencode(obj.Data.hw));
+            fclose(fid);
             
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
