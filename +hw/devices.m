@@ -38,7 +38,7 @@ rig.useDaq = pick(rig, 'useDaq', 'def', true);
 [status, hash] = system(sprintf('git -C "%s" rev-parse HEAD',...
   fileparts(which('addRigboxPaths'))));
 if status == 0
-  rig.GitHash = hash;
+  rig.GitHash = strtrim(hash);
 end
 
 %% Configure common devices, if present
