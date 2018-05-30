@@ -1,4 +1,4 @@
-function elem = checker6(t)
+function elem = checkerRight(t)
 %vis.checker A grid of rectangles
 %   Detailed explanation goes here
 
@@ -47,7 +47,7 @@ checkerLayer = scan(elem.pattern.flatten(), @updatePattern,...
                    patternLayer); % initial value
 %% set default attribute values
 elem.layers = [gridMaskLayers checkerLayer];
-elem.azimuthRange =  [-135 135];
+elem.azimuthRange =  [0 135];
 elem.altitudeRange = [-37.5 37.5];
 elem.rectSizeFrac = [1 1]; % horizontal and vertical size of each rectangle
 elem.pattern = [
