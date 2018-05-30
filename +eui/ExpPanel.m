@@ -206,7 +206,7 @@ classdef ExpPanel < handle
       end
     end
     
-    function expStopped(obj, rig, evt)
+    function expStopped(obj, rig, ~)
       % EXPSTOPPED Callback for the ExpStopped event.
       %   expStopped(obj, rig, event) Updates the ExpRunning flag, the
       %   panel title and status label to show that the experiment has
@@ -222,9 +222,8 @@ classdef ExpPanel < handle
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
       %post water to Alyx
       ai = rig.AlyxInstance;
-      aborted = evt.Data; % aborted experiment flag
       subject = obj.SubjectRef;
-      if ~isempty(ai)&&~strcmp(subject,'default')&&~aborted
+      if ~isempty(ai)&&~strcmp(subject,'default')
           switch class(obj)
               case 'eui.ChoiceExpPanel'
                   if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
