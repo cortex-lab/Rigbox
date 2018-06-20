@@ -929,7 +929,11 @@ classdef SignalsExp < handle
           files = dir(expPath);
           isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
           files = files(isNPY);
-          obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
+          if ~obj.AlyxInstance.IsLoggedIn && obj.AlyxInstance.Headless
+            error('Alyx:registerFile:NotLoggedIn', 'Alyx instance headless and not logged in')
+          else
+            obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
+          end
         catch ex
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
