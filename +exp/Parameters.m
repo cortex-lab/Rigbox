@@ -71,9 +71,9 @@ classdef Parameters < handle
       n = numel(obj.pNames);
       obj.IsTrialSpecific = struct;
       isTrialSpecificDefault = @(n) ...
-        ~any(strcmp(n, {'defFunction', 'expPanelFun'})) &&...
-        (strcmp(n, {'numRepeats'})...
-        || size(obj.pStruct.(n), 2) > 1);
+        strcmp(n, 'numRepeats') ||... % numRepeats always trail specific
+        (ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 1) > 1) ||... % Number of rows > 1 for chars
+        (~ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 2) > 1); % Number of columns > 1 for all others
       for i = 1:n
         name = obj.pNames{i};
         obj.IsTrialSpecific.(name) = isTrialSpecificDefault(name);

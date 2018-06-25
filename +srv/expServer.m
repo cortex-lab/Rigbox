@@ -194,6 +194,7 @@ ShowCursor();
           if ~isempty(experiment)
             immediately = args{1};
             AlyxInstance = args{2};
+            AlyxInstance.Headless = true;
             if immediately
               log('Aborting experiment');
             else
@@ -209,6 +210,7 @@ ShowCursor();
           end
         case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
             AlyxInstance = args{1}; %get struct
+            AlyxInstance.Headless = true;
             if ~isempty(AlyxInstance)
               experiment.AlyxInstance = AlyxInstance; %set property for current experiment
             end
@@ -259,6 +261,13 @@ ShowCursor();
     fid = fopen([name(1:end-3) 'json'], 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
+    if ~strcmp(dat.parseExpRef(expRef), 'default')
+      try
+        Alyx.registerFile([name(1:end-3) 'json']);
+      catch ex
+        warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
+      end
+    end
 
     if rig.timeline.UseTimeline
       %stop the timeline system

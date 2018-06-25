@@ -82,8 +82,11 @@ classdef MControl < handle
         if isfield(rig, 'scale') && ~isempty(rig.scale)
           obj.WeighingScale = fieldOrDefault(rig, 'scale');
           init(obj.WeighingScale);
+          % Add listners for new reading, both for the log tab and also for
+          % the weigh button in the Alyx Panel.
           obj.Listeners = [obj.Listeners,...
-            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}];
+            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}...
+            {event.listener(obj.WeighingScale, 'NewReading', @(src,evt)obj.AlyxPanel.updateWeightButton(src,evt))}];
         end
       catch
         obj.log('Warning: could not connect to weighing scales');
@@ -609,6 +612,7 @@ classdef MControl < handle
         MinSignificantWeight = 5; %grams
         if g >= MinSignificantWeight
           obj.WeightReadingPlot = obj.WeightAxes.scatter(floor(now), g, 20^2, 'p', 'filled');
+          obj.WeightAxes.XLim = [min(get(obj.WeightAxes.Handle, 'XTick')) max(now)];
           set(obj.RecordWeightButton, 'Enable', 'on', 'String', sprintf('Record %.1fg', g));
         end
       end
