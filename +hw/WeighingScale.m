@@ -44,9 +44,9 @@ classdef WeighingScale < handle
         switch obj.Name
           case 'SPX222'
             % Optional settings may be set manually instead
-            fprintf(scale, 'IP'); % Auto print stable non-zero weight and stable zero reading
-            fprintf(scale, '1M'); % Weight mode
-            fprintf(scale, '1U'); % Weight unit grammes
+            fprintf(obj.Port, 'IP'); % Auto print stable non-zero weight and stable zero reading
+            fprintf(obj.Port, '1M'); % Weight mode
+            fprintf(obj.Port, '1U'); % Weight unit grammes
           otherwise
             % Do nothing
         end
