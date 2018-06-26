@@ -69,10 +69,9 @@ classdef WeighingScale < handle
     function onBytesAvail(obj, src, ~)
       nr = src.BytesAvailable/13;
       for i = 1:nr
-        d = sscanf(fscanf(src), obj.FormatSpec);
-        g = iff(length(d)>1, d(2), d);
-        if length(d) > 1 && d(1) == 45
-          g = -g;
+        g = sscanf(fscanf(src), obj.FormatSpec);
+        if length(g) > 1 && g(1) == 45
+          g = -g(1);
         end
         obj.LastGrams = g;
         notify(obj, 'NewReading');
