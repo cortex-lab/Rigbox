@@ -71,6 +71,8 @@ classdef DiscWorld < exp.LIARExperiment
       % are wavelengths (per grating cycle) in pixels.
       pxWavelength = wavelen*pxPerRad;
       
+      ensureWindowReady(obj); %ensure graphics window is ready for ops
+      
       % delete any previous textures
       deleteTextures(obj.StimWindow);
       
