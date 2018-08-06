@@ -187,7 +187,8 @@ classdef SignalsExp < handle
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
-        lastTrialOver.onValue(@(~)quit(obj));];
+        lastTrialOver.into(obj.Events.expStop) %newTrial if more
+        onValue(obj.Events.expStop, @(~)quit(obj));];
 %         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
@@ -402,7 +403,9 @@ classdef SignalsExp < handle
     end
     
     function quit(obj, immediately)
-      obj.Events.expStop.post(true);
+      if isempty(obj.Events.expStop.Node.CurrValue)
+        obj.Events.expStop.post(true);
+      end
       %stop delay timers. todo: need to use a less global tag
       tmrs = timerfind('Tag', 'sig.delay');
       if ~isempty(tmrs)
