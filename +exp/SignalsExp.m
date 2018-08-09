@@ -579,7 +579,7 @@ classdef SignalsExp < handle
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
           fieldnames(obj.Inputs), struct2cell(obj.Inputs));
-      parslist = queuefun('pars', obj.ParamsLog);
+      parslist = queuefun('pars', obj.Params);
       obj.Listeners = vertcat(obj.Listeners, ...
           evtlist(:), outlist(:), inlist(:), parslist(:));
     end
@@ -716,12 +716,7 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        tic
         sendSignalUpdates(obj);
-        q = toc;
-        if q>0.005
-            fprintf(1, 'send updates took %.1fms\n', 1000*toc);
-        end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
