@@ -14,7 +14,7 @@ classdef SignalsExp < handle
     %activated and an optional delay between the event and activation.
     %They should be objects of class EventHandler.
     EventHandlers = exp.EventHandler.empty
-    
+
     %Timekeeper used by the experiment. Clocks return the current time. See
     %the Clock class definition for more information.
     Clock = hw.ptb.Clock
@@ -579,7 +579,7 @@ classdef SignalsExp < handle
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
           fieldnames(obj.Inputs), struct2cell(obj.Inputs));
-      parslist = queuefun('pars', obj.ParamsLog);
+      parslist = queuefun('pars', obj.Params);
       obj.Listeners = vertcat(obj.Listeners, ...
           evtlist(:), outlist(:), inlist(:), parslist(:));
     end
