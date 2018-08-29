@@ -86,6 +86,11 @@ addpath(fullfile(root, 'cb-tools'), fullfile(root, 'cb-tools', 'burgbox'));
 % work with other software developed by CortexLab, including MPEP
 addpath(fullfile(root, 'cortexlab'));
 
+% Add wheelAnalysis paths.  This is a package for computing wheel velocity,
+% classifying movements, etc.
+addpath(fullfile(root, 'wheelAnalysis'), ...
+  fullfile(root, 'wheelAnalysis', 'helpers'));
+
 % Add signals paths, this includes all the core code for running signals
 % experiments.  This submodule is maintained by Chris Burgess.
 addpath(fullfile(root, 'signals'),...
