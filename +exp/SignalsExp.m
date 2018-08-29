@@ -868,80 +868,8 @@ classdef SignalsExp < handle
           && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
           && ~strcmp(obj.Data.endStatus,'aborted')
         try
-          expPath = dat.expPath(obj.Data.expRef, 'main', 'master');
-          % Write feedback
-          
-          feedback = getOr(obj.Data.events, 'feedbackValues', NaN);
-          feedback = double(feedback);
-          feedback(feedback == 0) = -1;
-          if ~isnan(feedback)
-            writeNPY(feedback(:), fullfile(expPath, 'cwFeedback.type.npy'));
-            alf.writeEventseries(expPath, 'cwFeedback',...
-              obj.Data.events.feedbackTimes, [], []);
-            writeNPY([obj.Data.outputs.rewardValues]', fullfile(expPath, 'cwFeedback.rewardVolume.npy'));
-          else
-            warning('No ''feedback'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write go cue
-          interactiveOn = getOr(obj.Data.events, 'interactiveOnTimes', NaN);
-          if ~isnan(interactiveOn)
-            alf.writeEventseries(expPath, 'cwGoCue', interactiveOn, [], []);
-          else
-            warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write response
-          response = getOr(obj.Data.events, 'responseValues', NaN);
-          if min(response) == -1
-            response(response == 0) = 3;
-            response(response == 1) = 2;
-            response(response == -1) = 1;
-          end
-          if ~isnan(response)
-            writeNPY(response(:), fullfile(expPath, 'cwResponse.choice.npy'));
-            alf.writeEventseries(expPath, 'cwResponse',...
-              obj.Data.events.responseTimes, [], []);
-          else
-            warning('No ''feedback'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write stim on times
-          stimOnTimes = getOr(obj.Data.events, 'stimulusOnTimes', NaN);
-          if ~isnan(stimOnTimes)
-            alf.writeEventseries(expPath, 'cwStimOn', stimOnTimes, [], []);
-          else
-            warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
-          end
-          contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
-          contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
-          if ~any(isnan(contL))&&~any(isnan(contR))
-            writeNPY(contL(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
-            writeNPY(contR(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
-          else
-            warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write trial intervals
-          alf.writeInterval(expPath, 'cwTrials',...
-            obj.Data.events.newTrialTimes(:), obj.Data.events.endTrialTimes(:), [], []);
-          repNum = obj.Data.events.repeatNumValues(:);
-          writeNPY(repNum == 1, fullfile(expPath, 'cwTrials.inclTrials.npy'));
-          writeNPY(repNum, fullfile(expPath, 'cwTrials.repNum.npy'));
-          
-          % Write wheel times, position and velocity
-          wheelValues = obj.Data.inputs.wheelValues(:);
-          wheelValues = wheelValues*(3.1*2*pi/(4*1024));
-          wheelTimes = obj.Data.inputs.wheelTimes(:);
-          alf.writeTimeseries(expPath, 'Wheel', wheelTimes, [], []);
-          writeNPY(wheelValues, fullfile(expPath, 'Wheel.position.npy'));
-          writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
-          
-          % Register them to Alyx
-          files = dir(expPath);
-          isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
-          files = files(isNPY);
-          obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
+          fullpath = alf.block2ALF(obj.Data);
+          obj.AlyxInstance.registerFile(fullpath);
         catch ex
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
