@@ -660,7 +660,7 @@ classdef AlyxPanel < handle
       if ~isempty(obj.LoggingDisplay)
         timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
         str = sprintf('[%s] %s', timestamp, message);
-        current = get(obj.LoggingDisplay, 'String');
+        current = cellflat(get(obj.LoggingDisplay, 'String'));
         %NB: If more that one instance of MATLAB is open, we use
         %the last opened LoggingDisplay
         set(obj.LoggingDisplay(end), 'String', [current; str], 'Value', numel(current) + 1);
