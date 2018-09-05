@@ -25,6 +25,8 @@ trialsToZeroContrast = p.trialsToZeroContrast.at(events.expStart);
 rewardSize = p.rewardSize.at(events.expStart);
 initialGain = p.initialGain.at(events.expStart);
 normalGain = p.normalGain.at(events.expStart);
+blockLength = p.blockLength.at(events.expStart);
+proportionLeft = p.proportionLeft.at(events.expStart);
 
 % Sounds
 audioDevice = audio.Devices('default');
@@ -42,6 +44,7 @@ missNoiseSamples = p.missNoiseAmplitude*events.expStart.map(@(x) ...
 trialDataInit = events.expStart.mapn( ...
     contrastSet, startingContrasts, repeatOnMiss, ...
     trialsToBuffer, trialsToZeroContrast, rewardSize,...
+    blockLength, proportionLeft,...
     @initializeTrialData).subscriptable;
 
 %% Set up wheel 
@@ -180,6 +183,10 @@ events.baselineRT = baselineRT.map(fun.partial(@sprintf, '%.1f sec'));
 events.pctDecrease = map(((baselinePerf - windowedPerf)/baselinePerf)*100, fun.partial(@sprintf, '%.1f%%'));
 events.endAfter = trialDataInit.endAfter/60;
 
+% Trial side probability
+events.proportionLeft = trialData.proportionLeft;
+events.trialsToSwitch = trialData.trialsToSwitch;
+
 % Performance
 events.contrastSet = trialData.contrastSet;
 events.repeatOnMiss = trialData.repeatOnMiss;
@@ -219,6 +226,10 @@ p.normalGain = 4; % ~= 10 @ 90 deg;
 % Resolution of the rotary encoder
 p.encoderRes = 1024; 
 
+% Trial side probability switching
+p.proportionLeft = 0.5;
+p.blockLength = Inf;
+
 % Timing
 p.prestimQuiescentTime = 0.2; % (seconds)
 % p.cueInteractiveDelay = 0.2;
@@ -240,6 +251,7 @@ p.minTrials = 200;
 % before being classified as disengaged
 p.maxRespWindow = 60; % (seconds)
 
+% Audio
 p.missNoiseAmplitude = 0.01;
 p.onsetToneAmplitude = 0.15;
 catch
@@ -273,7 +285,7 @@ end
 
 function trialDataInit = initializeTrialData(expRef, ...
     contrastSet,startingContrasts,repeatOnMiss,trialsToBuffer, ...
-    trialsToZeroContrast,rewardSize)
+    trialsToZeroContrast,rewardSize,blockLength,proportionLeft)
 
 %%%% Get the subject
 % (from events.expStart - derive subject from expRef)
@@ -297,6 +309,18 @@ trialDataInit.trialSide = randsample([-1,1],1);
 trialDataInit.repeatTrial = false;
 % Initialize hit/miss
 trialDataInit.hit = nan;
+% Store block length for sampling later
+trialDataInit.blockLength = blockLength;
+% Initialize trial countdown for trial side switch
+if numel(blockLength)>1
+  trialDataInit.trialsToSwitch = randsample(blockLength,1);
+else
+  trialDataInit.trialsToSwitch = blockLength;
+end
+% Initialize trial side propotions
+trialDataInit.proportionLeft = proportionLeft;
+% Initialize which side takes the probability
+trialDataInit.trialSide = iff(rand(1) <= proportionLeft, -1, 1);
 
 %%%% Load the last experiment for the subject if it exists
 % (note: MC creates folder on initilization, so start search at 1-back)
@@ -497,6 +521,13 @@ end
 
 % Next contrast is random from current contrast set
 trialData.trialContrast = randsample(trialData.contrastSet(trialData.useContrasts),1);
-%%%% Pick next side (this is done at random)
-trialData.trialSide = randsample([-1,1],1);
+%%%% Pick next side
+trialData.trialsToSwitch = trialData.trialsToSwitch - 1;
+if trialData.trialsToSwitch == 0
+  trialData.proportionLeft = 1-trialData.proportionLeft;
+  trialData.trialsToSwitch = iff(numel(trialData.blockLength) > 1,...
+  randsample(trialData.blockLength,1), trialData.blockLength);
+end
+
+trialData.trialSide = iff(rand <= trialData.proportionLeft, -1, 1);
 end

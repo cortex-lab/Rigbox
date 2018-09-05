@@ -325,7 +325,8 @@ classdef choiceWorldExpPanel < eui.ExpPanel
                             set(obj.ScreenAxes, 'XLim', -az+[-135 135]); % trick to move visual stimuli by moving the xlim in the opposite way
                             
                         case {'events.trialNum', 'events.repeatNum', 'events.totalWater'...
-                                'events.disengaged', 'events.pctDecrease'}
+                                'events.disengaged', 'events.pctDecrease', 'events.proportionLeft',...
+                                'events.trialsToSwitch'}
                             
                             if ~isKey(obj.LabelsMap, signame)
                                 obj.LabelsMap(signame) = obj.addInfoField(signame, '');
