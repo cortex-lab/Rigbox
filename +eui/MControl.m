@@ -746,7 +746,7 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox); % Second argument false; Alyx inactive
+      obj.AlyxPanel = eui.AlyxPanel(headerBox, false); % Second argument false; Alyx inactive
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
