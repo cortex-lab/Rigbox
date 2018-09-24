@@ -18,11 +18,12 @@ end
 p.rigbox = fileparts(which('addRigboxPaths'));
 % path to shared repository (accessible to MC and simulus server
 % computers)
-serverName = fullfile(p.rigbox, 'Repositories');
+% serverName = fullfile(p.rigbox, 'Repositories');
+serverName = fullfile('\\DESKTOP-S0OQQSD\Repositories'); %Ines changed
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
 p.localAlyxQueue = 'C:\localAlyxQueue';
-p.databaseURL = 'https://dev.alyx.internationalbrainlab.org';
+p.databaseURL = 'https://alyx.internationalbrainlab.org';
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.

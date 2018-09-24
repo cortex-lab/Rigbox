@@ -91,7 +91,8 @@ classdef AlyxPanel < handle
       
       % Default to active AlyxPanel
       if nargin < 2; active = true; end
-      
+      warning('Hard coded https://alyx.internationalbrainlab.org in eui.AlyxPanel l. 94')
+      obj.AlyxInstance.BaseURL = 'https://alyx.internationalbrainlab.org',
       obj.RootContainer = uix.Panel('Parent', parent, 'Title', 'Alyx');
       alyxbox = uiextras.VBox('Parent', obj.RootContainer);
       
