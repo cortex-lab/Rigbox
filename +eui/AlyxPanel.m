@@ -32,7 +32,7 @@ classdef AlyxPanel < handle
   %   2017-03 NS created
   %   2017-10 MW made into class
   properties (SetAccess = private)
-    AlyxInstance = Alyx('',''); % An Alyx object to interfacing with the database
+    AlyxInstance = []; % An Alyx object to interfacing with the database
     SubjectList % List of active subjects from database
     Subject = 'default' % The name of the currently selected subject
   end
@@ -91,9 +91,9 @@ classdef AlyxPanel < handle
       
       % Default to active AlyxPanel
       if nargin < 2; active = true; end
-      warning('Hard coded https://alyx.internationalbrainlab.org in eui.AlyxPanel l. 94')
-      obj.AlyxInstance.BaseURL = 'https://alyx.internationalbrainlab.org',
-      obj.RootContainer = uix.Panel('Parent', parent, 'Title', 'Alyx');
+      obj.AlyxInstance = Alyx('','');
+      disp(obj.AlyxInstance.BaseURL);
+      obj.RootContainer = uix.Panel('Parent', parent, 'Title', obj.AlyxInstance.BaseURL);
       alyxbox = uiextras.VBox('Parent', obj.RootContainer);
       
       loginbox = uix.HBox('Parent', alyxbox);
