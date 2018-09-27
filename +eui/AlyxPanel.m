@@ -32,7 +32,7 @@ classdef AlyxPanel < handle
   %   2017-03 NS created
   %   2017-10 MW made into class
   properties (SetAccess = private)
-    AlyxInstance = []; % An Alyx object to interfacing with the database
+    AlyxInstance % An Alyx object to interfacing with the database
     SubjectList % List of active subjects from database
     Subject = 'default' % The name of the currently selected subject
   end
@@ -69,6 +69,7 @@ classdef AlyxPanel < handle
       %
       % See also Alyx
       
+      obj.AlyxInstance = Alyx('','');
       if ~nargin % No parant object: create new figure
         f = figure('Name', 'alyx GUI',...
           'MenuBar', 'none',...
