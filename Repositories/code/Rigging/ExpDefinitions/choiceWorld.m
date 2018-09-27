@@ -27,6 +27,7 @@ initialGain = p.initialGain.at(events.expStart);
 normalGain = p.normalGain.at(events.expStart);
 blockLength = p.blockLength.at(events.expStart);
 proportionLeft = p.proportionLeft.at(events.expStart);
+responseWindow = p.responseWindow.at(events.expStart);
 
 % Sounds
 audioDevice = audio.Devices('default');
@@ -69,12 +70,16 @@ audio.default = toneSamples.at(stimOn);
 % The wheel displacement is zeroed at stimOn
 stimDisplacement = wheelGain*millimetersFactor*(wheel - wheel.at(stimOn));
 
-threshold = stimOn.setTrigger(abs(stimDisplacement) ...
-    >= p.responseDisplacement);
-response = at(-sign(stimDisplacement), threshold);
+responseTimeOver = (t - t.at(stimOn)) > responseWindow; % p.responseWindow may be set to Inf
+threshold = stimOn.setTrigger(...
+  abs(stimDisplacement) >= abs(p.responseDisplacement) | responseTimeOver);
+response = cond(...
+    responseTimeOver, 3,... % if the response time is over the response = 0
+    true, -sign(stimDisplacement)); % otherwise it should be the inverse of the sign of the stimulusDisplacement
+response = response.at(stimOn.setTrigger(threshold)); % only update the response signal when the threshold has been crossed
 
 %% Update performance at response
-responseData = vertcat(stimDisplacement, events.trialNum);
+responseData = vertcat(stimDisplacement, events.trialNum, response);
 trialData = responseData.at(response).scan(@updateTrialData, trialDataInit).subscriptable;
 % Set trial contrast (chosen when updating performance)
 trialContrast = trialData.trialContrast.at(events.newTrial);
@@ -92,7 +97,7 @@ baselineRT = rt.bufferUpTo(1000).map(@median);
 tooSlow = windowedRT > baselineRT*p.rtCriterion;
 % noResponse is true when mouse fails to respond for over x seconds, where
 % x is maxRespWindow
-noResponse = t-t.at(events.newTrial) > p.maxRespWindow;
+% noResponse = t-t.at(events.newTrial) > p.maxRespWindow;
 
 % A rolloing buffer of performance (proportion of last 20 trials that were
 % correct) - this includes repeat on incorrect trials
@@ -107,7 +112,7 @@ poorPerformance = (baselinePerf - windowedPerf)/baselinePerf > p.pctPerfDecrease
 % minTrials have been completed, the subject is either too slow, gives no
 % response or exhibits a significant drop in performance
 disengaged = events.trialNum > p.minTrials & ...
-  (tooSlow | noResponse | poorPerformance);
+  (tooSlow | poorPerformance);
 % The session is finished when either the session has been running for x
 % seconds, where x is trialDataInit.endAfter (20min on the first day, 40min
 % on the seconds, Inf otherwise), or when the subject is disengaged
@@ -140,10 +145,12 @@ stimOff = threshold.delay(iti);
 % 1) stim fixed in place until interactive on
 % 2) wheel-conditional during interactive  
 % 3) fixed at response displacement azimuth after response
+trialSide = trialData.trialSide.at(stimOn);
 azimuth = cond( ...
-    stimOn.to(response), p.startingAzimuth*trialData.trialSide + stimDisplacement, ...
-    response.to(events.newTrial), ...
-    p.startingAzimuth*trialData.trialSide.at(stimOn) + sign(stimDisplacement.at(response))*p.responseDisplacement);
+    stimOn.to(threshold), p.startingAzimuth*trialSide + stimDisplacement, ...
+    threshold.to(events.newTrial), ...
+    p.startingAzimuth*trialSide + ...
+    iff(response~=3, -response*abs(p.responseDisplacement), trialSide*abs(p.responseDisplacement)));
 
 % Stim flicker
 % stimFlicker = sin((t - t.at(stimOn))*stimFlickerFrequency*2*pi) > 0;
@@ -166,8 +173,8 @@ events.azimuth = azimuth;
 events.stimulusOn = stimOn;
 events.interactiveOn = stimOn;
 events.stimulusOff = stimOff;
-events.response = response;
-events.feedback = iff(hit==1, true, -1);
+events.feedback = iff(hit==1, hit, -1);
+events.threshold = threshold;
 % End trial samples a false when the next trial is to be a repeat trial.
 % NB: the identity function is used to ensure that stimOff takes a value
 % before endTrial
@@ -176,7 +183,6 @@ events.endTrial = at(~trialData.repeatTrial, stimOff.identity);
 events.disengaged = skipRepeats(keepWhen(cond(...
   tooSlow, 'long RT',...
   poorPerformance, 'perf decrease',...
-  noResponse, 'stopped responding',...
   true, 'false'), events.trialNum > p.minTrials));
 events.windowedRT = windowedRT.map(fun.partial(@sprintf, '%.1f sec'));
 events.baselineRT = baselineRT.map(fun.partial(@sprintf, '%.1f sec'));
@@ -194,7 +200,7 @@ events.contrastLeft = iff(trialData.trialSide == -1, trialData.trialContrast, tr
 events.contrastRight = iff(trialData.trialSide == 1, trialData.trialContrast, trialData.trialContrast*0);
 % events.trialSide = trialData.trialSide;
 events.hit = hit;
-events.response = response;
+events.response = iff(response==3, 0, response);
 events.useContrasts = trialData.useContrasts;
 events.trialsToZeroContrast = trialData.trialsToZeroContrast;
 events.hitBuffer = trialData.hitBuffer;
@@ -237,6 +243,7 @@ p.prestimQuiescentTime = 0.2; % (seconds)
 p.itiHit = 1; % (seconds)
 % Inter-trial interval on incorrect response
 p.itiMiss = 2; % (seconds)
+p.responseWindow = 60; % (seconds)
 
 % How many times slower the subject must become in order to be marked as
 % disengaged
@@ -301,10 +308,8 @@ trialDataInit = struct;
 trialDataInit.contrastSet = contrastSet';
 % Store which trials are repeated on miss
 trialDataInit.repeatOnMiss = repeatOnMiss;
-% Set the first contrast to 1
-trialDataInit.trialContrast = 1;
-% Set the first trial side randomly
-trialDataInit.trialSide = randsample([-1,1],1);
+% Set the first contrast
+trialDataInit.trialContrast = randsample(contrastSet,1);
 % Set up the flag for repeating incorrect
 trialDataInit.repeatTrial = false;
 % Initialize hit/miss
@@ -317,8 +322,8 @@ if numel(blockLength)>1
 else
   trialDataInit.trialsToSwitch = blockLength;
 end
-% Initialize trial side propotions
-trialDataInit.proportionLeft = proportionLeft;
+% Initialize trial side proportions
+trialDataInit.proportionLeft = iff(rand(1) <= 0.5, proportionLeft, 1-proportionLeft);
 % Initialize which side takes the probability
 trialDataInit.trialSide = iff(rand(1) <= proportionLeft, -1, 1);
 
@@ -335,6 +340,7 @@ if length(expRef) > 1
     % Loop through blocks from latest to oldest, if any have the relevant
     % parameters then carry them over
     for check_expt = length(expRef)-1:-1:1
+        learned = isLearned(expRef{check_expt});
         previousBlockFilename = dat.expFilePath(expRef{check_expt}, 'block', 'master');
         if exist(previousBlockFilename,'file')
             previousBlock = load(previousBlockFilename);
@@ -383,7 +389,16 @@ if useOldParams
 %     else
         trialDataInit.rewardSize = lastRewardSize;
 %     end
-        
+    if learned
+      % Initialize trial side proportions
+      trialDataInit.proportionLeft = iff(rand(1) <= 0.5, 0.2, 0.8);
+      % Remove repeat on incorrect
+      trialDataInit.repeatOnMiss = zeros(1,length(contrastSet));
+      % Store block length for sampling later
+      trialDataInit.blockLength = 50;
+      trialDataInit.trialsToSwitch = 50;
+    end
+    
 else
     % If this animal has no previous experiments, initialize performance
     trialDataInit.useContrasts = startingContrasts;
@@ -396,8 +411,10 @@ end
 
 function trialData = updateTrialData(trialData,responseData)
 % Update the performance and pick the next contrast
-
+disp(['trial #' num2str(responseData(2))])
+disp(['response =' num2str(responseData(3))])
 stimDisplacement = responseData(1);
+response = responseData(3);
 % windowedRT = responseData(2);
 % trialNum = responseData(3);
 
@@ -409,8 +426,8 @@ stimDisplacement = responseData(1);
 currentContrastIdx = trialData.trialContrast == trialData.contrastSet;
 
 %%%% Define response type based on trial condition
-trialData.hit = stimDisplacement*trialData.trialSide < 0;
-
+trialData.hit = response~=3 && stimDisplacement*trialData.trialSide < 0;
+disp(['hit =' num2str(trialData.hit)])
 % Index for whether contrast was on the left or the right as performance is
 % calculated for both sides.  If the contrast was on the left, the index is
 % 1, otherwise 2
@@ -509,7 +526,7 @@ if min(trialData.contrastSet(trialData.useContrasts)) <= 0.125 && ...
 end
 
 %%%% Set flag to repeat - skip trial choice if so
-if ~trialData.hit && ...
+if ~trialData.hit && any(trialData.repeatOnMiss==true) && ...
         ismember(trialData.trialContrast,trialData.contrastSet(trialData.repeatOnMiss))
     trialData.repeatTrial = true;
     return
@@ -530,4 +547,74 @@ if trialData.trialsToSwitch == 0
 end
 
 trialData.trialSide = iff(rand <= trialData.proportionLeft, -1, 1);
+end
+function learned = isLearned(ref)
+learned = false;
+subject = dat.parseExpRef(ref);
+expRef = dat.listExps(subject);
+j = 1;
+pooledCont = [];
+pooledIncl = [];
+pooledChoice = [];
+for i = length(expRef):-1:1
+  p = dat.expFilePath(expRef{i}, 'block', 'master');
+  if exist(p,'file')==2
+    % Block doesn't exist
+    p = fileparts(p);
+  else
+    fprintf('No block file for session %s: skipping\n', expRef{i})
+    continue
+  end
+  try
+    % If trial side prob uneven, the subject must have learned
+    probabilityLeft = readNPY(fullfile(p,'_ibl_trials.probabilityLeft.npy'));
+    if any(probabilityLeft~=0.5)
+      fprintf('Asymmetric trials already introduced\n')
+      learned = true;
+      return
+    end
+    feedback = readNPY(fullfile(p,'_ibl_trials.feedbackType.npy'));
+    contrastLeft = readNPY(fullfile(p,'_ibl_trials.contrastLeft.npy'));
+    contrastRight = readNPY(fullfile(p,'_ibl_trials.contrastRight.npy'));
+    incl = readNPY(fullfile(p,'_ibl_trials.included.npy'));
+    choice = readNPY(fullfile(p,'_ibl_trials.choice.npy'));
+  catch
+    warning('isLearned:ALFLoad:MissingFiles', ...
+      'Unable to load files for session %s', expRef{i})
+    continue
+  end
+  % If there are fewer than 4 contrasts, subject can't have learned
+  contrast = diff([contrastLeft,contrastRight],[],2);
+  if ~any(contrast==0)
+    fprintf('Low contrasts not yet introduced\n')
+    return
+  end
+  perfOnEasy = sum(feedback==1 & abs(contrast > 0.25)) / sum(abs(contrast > 0.25));
+  if length(feedback) > 200 && perfOnEasy > 0.8
+    pooledCont = [pooledCont; contrast];
+    pooledIncl = [pooledIncl; incl];
+    pooledChoice = [pooledChoice; choice];
+    if j < 3
+      j = j+1;
+    else
+      % All three sessions meet criteria
+      contrastSet = unique(pooledCont);
+      nn = arrayfun(@(c)sum(pooledCont==c & pooledIncl), contrastSet);
+      pp = arrayfun(@(c)sum(pooledCont==c & pooledIncl & pooledChoice==-1), contrastSet)./nn;
+      pars = psy.mle_fit_psycho([contrastSet';nn';pp'], 'erf_psycho',...
+        [mean(contrastSet), 3, 0.05],...
+        [min(contrastSet), 10, 0],...
+        [max(contrastSet), 30, 0.4]);
+      if abs(pars(1)) < 16 && pars(2) < 19 && pars(3) < 0.2
+        learned = true;
+      else
+        fprintf('Fit parameter values below threshold\n')
+        return
+      end
+    end
+  else
+    fprintf('Low trial count or performance at high contrast\n')
+    return
+  end
+end
 end

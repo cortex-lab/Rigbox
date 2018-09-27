@@ -18,8 +18,7 @@ end
 p.rigbox = fileparts(which('addRigboxPaths'));
 % path to shared repository (accessible to MC and simulus server
 % computers)
-% serverName = fullfile(p.rigbox, 'Repositories');
-serverName = fullfile('\\DESKTOP-S0OQQSD\Repositories'); %Ines changed
+serverName = fullfile(p.rigbox, 'Repositories');
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
 p.localAlyxQueue = 'C:\localAlyxQueue';
