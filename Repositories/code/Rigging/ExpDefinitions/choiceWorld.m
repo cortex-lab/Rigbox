@@ -200,7 +200,7 @@ events.contrastLeft = iff(trialData.trialSide == -1, trialData.trialContrast, tr
 events.contrastRight = iff(trialData.trialSide == 1, trialData.trialContrast, trialData.trialContrast*0);
 % events.trialSide = trialData.trialSide;
 events.hit = hit;
-events.response = iff(response==3, 0, response);
+events.response = at(iff(response==3, 0, response), threshold);
 events.useContrasts = trialData.useContrasts;
 events.trialsToZeroContrast = trialData.trialsToZeroContrast;
 events.hitBuffer = trialData.hitBuffer;
