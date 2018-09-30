@@ -11,3 +11,4 @@
 [submodule "wheelAnalysis"]
 	path = wheelAnalysis
 	url = https://github.com/cortex-lab/wheelAnalysis.git
+	branch = ibl
