@@ -34,7 +34,7 @@ cd Rigbox/
 git checkout rigbox-lite
 ```
 3. Run the following to clone the submodules:
-```git submodules update --init```
+```git submodule update --init```
 3. In MATLAB run 'addRigboxPaths.m' and restart the program.
 4. Set the correct paths by following the instructions in Rigbox\+dat\paths.m on both computers.
 5. On the stimulus server, load the hardware.mat file in Rigbox\Repositories\code\config\exampleRig and edit according to your specific hardware setup (link to detailed instructions above, under 'Getting started').
@@ -42,7 +42,7 @@ git checkout rigbox-lite
 To keep up to date, run the following:
 ```
 git pull
-git submodules update --remote
+git submodule update --remote
 ```
 
 ## Running an experiment
