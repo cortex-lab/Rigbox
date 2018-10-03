@@ -34,12 +34,12 @@ e.outputs = net.subscriptableOrigin('outputs');
 
 try
     
-    rig = 0;
-  if funArgs == 7
+%     rig = 0;
+%   if funArgs == 7
       expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio);
-  else
-      expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio, rig);
-  end
+%   else
+%       expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio, rig);
+%   end
     
 %   expdeffun(e.t, e.events, e.pars, e.visual, e.inputs , e.outputs, e.audio);
   % paramNames will be the strings corresponding to the fields of e.pars

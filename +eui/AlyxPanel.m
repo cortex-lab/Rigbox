@@ -32,7 +32,7 @@ classdef AlyxPanel < handle
   %   2017-03 NS created
   %   2017-10 MW made into class
   properties (SetAccess = private)
-    AlyxInstance = Alyx('',''); % An Alyx object to interfacing with the database
+    AlyxInstance % An Alyx object to interfacing with the database
     SubjectList % List of active subjects from database
     Subject = 'default' % The name of the currently selected subject
   end
@@ -69,6 +69,7 @@ classdef AlyxPanel < handle
       %
       % See also Alyx
       
+      obj.AlyxInstance = Alyx('','');
       if ~nargin % No parant object: create new figure
         f = figure('Name', 'alyx GUI',...
           'MenuBar', 'none',...
@@ -207,11 +208,6 @@ classdef AlyxPanel < handle
         stop(obj.LoginTimer) % Stop the timer...
         delete(obj.LoginTimer) % ... delete it...
         obj.LoginTimer = []; % ... and remove it
-      end
-      if ~isempty(obj.WeightTimer) % If there is a timer object
-        stop(obj.WeightTimer) % Stop the timer...
-        delete(obj.WeightTimer) % ... delete it...
-        obj.WeightTimer = []; % ... and remove it
       end
     end
     
@@ -665,7 +661,7 @@ classdef AlyxPanel < handle
       if ~isempty(obj.LoggingDisplay)
         timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
         str = sprintf('[%s] %s', timestamp, message);
-        current = get(obj.LoggingDisplay, 'String');
+        current = cellflat(get(obj.LoggingDisplay, 'String'));
         %NB: If more that one instance of MATLAB is open, we use
         %the last opened LoggingDisplay
         set(obj.LoggingDisplay(end), 'String', [current; str], 'Value', numel(current) + 1);

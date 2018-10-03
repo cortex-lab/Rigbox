@@ -1,8 +1,8 @@
-function psychDat = an(subject, dates, dateRange)
+function psychDat = an(subject, dates, dateRange, makefig)
 % plots the psychometic data from the blocks entered.
 %  
 % allBlocks         Block structure or cell array of structs
-% figDestination    String; Path where fig is to be saved or 'none'
+% makefig    String; Path where fig is to be saved or 'none'
 %
 % psychoDat         Struct containing expRef, contrasts, response made,
 %                   feedback, repeat numbers and response times
@@ -17,15 +17,18 @@ end
 if nargin < 3
    dateRange = true;
 end
+if nargin < 4
+  makefig = 'none';
+end
 
 % if nargin < 6
 %    makeFig = false;
 % end    
 % define path to save figure
 % if makeFig 
-%     figDestination = ['\\zserver.cortexlab.net\Data\behavior\ChoiceWorld\' subject '\'];
+%     makefig = ['\\zserver.cortexlab.net\Data\behavior\ChoiceWorld\' subject '\'];
 % else
-%     figDestination = 'none';
+%     makefig = 'none';
 % end
 
 % get list of references and dates for subject
@@ -60,9 +63,6 @@ end
 idx = cell2mat(arrayfun(@(x)find(expDate==x), dates, 'UniformOutput',0));
 filelist = mapToCell(@(r) dat.expFilePath(r, 'block', 'master'),expRef(idx));
 existfiles = cell2mat(mapToCell(@(l) file.exists(l), filelist));
-
-% useful info about analysis
-figDestination = 'none';
 
 % load block files 
 allBlocks = cellfun(@load,filelist(existfiles));
@@ -102,9 +102,13 @@ resp = [events.responseValues];
 startTime = [events.expStartTimes];
 trialEndTimes = [events.endTrialTimes]-startTime(end);
 numCompletedTrials = sum(cell2mat(numCompletedTrials));
-if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
+if any(startsWith(expDef, {'vanilla' 'basic' 'adaptation'}))
     rt = [events.responseTimes]-[events.interactiveOnTimes];
-    contrast = diff(vertcat([events.contrastLeftValues],[events.contrastRightValues]));
+    try
+      contrast = diff(vertcat([events.contrastLeftValues],[events.contrastRightValues]));
+    catch
+      contrast = [events.trialContrastValues].*[events.trialSideValues];
+    end
     correct = [events.hitValues];
     leftResp = [events.trialSideValues]==-1&correct==1;
     resp = double(resp);
@@ -116,7 +120,14 @@ if any(strcmp(expDef, {'vanillaChoiceworld' 'basicChoiceworld'}))
     end
     respWindow = Inf;
     repeatNum = [events.repeatNumValues];
-elseif strcmp(expDef, 'advancedChoiceWorld')
+elseif strcmp(expDef, 'choiceWorld')
+    rt = [events.responseTimes]-[events.stimulusOnTimes];
+    contrast = diff(vertcat([events.contrastLeftValues],[events.contrastRightValues]));
+    correct = [events.hitValues];
+    inc = [events.repeatNumValues] == 1;
+    respWindow = Inf;
+    repeatNum = [events.repeatNumValues];
+elseif any(startsWith(expDef, {'advancedChoiceWorld' 'sylvia' 'adaptation'}))
     correct = events.feedbackValues;
     rt = [events.responseTimes]-[events.stimulusOnTimes]-[paramVals.interactiveDelay];
     contrast = [paramVals.stimulusContrast];
@@ -146,9 +157,10 @@ else
     psychDat.contrast = contrast;
     psychDat.resp = resp;
     psychDat.rt = rt;
+    psychDat.include = inc;
 end
 
-if isempty(figDestination); return; end
+if isempty(makefig); return; end
 
 %% Some processing
 respTypes = unique(resp);
@@ -257,11 +269,11 @@ ylabel({'Performance (%)'; 'incl. repeats'});
 
 
 %% Save Plots
-figName = fullfile(figDestination, [allBlocks(1).block.expRef '_psychometric']);
+figName = fullfile(makefig, [allBlocks(1).block.expRef '_psychometric']);
 type = 'png';
-if ~any(strcmp(figDestination, {'none' ''}))
-    if ~exist(figDestination, 'dir')
-        mkdir(figDestination);
+if ~any(strcmp(makefig, {'none' ''}))
+    if ~exist(makefig, 'dir')
+        mkdir(makefig);
     end
     
     switch type

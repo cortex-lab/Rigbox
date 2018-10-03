@@ -243,14 +243,19 @@ events.endTrial = endTrial;
 % % Define when to start the sound
 % soundTrigger = events.newTrial.delay(1);
 % % Define necessary parameters of the sound
-% audioSampleRate = 192e3;
 % toneAmplitude = 0.5;
 % toneFreq = 500;
 % toneDuration = 0.2;
 % % Make the waveform of the tone (this uses a function in burgbox: try
 % % running this code outside of signals and make sure to see that it's just
-% % a vector that defines a sine wave)
-% toneSamples = toneAmplitude*aud.pureTone(toneFreq, toneDuration, audioSampleRate);
+% % a vector that defines a sine wave).  You can access information about
+% % your device with the following syntax:
+% %   audioDevice = audio.Devices('default');
+% % where 'default' is the system's default audio output device.  This
+% % returns a structure with device info that can be used to generate
+% % samples:
+% toneSamples = toneAmplitude*aud.pureTone(toneFreq, toneDuration, ...
+%   audioDevice.DefaultSampleRate, 0.01, audioDevice.NrOutputChannels);
 % % This below has two important signals lessons:
 % % 1) We have a vector which at the moment is just a double, and we want to
 % % convert it into a signal (which is a constant and not dependent on
@@ -266,8 +271,8 @@ events.endTrial = endTrial;
 % % toneSamplesSignal is going to have the size length(toneSamples).
 % toneSamplesSignal = events.expStart.mapn(@(x) toneSamples);
 % % Finally, we will trigger our waveform signal whenever soundTrigger
-% % updates, and pass that into the audio handler.
-% audio.tone = toneSamplesSignal.at(soundTrigger);
+% % updates, and pass that into the audio handler.  
+% audio.default = toneSamplesSignal.at(soundTrigger);
 % ---------------
 %
 % As usual, these things can be condensed while keeping the same
@@ -275,35 +280,36 @@ events.endTrial = endTrial;
 %
 % -- UNCOMMENT --
 % soundTrigger = events.newTrial.delay(1);
-% audioSampleRate = 192e3;
+% audioDevice = audio.Devices('default');
 % toneAmplitude = 0.5;
 % toneFreq = 500;
 % toneDuration = 0.2;
 % 
-% audio.tone = soundTrigger.map(@(x) toneAmplitude*aud.pureTone(toneFreq, toneDuration, audioSampleRate));
+% audio.default = soundTrigger.map(@(x) toneAmplitude*aud.pureTone(toneFreq, ...
+%   toneDuration, audioDevice.DefaultSampleRate));
 % ---------------
 %
-% Note that 'audio.tone' that we passed to the audio handler above is an
-% arbitrarily chosen name, it can be audio.anything, and in fact multiple
-% sounds can be stored in audio.sound1/audio.sound2. Re-comment the above
-% and let's make two different sounds:
+% NB: 'default' is the name of the system's default audio device.  Other
+% device names may be used and set in the hardware.mat file. Re-comment the
+% above and let's make two different sounds:
 %
 % -- UNCOMMENT --
 % soundTrigger1 = events.newTrial.delay(1);
 % soundTrigger2 = events.newTrial.delay(1.5);
 % 
-% audioSampleRate = 192e3;
+% rate = getOr(audio.Devices('default'), 'DefaultSampleRate');
 % toneAmplitude = 0.5;
 % toneDuration = 0.2;
 % 
 % toneFreq1 = 500;
 % toneFreq2 = 200;
 % 
-% audio.tone1 = soundTrigger1.map(@(x) toneAmplitude*aud.pureTone(toneFreq1, toneDuration, audioSampleRate));
-% audio.tone2 = soundTrigger2.map(@(x) toneAmplitude*aud.pureTone(toneFreq2, toneDuration, audioSampleRate));
+% audio.tone1 = soundTrigger1.map(@(x) toneAmplitude*aud.pureTone(toneFreq1, toneDuration, rate));
+% audio.tone2 = soundTrigger2.map(@(x) toneAmplitude*aud.pureTone(toneFreq2, toneDuration, rate));
 % ---------------
 %
-% You can re-comment this section. 
+% Above, getOr simply returns the values for the fieldname specified
+% (DefaultSampleRate). You can re-comment this section.
 %
 %% VISUAL STIMULI %%
 %
