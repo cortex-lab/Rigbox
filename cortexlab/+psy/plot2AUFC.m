@@ -53,7 +53,7 @@ if any(contrast(1,:)>0 & contrast(2,:)>0)
   psychoMCmap = reshape(permute(psychoM, [2 1 3]), numRespTypes*nCR, nCL)';
   psychoMCmap(isnan(psychoMCmap))=-1;
   imagesc(ax, psychoMCmap)
-  colormap(colormap_pinkgreyscale)
+  colormap(psy.colormap_pinkgreyscale)
   
   set(ax, 'XTick', 1:nCR*numRespTypes, 'XTickLabel', cValsRight(repmat(1:nCR, [1 numRespTypes])));
   set(ax, 'YTick', 1:nCL, 'YTickLabel', cValsLeft(1:nCL));
