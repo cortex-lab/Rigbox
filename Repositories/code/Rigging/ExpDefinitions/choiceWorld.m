@@ -78,8 +78,12 @@ response = cond(...
     true, -sign(stimDisplacement)); % otherwise it should be the inverse of the sign of the stimulusDisplacement
 response = response.at(stimOn.setTrigger(threshold)); % only update the response signal when the threshold has been crossed
 
+%% Bias
+bias = merge(response.keepWhen(response~=3).bufferUpTo(10).map(@sum), ...
+  at(0, events.expStart)); % Initialize with 0 at expStart
+
 %% Update performance at response
-responseData = vertcat(stimDisplacement, events.trialNum, response);
+responseData = vertcat(stimDisplacement, events.trialNum, response, bias);
 trialData = responseData.at(response).scan(@updateTrialData, trialDataInit).subscriptable;
 % Set trial contrast (chosen when updating performance)
 trialContrast = trialData.trialContrast.at(events.newTrial);
@@ -106,13 +110,16 @@ windowedPerf = hit.buffer(20).map(@(a)sum(a)/length(a));
 baselinePerf = hit.bufferUpTo(1000).map(@(a)sum(a)/length(a));
 % True when there is an x% decrease in performance over the last 20 trials
 % compared to the session average, where x is pctPerfDecrease
-poorPerformance = (baselinePerf - windowedPerf)/baselinePerf > p.pctPerfDecrease/100;
+poorPerformance = iff(trialData.proportionLeft == 0.5, ...
+  (baselinePerf - windowedPerf)/baselinePerf > p.pctPerfDecrease/100, false);
+% poorPerformance = (baselinePerf - windowedPerf)/baselinePerf > p.pctPerfDecrease/100;
 
 % The subject is identified as disengaged from the task when, after
-% minTrials have been completed, the subject is either too slow, gives no
-% response or exhibits a significant drop in performance
-disengaged = events.trialNum > p.minTrials & ...
-  (tooSlow | poorPerformance);
+% minTrials have been completed, the subject is either too slow or exhibits
+% a significant drop in performance.  If the subject has not completed the
+% minimum number of trials in 45 minutes it is also classed as disengaged.
+disengaged = iff(events.trialNum > p.minTrials, (tooSlow | poorPerformance), ...
+  events.expStart.delay(60*45));
 % The session is finished when either the session has been running for x
 % seconds, where x is trialDataInit.endAfter (20min on the first day, 40min
 % on the seconds, Inf otherwise), or when the subject is disengaged
@@ -166,6 +173,9 @@ stim.show = stimOn.to(stimOff);
 visStim.stim = stim;
 
 %% Display and save
+events.propL = trialData.proportionLeft == 0.5;
+events.pPerf = (baselinePerf - windowedPerf)/baselinePerf > p.pctPerfDecrease/100;
+events.poorPerf = poorPerformance;
 % Wheel and stim
 events.azimuth = azimuth;
 
@@ -190,6 +200,7 @@ events.pctDecrease = map(((baselinePerf - windowedPerf)/baselinePerf)*100, fun.p
 events.endAfter = trialDataInit.endAfter/60;
 
 % Trial side probability
+events.bias = bias;
 events.proportionLeft = trialData.proportionLeft;
 events.trialsToSwitch = trialData.trialsToSwitch;
 
@@ -304,12 +315,8 @@ repeatOnMiss = logical(repeatOnMiss)';
 %%%% Initialize all of the session-independent performance values
 trialDataInit = struct;
 
-% Store the contrasts which are used
-trialDataInit.contrastSet = contrastSet';
 % Store which trials are repeated on miss
 trialDataInit.repeatOnMiss = repeatOnMiss;
-% Set the first contrast
-trialDataInit.trialContrast = randsample(contrastSet,1);
 % Set up the flag for repeating incorrect
 trialDataInit.repeatTrial = false;
 % Initialize hit/miss
@@ -334,6 +341,7 @@ expRef = dat.listExps(subject);
 [~, dates] = dat.parseExpRef(expRef);
 dayNum = find(floor(now) == unique(dates), 1, 'last');
 trialDataInit.endAfter = iff(dayNum<3, 60*20*dayNum, Inf);
+trialDataInit.endAfter = Inf;
 
 useOldParams = false;
 if length(expRef) > 1
@@ -373,14 +381,29 @@ if useOldParams
     % If the last experiment file has the relevant fields, set up performance
     
     % Which contrasts are currently in use
-    trialDataInit.useContrasts = previousBlock.useContrastsValues(end-length(contrastSet)+1:end);
+    try
+      len = length(previousBlock.contrastSetValues)/length(previousBlock.contrastSetTimes);
+      trialDataInit.contrastSet = previousBlock.contrastSetValues(end-len+1:end);
+    catch
+      len = length(contrastSet');
+      trialDataInit.contrastSet = contrastSet';
+    end
+    trialDataInit.useContrasts = previousBlock.useContrastsValues(end-len+1:end);
     
     % The buffer to judge recent performance for adding contrasts
     trialDataInit.hitBuffer = ...
-        previousBlock.hitBufferValues(:,end-length(contrastSet)+1:end,:);
+        previousBlock.hitBufferValues(:,end-len+1:end,:);
     
     % The countdown to adding 0% contrast
     trialDataInit.trialsToZeroContrast = previousBlock.trialsToZeroContrastValues(end);
+    
+    % If zero contrasts have been introduced and lapse rate is < 0.2 for
+    % 100% contrasts, remove them.
+    if trialDataInit.trialsToZeroContrast == 0 && ...
+        sum(trialDataInit.hitBuffer(:,1,1))/size(trialDataInit.hitBuffer,1) > 0.8 && ...
+        sum(trialDataInit.hitBuffer(:,1,2))/size(trialDataInit.hitBuffer,1) > 0.8
+      trialDataInit.useContrasts(trialDataInit.contrastSet == 1) = 0;
+    end
     
 %     % If the subject did over 200 trials last session, reduce the reward by
 %     % 0.1, unless it is 2ml
@@ -393,7 +416,7 @@ if useOldParams
       % Initialize trial side proportions
       trialDataInit.proportionLeft = iff(rand(1) <= 0.5, 0.2, 0.8);
       % Remove repeat on incorrect
-      trialDataInit.repeatOnMiss = zeros(1,length(contrastSet));
+      trialDataInit.repeatOnMiss = zeros(1,length(trialDataInit.contrastSet));
       % Store block length for sampling later
       trialDataInit.blockLength = 50;
       trialDataInit.trialsToSwitch = 50;
@@ -401,12 +424,17 @@ if useOldParams
     
 else
     % If this animal has no previous experiments, initialize performance
+    % Store the contrasts which are used
+    trialDataInit.contrastSet = contrastSet';
     trialDataInit.useContrasts = startingContrasts;
     trialDataInit.hitBuffer = nan(trialsToBuffer, length(contrastSet), 2); % two tables, one for each side
     trialDataInit.trialsToZeroContrast = trialsToZeroContrast;  
     % Initialize water reward size & wheel gain
     trialDataInit.rewardSize = rewardSize;
 end
+
+% Set the first contrast
+trialDataInit.trialContrast = randsample(trialDataInit.contrastSet(trialDataInit.useContrasts),1);
 end
 
 function trialData = updateTrialData(trialData,responseData)
@@ -415,6 +443,8 @@ disp(['trial #' num2str(responseData(2))])
 disp(['response =' num2str(responseData(3))])
 stimDisplacement = responseData(1);
 response = responseData(3);
+% bias normalized by trial number: abs(bias) = 0:1
+bias = responseData(4)/10; 
 % windowedRT = responseData(2);
 % trialNum = responseData(3);
 
@@ -528,6 +558,13 @@ end
 %%%% Set flag to repeat - skip trial choice if so
 if ~trialData.hit && any(trialData.repeatOnMiss==true) && ...
         ismember(trialData.trialContrast,trialData.contrastSet(trialData.repeatOnMiss))
+    % If the response is a no-go, repeat the same trial side
+    if response ~= 3
+      % Otherwise take biased sample from normal distribution
+      sd = 0.5; % standard deviation
+      r = 0.5 + sd.*randn; % pull number from normal dist with mean 0.5
+      trialData.trialSide = iff((r - bias) > 0.5, 1, -1);
+    end
     trialData.repeatTrial = true;
     return
 else
