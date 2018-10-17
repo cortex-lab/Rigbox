@@ -367,12 +367,14 @@ classdef AlyxPanel < handle
             colour = 'black'; % Mouse above 80% or no weight measured today
             weight_pct = '> 80%';
           end
+          % Round up water remaining to the near 0.01
+          remainder = ceil(s(idx).water_requirement_remaining*100)/100;
           % Set text
           set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
             sprintf('Subject %s requires %.2f of %.2f today\n\t   Weight today: %.2f (%s)    Water today: %.2f', ...
-            obj.Subject, s(idx).water_requirement_remaining, s(idx).water_requirement_total, weight, weight_pct, sum([water gel])));
+            obj.Subject, remainder, s(idx).water_requirement_total, weight, weight_pct, floor(sum([water gel])*100)/100));
           % Set WaterRemaining attribute for changeWaterText callback
-          obj.WaterRemaining = s(idx).water_requirement_remaining;
+          obj.WaterRemaining = remainder;
         end
       catch me
         d = me.message; %FIXME: JSON no longer returned
