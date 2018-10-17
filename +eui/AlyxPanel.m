@@ -368,11 +368,13 @@ classdef AlyxPanel < handle
             weight_pct = '> 80%';
           end
           % Round up water remaining to the near 0.01
-          remainder = ceil(s(idx).water_requirement_remaining*100)/100;
+          remainder = obj.round(s(idx).water_requirement_remaining, 'up');
           % Set text
           set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
-            sprintf('Subject %s requires %.2f of %.2f today\n\t   Weight today: %.2f (%s)    Water today: %.2f', ...
-            obj.Subject, remainder, s(idx).water_requirement_total, weight, weight_pct, floor(sum([water gel])*100)/100));
+            sprintf(['Subject %s requires %.2f of %.2f today\n\t '...
+            'Weight today: %.2f (%s)    Water today: %.2f'], obj.Subject, ...
+            remainder, obj.round(s(idx).water_requirement_total, 'up'), weight, ...
+            weight_pct, obj.round(sum([water gel]), 'down')));
           % Set WaterRemaining attribute for changeWaterText callback
           obj.WaterRemaining = remainder;
         end
@@ -564,11 +566,11 @@ classdef AlyxPanel < handle
         ylabel(ax, 'weight as pct (%)');
         
         axWater = axes('Parent',plotBox);
-        plot(axWater, dates, [records.water_given]+[records.hydrogel_given], '.-');
+        plot(axWater, dates, obj.round([records.water_given]+[records.hydrogel_given], 'up'), '.-');
         hold(axWater, 'on');
-        plot(axWater, dates, [records.hydrogel_given], '.-');
-        plot(axWater, dates, [records.water_given], '.-');
-        plot(axWater, dates, [records.water_expected], 'r', 'LineWidth', 2.0);
+        plot(axWater, dates, obj.round([records.hydrogel_given], 'down'), '.-');
+        plot(axWater, dates, obj.round([records.water_given], 'down'), '.-');
+        plot(axWater, dates, obj.round([records.water_expected], 'up'), 'r', 'LineWidth', 2.0);
         box(axWater, 'off');
         xlim(axWater, [min(dates) max(dates)]);
         set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
@@ -622,11 +624,11 @@ classdef AlyxPanel < handle
         colorgen = @(colorNum,text) ['<html><body bgcolor=#',htmlColor(colorNum),'>',text,'</body></html>'];
         
         wrdat = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3],...
-          sprintf('%.2f',x)), {wr.water_requirement_remaining}, 'uni', false);
+          sprintf('%.2f',obj.round(x, 'up'))), {wr.water_requirement_remaining}, 'uni', false);
         
         set(wrTable, 'ColumnName', {'Name', 'Water Required', 'Remaining Requirement'}, ...
           'Data', horzcat({wr.nickname}', ...
-          cellfun(@(x)sprintf('%.2f',x),{wr.water_requirement_total}', 'uni', false), ...
+          cellfun(@(x)sprintf('%.2f',obj.round(x, 'up')),{wr.water_requirement_total}', 'uni', false), ...
           wrdat'), ...
           'ColumnEditable', false(1,3));
       end
@@ -673,4 +675,18 @@ classdef AlyxPanel < handle
     end
   end
   
+  methods (Static)
+    function A = round(a, direction, sigFigures)
+      if nargin < 3; sigFigures = 2; end
+      c = 1*10^sigFigures;
+      switch direction
+        case 'up'
+          A = ceil(a*c)/c;
+        case 'down'
+          A = ceil(a*c)/c;
+        otherwise
+          A = round(a*c)/c;
+      end
+    end
+  end
 end
