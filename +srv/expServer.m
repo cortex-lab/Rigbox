@@ -19,6 +19,8 @@ toggleBackground = KbName('b');
 rewardId = 1;
 
 %% Initialisation
+% Ensure code is up-to-date
+git.update;
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
