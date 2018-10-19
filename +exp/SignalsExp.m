@@ -891,8 +891,21 @@ classdef SignalsExp < handle
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           if ~isempty(obj.AlyxInstance.SessionURL)
+            numCorrect = [];
+            if isfield(obj.Data, 'events')
+              numTrials = length(obj.Data.events.endTrialValues);
+              if isfield(obj.Data.events, 'feedbackValues')
+                numCorrect = sum(obj.Data.events.feedbackValues == 1);
+              end
+            else
+              numTrials = 0;
+              numCorrect = 0;
+            end
+            sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
+            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
+            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
             obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+              sessionData, 'put');
           else
             % Retrieve session from endpoint
 %             subsessions = obj.AlyxInstance.getData(...
