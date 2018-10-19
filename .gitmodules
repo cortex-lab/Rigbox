@@ -1,14 +1,14 @@
 [submodule "alyx-matlab"]
 	path = alyx-matlab
 	url = https://github.com/cortex-lab/alyx-matlab/
+	branch = dev
 [submodule "signals"]
 	path = signals
 	url = https://github.com/cortex-lab/signals
+	branch = dev
 [submodule "npy-matlab"]
 	path = npy-matlab
 	url = https://github.com/kwikteam/npy-matlab
 [submodule "wheelAnalysis"]
-
 	path = wheelAnalysis
-
 	url = https://github.com/cortex-lab/wheelAnalysis.git
