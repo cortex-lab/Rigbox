@@ -653,6 +653,7 @@ classdef SignalsExp < handle
       
       %set looping flag
       obj.IsLooping = true;
+      t = obj.Clock.now;
       % begin the loop
       while obj.IsLooping
         %% create a list of handlers that have become due
@@ -716,12 +717,15 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        tic
-        sendSignalUpdates(obj);
-        q = toc;
-        if q>0.005
-            fprintf(1, 'send updates took %.1fms\n', 1000*toc);
+        if (obj.Clock.now - t) > 0.1
+          sendSignalUpdates(obj);
+          t = obj.Clock.now;
         end
+        
+%         q = toc;
+%         if q>0.005
+%             fprintf(1, 'send updates took %.1fms\n', 1000*toc);
+%         end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
@@ -887,8 +891,21 @@ classdef SignalsExp < handle
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           if ~isempty(obj.AlyxInstance.SessionURL)
+            numCorrect = [];
+            if isfield(obj.Data, 'events')
+              numTrials = length(obj.Data.events.endTrialValues);
+              if isfield(obj.Data.events, 'feedbackValues')
+                numCorrect = sum(obj.Data.events.feedbackValues == 1);
+              end
+            else
+              numTrials = 0;
+              numCorrect = 0;
+            end
+            sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
+            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
+            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
             obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+              sessionData, 'put');
           else
             % Retrieve session from endpoint
 %             subsessions = obj.AlyxInstance.getData(...
