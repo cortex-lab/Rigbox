@@ -11,7 +11,10 @@ cd(root)
 
 cmdstr = strjoin({gitexepath, 'fetch'});
 [~, cmdout] = system(cmdstr);
-if isempty(cmdout); return; end
+if isempty(cmdout)
+  cd(origDir)
+  return
+end
 
 cmdstr = strjoin({gitexepath, 'merge'});
 [status, cmdout] = system(cmdstr);
