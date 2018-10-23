@@ -1,14 +1,16 @@
 [submodule "alyx-matlab"]
 	path = alyx-matlab
-	url = https://github.com/cortex-lab/alyx-matlab/
+	url = https://github.com/jaib1/alyx-matlab/
 	branch = dev
 [submodule "signals"]
 	path = signals
-	url = https://github.com/cortex-lab/signals
+	url = https://github.com/jaib1/signals
 	branch = dev
 [submodule "npy-matlab"]
 	path = npy-matlab
-	url = https://github.com/kwikteam/npy-matlab
+	url = https://github.com/jaib1/npy-matlab
+	branch = dev
 [submodule "wheelAnalysis"]
 	path = wheelAnalysis
-	url = https://github.com/cortex-lab/wheelAnalysis.git
+	url = https://github.com/jaib1/wheelAnalysis
+	branch = dev
