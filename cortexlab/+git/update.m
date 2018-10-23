@@ -9,26 +9,28 @@ root = fileparts(which('addRigboxPaths'));
 origDir = pwd;
 cd(root)
 
+disp('Updating code...')
+
 cmdstr = strjoin({gitexepath, 'fetch'});
-[~, cmdout] = system(cmdstr);
-if isempty(cmdout)
-  cd(origDir)
-  return
-end
+system(cmdstr, '-echo');
+% if isempty(cmdout)
+%   cd(origDir)
+%   return
+% end
 
 cmdstr = strjoin({gitexepath, 'merge'});
-[status, cmdout] = system(cmdstr);
+[status, cmdout] = system(cmdstr, '-echo');
 if status ~= 0
   if fatalOnError
     cd(origDir)
-    error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
+    error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes, %s', cmdout)
   else
-    warning('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
+    warning('gitUpdate:pull:pullFailed', 'Failed to pull latest changes, %s', cmdout)
   end
 end
 % TODO: check if submodules are empty and use init flag
 cmdstr = strjoin({gitexepath, 'submodule update --remote --merge'});
-status = system(cmdstr);
+status = system(cmdstr, '-echo');
 if status ~= 0
   if fatalOnError
     cd(origDir)
