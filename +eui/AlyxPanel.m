@@ -146,15 +146,15 @@ classdef AlyxPanel < handle
       % for future dates
       uicontrol('Parent', waterbox,...
         'Style', 'pushbutton', ...
-        'String', 'Give gel in future', ...
+        'String', 'Give water in future', ...
         'Enable', 'off',...
-        'Callback', @(~,~)obj.giveFutureGel);
+        'Callback', @(~,~)obj.giveFutureWater);
       % Check box to indicate whether water was gel or liquid
       obj.IsHydrogel = uicontrol('Parent', waterbox,...
         'Style', 'checkbox', ...
         'String', 'Hydrogel?', ...
         'HorizontalAlignment', 'right',...
-        'Value', true, ...
+        'Value', false, ...
         'Enable', 'off');
       % Input for submitting amount of water
       obj.WaterEntry = uicontrol('Parent', waterbox,...
@@ -287,24 +287,23 @@ classdef AlyxPanel < handle
       % state of the 'is hydrogel' check box
       thisDate = now;
       amount = str2double(get(obj.WaterEntry, 'String'));
-      isHydrogel = logical(get(obj.IsHydrogel, 'Value'));
+      type = iff(get(obj.IsHydrogel, 'Value')==1, 'Hydrogel', 'Water');
       if obj.AlyxInstance.IsLoggedIn && amount~=0 && ~isnan(amount)
-        wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, isHydrogel);
+        wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, type);
         if ~isempty(wa) % returned us a created water administration object successfully
-          wstr = iff(isHydrogel, 'Hydrogel', 'Water');
-          obj.log('%s administration of %.2f for %s posted successfully to alyx', wstr, amount, obj.Subject);
+          obj.log('%s administration of %.2f for %s posted successfully to alyx', type, amount, obj.Subject);
         end
       end
       % update the water required text
       dispWaterReq(obj);
     end
     
-    function giveFutureGel(obj)
+    function giveFutureWater(obj)
       % Open a dialog allowing one to input water submissions for
       % future dates
       thisDate = now;
       prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter 0 to skip a day');
-      answer = inputdlg(prompt,'Future Gel Amounts', [1 50]);
+      answer = inputdlg(prompt,'Future Amounts', [1 50]);
       if isempty(answer)||~obj.AlyxInstance.IsLoggedIn
         return  % user pressed 'Close' or 'x'
       end
@@ -312,7 +311,7 @@ classdef AlyxPanel < handle
       weekendDates = thisDate + (1:length(amount));
       for d = 1:length(weekendDates)
         if amount(d) > 0
-          obj.AlyxInstance.postWater(obj.Subject, amount(d), weekendDates(d), 1);
+          obj.AlyxInstance.postWater(obj.Subject, amount(d), weekendDates(d), 'Water');
           obj.log(['Hydrogel administration of %.2f for %s posted successfully to alyx for '...
             datestr(weekendDates(d))], amount(d), obj.Subject);
         end

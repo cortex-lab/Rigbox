@@ -244,7 +244,7 @@ classdef ExpPanel < handle
           end
           if ~any(amount); return; end % Return if no water was given
           try
-            ai.postWater(subject, amount*0.001, now, false);
+            ai.postWater(subject, amount*0.001, now, 'Water', ai.SessionURL);
           catch
             warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
