@@ -123,43 +123,54 @@ classdef DaqController < handle
       %     s.addAnalogInputChannel('cDAQ1Mod1', 'ai0', 'Voltage');
       %     s.startForeground();
       %
-      % See also addAnalogOutputChannel, removeChannel,
-      % daq.getDevices
-      values = varargin{1};
+      % See also addAnalogOutputChannel, removeChannel, daq.getDevices
+      chanNameIdx = find(cellfun(@(a)ischar(a) && strcmpi(a, 'channel'), varargin));
+      if ~isempty(chanNameIdx)
+        channel = varargin{chanNameIdx+1};
+        varargin(chanNameIdx:chanNameIdx+1) = [];
+      else
+        channel = 'reward';
+      end
       if ischar(varargin{end})
         switch varargin{end}
           case {'fg' 'foreground'}
             foreground = true;
+            varargin(end) = [];
           case {'bg' 'background'}
             foreground = false;
+            varargin(end) = [];
           otherwise
-            error('Unrecognised switch option "%s"', varargin{end});
+            foreground = false;
         end
-      else
-        foreground = false;
       end
-      n = size(values, 2);
-      if n > 0
-        gen = obj.SignalGenerators(1:n);
-        rate = obj.DaqSession.Rate;
-        waveforms = cell(1, n);
-        for ii = 1:n
-          if iscell(values)
-            v = values{ii};
-          else
-            v = values(:,ii);
-          end
-          waveforms{ii} = gen(ii).waveform(rate, v);
+      values = varargin;
+      switch channel
+        case 'all'
+          channel = obj.ChannelNames;
+        case 'allAnalogue'
+          channel = obj.ChannelNames(obj.AnalogueChannelsIdx);
+        case 'allDigital'
+          channel = obj.ChannelNames(~obj.AnalogueChannelsIdx);
+      end
+      [~,idx] = intersect(obj.ChannelNames, channel);
+%       n = size(values, 2);
+      if any(idx)
+        gen = obj.SignalGenerators(idx);
+        rate = obj.SampleRate;%obj.DaqSession.Rate;
+        waveforms = cell(1, sum(idx));
+        for ii = 1:length(values)
+          v = values(ii);
+          waveforms{ii} = gen(ii).waveform(rate, v{:});
         end
         if obj.DaqSession.IsRunning
           % if a daq operation is in progress, stop it, and set its output
           % to the default value
           reset(obj);
         end
-        channelNames = obj.ChannelNames(1:n);
-        analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
-        if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
-          queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
+        channel = obj.ChannelNames(idx);
+        analogueChannels = obj.AnalogueChannelsIdx(idx);
+        if any(analogueChannels)%&&any(any(values(:,analogueChannels)~=0))
+          queue(obj, channel(analogueChannels), waveforms(analogueChannels));
           if foreground
             startForeground(obj.DaqSession);
           else
@@ -167,13 +178,16 @@ classdef DaqController < handle
           end
           readyWait(obj);
           obj.DaqSession.release;
-        elseif any(~analogueChannelsIdx)
-            waveforms = waveforms(~analogueChannelsIdx);
-            for n = 1:length(waveforms)
-              digitalValues = waveforms{n};
-              for m = 1:length(digitalValues)
-                obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
-              end
+        elseif any(~analogueChannels)
+            assert(numel(unique(cellfun(@numel,waveforms(~analogueChannels))))==1, 'Sample mismatch');
+            values = cell2mat(waveforms(~analogueChannels));
+            values = reshape(values, numel(waveforms{1}), sum(idx&~obj.AnalogueChannelsIdx));
+            len = size(values,1);
+            defaultValues = [obj.SignalGenerators.DefaultValue];
+            samples = repmat(defaultValues(~obj.AnalogueChannelsIdx), max(len), 1);
+            samples(:,idx) = values;
+            for n = 1:len
+              obj.DigitalDaqSession.outputSingleScan(samples(n,:));
             end
         end
       end
