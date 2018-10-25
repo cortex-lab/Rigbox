@@ -221,6 +221,7 @@ classdef SignalsExp < handle
       obj.Wheel = rig.mouseInput;
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
+        obj.LickDetector.zero();
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
