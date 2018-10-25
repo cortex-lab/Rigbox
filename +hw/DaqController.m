@@ -129,20 +129,21 @@ classdef DaqController < handle
         channel = varargin{chanNameIdx+1};
         varargin(chanNameIdx:chanNameIdx+1) = [];
       else
-        channel = 'reward';
+        channel = 'rewardValve';
       end
-      if ischar(varargin{end})
-        switch varargin{end}
-          case {'fg' 'foreground'}
-            foreground = true;
-            varargin(end) = [];
-          case {'bg' 'background'}
-            foreground = false;
-            varargin(end) = [];
-          otherwise
-            foreground = false;
-        end
-      end
+      foreground = false;
+%       if ischar(varargin{end})
+%         switch varargin{end}
+%           case {'fg' 'foreground'}
+%             foreground = true;
+%             varargin(end) = [];
+%           case {'bg' 'background'}
+%             foreground = false;
+%             varargin(end) = [];
+%           otherwise
+%             foreground = false;
+%         end
+%       end
       values = varargin;
       switch channel
         case 'all'
@@ -152,7 +153,8 @@ classdef DaqController < handle
         case 'allDigital'
           channel = obj.ChannelNames(~obj.AnalogueChannelsIdx);
       end
-      [~,idx] = intersect(obj.ChannelNames, channel);
+%       [~,idx] = intersect(obj.ChannelNames, channel);
+      idx = ismember(obj.ChannelNames, channel)
 %       n = size(values, 2);
       if any(idx)
         gen = obj.SignalGenerators(idx);
@@ -184,8 +186,10 @@ classdef DaqController < handle
             values = reshape(values, numel(waveforms{1}), sum(idx&~obj.AnalogueChannelsIdx));
             len = size(values,1);
             defaultValues = [obj.SignalGenerators.DefaultValue];
-            samples = repmat(defaultValues(~obj.AnalogueChannelsIdx), max(len), 1);
+            idx = idx(~obj.AnalogueChannelsIdx);
+            samples = repmat(defaultValues(~obj.AnalogueChannelsIdx), len, 1);
             samples(:,idx) = values;
+            samples
             for n = 1:len
               obj.DigitalDaqSession.outputSingleScan(samples(n,:));
             end

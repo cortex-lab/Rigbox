@@ -227,10 +227,10 @@ classdef SignalsExp < handle
           for m = 1:length(outputNames)
               id = find(strcmp(outputNames{m},...
                   obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
-              if id % if the output is present, create callback 
+              if ~isempty(id) || ismember(outputNames{m}, {'all','allAnalogue', 'allDigital'})% if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v,n)obj.DaqController.command(v{:},'channel',m))
-                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    obj.Outputs.(outputNames{m}).onValue(@(v,n)obj.DaqController.command(v{:},'channel',outputNames{m}))
+                    %obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
               elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
                   obj.Listeners = [obj.Listeners
