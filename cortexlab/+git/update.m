@@ -16,11 +16,18 @@ if scheduled && weekday(now) ~= scheduled && now - lastFetch < 7
 end
 disp('Updating code...')
 
-gitexepath = getOr(dat.paths, 'gitExe', 'C:\Program Files\Git\cmd\git.exe'); %TODO generalize
-gitexepath = ['"', gitexepath, '"'];
+% Get the path to the Git exe
+gitexepath = getOr(dat.paths, 'gitExe');
+if isempty(gitexepath)
+  [~,gitexepath] = system('where git');
+end
+gitexepath = ['"', strtrim(gitexepath), '"'];
+
+% Temporarily change directory into Rigbox
 origDir = pwd;
 cd(root)
 
+% Check if there are changes before pulling
 % cmdstr = strjoin({gitexepath, 'fetch'});
 % system(cmdstr, '-echo');
 % if isempty(cmdout)

@@ -153,6 +153,8 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@(x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset));
+      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(@(x)((x-obj.Wheel.ZeroOffset)/(1024*4))*360);
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
@@ -219,6 +221,7 @@ classdef SignalsExp < handle
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
