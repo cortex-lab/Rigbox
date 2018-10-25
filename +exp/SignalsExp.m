@@ -219,6 +219,7 @@ classdef SignalsExp < handle
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
