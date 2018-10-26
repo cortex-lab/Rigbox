@@ -291,7 +291,7 @@ classdef AlyxPanel < handle
             if obj.AlyxInstance.IsLoggedIn && amount~=0 && ~isnan(amount)
                 wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, type);
                 if ~isempty(wa) % returned us a created water administration object successfully
-                    obj.log('%s administration of %.2f for %s posted successfully to alyx', type, amount, obj.Subject);
+                    obj.log('%s administration of %.2f for "%s" posted successfully to alyx', type, amount, obj.Subject);
                 end
             end
             % update the water required text
@@ -303,22 +303,29 @@ classdef AlyxPanel < handle
             % future dates
             thisDate = now;
             prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter "0" to skip a day\nEnter "-1" to indicate training for that day');
-            a=inputdlg(prompt,'Future Amounts', [1 50]);
-            if isempty(answer)||~obj.AlyxInstance.IsLoggedIn
+            amtStr=inputdlg(prompt,'Future Amounts', [1 50]);
+            if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
                 return  % user pressed 'Close' or 'x'
             end
-            amt = str2num(answer{:}); % amount of water
+            amt = str2num(amtStr{:}); % amount of water
             futDates = thisDate + (1:length(amt)); %datenum of all input future dates
             
             futTrnDates = futDates(amt<0); %future training dates
+            dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
+            for d = 1:length(futTrnDates)
+                [~,day] = weekday(datestr(futTrnDates(d)), 'long');
+                obj.log(['"%s" marked for training for ' day ' %s'],...
+                    obj.Subject, datestr(futTrnDates(d), 'dd mmmm yyyy'));
+            end
+            
             futWtrDates = futDates(amt>0); %future water giving dates
             amtWtrDates = amt(amt>0); %amount of water to give on future water dates
-            dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
             
             for d = 1:length(futWtrDates)
                 obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), 'Water');
-                obj.log(['Hydrogel administration of %.2f for %s posted successfully to alyx for '...
-                    datestr(futWtrDates(d))],  amtWtrDates(d), obj.Subject);
+                [~,day] = weekday(datestr(futTrnDates(d)), 'long');
+                obj.log(['Water administration of %.2f for "%s" posted successfully to alyx for ' day ' %s'],...
+                    amtWtrDates(d), obj.Subject, datestr(futWtrDates(d), 'dd mmmm yyyy'));
             end
         end
         
