@@ -300,32 +300,36 @@ classdef AlyxPanel < handle
         
         function giveFutureWater(obj)
             % Open a dialog allowing one to input water submissions for
-            % future dates
+            % future dates.  If a -1 is inputted for a particular date, the
+            % date is saved in the 'WeekendWater' struct of the
+            % paramProfiles file.  This may be used to notify weekend staff
+            % of the experimentor's intent to train on that date.  
             thisDate = now;
-            prompt=sprintf('Enter space-separated numbers \n[tomorrow, day after that, day after that.. etc] \nEnter "0" to skip a day\nEnter "-1" to indicate training for that day');
-            amtStr=inputdlg(prompt,'Future Amounts', [1 50]);
+            prompt = sprintf(['Enter space-separated numbers \n'...
+              '[tomorrow, day after that, day after that.. etc] \n',...
+              'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
+            amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
                 return  % user pressed 'Close' or 'x'
             end
-            amt = str2num(amtStr{:}); % amount of water
-            futDates = thisDate + (1:length(amt)); %datenum of all input future dates
+            amt = str2num(amtStr{:}); %#ok<ST2NM> % amount of water
+            futDates = thisDate + (1:length(amt)); % datenum of all input future dates
             
-            futTrnDates = futDates(amt<0); %future training dates
+            futTrnDates = futDates(amt < 0); % future training dates
             dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
-            for d = 1:length(futTrnDates)
-                [~,day] = weekday(datestr(futTrnDates(d)), 'long');
-                obj.log(['"%s" marked for training for ' day ' %s'],...
-                    obj.Subject, datestr(futTrnDates(d), 'dd mmmm yyyy'));
-            end
+            [~,days] = weekday(futTrnDates, 'long');
+            delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
+            obj.log('%s marked for training on %s',...
+              obj.Subject, strjoin(strtrim(string(days)), delim));
             
-            futWtrDates = futDates(amt>0); %future water giving dates
-            amtWtrDates = amt(amt>0); %amount of water to give on future water dates
+            futWtrDates = futDates(amt > 0); % future water giving dates
+            amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
             
             for d = 1:length(futWtrDates)
                 obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), 'Water');
-                [~,day] = weekday(datestr(futTrnDates(d)), 'long');
-                obj.log(['Water administration of %.2f for "%s" posted successfully to alyx for ' day ' %s'],...
-                    amtWtrDates(d), obj.Subject, datestr(futWtrDates(d), 'dd mmmm yyyy'));
+                [~,day] = weekday(futWtrDates(d), 'long');
+                obj.log('Water administration of %.2f for %s posted successfully to alyx for %s %s',...
+                    amtWtrDates(d), obj.Subject, day, datestr(futWtrDates(d), 'dd mmm yyyy'));
             end
         end
         
@@ -393,6 +397,8 @@ classdef AlyxPanel < handle
                 if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
                     set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
                         'String', sprintf('Subject %s not found in alyx', obj.Subject));
+                else
+                  rethrow(me)
                 end
             end
         end
@@ -465,7 +471,7 @@ classdef AlyxPanel < handle
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
-                    ['No base session exists for ' datestr(now, 'yyyy-mm-dd')], ...
+                    ['No base session exists for ' datestr(now, 'yyyy-mmm-dd')], ...
                     'Yes','No','No');
                 % Handle response
                 switch choice
