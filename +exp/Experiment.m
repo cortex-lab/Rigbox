@@ -786,8 +786,15 @@ classdef Experiment < handle
                 obj.AlyxInstance.registerFile(savepaths{end});
                 % Save the session end time
                 if ~isempty(obj.AlyxInstance.SessionURL)
-                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-                    struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+                  numTrials = obj.Data.numCompletedTrials;
+                  if isfield(obj.Data, 'trial')&&isfield(obj.Data.trial, 'feedbackType')
+                    numCorrect = sum([obj.Data.trial.feedbackType] == 1);
+                  else
+                    numCorrect = 0;
+                  end
+                  sessionData = struct('end_time', obj.AlyxInstance.datestr(now), ...
+                    'subject', subject, 'numberOfTrials', numTrials, 'numberOfCorrectTrials', numCorrect);
+                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'put');
                 else
                   % Infer from date session and retrieve using expFilePath
                 end

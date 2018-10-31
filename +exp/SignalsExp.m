@@ -219,8 +219,10 @@ classdef SignalsExp < handle
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
+        obj.LickDetector.zero();
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
@@ -721,6 +723,11 @@ classdef SignalsExp < handle
           sendSignalUpdates(obj);
           t = obj.Clock.now;
         end
+        
+%         q = toc;
+%         if q>0.005
+%             fprintf(1, 'send updates took %.1fms\n', 1000*toc);
+%         end
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
@@ -886,8 +893,21 @@ classdef SignalsExp < handle
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           if ~isempty(obj.AlyxInstance.SessionURL)
+            numCorrect = [];
+            if isfield(obj.Data, 'events')
+              numTrials = length(obj.Data.events.endTrialValues);
+              if isfield(obj.Data.events, 'feedbackValues')
+                numCorrect = sum(obj.Data.events.feedbackValues == 1);
+              end
+            else
+              numTrials = 0;
+              numCorrect = 0;
+            end
+            sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
+            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
+            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
             obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+              sessionData, 'put');
           else
             % Retrieve session from endpoint
 %             subsessions = obj.AlyxInstance.getData(...

@@ -19,6 +19,8 @@ toggleBackground = KbName('b');
 rewardId = 1;
 
 %% Initialisation
+% Pull latest changes from remote
+git.update(true, 2); % Update ever Monday
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
@@ -170,14 +172,15 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay, Alyx] = args{:};
-          Alyx.Headless = true; % Supress all dialog prompts
+          [expRef, preDelay, postDelay, AlyxInstance] = args{:};
+          if isempty(AlyxInstance); AlyxInstance = Alyx('',''); end
+          AlyxInstance.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              aborted = runExp(expRef, preDelay, postDelay, Alyx);
+              aborted = runExp(expRef, preDelay, postDelay, AlyxInstance);
               log('Experiment ''%s'' completed', expRef);
               communicator.send('status', {'completed', expRef, aborted});
             catch runEx
@@ -193,7 +196,7 @@ ShowCursor();
         case 'quit'
           if ~isempty(experiment)
             immediately = args{1};
-            AlyxInstance = args{2};
+            AlyxInstance = iff(isempty(args{2}), Alyx('',''), args{2});
             AlyxInstance.Headless = true;
             if immediately
               log('Aborting experiment');
@@ -209,7 +212,7 @@ ShowCursor();
             log('Quit message received but no experiment is running\n');
           end
         case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
-            AlyxInstance = args{1}; %get struct
+            AlyxInstance = iff(isempty(args{1}), Alyx('',''), args{1});
             AlyxInstance.Headless = true;
             if ~isempty(AlyxInstance)
               experiment.AlyxInstance = AlyxInstance; %set property for current experiment

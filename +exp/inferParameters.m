@@ -13,12 +13,9 @@ function parsStruct = inferParameters(expdef)
 % end
 if ischar(expdef) && file.exists(expdef)
   expdeffun = fileFunction(expdef);
-  [funcDir, mfile] = fileparts(expdef); addpath(funcDir);
-  funArgs = nargin(str2func(mfile));
 else
   expdeffun = expdef;
   expdef = which(func2str(expdef));
-  funArgs = nargin(expdeffun);
 end
 
 net = sig.Net;
@@ -34,14 +31,8 @@ e.outputs = net.subscriptableOrigin('outputs');
 
 try
     
-%     rig = 0;
-%   if funArgs == 7
-      expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio);
-%   else
-%       expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio, rig);
-%   end
+  expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio);
     
-%   expdeffun(e.t, e.events, e.pars, e.visual, e.inputs , e.outputs, e.audio);
   % paramNames will be the strings corresponding to the fields of e.pars
   % that the user tried to reference in her expdeffun.
   paramNames = e.pars.Subscripts.keys';
