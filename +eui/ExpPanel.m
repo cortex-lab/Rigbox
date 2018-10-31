@@ -246,7 +246,7 @@ classdef ExpPanel < handle
           try
             ai.postWater(subject, amount*0.001, now, 'Water', ai.SessionURL);
           catch
-            warning('Failed to post the water %s recieved during the experiment to Alyx', amount*0.001, subject);
+            warning('Failed to post the %.2fml %s recieved during the experiment to Alyx', amount*0.001, subject);
           end
       end
     end
