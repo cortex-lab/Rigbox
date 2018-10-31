@@ -6,8 +6,8 @@ classdef WeighingScale < handle
   %   to USB Converter.
   %
   % Part of Rigbox
-
-  % 2013-02 CB created  
+  
+  % 2013-02 CB created
   
   properties
     Name = 'ES-300HA' % 'SPX222'
@@ -71,7 +71,9 @@ classdef WeighingScale < handle
       for i = 1:nr
         g = sscanf(fscanf(src), obj.FormatSpec);
         if length(g) > 1 && g(1) == 45
-          g = -g(1);
+          g = -g(2); % 45 == '-'
+        elseif length(g) > 1 && g(1) == 43
+          g = g(2); % 43 == '+'
         end
         obj.LastGrams = g;
         notify(obj, 'NewReading');
@@ -80,4 +82,3 @@ classdef WeighingScale < handle
   end
   
 end
-
