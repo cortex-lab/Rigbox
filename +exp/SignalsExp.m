@@ -104,7 +104,60 @@ classdef SignalsExp < handle
         AlyxInstance = []
     end
     
+<<<<<<< HEAD
     %% properties (SetAccess = protected)
+=======
+    function useRig(obj, rig)
+      obj.Clock = rig.clock;
+      obj.Data.rigName = rig.name;
+      obj.SyncBounds = rig.stimWindow.SyncBounds;
+      obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
+      obj.NextSyncIdx = 1;
+      obj.StimWindowPtr = rig.stimWindow.PtbHandle;
+      obj.Occ = vis.init(obj.StimWindowPtr);
+      if isfield(rig, 'screens')
+        obj.Occ.screens = rig.screens;
+      else
+        warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
+      end
+      obj.DaqController = rig.daqController;
+      obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
+      if isfield(rig, 'lickDetector')
+        obj.LickDetector = rig.lickDetector;
+        obj.LickDetector.zero();
+      end
+      if ~isempty(obj.DaqController.SignalGenerators)
+          outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
+          for m = 1:length(outputNames)
+              id = find(strcmp(outputNames{m},...
+                  obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
+              if id % if the output is present, create callback 
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    ];   
+              elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
+                  obj.Listeners = [obj.Listeners
+                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
+                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
+                    ];   
+              end
+          end
+      end
+    end
+
+    function abortPendingHandlers(obj, handler)
+      if nargin < 2
+        % Sets all pending triggers inactive
+        [obj.Pending(:).isActive] = deal(false);
+      else
+        % Sets pending triggers for specified handler inactive
+        abortList = ([obj.Pending.handler] == handler);
+        [obj.Pending(abortList).isActive] = deal(false);
+      end
+    end
+>>>>>>> 1c05914056d57577d0e669365bc84b3025c0ebea
     
     properties (SetAccess = protected)
         %Number of stimulus window flips
