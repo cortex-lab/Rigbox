@@ -629,7 +629,10 @@ classdef AlyxPanel < handle
                 wr = ai.getData(ai.makeEndpoint('water-restricted-subjects'));
                 
                 % build a figure to show it
-                f = figure; % popup a new figure for this
+                f = figure('Name', 'All Water Restricted Subjects', 'NumberTitle', 'off'); % popup a new figure for this
+                p = get(f, 'Position');
+                set(f, 'Position', [p(1) p(2) 295, p(4)]);
+                
                 wrBox = uix.VBox('Parent', f);
                 wrTable = uitable('Parent', wrBox,...
                     'FontName', 'Consolas',...
