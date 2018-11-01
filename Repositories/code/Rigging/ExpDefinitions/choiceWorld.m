@@ -399,19 +399,21 @@ if useOldParams
     
     % If zero contrasts have been introduced and lapse rate is < 0.2 for
     % 100% contrasts, remove them.
-    if trialDataInit.trialsToZeroContrast == 0 && ...
-        sum(trialDataInit.hitBuffer(:,1,1))/size(trialDataInit.hitBuffer,1) > 0.8 && ...
-        sum(trialDataInit.hitBuffer(:,1,2))/size(trialDataInit.hitBuffer,1) > 0.8
-      trialDataInit.useContrasts(trialDataInit.contrastSet == 1) = 0;
-    end
-    
-%     % If the subject did over 200 trials last session, reduce the reward by
-%     % 0.1, unless it is 2ml
-%     if length(previousBlock.newTrialValues) > 200 && lastRewardSize > 1.6
-%         trialDataInit.rewardSize = lastRewardSize-0.2;
-%     else
-        trialDataInit.rewardSize = lastRewardSize;
+%     if trialDataInit.trialsToZeroContrast == 0 && ...
+%         sum(trialDataInit.hitBuffer(:,1,1))/size(trialDataInit.hitBuffer,1) > 0.8 && ...
+%         sum(trialDataInit.hitBuffer(:,1,2))/size(trialDataInit.hitBuffer,1) > 0.8
+%       trialDataInit.useContrasts(trialDataInit.contrastSet == 1) = 0;
 %     end
+    % NB: Reverting the above changes; reintroducing 100% contrast
+    trialDataInit.useContrasts(trialDataInit.contrastSet == 1) = 1;
+    
+    % If the subject did over 200 trials last session, reduce the reward by
+    % 0.1, unless it is 2ml
+    if length(previousBlock.newTrialValues) > 200 && lastRewardSize > 1.6
+        trialDataInit.rewardSize = lastRewardSize-0.1;
+    else
+        trialDataInit.rewardSize = lastRewardSize;
+    end
     if learned
       % Initialize trial side proportions
       trialDataInit.proportionLeft = iff(rand(1) <= 0.5, 0.2, 0.8);
@@ -439,8 +441,6 @@ end
 
 function trialData = updateTrialData(trialData,responseData)
 % Update the performance and pick the next contrast
-disp(['trial #' num2str(responseData(2))])
-disp(['response =' num2str(responseData(3))])
 stimDisplacement = responseData(1);
 response = responseData(3);
 % bias normalized by trial number: abs(bias) = 0:1
@@ -620,7 +620,12 @@ for i = length(expRef):-1:1
       'Unable to load files for session %s', expRef{i})
     continue
   end
-  % If there are fewer than 4 contrasts, subject can't have learned
+  % If the zero contrast stimuli have not been introduced, the subject
+  % can't have learned.  NB: Unfortunately if the hand of fate not once
+  % chose a zero contrast trial then the mouse would fail here, even if it
+  % was available to sample.  This is fairly unlikely to happen and this
+  % method is much quicker than loading the block file to retreive the
+  % actual contrast set.
   contrast = diff([contrastLeft,contrastRight],[],2);
   if ~any(contrast==0)
     fprintf('Low contrasts not yet introduced\n')

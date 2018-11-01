@@ -326,7 +326,7 @@ classdef choiceWorldExpPanel < eui.ExpPanel
                             
                         case {'events.trialNum', 'events.repeatNum', 'events.totalWater'...
                                 'events.disengaged', 'events.pctDecrease', 'events.proportionLeft',...
-                                'events.trialsToSwitch'}
+                                'events.trialsToSwitch', 'inputs.lick'}
                             
                             if ~isKey(obj.LabelsMap, signame)
                                 obj.LabelsMap(signame) = obj.addInfoField(signame, '');

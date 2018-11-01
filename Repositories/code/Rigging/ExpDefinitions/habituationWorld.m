@@ -21,7 +21,7 @@ reward = merge(rewardKeyPressed, evts.newTrial.setTrigger(reward));% only update
 out.reward = p.rewardSize.at(reward.delay(0.5)); % output reward
 
 %% Test stim
-trialSide = evts.newTrial.map(@(k)randsample([-1 1], k));
+trialSide = evts.newTrial.map(@(k)randsample([-1 1], double(k)));
 azimuth = trialSide*cond(...
   evts.newTrial.to(reward), p.stimulusAzimuth,...
   reward.to(reward.delay(p.interTrialDelay)), 0);
