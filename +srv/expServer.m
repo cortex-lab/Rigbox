@@ -20,7 +20,7 @@ rewardId = 1;
 
 %% Initialisation
 % Pull latest changes from remote
-git.update(true, 2); % Update ever Monday
+git.update(true); % Update each run as for the master computer
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
