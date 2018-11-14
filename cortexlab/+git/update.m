@@ -34,7 +34,7 @@ cd(root)
 %   cd(origDir)
 %   return
 % end
-
+p = path;
 cmdstr = strjoin({gitexepath, 'pull'});
 [status, cmdout] = system(cmdstr);
 if status ~= 0
@@ -60,4 +60,8 @@ if status ~= 0
 end
 
 cd(origDir)
+% the submodule updates can interfere with Matlab paths, so we have to
+% restore the original paths
+setpath(p);
+savepath(p);
 end
