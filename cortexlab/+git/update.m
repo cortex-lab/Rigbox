@@ -63,5 +63,5 @@ cd(origDir)
 % the submodule updates can interfere with Matlab paths, so we have to
 % restore the original paths
 path(p);
-savepath(p);
+savepath;
 end
