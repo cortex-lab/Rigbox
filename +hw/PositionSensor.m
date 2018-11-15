@@ -18,7 +18,7 @@ classdef PositionSensor < hw.DataLogging
     LastPosition %Most recent position read
   end
   
-  properties (Access = protected)
+  properties (SetAccess = protected)
     ZeroOffset = 0
   end
 
