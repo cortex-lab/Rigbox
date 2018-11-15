@@ -217,9 +217,10 @@ classdef SignalsExp < handle
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
       obj.Wheel.zero();
-      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@(x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset));
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
+        (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
       obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
-        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360);
+        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
