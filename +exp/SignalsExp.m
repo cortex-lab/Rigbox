@@ -220,6 +220,9 @@ classdef SignalsExp < handle
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
       obj.Wheel.zero();
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@(x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset));
+      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
+        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360);
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
@@ -719,7 +722,7 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        if (obj.Clock.now - t) > 0.1
+        if (obj.Clock.now - t) > 0.1 || obj.IsLooping == false
           sendSignalUpdates(obj);
           t = obj.Clock.now;
         end
