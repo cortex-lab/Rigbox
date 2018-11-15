@@ -904,8 +904,8 @@ classdef SignalsExp < handle
               numCorrect = 0;
             end
             sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
-            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
-            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
+            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+            if ~isempty(numCorrect); sessionData.n_correct_trials  = numCorrect; end
             obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
               sessionData, 'put');
           else
