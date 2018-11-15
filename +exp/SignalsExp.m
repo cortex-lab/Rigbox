@@ -165,11 +165,9 @@ classdef SignalsExp < handle
       allCondPars = net.origin('condPars');
       [obj.Params, hasNext, obj.Events.repeatNum] = exp.trialConditions(...
         globalPars, allCondPars, advanceTrial);
-      
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
-      
       lastTrialOver = then(~hasNext, true);
-      
+      obj.useRig(rig);
 %       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
@@ -201,7 +199,6 @@ classdef SignalsExp < handle
       obj.Data.stimWindowRenderTimes = zeros(60*60*60*2, 1);
 %       obj.Data.stimWindowUpdateLags = zeros(60*60*60*2, 1);
       obj.ParamsLog = obj.Params.log();
-      obj.useRig(rig);
     end
     
     function useRig(obj, rig)
