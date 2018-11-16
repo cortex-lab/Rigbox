@@ -316,11 +316,13 @@ classdef AlyxPanel < handle
             futDates = thisDate + (1:length(amt)); % datenum of all input future dates
             
             futTrnDates = futDates(amt < 0); % future training dates
-            dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
-            [~,days] = weekday(futTrnDates, 'long');
-            delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
-            obj.log('%s marked for training on %s',...
-              obj.Subject, strjoin(strtrim(string(days)), delim));
+            if any(futTrnDates)
+              dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
+              [~,days] = weekday(futTrnDates, 'long');
+              delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
+              obj.log('%s marked for training on %s',...
+                obj.Subject, strjoin(strtrim(string(days)), delim));
+            end
             
             futWtrDates = futDates(amt > 0); % future water giving dates
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
