@@ -153,6 +153,12 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
+        (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
+      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
+        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
@@ -167,7 +173,6 @@ classdef SignalsExp < handle
         globalPars, allCondPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
-      obj.useRig(rig);
 %       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
@@ -199,6 +204,7 @@ classdef SignalsExp < handle
       obj.Data.stimWindowRenderTimes = zeros(60*60*60*2, 1);
 %       obj.Data.stimWindowUpdateLags = zeros(60*60*60*2, 1);
       obj.ParamsLog = obj.Params.log();
+      obj.useRig(rig);
     end
     
     function useRig(obj, rig)
@@ -215,12 +221,6 @@ classdef SignalsExp < handle
         warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
       end
       obj.DaqController = rig.daqController;
-      obj.Wheel = rig.mouseInput;
-      obj.Wheel.zero();
-      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
-        (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
-      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
-        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
