@@ -56,8 +56,8 @@ classdef TLOutputChrono < hw.TLOutput
     function init(obj, timeline)
       % INIT Initialize the output session
       %   INIT(obj, timeline) is called when timeline is initialized.
-      %   Creates the DAQ session and ensures that the clocking pulse test
-      %   can not be read back
+      %   Creates the DAQ session and ensures that the clocking test pulse 
+      %   can be read back
       %
       % See Also HW.TIMELINE/INIT
         if obj.Enable
