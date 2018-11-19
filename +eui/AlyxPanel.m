@@ -365,12 +365,12 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
-                    weight = getOr(record, 'weight_measured', NaN); % Get today's measured weight
-                    water = getOr(record, 'water_given', 0); % Get total water given
-                    gel = getOr(record, 'hydrogel_given', 0); % Get total gel given
-                    weight_expected = getOr(record, 'weight_expected', NaN);
+                    weight = getOr(record, 'weight', NaN); % Get today's measured weight
+                    water = getOr(record, 'given_water_liquid', 0); % Get total water given
+                    gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
+                    expected_weight = getOr(record, 'expected_weight', NaN);
                     % Set colour based on weight percentage
-                    weight_pct = (weight-wr.implant_weight)/(weight_expected-wr.implant_weight);
+                    weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
                     if weight_pct < 0.8 % Mouse below 80% original weight
                         colour = [0.91, 0.41, 0.17]; % Orange
                         weight_pct = '< 80%';
@@ -541,7 +541,7 @@ classdef AlyxPanel < handle
                 obj.log('No weight data found for subject %s', obj.Subject);
                 return
             end
-            expected = [records.weight_expected];
+            expected = [records.expected_weight];
             expected(expected==0) = nan;
             dates = cellfun(@(x)datenum(x), {records.date});
             
@@ -555,7 +555,7 @@ classdef AlyxPanel < handle
                 ax = axes('Parent', plotBox);
             end
             
-            plot(ax, dates, [records.weight_measured], '.-');
+            plot(ax, dates, [records.weight], '.-');
             hold(ax, 'on');
             plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
             plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -572,7 +572,7 @@ classdef AlyxPanel < handle
             
             if nargin==1
                 ax = axes('Parent', plotBox);
-                plot(ax, dates, ([records.weight_measured]-iw)./(expected-iw), '.-');
+                plot(ax, dates, ([records.weight]-iw)./(expected-iw), '.-');
                 hold(ax, 'on');
                 plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
                 plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -582,11 +582,11 @@ classdef AlyxPanel < handle
                 ylabel(ax, 'weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(axWater, dates, obj.round([records.water_given]+[records.hydrogel_given], 'up'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_liquid]+[records.given_water_hydrogel], 'up'), '.-');
                 hold(axWater, 'on');
-                plot(axWater, dates, obj.round([records.hydrogel_given], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.water_given], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.water_expected], 'up'), 'r', 'LineWidth', 2.0);
+                plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
                 xlim(axWater, [min(dates) max(dates)]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
@@ -597,22 +597,22 @@ classdef AlyxPanel < handle
                 histTable = uitable('Parent', histbox,...
                     'FontName', 'Consolas',...
                     'RowName', []);
-                weightsByDate = num2cell([records.weight_measured]);
+                weightsByDate = num2cell([records.weight]);
                 weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
-                weightsByDate(isnan([records.weight_measured])) = {[]};
-                weightPctByDate = num2cell(([records.weight_measured]-iw)./(expected-iw));
+                weightsByDate(isnan([records.weight])) = {[]};
+                weightPctByDate = num2cell(([records.weight]-iw)./(expected-iw));
                 weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
-                weightPctByDate(isnan([records.weight_measured])) = {[]};
+                weightPctByDate(isnan([records.weight])) = {[]};
                 
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
                     weightsByDate', ...
-                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.weight_expected]', 'uni', false), ...
+                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.expected_weight]', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
-                    num2cell(horzcat([records.water_given]', [records.hydrogel_given]', ...
-                    [records.water_given]'+[records.hydrogel_given]', [records.water_expected]',...
-                    [records.water_given]'+[records.hydrogel_given]'-[records.water_expected]')));
+                    num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
+                    [records.given_water_liquid]'+[records.given_water_hydrogel]', [records.expected_water]',...
+                    [records.given_water_liquid]'+[records.given_water_hydrogel]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
                 dat = horzcat(dat, waterDat);
                 
