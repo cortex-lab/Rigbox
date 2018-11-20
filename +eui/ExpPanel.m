@@ -213,6 +213,7 @@ classdef ExpPanel < handle
       %   ended.  This function also records to Alyx the amount of water,
       %   if any, that the subject received during the task.
       %   
+      %   TODO: Move water to save data functions
       % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
       obj.ExpRunning = false;
@@ -236,11 +237,12 @@ classdef ExpPanel < handle
                           sum([obj.Block.trial.feedbackType]==1);
                   end
                   if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
-              otherwise
-                  infoFields = {obj.InfoFields.String};
-                  inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
-                  reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
-                  amount = iff(isempty(reward),0,@()reward);
+            otherwise
+                % Done in exp.SignalsExp/saveData
+                  %infoFields = {obj.InfoFields.String};
+                  %inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
+                  %reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
+                  %amount = iff(isempty(reward),0,@()reward);
           end
           if ~any(amount); return; end % Return if no water was given
           try
