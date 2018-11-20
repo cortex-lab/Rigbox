@@ -906,8 +906,8 @@ classdef SignalsExp < handle
             end
             % Update Alyx session with end time, trial counts and water tye
             sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
-            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
-            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
+            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+            if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
             obj.AlyxInstance.postData(url, sessionData, 'put');
           else
             % Retrieve session from endpoint
