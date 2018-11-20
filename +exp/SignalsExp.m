@@ -921,7 +921,7 @@ classdef SignalsExp < handle
         try
           valve_controller = obj.DaqController.SignalGenerators(strcmp(obj.DaqController.ChannelNames,'rewardValve'));
           type = iff(isprop(valve_controller, 'WaterType'), valve_controller.WaterType, 'Water');
-          if isfield(outputs, 'rewardValues')
+          if isfield(obj.Data.outputs, 'rewardValues')
             amount = sum(obj.Data.outputs.rewardValues)*0.001;
           else
             amount = 0;
