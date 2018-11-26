@@ -53,6 +53,7 @@ classdef DaqController < handle
   properties (Transient)
     DaqSession % should be a DAQ session containing at least one analogue output channel
     DigitalDaqSession % a DAQ session containing only digital output channels
+    ClockDaqSession % a DAQ session for implementing output to a clock channel
   end
   
   properties (Dependent)
@@ -67,32 +68,41 @@ classdef DaqController < handle
   
   methods
     function createDaqChannels(obj)
-      if isempty(obj.DaqSession)
+      if isempty(obj.DaqSession)&&any(obj.AnalogueChannelsIdx)
         obj.DaqSession = daq.createSession('ni');
         obj.DaqSession.Rate = obj.SampleRate; 
       end
       if isempty(obj.DigitalDaqSession)&&any(~obj.AnalogueChannelsIdx)
         obj.DigitalDaqSession = daq.createSession('ni');
       end
+      if isempty(obj.ClockDaqSession)&&any(strncmp('ctr',(obj.DaqChannelIds),3))
+        obj.ClockDaqSession = daq.createSession('ni');
+      end
       n = obj.NumChannels;
       if n > 0
-        for ii = 1:n
+        for i = 1:n
           if iscell(obj.DaqIds)
-            daqid = obj.DaqIds{ii};
+            daqid = obj.DaqIds{i};
           else
             daqid = obj.DaqIds;
           end
-          if obj.AnalogueChannelsIdx(ii) % is channal analogue?
+          % is channel analogue?
+          if strncmp('ao',(obj.DaqChannelIds{i}),2)
             obj.DaqSession.addAnalogOutputChannel(...
-              daqid, obj.DaqChannelIds{ii}, 'Voltage');
+              daqid, obj.DaqChannelIds{i}, 'Voltage');
+          % is channel clock output?
+          elseif strncmp('ctr',(obj.DaqChannelIds{i}),3)
+            obj.ClockDaqSession.addCounterOutputChannel(...
+              daqid, obj.DaqChannelIds{i}, 'PulseGeneration');
           else % assume digital, always output only
             obj.DigitalDaqSession.addDigitalChannel(...
-              daqid, obj.DaqChannelIds{ii}, 'OutputOnly');
+              daqid, obj.DaqChannelIds{i}, 'OutputOnly');
           end
         end
         v = [obj.SignalGenerators.DefaultValue];
         obj.DaqSession.outputSingleScan(v(obj.AnalogueChannelsIdx));
-        if any(~obj.AnalogueChannelsIdx)
+        if any(~obj.AnalogueChannelsIdx) && ...
+            ~( any(strncmp('ctr',(obj.DaqChannelIds),3)) )
           obj.DigitalDaqSession.outputSingleScan(v(~obj.AnalogueChannelsIdx));
         end
         obj.CurrValue = v;
@@ -105,12 +115,14 @@ classdef DaqController < handle
       % Sends command signals to each channel
       %
       % command(channels, values)
-      % sends command signals to each channel carrying each value.
-      % 'channels' is a cell array of strings with each channel name, and
-      % value is
+      % sends command signal to a channel with the corresponding value
+      % (i.e. there is a channel-value pair for each command signal)
+      % 'channels' is a cell array of strings with each channel name, and 
+      % 'value' is a cell array of values?
       %
       % command(values)
-      % sends command signals to all channels carrying each value
+      % for length of values, sends command signals to the corresponding
+      % ordered channels
       %
       % [CHANNEL,INDEX] = addAnalogInputChannel(...)
       % addAnalogInputChannel optionally returns CHANNEL, which is an
@@ -143,13 +155,13 @@ classdef DaqController < handle
         gen = obj.SignalGenerators(1:n);
         rate = obj.DaqSession.Rate;
         waveforms = cell(1, n);
-        for ii = 1:n
+        for i = 1:n
           if iscell(values)
-            v = values{ii};
+            v = values{i};
           else
-            v = values(:,ii);
+            v = values(:,i);
           end
-          waveforms{ii} = gen(ii).waveform(rate, v);
+          waveforms{i} = gen(i).waveform(rate, v);
         end
         if obj.DaqSession.IsRunning
           % if a daq operation is in progress, stop it, and set its output
@@ -158,6 +170,7 @@ classdef DaqController < handle
         end
         channelNames = obj.ChannelNames(1:n);
         analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
+        % for all analogue channel outputs
         if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
           queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
           if foreground
@@ -167,16 +180,36 @@ classdef DaqController < handle
           end
           readyWait(obj);
           obj.DaqSession.release;
-        elseif any(~analogueChannelsIdx)
-            waveforms = waveforms(~analogueChannelsIdx);
-            for n = 1:length(waveforms)
-              digitalValues = waveforms{n};
-              for m = 1:length(digitalValues)
-                obj.DigitalDaqSession.outputSingleScan(digitalValues(m));
-              end
+%         elseif any(~analogueChannelsIdx) %why is this an elseif?
+%           waveforms = waveforms(~analogueChannelsIdx);
+        else % for all digital or clock outputs
+          maxLnWaveform = max(cellfun(@length, waveforms));
+          % pad shorter waveforms
+          for i = 1:length(waveforms)
+            waveforms{i}(end:maxLnWaveform) = waveforms{i}(end);
+          end
+          waveformsMtx = vec2mat(cell2mat(waveforms), maxLnWaveform);
+          if iscolumn(waveformsMtx), waveformsMtx = waveformsMtx'; end
+          % output first rows of waveformsMtx (values for each channel) (to
+          % account for waveforms of different lengths)
+          for n = 1:size(waveformsMtx,1)
+            % for clock output channels with a valid value to output
+            if strncmp('ctr',(obj.DaqChannelIds{n}),3) && waveformsMtx(n,1)>0
+              obj.ClockDaqSession.dt = length(waveformsMtx(n,1)) / obj.SampleRate;
+              obj.ClockDaqSession.F = 1/obj.ClockDaqSession.dt;
+              obj.ClockDaqSession.Duty = 1;
+              startBackground(obj.ClockDaqSession);
+            else %for digital output channels
+              obj.DigitalDaqSession.outputSingleScan(waveformsMtx(n,:));
             end
+          end
         end
       end
+    end
+    
+    function clearSessions(obj)
+      obj.DaqSession = [];
+      obj.DigitalDaqSession = [];
     end
     
     function v = get.NumChannels(obj)
