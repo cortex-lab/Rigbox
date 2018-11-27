@@ -1,4 +1,4 @@
-function [present, value] = namedArg(args, name)
+function [present, value, defIdx] = namedArg(args, name)
 %NAMEDARG Returns value from name,value argument pairs
 %   [present, value] = NAMEDARG(args, name) returns flag for presence and
 %   value of the argument 'name' in a list potentially containing adjacent

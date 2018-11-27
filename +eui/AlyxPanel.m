@@ -45,7 +45,7 @@ classdef AlyxPanel < handle
         LoginButton % Button to log in to Alyx
         WeightButton % Button to submit weight to Alyx
         WaterEntry % Text box for entering the amout of water to give
-        IsHydrogel % UI checkbox indicating whether to water to be given is in gel form
+        WaterType % UI checkbox indicating whether to water to be given is in gel form
         WaterRequiredText % Handle to text UI element displaying the water required
         WaterRemainingText % Handle to text UI element displaying the water remaining
         LoginTimer % Timer to keep track of how long the user has been logged in, when this expires the user is automatically logged out
@@ -150,11 +150,11 @@ classdef AlyxPanel < handle
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.giveFutureWater);
             % Check box to indicate whether water was gel or liquid
-            obj.IsHydrogel = uicontrol('Parent', waterbox,...
-                'Style', 'checkbox', ...
-                'String', 'Hydrogel?', ...
+            obj.WaterType = uicontrol('Parent', waterbox,...
+                'Style', 'popupmenu', ...
+                'String', {'Water'}, ...
                 'HorizontalAlignment', 'right',...
-                'Value', false, ...
+                'Value', 1, ...
                 'Enable', 'off');
             % Input for submitting amount of water
             obj.WaterEntry = uicontrol('Parent', waterbox,...
@@ -241,6 +241,10 @@ classdef AlyxPanel < handle
                     obj.NewExpSubject.Option = newSubs;
                     obj.SubjectList = newSubs;
                     
+                    % update water type list
+                    wt = obj.AlyxInstance.getData('water-type');
+                    obj.WaterType.String = {wt.name};
+                    
                     notify(obj, 'Connected'); % Notify listeners of login
                     obj.log('Logged into Alyx successfully as %s', obj.AlyxInstance.User);
                     
@@ -287,7 +291,7 @@ classdef AlyxPanel < handle
             % state of the 'is hydrogel' check box
             thisDate = now;
             amount = str2double(get(obj.WaterEntry, 'String'));
-            type = iff(get(obj.IsHydrogel, 'Value')==1, 'Hydrogel', 'Water');
+            type = obj.WaterType.String{obj.WaterType.Value};
             if obj.AlyxInstance.IsLoggedIn && amount~=0 && ~isnan(amount)
                 wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, type);
                 if ~isempty(wa) % returned us a created water administration object successfully
@@ -316,11 +320,13 @@ classdef AlyxPanel < handle
             futDates = thisDate + (1:length(amt)); % datenum of all input future dates
             
             futTrnDates = futDates(amt < 0); % future training dates
-            dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
-            [~,days] = weekday(futTrnDates, 'long');
-            delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
-            obj.log('%s marked for training on %s',...
-              obj.Subject, strjoin(strtrim(string(days)), delim));
+            if any(futTrnDates)
+              dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
+              [~,days] = weekday(futTrnDates, 'long');
+              delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
+              obj.log('%s marked for training on %s',...
+                obj.Subject, strjoin(strtrim(string(days)), delim));
+            end
             
             futWtrDates = futDates(amt > 0); % future water giving dates
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
@@ -629,7 +635,10 @@ classdef AlyxPanel < handle
                 wr = ai.getData(ai.makeEndpoint('water-restricted-subjects'));
                 
                 % build a figure to show it
-                f = figure; % popup a new figure for this
+                f = figure('Name', 'All Water Restricted Subjects', 'NumberTitle', 'off'); % popup a new figure for this
+                p = get(f, 'Position');
+                set(f, 'Position', [p(1) p(2) 295, p(4)]);
+                
                 wrBox = uix.VBox('Parent', f);
                 wrTable = uitable('Parent', wrBox,...
                     'FontName', 'Consolas',...
