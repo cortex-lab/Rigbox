@@ -110,7 +110,7 @@ addpath(fullfile(root, 'alyx-matlab'), fullfile(root, 'alyx-matlab', 'helpers'))
 % NumPy binary files.  Used by Rigbox to save data as .npy files with the
 % ALF (ALex File) naming convention.  For more information please visit:
 % https://docs.scipy.org/doc/numpy-dev/neps/npy-format.html
-addpath(fullfile(root, 'npy-matlab'));
+addpath(fullfile(root, 'npy-matlab', 'npy-matlab'));
 
 % Add the Java paths for Java WebSockets used for communications between
 % the stimulus computer and the master computer
