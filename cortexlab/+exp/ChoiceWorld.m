@@ -203,27 +203,11 @@ classdef ChoiceWorld < exp.LIARExperiment
                 warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
             end
             try
-              if ~isfield(obj.Data,'trial') && ~isfield(obj.Data.trial,'feedbackType')
+              if ~isfield(obj.Data,'rewardDeliveredSizes') || ...
+                      strcmp(obj.Data.endStatus, 'aborted')
                 return % No completed trials
               end
-              % Reward volume
-              if ~any(strcmp(fieldnames(obj.Data.parameters),'rewardVolume')) % Reward is trial specific
-                condition = [obj.Data.trial.condition];
-                reward = [condition.rewardVolume];
-                amount = sum(reward(:,[obj.Data.trial.feedbackType]==1), 2);
-              else % Global reward x positive feedback
-                amount = obj.Data.parameters.rewardVolume(1)*...
-                  sum([obj.Data.trial.feedbackType]==1);
-              end
-              % Reward on stimulus
-              if ~any(strcmp(fieldnames(obj.Data.parameters),'rewardOnStimulus')) % Reward is trial specific
-                condition = [obj.Data.trial.condition];
-                stimReward = sum([condition.rewardOnStimulus],2);
-                amount = amount(1) + stimReward;
-              else % Global reward x positive feedback
-                amount = amount(1) + obj.Data.parameters.rewardOnStimulus(1);
-              end
-              if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
+              amount = sum(obj.Data.rewardDeliveredSizes(:,1)); % Take first element (second being laser)
               if ~any(amount); return; end % Return if no water was given
               controller = obj.RewardController.SignalGenerators(strcmp(obj.RewardController.ChannelNames,'rewardValve'));
               type = iff(isprop(controller, 'WaterType'), controller.WaterType, 'Water');
