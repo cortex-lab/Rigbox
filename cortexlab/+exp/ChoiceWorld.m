@@ -172,7 +172,68 @@ classdef ChoiceWorld < exp.LIARExperiment
 %         obj.Data.trial(obj.TrialNum).stimFrame(n).time = obj.Clock.now;
 %         obj.Data.trial(obj.TrialNum).stimFrame(n).targetBounds = round(bounds);
       end
-    end    
+    end
+    
+    function saveData(obj)
+        saveData@exp.Experiment(obj);
+        if ~obj.AlyxInstance.IsLoggedIn
+            warning('No Alyx token set');
+        else
+            try
+                subject = dat.parseExpRef(obj.Data.expRef);
+                if strcmp(subject, 'default'); return; end
+                % Register saved files
+                savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+                obj.AlyxInstance.registerFile(savepaths{end});
+                % Save the session end time
+                if ~isempty(obj.AlyxInstance.SessionURL)
+                  numTrials = obj.Data.numCompletedTrials;
+                  if isfield(obj.Data, 'trial')&&isfield(obj.Data.trial, 'feedbackType')
+                    numCorrect = sum([obj.Data.trial.feedbackType] == 1);
+                  else
+                    numCorrect = 0;
+                  end
+                  sessionData = struct('end_time', obj.AlyxInstance.datestr(now), ...
+                    'subject', subject, 'n_trials', numTrials, 'n_correct_trials', numCorrect);
+                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'put');
+                else
+                  % Infer from date session and retrieve using expFilePath
+                end
+            catch ex
+                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+            end
+            try
+              if ~isfield(obj.Data,'trial') && ~isfield(obj.Data.trial,'feedbackType')
+                return % No completed trials
+              end
+              % Reward volume
+              if ~any(strcmp(fieldnames(obj.Data.parameters),'rewardVolume')) % Reward is trial specific
+                condition = [obj.Data.trial.condition];
+                reward = [condition.rewardVolume];
+                amount = sum(reward(:,[obj.Data.trial.feedbackType]==1), 2);
+              else % Global reward x positive feedback
+                amount = obj.Data.parameters.rewardVolume(1)*...
+                  sum([obj.Data.trial.feedbackType]==1);
+              end
+              % Reward on stimulus
+              if ~any(strcmp(fieldnames(obj.Data.parameters),'rewardOnStimulus')) % Reward is trial specific
+                condition = [obj.Data.trial.condition];
+                stimReward = sum([condition.rewardOnStimulus],2);
+                amount = amount(1) + stimReward;
+              else % Global reward x positive feedback
+                amount = amount(1) + obj.Data.parameters.rewardOnStimulus(1);
+              end
+              if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
+              if ~any(amount); return; end % Return if no water was given
+              controller = obj.RewardController.SignalGenerators(strcmp(obj.RewardController.ChannelNames,'rewardValve'));
+              type = iff(isprop(controller, 'WaterType'), controller.WaterType, 'Water');
+              obj.AlyxInstance.postWater(subject, amount*0.001, now, type, obj.AlyxInstance.SessionURL);
+            catch ex
+              warning(ex.identifier, 'Failed to post water to Alyx: %s', ex.message);
+            end
+        end
+    end
+    
   end
   
 end
