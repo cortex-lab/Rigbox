@@ -46,17 +46,12 @@ if status ~= 0
   end
 end
 % TODO: check if submodules are empty and use init flag
-cmdstr = strjoin({gitexepath, 'submodule update --remote --merge'});
-status = system(cmdstr, '-echo');
-if status ~= 0
-  if fatalOnError
-    cd(origDir)
-    error('gitUpdate:submodule:updateFailed', ...
-      'Failed to pull latest changes for submodules:, %s', cmdout)
-  else
-    warning('gitUpdate:submodule:updateFailed', ...
-      'Failed to pull latest changes for submodules:, %s', cmdout)
-  end
+
+% Run any new tasks
+changesPath = fullfile(root, 'cortexlab', '+git', 'changes.m');
+if exist(changesPath, 'file')
+  git.changes;
+  delete(changesPath);
 end
 
 cd(origDir)

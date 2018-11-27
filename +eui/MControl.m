@@ -340,8 +340,8 @@ classdef MControl < handle
               subject = dat.parseExpRef(evt.Ref);
               sd = rig.AlyxInstance.getData(sprintf('subjects/%s', subject));
               obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
-                  subject, sd.water_requirement_remaining, ...
-                  sd.water_requirement_total-sd.water_requirement_remaining);
+                  subject, sd.remaining_water, ...
+                  sd.expected_water-sd.remaining_water);
           catch
               subject = dat.parseExpRef(evt.Ref);
               obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
