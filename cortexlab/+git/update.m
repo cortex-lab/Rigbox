@@ -6,7 +6,7 @@ function update(scheduled)
 %   a week ago.  
 % TODO Find quicker way to check for changes
 % See also
-if nargin < 1; scheduled = 0; end
+if nargin < 1; scheduled = getOr(dat.paths, 'updateSchedule', 0); end
 
 root = fileparts(which('addRigboxPaths'));
 lastFetch = getOr(dir(fullfile(root, '.git', 'FETCH_HEAD')), 'datenum');
