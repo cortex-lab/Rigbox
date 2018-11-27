@@ -222,35 +222,35 @@ classdef ExpPanel < handle
       obj.Listeners = [];
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
       %post water to Alyx
-      ai = rig.AlyxInstance;
-      subject = obj.SubjectRef;
-      if ~isempty(ai)&&~strcmp(subject,'default')
-          switch class(obj)
-              case 'eui.ChoiceExpPanel'
-                  if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
-                  if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
-                      condition = [obj.Block.trial.condition];
-                      reward = [condition.rewardVolume];
-                      amount = sum(reward(:,[obj.Block.trial.feedbackType]==1), 2);
-                  else % Global reward x positive feedback
-                      amount = obj.Parameters.Struct.rewardVolume(1)*...
-                          sum([obj.Block.trial.feedbackType]==1);
-                  end
-                  if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
-            otherwise
-                % Done in exp.SignalsExp/saveData
-                  %infoFields = {obj.InfoFields.String};
-                  %inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
-                  %reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
-                  %amount = iff(isempty(reward),0,@()reward);
-          end
-          if ~any(amount); return; end % Return if no water was given
-          try
-            ai.postWater(subject, amount*0.001, now, 'Water', ai.SessionURL);
-          catch
-            warning('Failed to post the %.2fml %s recieved during the experiment to Alyx', amount*0.001, subject);
-          end
-      end
+%       ai = rig.AlyxInstance;
+%       subject = obj.SubjectRef;
+%       if ~isempty(ai)&&~strcmp(subject,'default')
+%           switch class(obj)
+%               case 'eui.ChoiceExpPanel'
+%                   if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
+%                   if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
+%                       condition = [obj.Block.trial.condition];
+%                       reward = [condition.rewardVolume];
+%                       amount = sum(reward(:,[obj.Block.trial.feedbackType]==1), 2);
+%                   else % Global reward x positive feedback
+%                       amount = obj.Parameters.Struct.rewardVolume(1)*...
+%                           sum([obj.Block.trial.feedbackType]==1);
+%                   end
+%                   if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
+%             otherwise
+%                 % Done in exp.SignalsExp/saveData
+%                   %infoFields = {obj.InfoFields.String};
+%                   %inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
+%                   %reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
+%                   %amount = iff(isempty(reward),0,@()reward);
+%           end
+%           if ~any(amount); return; end % Return if no water was given
+%           try
+%             ai.postWater(subject, amount*0.001, now, 'Water', ai.SessionURL);
+%           catch
+%             warning('Failed to post the %.2fml %s recieved during the experiment to Alyx', amount*0.001, subject);
+%           end
+%       end
     end
     
     function expUpdate(obj, rig, evt)
