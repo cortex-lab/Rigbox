@@ -473,7 +473,7 @@ classdef AlyxPanel < handle
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
-            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
+            if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), thisDate(1:10))
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
