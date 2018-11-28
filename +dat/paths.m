@@ -26,6 +26,9 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 p.localRepository = 'C:\LocalExpData';
 p.localAlyxQueue = 'C:\localAlyxQueue';
 p.databaseURL = 'https://alyx.cortexlab.net';
+% p.databaseURL = 'https://dev.alyx.internationalbrainlab.org/';
+p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
+p.updateSchedule = 2; % Day on which to update code (2 = Monday)
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.

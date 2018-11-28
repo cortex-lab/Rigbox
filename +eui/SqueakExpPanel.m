@@ -83,6 +83,7 @@ classdef SqueakExpPanel < eui.ExpPanel
       for ui = 1:length(updates)
         signame = updates(ui).name;
         switch signame
+          case {'inputs.wheel', 'pars'}
           otherwise
             if ~isKey(obj.LabelsMap, signame)
               obj.LabelsMap(signame) = obj.addInfoField(signame, '');

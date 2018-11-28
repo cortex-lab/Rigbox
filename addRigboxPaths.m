@@ -86,6 +86,11 @@ addpath(fullfile(root, 'cb-tools'), fullfile(root, 'cb-tools', 'burgbox'));
 % work with other software developed by CortexLab, including MPEP
 addpath(fullfile(root, 'cortexlab'));
 
+% Add wheelAnalysis paths.  This is a package for computing wheel velocity,
+% classifying movements, etc.
+addpath(fullfile(root, 'wheelAnalysis'), ...
+  fullfile(root, 'wheelAnalysis', 'helpers'));
+
 % Add signals paths, this includes all the core code for running signals
 % experiments.  This submodule is maintained by Chris Burgess.
 addpath(fullfile(root, 'signals'),...
@@ -105,7 +110,7 @@ addpath(fullfile(root, 'alyx-matlab'), fullfile(root, 'alyx-matlab', 'helpers'))
 % NumPy binary files.  Used by Rigbox to save data as .npy files with the
 % ALF (ALex File) naming convention.  For more information please visit:
 % https://docs.scipy.org/doc/numpy-dev/neps/npy-format.html
-addpath(fullfile(root, 'npy-matlab'));
+addpath(fullfile(root, 'npy-matlab', 'npy-matlab'));
 
 % Add the Java paths for Java WebSockets used for communications between
 % the stimulus computer and the master computer

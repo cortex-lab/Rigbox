@@ -43,7 +43,7 @@ classdef StimulusControl < handle
   end
   
   properties (Transient, Hidden)
-    AlyxInstance = Alyx('','') % Property to store rig specific Alyx token
+    AlyxInstance % Property to store rig specific Alyx instance
   end
   
   properties (Constant)
@@ -67,6 +67,7 @@ classdef StimulusControl < handle
       end
       s = srv.StimulusControl;
       s.Name = name;
+      s.AlyxInstance = Alyx('','');
       if isempty(regexp(uri, '^ws://', 'once'))
         uri = ['ws://' uri]; %default protocol prefix
       end
@@ -198,8 +199,8 @@ classdef StimulusControl < handle
                 notify(obj, 'ExpStarting', srv.ExpEvent('starting', ref));
               case 'completed'
                 %experiment stopped without any exceptions
-                ref = data{2}; aborted = data{3};
-                notify(obj, 'ExpStopped', srv.ExpEvent('completed', ref, aborted));
+                ref = data{2};
+                notify(obj, 'ExpStopped', srv.ExpEvent('completed', ref));
               case 'expException'
                 %experiment stopped with an exception
                 ref = data{2}; err = data{3};
