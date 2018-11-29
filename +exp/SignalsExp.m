@@ -175,19 +175,19 @@
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
         obj.Data.expDef = paramStruct.defFunction;
-        funArgs = nargin(expDefFun);
+%         funArgs = nargin(expDefFun);
       else
         expDefFun = paramStruct.defFunction;
         obj.Data.expDef = func2str(expDefFun);
-        funArgs = nargin(expDefFun);
+%         funArgs = nargin(expDefFun);
       end
-      if funArgs == 7 
+%       if funArgs == 7 
         expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
           obj.Outputs, obj.Audio);
-      else
-        expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
-          obj.Outputs, obj.Audio, rig);
-      end
+%       else
+%         expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
+%           obj.Outputs, obj.Audio, rig);
+%       end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
