@@ -43,7 +43,7 @@ classdef StimulusControl < handle
   end
   
   properties (Transient, Hidden)
-    AlyxInstance = Alyx('','') % Property to store rig specific Alyx token
+    AlyxInstance % Property to store rig specific Alyx instance
   end
   
   properties (Constant)
@@ -67,6 +67,7 @@ classdef StimulusControl < handle
       end
       s = srv.StimulusControl;
       s.Name = name;
+      s.AlyxInstance = Alyx('','');
       if isempty(regexp(uri, '^ws://', 'once'))
         uri = ['ws://' uri]; %default protocol prefix
       end

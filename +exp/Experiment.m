@@ -775,26 +775,6 @@ classdef Experiment < handle
         % save the data to the appropriate locations indicated by expRef
         savepaths = dat.expFilePath(obj.Data.expRef, 'block');
         superSave(savepaths, struct('block', obj.Data));
-        
-        if ~obj.AlyxInstance.IsLoggedIn
-            warning('No Alyx token set');
-        else
-            try
-                subject = dat.parseExpRef(obj.Data.expRef);
-                if strcmp(subject, 'default'); return; end
-                % Register saved files
-                obj.AlyxInstance.registerFile(savepaths{end});
-                % Save the session end time
-                if ~isempty(obj.AlyxInstance.SessionURL)
-                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-                    struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
-                else
-                  % Infer from date session and retrieve using expFilePath
-                end
-            catch ex
-                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
-            end
-        end
     end
   end
   

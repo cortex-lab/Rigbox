@@ -14,7 +14,7 @@
     %activated and an optional delay between the event and activation.
     %They should be objects of class EventHandler.
     EventHandlers = exp.EventHandler.empty
-    
+
     %Timekeeper used by the experiment. Clocks return the current time. See
     %the Clock class definition for more information.
     Clock = hw.ptb.Clock
@@ -193,7 +193,8 @@
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
-        lastTrialOver.onValue(@(~)quit(obj));];
+        lastTrialOver.into(obj.Events.expStop) %newTrial if more
+        onValue(obj.Events.expStop, @(~)quit(obj));];
 %         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
@@ -224,8 +225,10 @@
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
+        obj.LickDetector.zero();
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
@@ -409,7 +412,9 @@
     end
     
     function quit(obj, immediately)
-      obj.Events.expStop.post(true);
+      if isempty(obj.Events.expStop.Node.CurrValue)
+        obj.Events.expStop.post(true);
+      end
       %stop delay timers. todo: need to use a less global tag
       tmrs = timerfind('Tag', 'sig.delay');
       if ~isempty(tmrs)
@@ -583,11 +588,10 @@
           fieldnames(obj.Outputs), struct2cell(obj.Outputs));
       inlist = mapToCell(@(n,v)queuefun(['inputs.' n],v),...
           fieldnames(obj.Inputs), struct2cell(obj.Inputs));
-%       parslist = mapToCell(@(n,v)queuefun(['pars.' n],v),...
-%           fieldnames(obj.ParamsLog), struct2cell(obj.ParamsLog));
-%         parslist = [];
-        parslist = queuefun('pars', obj.ParamsLog);
-      obj.Listeners = vertcat(obj.Listeners, evtlist(:), outlist(:), inlist(:), parslist(:));
+
+      parslist = queuefun('pars', obj.Params);
+      obj.Listeners = vertcat(obj.Listeners, ...
+          evtlist(:), outlist(:), inlist(:), parslist(:));
     end
     
     function cleanup(obj)
@@ -659,6 +663,7 @@
       
       %set looping flag
       obj.IsLooping = true;
+      t = obj.Clock.now;
       % begin the loop
       while obj.IsLooping
         %% create a list of handlers that have become due
@@ -725,12 +730,13 @@
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        tic
-        sendSignalUpdates(obj);
-        q = toc;
-        if q>0.005
-            fprintf(1, 'send updates took %.1fms\n', 1000*toc);
+
+        if (obj.Clock.now - t) > 0.1
+          sendSignalUpdates(obj);
+          t = obj.Clock.now;
         end
+        
+
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
@@ -877,80 +883,8 @@
           && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
           && ~strcmp(obj.Data.endStatus,'aborted')
         try
-          expPath = dat.expPath(obj.Data.expRef, 'main', 'master');
-          % Write feedback
-          
-          feedback = getOr(obj.Data.events, 'feedbackValues', NaN);
-          feedback = double(feedback);
-          feedback(feedback == 0) = -1;
-          if ~isnan(feedback)
-            writeNPY(feedback(:), fullfile(expPath, 'cwFeedback.type.npy'));
-            alf.writeEventseries(expPath, 'cwFeedback',...
-              obj.Data.events.feedbackTimes, [], []);
-            writeNPY([obj.Data.outputs.rewardValues]', fullfile(expPath, 'cwFeedback.rewardVolume.npy'));
-          else
-            warning('No ''feedback'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write go cue
-          interactiveOn = getOr(obj.Data.events, 'interactiveOnTimes', NaN);
-          if ~isnan(interactiveOn)
-            alf.writeEventseries(expPath, 'cwGoCue', interactiveOn, [], []);
-          else
-            warning('No ''interactiveOn'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write response
-          response = getOr(obj.Data.events, 'responseValues', NaN);
-          if min(response) == -1
-            response(response == 0) = 3;
-            response(response == 1) = 2;
-            response(response == -1) = 1;
-          end
-          if ~isnan(response)
-            writeNPY(response(:), fullfile(expPath, 'cwResponse.choice.npy'));
-            alf.writeEventseries(expPath, 'cwResponse',...
-              obj.Data.events.responseTimes, [], []);
-          else
-            warning('No ''feedback'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write stim on times
-          stimOnTimes = getOr(obj.Data.events, 'stimulusOnTimes', NaN);
-          if ~isnan(stimOnTimes)
-            alf.writeEventseries(expPath, 'cwStimOn', stimOnTimes, [], []);
-          else
-            warning('No ''stimulusOn'' events recorded, cannot register to Alyx')
-          end
-          contL = getOr(obj.Data.events, 'contrastLeftValues', NaN);
-          contR = getOr(obj.Data.events, 'contrastRightValues', NaN);
-          if ~any(isnan(contL))&&~any(isnan(contR))
-            writeNPY(contL(:), fullfile(expPath, 'cwStimOn.contrastLeft.npy'));
-            writeNPY(contR(:), fullfile(expPath, 'cwStimOn.contrastRight.npy'));
-          else
-            warning('No ''contrastLeft'' and/or ''contrastRight'' events recorded, cannot register to Alyx')
-          end
-          
-          % Write trial intervals
-          alf.writeInterval(expPath, 'cwTrials',...
-            obj.Data.events.newTrialTimes(:), obj.Data.events.endTrialTimes(:), [], []);
-          repNum = obj.Data.events.repeatNumValues(:);
-          writeNPY(repNum == 1, fullfile(expPath, 'cwTrials.inclTrials.npy'));
-          writeNPY(repNum, fullfile(expPath, 'cwTrials.repNum.npy'));
-          
-          % Write wheel times, position and velocity
-          wheelValues = obj.Data.inputs.wheelValues(:);
-          wheelValues = wheelValues*(3.1*2*pi/(4*1024));
-          wheelTimes = obj.Data.inputs.wheelTimes(:);
-          alf.writeTimeseries(expPath, 'Wheel', wheelTimes, [], []);
-          writeNPY(wheelValues, fullfile(expPath, 'Wheel.position.npy'));
-          writeNPY(wheelValues./wheelTimes, fullfile(expPath, 'Wheel.velocity.npy'));
-          
-          % Register them to Alyx
-          files = dir(expPath);
-          isNPY = cellfun(@(f)endsWith(f, '.npy'), {files.name});
-          files = files(isNPY);
-          obj.AlyxInstance.registerFile(fullfile({files.folder}, {files.name}));
+          fullpath = alf.block2ALF(obj.Data);
+          obj.AlyxInstance.registerFile(fullpath);
         catch ex
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
@@ -967,16 +901,43 @@
 %           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
-          if ~isempty(obj.AlyxInstance.SessionURL)
-            obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-              struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject), 'put');
+          url = obj.AlyxInstance.SessionURL;
+          if ~isempty(url)
+            numCorrect = [];
+            if isfield(obj.Data, 'events')
+              numTrials = length(obj.Data.events.endTrialValues);
+              if isfield(obj.Data.events, 'feedbackValues')
+                numCorrect = sum(obj.Data.events.feedbackValues == 1);
+              end
+            else
+              numTrials = 0;
+              numCorrect = 0;
+            end
+            % Update Alyx session with end time, trial counts and water tye
+            sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
+            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+            if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
+            obj.AlyxInstance.postData(url, sessionData, 'put');
           else
             % Retrieve session from endpoint
-%             subsessions = obj.AlyxInstance.getData(...
-%               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
+            %             subsessions = obj.AlyxInstance.getData(...
+            %               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
           end
         catch ex
           warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+        end
+        % Post water to Alyx
+        try
+          valve_controller = obj.DaqController.SignalGenerators(strcmp(obj.DaqController.ChannelNames,'rewardValve'));
+          type = iff(isprop(valve_controller, 'WaterType'), valve_controller.WaterType, 'Water');
+          if isfield(obj.Data.outputs, 'rewardValues')
+            amount = sum(obj.Data.outputs.rewardValues)*0.001;
+          else
+            amount = 0;
+          end
+          obj.AlyxInstance.postWater(subject, amount, now, type, url);
+        catch ex
+          warning(ex.identifier, 'Failed to post water to Alyx: %s', ex.message);
         end
       end
     end

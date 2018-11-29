@@ -18,7 +18,8 @@ if file.exists(masterPath)
   loaded = load(masterPath, expType); %load profiles for specific experiment type
   warning(origState);
   if isfield(loaded, expType)
-    p = orderfields(loaded.(expType)); %extract those profiles to return
+    [~, I] = sort(lower(fieldnames(loaded.(expType))));
+    p = orderfields(loaded.(expType), I); %extract those profiles to return
   end
 end
 
