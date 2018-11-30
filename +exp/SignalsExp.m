@@ -893,7 +893,8 @@ classdef SignalsExp < handle
 %           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
 %             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
-          if ~isempty(obj.AlyxInstance.SessionURL)
+          url = obj.AlyxInstance.SessionURL;
+          if ~isempty(url)
             numCorrect = [];
             if isfield(obj.Data, 'events')
               numTrials = length(obj.Data.events.endTrialValues);
@@ -904,18 +905,31 @@ classdef SignalsExp < handle
               numTrials = 0;
               numCorrect = 0;
             end
+            % Update Alyx session with end time, trial counts and water tye
             sessionData = struct('end_time', obj.AlyxInstance.datestr(now), 'subject', subject);
-            if ~isempty(numTrials); sessionData.numberOfTrials = numTrials; end
-            if ~isempty(numCorrect); sessionData.numberOfCorrectTrials  = numCorrect; end
-            obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL,...
-              sessionData, 'put');
+            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+            if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
+            obj.AlyxInstance.postData(url, sessionData, 'put');
           else
             % Retrieve session from endpoint
-%             subsessions = obj.AlyxInstance.getData(...
-%               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
+            %             subsessions = obj.AlyxInstance.getData(...
+            %               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
           end
         catch ex
           warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
+        end
+        % Post water to Alyx
+        try
+          valve_controller = obj.DaqController.SignalGenerators(strcmp(obj.DaqController.ChannelNames,'rewardValve'));
+          type = iff(isprop(valve_controller, 'WaterType'), valve_controller.WaterType, 'Water');
+          if isfield(obj.Data.outputs, 'rewardValues')
+            amount = sum(obj.Data.outputs.rewardValues)*0.001;
+          else
+            amount = 0;
+          end
+          obj.AlyxInstance.postWater(subject, amount, now, type, url);
+        catch ex
+          warning(ex.identifier, 'Failed to post water to Alyx: %s', ex.message);
         end
       end
     end
