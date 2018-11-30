@@ -18,9 +18,9 @@ if nargin > 1 % in [ref, AlyxInstance]
   ai = varargin{2}; % extract AlyxInstance struct
   if isstruct(ai) % if there is an AlyxInstance
     ai = orderfields(ai); % alphabetize fields
-    % remove water requirement remaining field
-    if isfield(ai, 'water_requirement_remaining')
-      ai = rmfield(ai, 'water_requirement_remaining');
+    % remove water remaining_water field
+    if isfield(ai, 'remaining_water')
+      ai = rmfield(ai, 'remaining_water');
     end
     fname = fieldnames(ai); % get fieldnames
     emp = structfun(@isempty, ai); % find empty fields

@@ -5,8 +5,9 @@ function m = mc
 
 % 2013-06 CB created
 
-% Pull latest changes from remote
-git.update(true);
+% Pull latest changes from remote every Monday
+schedule = getOr(dat.paths, 'updateSchedule', 2);
+git.update(true, schedule); 
 f = figure('Name', 'MC',...
         'MenuBar', 'none',...
         'Toolbar', 'none',...

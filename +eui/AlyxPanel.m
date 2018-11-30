@@ -45,7 +45,7 @@ classdef AlyxPanel < handle
         LoginButton % Button to log in to Alyx
         WeightButton % Button to submit weight to Alyx
         WaterEntry % Text box for entering the amout of water to give
-        IsHydrogel % UI checkbox indicating whether to water to be given is in gel form
+        WaterType % UI checkbox indicating whether to water to be given is in gel form
         WaterRequiredText % Handle to text UI element displaying the water required
         WaterRemainingText % Handle to text UI element displaying the water remaining
         LoginTimer % Timer to keep track of how long the user has been logged in, when this expires the user is automatically logged out
@@ -150,11 +150,11 @@ classdef AlyxPanel < handle
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.giveFutureWater);
             % Check box to indicate whether water was gel or liquid
-            obj.IsHydrogel = uicontrol('Parent', waterbox,...
-                'Style', 'checkbox', ...
-                'String', 'Hydrogel?', ...
+            obj.WaterType = uicontrol('Parent', waterbox,...
+                'Style', 'popupmenu', ...
+                'String', {'Water'}, ...
                 'HorizontalAlignment', 'right',...
-                'Value', false, ...
+                'Value', 1, ...
                 'Enable', 'off');
             % Input for submitting amount of water
             obj.WaterEntry = uicontrol('Parent', waterbox,...
@@ -241,6 +241,10 @@ classdef AlyxPanel < handle
                     obj.NewExpSubject.Option = newSubs;
                     obj.SubjectList = newSubs;
                     
+                    % update water type list
+                    wt = obj.AlyxInstance.getData('water-type');
+                    obj.WaterType.String = {wt.name};
+                    
                     notify(obj, 'Connected'); % Notify listeners of login
                     obj.log('Logged into Alyx successfully as %s', obj.AlyxInstance.User);
                     
@@ -287,7 +291,7 @@ classdef AlyxPanel < handle
             % state of the 'is hydrogel' check box
             thisDate = now;
             amount = str2double(get(obj.WaterEntry, 'String'));
-            type = iff(get(obj.IsHydrogel, 'Value')==1, 'Hydrogel', 'Water');
+            type = obj.WaterType.String{obj.WaterType.Value};
             if obj.AlyxInstance.IsLoggedIn && amount~=0 && ~isnan(amount)
                 wa = obj.AlyxInstance.postWater(obj.Subject, amount, thisDate, type);
                 if ~isempty(wa) % returned us a created water administration object successfully
@@ -316,11 +320,13 @@ classdef AlyxPanel < handle
             futDates = thisDate + (1:length(amt)); % datenum of all input future dates
             
             futTrnDates = futDates(amt < 0); % future training dates
-            dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
-            [~,days] = weekday(futTrnDates, 'long');
-            delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
-            obj.log('%s marked for training on %s',...
-              obj.Subject, strjoin(strtrim(string(days)), delim));
+            if any(futTrnDates)
+              dat.saveParamProfile('WeekendWater', obj.Subject, futTrnDates);
+              [~,days] = weekday(futTrnDates, 'long');
+              delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
+              obj.log('%s marked for training on %s',...
+                obj.Subject, strjoin(strtrim(string(days)), delim));
+            end
             
             futWtrDates = futDates(amt > 0); % future water giving dates
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
@@ -365,12 +371,12 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
-                    weight = getOr(record, 'weight_measured', NaN); % Get today's measured weight
-                    water = getOr(record, 'water_given', 0); % Get total water given
-                    gel = getOr(record, 'hydrogel_given', 0); % Get total gel given
-                    weight_expected = getOr(record, 'weight_expected', NaN);
+                    weight = getOr(record, 'weight', NaN); % Get today's measured weight
+                    water = getOr(record, 'given_water_liquid', 0); % Get total water given
+                    gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
+                    expected_weight = getOr(record, 'expected_weight', NaN);
                     % Set colour based on weight percentage
-                    weight_pct = (weight-wr.implant_weight)/(weight_expected-wr.implant_weight);
+                    weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
                     if weight_pct < 0.8 % Mouse below 80% original weight
                         colour = [0.91, 0.41, 0.17]; % Orange
                         weight_pct = '< 80%';
@@ -382,12 +388,12 @@ classdef AlyxPanel < handle
                         weight_pct = '> 80%';
                     end
                     % Round up water remaining to the near 0.01
-                    remainder = obj.round(s(idx).water_requirement_remaining, 'up');
+                    remainder = obj.round(s(idx).remaining_water, 'up');
                     % Set text
                     set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
                         sprintf(['Subject %s requires %.2f of %.2f today\n\t '...
                         'Weight today: %.2f (%s)    Water today: %.2f'], obj.Subject, ...
-                        remainder, obj.round(s(idx).water_requirement_total, 'up'), weight, ...
+                        remainder, obj.round(s(idx).expected_water, 'up'), weight, ...
                         weight_pct, obj.round(sum([water gel]), 'down')));
                     % Set WaterRemaining attribute for changeWaterText callback
                     obj.WaterRemaining = remainder;
@@ -541,7 +547,7 @@ classdef AlyxPanel < handle
                 obj.log('No weight data found for subject %s', obj.Subject);
                 return
             end
-            expected = [records.weight_expected];
+            expected = [records.expected_weight];
             expected(expected==0) = nan;
             dates = cellfun(@(x)datenum(x), {records.date});
             
@@ -555,7 +561,7 @@ classdef AlyxPanel < handle
                 ax = axes('Parent', plotBox);
             end
             
-            plot(ax, dates, [records.weight_measured], '.-');
+            plot(ax, dates, [records.weight], '.-');
             hold(ax, 'on');
             plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
             plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -572,7 +578,7 @@ classdef AlyxPanel < handle
             
             if nargin==1
                 ax = axes('Parent', plotBox);
-                plot(ax, dates, ([records.weight_measured]-iw)./(expected-iw), '.-');
+                plot(ax, dates, ([records.weight]-iw)./(expected-iw), '.-');
                 hold(ax, 'on');
                 plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
                 plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
@@ -582,11 +588,11 @@ classdef AlyxPanel < handle
                 ylabel(ax, 'weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(axWater, dates, obj.round([records.water_given]+[records.hydrogel_given], 'up'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_liquid]+[records.given_water_hydrogel], 'up'), '.-');
                 hold(axWater, 'on');
-                plot(axWater, dates, obj.round([records.hydrogel_given], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.water_given], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.water_expected], 'up'), 'r', 'LineWidth', 2.0);
+                plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
                 xlim(axWater, [min(dates) max(dates)]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
@@ -597,22 +603,22 @@ classdef AlyxPanel < handle
                 histTable = uitable('Parent', histbox,...
                     'FontName', 'Consolas',...
                     'RowName', []);
-                weightsByDate = num2cell([records.weight_measured]);
+                weightsByDate = num2cell([records.weight]);
                 weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
-                weightsByDate(isnan([records.weight_measured])) = {[]};
-                weightPctByDate = num2cell(([records.weight_measured]-iw)./(expected-iw));
+                weightsByDate(isnan([records.weight])) = {[]};
+                weightPctByDate = num2cell(([records.weight]-iw)./(expected-iw));
                 weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
-                weightPctByDate(isnan([records.weight_measured])) = {[]};
+                weightPctByDate(isnan([records.weight])) = {[]};
                 
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
                     weightsByDate', ...
-                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.weight_expected]', 'uni', false), ...
+                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.expected_weight]', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
-                    num2cell(horzcat([records.water_given]', [records.hydrogel_given]', ...
-                    [records.water_given]'+[records.hydrogel_given]', [records.water_expected]',...
-                    [records.water_given]'+[records.hydrogel_given]'-[records.water_expected]')));
+                    num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
+                    [records.given_water_liquid]'+[records.given_water_hydrogel]', [records.expected_water]',...
+                    [records.given_water_liquid]'+[records.given_water_hydrogel]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
                 dat = horzcat(dat, waterDat);
                 
@@ -643,11 +649,11 @@ classdef AlyxPanel < handle
                 colorgen = @(colorNum,text) ['<html><body bgcolor=#',htmlColor(colorNum),'>',text,'</body></html>'];
                 
                 wrdat = cellfun(@(x)colorgen(1-double(x>0)*[0 0.3 0.3],...
-                    sprintf('%.2f',obj.round(x, 'up'))), {wr.water_requirement_remaining}, 'uni', false);
+                    sprintf('%.2f',obj.round(x, 'up'))), {wr.remaining_water}, 'uni', false);
                 
                 set(wrTable, 'ColumnName', {'Name', 'Water Required', 'Remaining Requirement'}, ...
                     'Data', horzcat({wr.nickname}', ...
-                    cellfun(@(x)sprintf('%.2f',obj.round(x, 'up')),{wr.water_requirement_total}', 'uni', false), ...
+                    cellfun(@(x)sprintf('%.2f',obj.round(x, 'up')),{wr.expected_water}', 'uni', false), ...
                     wrdat'), ...
                     'ColumnEditable', false(1,3));
             end

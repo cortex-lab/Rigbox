@@ -20,7 +20,8 @@ rewardId = 1;
 
 %% Initialisation
 % Pull latest changes from remote
-git.update(true);
+schedule = getOr(dat.paths, 'updateSchedule', 2);
+git.update(true, schedule); 
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
