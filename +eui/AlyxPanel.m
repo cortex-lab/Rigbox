@@ -538,8 +538,7 @@ classdef AlyxPanel < handle
             % If not logged in or 'default' is selected, return
             if ~obj.AlyxInstance.IsLoggedIn||strcmp(obj.Subject, 'default'); return; end
             % collect the data for the table
-            endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
-            wr = obj.AlyxInstance.getData(endpnt);
+            wr = obj.AlyxInstance.getData(['water-requirement/', obj.Subject]);
             iw = iff(isempty(wr.implant_weight), 0, wr.implant_weight);
             records = catStructs(wr.records, nan);
             % no weighings found
