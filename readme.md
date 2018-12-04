@@ -1,7 +1,7 @@
 ----------
 # Rigbox
 
-Rigbox is a (mostly) object-oriented MATLAB software package for designing and controlling behavioural experiments (principally, the [steering wheel setup](https://www.ucl.ac.uk/cortexlab/tools/wheel) which [we](https://www.ucl.ac.uk/cortexlab) developed to probe mouse behaviour. Rigbox requires two machines, one for stimulus presentation ('the stimulus server') and another for controlling and monitoring the experiment ('mc').
+Rigbox is a (mostly) object-oriented MATLAB software package for designing and controlling neurophysiological behavioural experiments (principally, the [steering wheel setup](https://www.ucl.ac.uk/cortexlab/tools/wheel) which [we](https://www.ucl.ac.uk/cortexlab) developed to probe mouse behaviour). Rigbox requires two machines, one for stimulus presentation ('the stimulus server') and another for controlling and monitoring the experiment ('mc').
 
 ## Getting Started
 
@@ -75,7 +75,7 @@ This opens a GUI that will allow you to choose a subject, edit some of the exper
 
 ## Code organization
 
-Below is a list of the principle directories and their general purpose.
+Below is a list of Rigbox's subdirectories and an overview of their respective contents.
 
 ### +dat
 

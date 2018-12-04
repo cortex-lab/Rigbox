@@ -1,5 +1,5 @@
 classdef Timeline < handle
-% HW.TIMELINE Returns an object that generate and aquires clocking pulses
+% HW.TIMELINE Returns an object that generates and aquires clocking pulses
 %   Timeline (tl) manages the aquisition and generation of experimental
 %   timing data using an NI data aquisition device.  The main timing signal
 %   is called 'chrono' and consists of a digital squarewave that flips each
@@ -45,7 +45,7 @@ classdef Timeline < handle
 %   %Add the rotary encoder
 %     timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
 %   %For a lick detector
-%     timeline.addInput('lickDetector', 'ctr2', 'EdgeCount');
+%     timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
 %   %We want use camera frame acquisition trigger by default
 %     timeline.UseOutputs{end+1} = 'clock';
 %   %Save your hardware.mat file
@@ -132,7 +132,7 @@ classdef Timeline < handle
         function start(obj, expRef, ai)
             % START Starts timeline data acquisition
             %   START(obj, ref, AlyxInstance) starts all DAQ sessions and adds
-            %   the relevent output and input channels.
+            %   the relevant output and input channels.
             %
             % See Also HW.TLOUTPUT/START
             
@@ -192,8 +192,8 @@ classdef Timeline < handle
         function record(obj, name, event, t)
             % Records an event in Timeline
             %   TL.RECORD(name, event, [time]) records an event in the Timeline
-            %   struct in fields prefixed with 'name', with data in 'event'. Optionally
-            %   specify 'time', otherwise the time of call will be used (relative to
+            %   object in fields prefixed with 'name', with data in 'event'. Optionally
+            %   specify time 't', otherwise the time of call will be used (relative to
             %   Timeline acquisition).
             if nargin < 4; t = time(obj); end % default to time now (using Timeline clock)
             initLength = 100; % default initial length of event data arrays
@@ -604,7 +604,8 @@ classdef Timeline < handle
             %   TL.LIVEPLOT(source, event) plots the data aquired by the
             %   DAQ while the PlotLive property is true.
             if isempty(obj.Axes)
-                f = figure('Units', 'Normalized', 'Position', [0 0 1 1]); % create a figure for plotting aquired data
+                %f = figure('Units', 'Normalized', 'Position', [0 0 1 1]); % create a figure for plotting aquired data
+                f = figure('Units', 'Normalized');
                 obj.Axes = gca; % store a handle to the axes
                 if isprop(obj, 'FigurePosition') && ~isempty(obj.FigurePosition)
                     set(f, 'Position', obj.FigurePosition); % set the figure position
