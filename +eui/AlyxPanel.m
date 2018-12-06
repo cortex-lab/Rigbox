@@ -547,7 +547,7 @@ classdef AlyxPanel < handle
                 return
             end
             expected = [records.expected_weight];
-            expected(expected==0) = nan;
+            expected(expected==0|cellfun('isempty',{records.weighing_at})) = nan;
             dates = cellfun(@(x)datenum(x), {records.date});
             
             % build the figure to show it

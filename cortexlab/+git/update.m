@@ -11,7 +11,8 @@ if nargin < 2; scheduled = 0; end
 
 root = fileparts(which('addRigboxPaths'));
 lastFetch = getOr(dir(fullfile(root, '.git', 'FETCH_HEAD')), 'datenum');
-if scheduled && weekday(now) ~= scheduled && now - lastFetch < 7
+if (scheduled && weekday(now) ~= scheduled && now - lastFetch < 7) || ...
+        (~scheduled && now - lastFetch < 1/24)
   return
 end
 disp('Updating code...')
@@ -35,8 +36,12 @@ cd(root)
 %   return
 % end
 
-cmdstr = strjoin({gitexepath, 'pull'});
-[status, cmdout] = system(cmdstr);
+%%% Check that the submodules are initialized
+cmdstr = strjoin({gitexepath, 'submodule', 'update', '--init'});
+[status, cmdout] = system(cmdstr, '-echo');
+
+cmdstr = strjoin({gitexepath, 'pull --recurse-submodules'});
+[status, cmdout] = system(cmdstr, '-echo');
 if status ~= 0
   if fatalOnError
     cd(origDir)
@@ -45,7 +50,6 @@ if status ~= 0
     warning('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
   end
 end
-% TODO: check if submodules are empty and use init flag
 
 % Run any new tasks
 changesPath = fullfile(root, 'cortexlab', '+git', 'changes.m');
