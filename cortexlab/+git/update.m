@@ -17,15 +17,14 @@ if (scheduled && weekday(now) ~= scheduled && now - lastFetch < 7) || ...
 end
 disp('Updating code...')
 
-% Get the path to the Git exe (can we assume this is unnecessary)? 
+% Get the path to the Git exe
 gitexepath = getOr(dat.paths, 'gitExe');
 if isempty(gitexepath)
   [~,gitexepath] = system('where git'); % this doesn't always work
 end
 gitexepath = ['"', strtrim(gitexepath), '"'];
 
-% Temporarily change directory into Rigbox -> isn't it safe to assume we're
-% already in Rigbox? (since we're running this file, presumably we are?)
+% Temporarily change directory into Rigbox to git pull
 origDir = pwd;
 cd(root)
 
