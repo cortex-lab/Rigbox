@@ -20,11 +20,11 @@ disp('Updating code...')
 % Get the path to the Git exe
 gitexepath = getOr(dat.paths, 'gitExe');
 if isempty(gitexepath)
-  [~,gitexepath] = system('where git');
+  [~,gitexepath] = system('where git'); % this doesn't always work
 end
 gitexepath = ['"', strtrim(gitexepath), '"'];
 
-% Temporarily change directory into Rigbox
+% Temporarily change directory into Rigbox to git pull
 origDir = pwd;
 cd(root)
 
@@ -36,12 +36,17 @@ cd(root)
 %   return
 % end
 
-%%% Check that the submodules are initialized
-cmdstr = strjoin({gitexepath, 'submodule', 'update', '--init'});
-[status, cmdout] = system(cmdstr, '-echo');
+% Check that the submodules are initialized
+cmdstrInit = [gitexepath, ' ', 'submodule update --init'];
+[status, cmdout] = system(cmdstrInit, '-echo');
 
-cmdstr = strjoin({gitexepath, 'pull --recurse-submodules'});
-[status, cmdout] = system(cmdstr, '-echo');
+% Stash any WIP changes
+cmdstrStash = [gitexepath ' ' 'stash push -m "stash working changes before scheduled git update"'];
+[status, cmdout] = system(cmdstrStash, '-echo');
+
+%Pull submodules using "theirs" merge strategy
+cmdstrPull = [gitexepath, ' ', 'pull --recurse-submodules --strategy-option=theirs'];
+[status, cmdout] = system(cmdstrPull, '-echo');
 if status ~= 0
   if fatalOnError
     cd(origDir)
