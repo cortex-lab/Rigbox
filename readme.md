@@ -10,8 +10,8 @@ The following is a brief description of how to install Rigbox on your experiment
 ## Prerequisites
 
 Rigbox has the following software dependencies:
-* Windows Operating System (7 or later)
-* MATLAB (2016a or later) 
+* Windows Operating System (7 or later, 64-bit)
+* MATLAB (2016b or later) 
 * The following MathWorks MATLAB toolboxes:
     * Data Acquisition Toolbox
     * Signal Processing Toolbox
@@ -117,7 +117,7 @@ The 'StimulusControl' class is used by the mc computer to manage the stimulus se
 
 ### cb-tools/burgbox
 
-Burgbox contains many simple helper functions that are used by the main packages. Within this directory are additional packages:
+"Burgbox" contains many simple helper functions that are used by the main packages. Within this directory are additional packages:
 
 * +bui --- Classes for managing graphics objects such as axes
 * +aud --- Functions for interacting with PsychoPortAudio
@@ -131,7 +131,11 @@ Burgbox contains many simple helper functions that are used by the main packages
 
 ### cortexlab
 
-The cortexlab directory is intended for functions and classes that are rig or cortexlab specific, for instance code that allows compatibility with other stimulus presentation packages used by cortexlab (e.g. MPEP)
+The "cortexlab" directory is intended for functions and classes that are rig or cortexlab specific, for instance code that allows compatibility with other stimulus presentation packages used by cortexlab (e.g. MPEP)
+
+### tests
+
+The "tests" directory contains code for running unit tests within Rigbox.
 
 ### submodules
 
