@@ -117,6 +117,8 @@ if isfield(params.Struct, 'rewardOnStimulus') && any(params.Struct.rewardOnStimu
   % or 'onsetToneSoundPlayed' 'stimulusCueStarted'
   stimRewardHandler = exp.EventHandler('stimulusCueStarted');
   stimRewardHandler.addAction(exp.DeliverReward('rewardOnStimulus'));
+  % Small delay to allow time for screen flip before the samples output
+  stimRewardHandler.Delay = exp.FixedTime(0.05);
   experiment.addEventHandler(stimRewardHandler);
   terminationHandler = exp.EventHandler('responseMade');
   terminationHandler.addCallback(@(inf,t)reset(inf.Experiment.RewardController));
