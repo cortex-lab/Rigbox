@@ -309,8 +309,10 @@ classdef AlyxPanel < handle
             % paramProfiles file.  This may be used to notify weekend staff
             % of the experimentor's intent to train on that date.  
             thisDate = now;
-            prompt = sprintf(['Enter space-separated numbers \n'...
-              '[tomorrow, day after that, day after that.. etc] \n',...
+            waterType = obj.WaterType.String{obj.WaterType.Value};
+            prompt = sprintf(['To post future ', strrep(lower(waterType), '%', '%%'), ', ',...
+              'enter space-separated numbers, i.e. \n',...
+              '[tomorrow, day after that, day after that.. etc] \n\n',...
               'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
             amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
@@ -332,7 +334,7 @@ classdef AlyxPanel < handle
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
             
             for d = 1:length(futWtrDates)
-                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), 'Water');
+                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), waterType);
                 [~,day] = weekday(futWtrDates(d), 'long');
                 obj.log('Water administration of %.2f for %s posted successfully to alyx for %s %s',...
                     amtWtrDates(d), obj.Subject, day, datestr(futWtrDates(d), 'dd mmm yyyy'));
@@ -371,7 +373,7 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
-                    weight = getOr(record, 'weight', NaN); % Get today's measured weight
+                    weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
                     water = getOr(record, 'given_water_liquid', 0); % Get total water given
                     gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
                     expected_weight = getOr(record, 'expected_weight', NaN);
