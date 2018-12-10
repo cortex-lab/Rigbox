@@ -1,4 +1,4 @@
-function update(fatalOnError, scheduled)
+function update(scheduled)
 % GIT.UPDATE Pull latest Rigbox code 
 %   Pulls the latest code from the remote repository.  If scheduled is a
 %   value in the range [1 7] corresponding to the days of the week, the
@@ -6,8 +6,7 @@ function update(fatalOnError, scheduled)
 %   a week ago.  
 % TODO Find quicker way to check for changes
 % See also
-if nargin == 0; fatalOnError = true; end
-if nargin < 2; scheduled = 0; end
+if nargin < 1; scheduled = 0; end
 
 root = fileparts(which('addRigboxPaths'));
 lastFetch = getOr(dir(fullfile(root, '.git', 'FETCH_HEAD')), 'datenum');
@@ -28,32 +27,20 @@ gitexepath = ['"', strtrim(gitexepath), '"'];
 origDir = pwd;
 cd(root)
 
-% Check if there are changes before pulling
-% cmdstr = strjoin({gitexepath, 'fetch'});
-% system(cmdstr, '-echo');
-% if isempty(cmdout)
-%   cd(origDir)
-%   return
-% end
+cmdstrStash = [gitexepath, ' stash push -m "stash Rigbox working changes before scheduled git update"'];
+cmdstrStashSubs = [gitexepath, ' submodule foreach "git stash push"'];
+cmdstrInit = [gitexepath, ' submodule update --init'];
+cmdstrPull = [gitexepath, ' pull --recurse-submodules --strategy-option=theirs'];
 
-% Check that the submodules are initialized
-cmdstrInit = [gitexepath, ' ', 'submodule update --init'];
-[status, cmdout] = system(cmdstrInit, '-echo');
-
-% Stash any WIP changes
-cmdstrStash = [gitexepath ' ' 'stash push -m "stash working changes before scheduled git update"'];
-[status, cmdout] = system(cmdstrStash, '-echo');
-
-%Pull submodules using "theirs" merge strategy
-cmdstrPull = [gitexepath, ' ', 'pull --recurse-submodules --strategy-option=theirs'];
-[status, cmdout] = system(cmdstrPull, '-echo');
-if status ~= 0
-  if fatalOnError
-    cd(origDir)
-    error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
-  else
-    warning('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
-  end
+% Stash any WIP, check submodules are initialized, pull
+try
+  [status, cmdout] = system(cmdstrStash, '-echo');
+  [status, cmdout] = system(cmdstrStashSubs, '-echo');
+  [status, cmdout] = system(cmdstrInit, '-echo');
+  [status, cmdout] = system(cmdstrPull, '-echo');
+catch ex
+  cd(origDir)
+  error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
 end
 
 % Run any new tasks
@@ -62,6 +49,5 @@ if exist(changesPath, 'file')
   git.changes;
   delete(changesPath);
 end
-
 cd(origDir)
 end
