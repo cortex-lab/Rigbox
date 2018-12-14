@@ -711,7 +711,7 @@ classdef AlyxPanel < handle
                 case 'down'
                     A = ceil(a*c)/c;
                 otherwise
-                    A = round(a*c)/c;
+                    A = round(a, sigFigures, 'significant');
             end
         end
     end

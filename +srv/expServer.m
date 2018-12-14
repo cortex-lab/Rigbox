@@ -260,13 +260,13 @@ ShowCursor();
     rig.stimWindow.flip(); % clear the screen after
     
     % save a copy of the hardware in JSON
-    name = dat.expFilePath(expRef, 'hw-info', 'master');
-    fid = fopen([name(1:end-3) 'json'], 'w');
+    hwInfo = dat.expFilePath(expRef, 'hw-info', 'master');
+    fid = fopen(hwInfo, 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
     if ~strcmp(dat.parseExpRef(expRef), 'default')
       try
-        Alyx.registerFile([name(1:end-3) 'json']);
+        Alyx.registerFile(hwInfo);
       catch ex
         warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
       end
