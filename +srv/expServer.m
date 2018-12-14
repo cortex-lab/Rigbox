@@ -260,7 +260,7 @@ ShowCursor();
     rig.stimWindow.flip(); % clear the screen after
     
     % save a copy of the hardware in JSON
-    hwInfo = dat.expFilePath(expRef, 'hw-info', 'master');
+    hwInfo = strrep(dat.expFilePath(expRef, 'hw-info', 'master'), '.mat', '.json');
     fid = fopen(hwInfo, 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
