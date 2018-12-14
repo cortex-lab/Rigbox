@@ -52,7 +52,7 @@ reposArgs = cat(2, {repos}, location);
     switch lower(type)
       case 'block' % MAT-file with info about each set of trials
         suff = '_Block.mat';
-      case 'hw-info' % MAT-file with info about the hardware used for an experiment
+      case 'hw-info' % JSON-file with info about the hardware used for an experiment
         suff = '_hardwareInfo.json';
       case '2p-raw' % TIFF with 2-photon raw fluorescence movies
         suff = '_2P.tif';
