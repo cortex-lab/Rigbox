@@ -153,6 +153,10 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
+        (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
+      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
+        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
@@ -165,11 +169,8 @@ classdef SignalsExp < handle
       allCondPars = net.origin('condPars');
       [obj.Params, hasNext, obj.Events.repeatNum] = exp.trialConditions(...
         globalPars, allCondPars, advanceTrial);
-      
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
-      
       lastTrialOver = then(~hasNext, true);
-      
 %       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
@@ -719,7 +720,7 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        if (obj.Clock.now - t) > 0.1
+        if (obj.Clock.now - t) > 0.1 || obj.IsLooping == false
           sendSignalUpdates(obj);
           t = obj.Clock.now;
         end

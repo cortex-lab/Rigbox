@@ -8,9 +8,7 @@
 	branch = dev
 [submodule "npy-matlab"]
 	path = npy-matlab
-	url = https://github.com/cortex-lab/npy-matlab
-	branch = master
+	url = https://github.com/kwikteam/npy-matlab
 [submodule "wheelAnalysis"]
 	path = wheelAnalysis
 	url = https://github.com/cortex-lab/wheelAnalysis
-	branch = master
