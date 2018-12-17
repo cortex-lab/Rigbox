@@ -153,8 +153,6 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
-      obj.Wheel = rig.mouseInput;
-      obj.Wheel.zero();
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
       obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
@@ -221,6 +219,8 @@ classdef SignalsExp < handle
         warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
       end
       obj.DaqController = rig.daqController;
+      obj.Wheel = rig.mouseInput;
+      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
