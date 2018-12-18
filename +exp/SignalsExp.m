@@ -600,17 +600,17 @@ classdef SignalsExp < handle
       
       % collate the logs
       %events
-      obj.Data.events = logs(obj.Events, obj.Clock.ReferenceTime);
+      obj.Data.events = logs(obj.Events);
       %params
       parsLog = obj.ParamsLog.Node.CurrValue;
       obj.Data.paramsValues = [parsLog.value];
       obj.Data.paramsTimes = [parsLog.time];
       %inputs
-      obj.Data.inputs = logs(obj.Inputs, obj.Clock.ReferenceTime);
+      obj.Data.inputs = logs(obj.Inputs);
       %outputs
-      obj.Data.outputs = logs(obj.Outputs, obj.Clock.ReferenceTime);
+      obj.Data.outputs = logs(obj.Outputs);
       %audio
-%       obj.Data.audio = logs(audio, clockZeroTime);
+%       obj.Data.audio = logs(audio);
       
       % MATLAB time stamp for ending the experiment
       obj.Data.endDateTime = stopdatetime;
