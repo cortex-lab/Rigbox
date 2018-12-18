@@ -44,7 +44,20 @@ KbQueueCreate();
 KbQueueStart();
 
 % get rig hardware
-rig = hw.devices;
+try
+  rig = hw.devices;
+catch ME
+  fun.applyForce({
+  @() communicator.close(),...
+  @() delete(listener),...
+  @KbQueueRelease,...
+  @() Screen('CloseAll'),...
+  @() PsychPortAudio('Close'),...
+  @() Priority(0),... %set back to normal priority level
+  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
+  });
+  rethrow(ME)
+end
 
 cleanup = onCleanup(@() fun.applyForce({
   @() communicator.close(),...
@@ -255,6 +268,7 @@ ShowCursor();
     communicator.EventMode = false; % back to pull message mode
     aborted = strcmp(experiment.Data.endStatus, 'aborted');
     % clear the active experiment var
+    experiment.delete()
     experiment = [];
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
