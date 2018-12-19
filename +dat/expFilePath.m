@@ -50,7 +50,7 @@ extention = iff(any(numel(varargin) == [3,5]), varargin{end},...
 if any(numel(varargin) == [3,5]); varargin(end) = []; end
 
 % convert file types to file suffixes
-[repos, suffix, dateLevel] = mapToCell(@typeInfo, fileType, extention);
+[repos, suffix, dateLevel] = mapToCell(@typeInfo, fileType(:), extention(:));
 
 reposArgs = cat(2, {repos}, location);
 
