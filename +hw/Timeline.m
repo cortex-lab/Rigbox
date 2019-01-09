@@ -157,7 +157,7 @@ classdef Timeline < handle
             if obj.WriteBufferToDisk
                 fprintf(1, 'opening binary file for writing\n');
                 localPath = dat.expFilePath(expRef, 'timeline', 'local', 'dat'); % get the local exp data path
-                if ~dat.expExists(expRef); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
+                if ~exist(fileparts(localPath),'dir'); mkdir(fileparts(localPath)); end % if the folder doesn't exist, create it
                 obj.DataFID = fopen(localPath, 'w'); % open a binary data file
                 % save params now so if things crash later you at least have this record of the data type and size so you can load the dat
                 parfid = fopen([localPath(1:end-4) '.par'], 'w'); % open a parameter file
