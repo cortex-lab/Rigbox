@@ -172,6 +172,11 @@ classdef SignalsExp < handle
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
 %       obj.Events.expStop = then(~hasNext, true);
+      % If present, override WaterType
+      if isfield(paramStruct, 'waterType')
+        id = strcmp(rig.DaqController.ChannelNames,'rewardValve');
+        rig.DaqController.SignalGenerators(id).WaterType = paramStruct.waterType;
+      end
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);

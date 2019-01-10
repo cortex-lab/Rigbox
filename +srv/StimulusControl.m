@@ -21,6 +21,7 @@ classdef StimulusControl < handle
     Name % The name of the remote rig, usually the host name
     ExpPreDelay = 0 % The delay in seconds before the experiment is to start, set by mc
     ExpPostDelay = 0 % The delay in seconds after the experiment has ended before data are saved, listeners deleted, etc.  Set by mc
+    WaterType = 'default' % The water type to use.  default means whichever is defined in the hardware file
     ResponseTimeout = 15 % Time to wait for a response from the remote host before throwing an error
   end
   

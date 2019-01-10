@@ -47,7 +47,6 @@ classdef MControl < handle
     ActiveExpsGrid
     Listeners
     PrePostExpDelayEdits % Handles to pre (i=1) and post (i=2) experiment delay edit text cotrols
-    Services % Cell array of selected services
     RecordWeightButton
     ParamProfileLabel
     RefreshTimer
@@ -303,6 +302,8 @@ classdef MControl < handle
         %remove the services field since this application will specifically
         %set that field
         paramStruct = rmfield(paramStruct, 'services');
+      elseif isfield(paramStruct, 'waterType')
+        paramStruct = rmfield(paramStruct, 'waterType');
       end
       obj.Parameters.Struct = paramStruct;
       if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
@@ -472,22 +473,22 @@ classdef MControl < handle
         %   See also SRV.STIMULUSCONTROL
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
         % Create a dialog to display the selected rig options
-        d = dialog('Position',[300 300 150 150],'Name', [upper(rig.Name) ' options']);
+        d = dialog('Position',[300 300 150 200],'Name', [upper(rig.Name) ' options']);
         vbox = uix.VBox('Parent', d, 'Padding', 5);
         bui.label('Services:', vbox); % Add 'Services' label
         c = gobjects(1, length(rig.Services));
         % Ensure that SelectedServices is the correct size
         if length(rig.SelectedServices)~=length(rig.Services)
-          rig.SelectedServices = true(size(rig.Services));
+            rig.SelectedServices = true(size(rig.Services));
         end
         if numel(rig.Services) % If the rig has any services...
-          for i = 1:length(rig.Services) % ...create a check box for each of them
-            c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
-                'String', rig.Services{i}, 'Value', rig.SelectedServices(i));
-          end
+            for i = 1:length(rig.Services) % ...create a check box for each of them
+                c(i) = uicontrol('Parent', vbox, 'Style', 'checkbox',...
+                    'String', rig.Services{i}, 'Value', rig.SelectedServices(i));
+            end
         else % Otherwise indicate that no services are availible
-          bui.label('No services available', vbox);
-          i = 1; % The number of services+1, used to set the container heights
+            bui.label('No services available', vbox);
+            i = 1; % The number of services+1, used to set the container heights
         end
         uix.Empty('Parent', vbox);
         bui.label('Delays:', vbox); % Add 'Delyas' label next to rig dropdown
@@ -511,11 +512,27 @@ classdef MControl < handle
             'ExpPostDelay', str2double(get(src, 'String'))));
         obj.PrePostExpDelayEdits = [pre post]; % Store Pre and Post values in obj
         uix.Empty('Parent', vbox);
+        
+        bui.label('Water type:', vbox); % Add 'Water type' label
+        waterType = uicontrol('Parent', vbox,... % Add 'Water Type' dropdown
+            'Style', 'popupmenu',...
+            'HorizontalAlignment', 'left',...
+            'Callback', @(src, ~) put(obj.RemoteRigs.Selected,...
+            'WaterType', src.String{src.Value}));
+        if obj.AlyxPanel.AlyxInstance.IsLoggedIn
+            wt = obj.AlyxPanel.AlyxInstance.getData('water-type');
+            waterType.String = unique([{obj.RemoteRigs.Selected} {wt.name}], 'stable');
+        else
+            waterType.Enable = 'on';
+            waterType.String = {'default'};
+        end
+        uix.Empty('Parent', vbox);
+        
         uicontrol('Parent',vbox,...
             'Position',[89 20 70 25],...
             'String','Okay',...
             'Callback',@rigOptions_callback);
-        vbox.Heights = [20 repmat(15,1,i) -1 15 15 15 15 20];
+        vbox.Heights = [20 repmat(15,1,i) -1 15 15 15 -1 15 25 -1 20];
         set(obj.PrePostExpDelayEdits(1), 'String', num2str(rig.ExpPreDelay));
         set(obj.PrePostExpDelayEdits(2), 'String', num2str(rig.ExpPostDelay));
         function rigOptions_callback(varargin)
@@ -527,7 +544,7 @@ classdef MControl < handle
             vals = get(c,'Value');
             if iscell(vals); vals = cell2mat(vals); end
             rig.SelectedServices = logical(vals');
-            close(gcf) % close the 
+            close(gcf) % close the
         end
     end
         
@@ -562,6 +579,11 @@ classdef MControl < handle
         % Add these services to the parameters
         obj.Parameters.set('services', services(:),...
             'List of experiment services to use during the experiment');
+        % Add water type to paramters
+        if ~strcmp(rig.WaterType, 'default')
+            obj.Parameters.set('waterType', rig.WaterType,...
+                'Type of water given during experiment');
+        end
         % Create new experiment reference
         [expRef, ~, url] = obj.AlyxPanel.AlyxInstance.newExp(...
           obj.NewExpSubject.Selected, now, obj.Parameters.Struct); 
