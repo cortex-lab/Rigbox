@@ -449,11 +449,11 @@ classdef AlyxPanel < handle
             try
                 w = postWeight(ai, weight, subject);
                 obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
-            catch
+            catch ex
                 if ~ai.IsLoggedIn % if not logged in, save the weight for later
                     obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
                 else
-                    obj.log('Warning: Alyx weight posting failed!');
+                    obj.log('Warning: Alyx weight posting failed! %s', ex.message);
                 end
             end
             % Update weight and refresh login timer
@@ -548,7 +548,7 @@ classdef AlyxPanel < handle
                 return
             end
             expected = [records.expected_weight];
-            expected(expected==0) = nan;
+            expected(expected==0|isnan([records.weighing_at])) = nan;
             dates = cellfun(@(x)datenum(x), {records.date});
             
             % build the figure to show it
@@ -561,13 +561,18 @@ classdef AlyxPanel < handle
                 ax = axes('Parent', plotBox);
             end
             
-            plot(ax, dates, [records.weight], '.-');
+            plot(ax, dates, [records.weighing_at], '.-');
             hold(ax, 'on');
             plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
             plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
             box(ax, 'off');
             % Change the plot x axis limits
-            if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
+            maxDate = max(dates([records.is_water_restricted]|~isnan([records.weighing_at])));
+            if numel(dates) > 1 && ~isempty(maxDate)
+              xlim(ax, [min(dates) maxDate])
+            else
+              maxDate = now;
+            end
             if nargin == 1
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
             else
@@ -578,23 +583,23 @@ classdef AlyxPanel < handle
             
             if nargin==1
                 ax = axes('Parent', plotBox);
-                plot(ax, dates, ([records.weight]-iw)./(expected-iw), '.-');
+                plot(ax, dates, ([records.weighing_at]-iw)./(expected-iw), '.-');
                 hold(ax, 'on');
                 plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
                 plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
                 box(ax, 'off');
-                xlim(ax, [min(dates) max(dates)]);
+                xlim(ax, [min(dates) maxDate]);
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
                 ylabel(ax, 'weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(axWater, dates, obj.round([records.given_water_liquid]+[records.given_water_hydrogel], 'up'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_total], 'up'), '.-');
                 hold(axWater, 'on');
                 plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
-                xlim(axWater, [min(dates) max(dates)]);
+                xlim(axWater, [min(dates) maxDate]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
                 ylabel(axWater, 'water/hydrogel (mL)');
                 
@@ -603,23 +608,24 @@ classdef AlyxPanel < handle
                 histTable = uitable('Parent', histbox,...
                     'FontName', 'Consolas',...
                     'RowName', []);
-                weightsByDate = num2cell([records.weight]);
+                weightsByDate = num2cell([records.weighing_at]);
                 weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
-                weightsByDate(isnan([records.weight])) = {[]};
-                weightPctByDate = num2cell(([records.weight]-iw)./(expected-iw));
+                weightsByDate(isnan([records.weighing_at])) = {[]};
+                weightPctByDate = num2cell(([records.weighing_at]-iw)./(expected-iw));
                 weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
-                weightPctByDate(isnan([records.weight])) = {[]};
+                weightPctByDate(isnan([records.weighing_at])|~[records.is_water_restricted]) = {[]};
                 
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
                     weightsByDate', ...
-                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.expected_weight]', 'uni', false), ...
+                    arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', 0.8*(x-iw)+iw)), expected', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
                     num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
-                    [records.given_water_liquid]'+[records.given_water_hydrogel]', [records.expected_water]',...
-                    [records.given_water_liquid]'+[records.given_water_hydrogel]'-[records.expected_water]')));
+                    [records.given_water_total]', [records.expected_water]',...
+                    [records.given_water_total]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
+                waterDat(~[records.is_water_restricted],[1,3]) = {'ad lib'};
                 dat = horzcat(dat, waterDat);
                 
                 set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
