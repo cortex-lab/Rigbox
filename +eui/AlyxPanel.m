@@ -142,14 +142,14 @@ classdef AlyxPanel < handle
                 'String', 'Manual weighing', ...
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.recordWeight);
-            % Button to launch dialog for submitting gel administrations
+            % Button to launch dialog for submitting water administrations
             % for future dates
             uicontrol('Parent', waterbox,...
                 'Style', 'pushbutton', ...
                 'String', 'Give water in future', ...
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.giveFutureWater);
-            % Check box to indicate whether water was gel or liquid
+            % Dropdown to indicate water type (sucrose, gel, etc.)
             obj.WaterType = uicontrol('Parent', waterbox,...
                 'Style', 'popupmenu', ...
                 'String', {'Water'}, ...
@@ -309,8 +309,10 @@ classdef AlyxPanel < handle
             % paramProfiles file.  This may be used to notify weekend staff
             % of the experimentor's intent to train on that date.  
             thisDate = now;
-            prompt = sprintf(['Enter space-separated numbers \n'...
-              '[tomorrow, day after that, day after that.. etc] \n',...
+            waterType = obj.WaterType.String{obj.WaterType.Value};
+            prompt = sprintf(['To post future ', strrep(lower(waterType), '%', '%%'), ', ',...
+              'enter space-separated numbers, i.e. \n',...
+              '[tomorrow, day after that, day after that.. etc] \n\n',...
               'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
             amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
@@ -326,13 +328,18 @@ classdef AlyxPanel < handle
               delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
               obj.log('%s marked for training on %s',...
                 obj.Subject, strjoin(strtrim(string(days)), delim));
+            else % If no training dates given, delete from structure
+              try
+                dat.delParamProfile('WeekendWater', obj.Subject);
+              catch % Subject field may not exist is never marked for training
+              end
             end
             
             futWtrDates = futDates(amt > 0); % future water giving dates
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
             
             for d = 1:length(futWtrDates)
-                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), 'Water');
+                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), waterType);
                 [~,day] = weekday(futWtrDates(d), 'long');
                 obj.log('Water administration of %.2f for %s posted successfully to alyx for %s %s',...
                     amtWtrDates(d), obj.Subject, day, datestr(futWtrDates(d), 'dd mmm yyyy'));
@@ -371,7 +378,7 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
-                    weight = getOr(record, 'weight', NaN); % Get today's measured weight
+                    weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
                     water = getOr(record, 'given_water_liquid', 0); % Get total water given
                     gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
                     expected_weight = getOr(record, 'expected_weight', NaN);
@@ -473,7 +480,7 @@ classdef AlyxPanel < handle
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
-            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
+            if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), thisDate(1:10))
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
@@ -538,8 +545,7 @@ classdef AlyxPanel < handle
             % If not logged in or 'default' is selected, return
             if ~obj.AlyxInstance.IsLoggedIn||strcmp(obj.Subject, 'default'); return; end
             % collect the data for the table
-            endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
-            wr = obj.AlyxInstance.getData(endpnt);
+            wr = obj.AlyxInstance.getData(['water-requirement/', obj.Subject]);
             iw = iff(isempty(wr.implant_weight), 0, wr.implant_weight);
             records = catStructs(wr.records, nan);
             % no weighings found
@@ -716,7 +722,7 @@ classdef AlyxPanel < handle
                 case 'down'
                     A = ceil(a*c)/c;
                 otherwise
-                    A = round(a*c)/c;
+                    A = round(a, sigFigures, 'significant');
             end
         end
     end

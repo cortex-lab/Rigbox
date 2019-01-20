@@ -1,4 +1,4 @@
-function update(fatalOnError, scheduled)
+function update(scheduled)
 % GIT.UPDATE Pull latest Rigbox code 
 %   Pulls the latest code from the remote repository.  If scheduled is a
 %   value in the range [1 7] corresponding to the days of the week, the
@@ -6,12 +6,12 @@ function update(fatalOnError, scheduled)
 %   a week ago.  
 % TODO Find quicker way to check for changes
 % See also
-if nargin == 0; fatalOnError = true; end
-if nargin < 2; scheduled = 0; end
+if nargin < 1; scheduled = getOr(dat.paths, 'updateSchedule', 0); end
 
 root = fileparts(which('addRigboxPaths'));
 lastFetch = getOr(dir(fullfile(root, '.git', 'FETCH_HEAD')), 'datenum');
-if scheduled && weekday(now) ~= scheduled && now - lastFetch < 7
+if (scheduled && weekday(now) ~= scheduled && now - lastFetch < 7) || ...
+        (~scheduled && now - lastFetch < 1/24)
   return
 end
 disp('Updating code...')
@@ -19,33 +19,29 @@ disp('Updating code...')
 % Get the path to the Git exe
 gitexepath = getOr(dat.paths, 'gitExe');
 if isempty(gitexepath)
-  [~,gitexepath] = system('where git');
+  [~,gitexepath] = system('where git'); % this doesn't always work
 end
 gitexepath = ['"', strtrim(gitexepath), '"'];
 
-% Temporarily change directory into Rigbox
+% Temporarily change directory into Rigbox to git pull
 origDir = pwd;
 cd(root)
 
-% Check if there are changes before pulling
-% cmdstr = strjoin({gitexepath, 'fetch'});
-% system(cmdstr, '-echo');
-% if isempty(cmdout)
-%   cd(origDir)
-%   return
-% end
+cmdstrStash = [gitexepath, ' stash push -m "stash Rigbox working changes before scheduled git update"'];
+cmdstrStashSubs = [gitexepath, ' submodule foreach "git stash push"'];
+cmdstrInit = [gitexepath, ' submodule update --init'];
+cmdstrPull = [gitexepath, ' pull --recurse-submodules --strategy-option=theirs'];
 
-cmdstr = strjoin({gitexepath, 'pull'});
-[status, cmdout] = system(cmdstr);
-if status ~= 0
-  if fatalOnError
-    cd(origDir)
-    error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
-  else
-    warning('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
-  end
+% Stash any WIP, check submodules are initialized, pull
+try
+  [status, cmdout] = system(cmdstrStash, '-echo');
+  [status, cmdout] = system(cmdstrStashSubs, '-echo');
+  [status, cmdout] = system(cmdstrInit, '-echo');
+  [status, cmdout] = system(cmdstrPull, '-echo');
+catch ex
+  cd(origDir)
+  error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
 end
-% TODO: check if submodules are empty and use init flag
 
 % Run any new tasks
 changesPath = fullfile(root, 'cortexlab', '+git', 'changes.m');
@@ -53,6 +49,5 @@ if exist(changesPath, 'file')
   git.changes;
   delete(changesPath);
 end
-
 cd(origDir)
 end
