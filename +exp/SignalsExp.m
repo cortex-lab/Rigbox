@@ -153,6 +153,10 @@ classdef SignalsExp < handle
       obj.Events.newTrial = net.origin('newTrial');
       obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
+      obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
+        (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
+      obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
+        @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
@@ -165,11 +169,8 @@ classdef SignalsExp < handle
       allCondPars = net.origin('condPars');
       [obj.Params, hasNext, obj.Events.repeatNum] = exp.trialConditions(...
         globalPars, allCondPars, advanceTrial);
-      
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
-      
       lastTrialOver = then(~hasNext, true);
-      
 %       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
@@ -599,17 +600,17 @@ classdef SignalsExp < handle
       
       % collate the logs
       %events
-      obj.Data.events = logs(obj.Events, obj.Clock.ReferenceTime);
+      obj.Data.events = logs(obj.Events);
       %params
       parsLog = obj.ParamsLog.Node.CurrValue;
       obj.Data.paramsValues = [parsLog.value];
       obj.Data.paramsTimes = [parsLog.time];
       %inputs
-      obj.Data.inputs = logs(obj.Inputs, obj.Clock.ReferenceTime);
+      obj.Data.inputs = logs(obj.Inputs);
       %outputs
-      obj.Data.outputs = logs(obj.Outputs, obj.Clock.ReferenceTime);
+      obj.Data.outputs = logs(obj.Outputs);
       %audio
-%       obj.Data.audio = logs(audio, clockZeroTime);
+%       obj.Data.audio = logs(audio);
       
       % MATLAB time stamp for ending the experiment
       obj.Data.endDateTime = stopdatetime;
@@ -719,7 +720,7 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
-        if (obj.Clock.now - t) > 0.1
+        if (obj.Clock.now - t) > 0.1 || obj.IsLooping == false
           sendSignalUpdates(obj);
           t = obj.Clock.now;
         end
