@@ -521,10 +521,10 @@ classdef MControl < handle
             'WaterType', src.String{src.Value}));
         if obj.AlyxPanel.AlyxInstance.IsLoggedIn
             wt = obj.AlyxPanel.AlyxInstance.getData('water-type');
-            waterType.String = unique([{obj.RemoteRigs.Selected} {wt.name}], 'stable');
+            waterType.String = unique([{obj.RemoteRigs.Selected.WaterType} {wt.name}], 'stable');
         else
             waterType.Enable = 'on';
-            waterType.String = {'default'};
+            waterType.String = unique([{obj.RemoteRigs.Selected.WaterType} {'default'}], 'stable');
         end
         uix.Empty('Parent', vbox);
         
