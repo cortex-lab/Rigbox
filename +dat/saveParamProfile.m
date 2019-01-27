@@ -9,7 +9,7 @@ function saveParamProfile(expType, profileName, params)
 
 %path to repositories
 fn = 'parameterProfiles.mat';
-repos = fullfile(dat.reposPath('expInfo'), fn);
+repos = fullfile(dat.reposPath('main'), fn);
 
 %load existing profiles for specified expType
 profiles = dat.loadParamProfiles(expType);
@@ -17,7 +17,7 @@ profiles = dat.loadParamProfiles(expType);
 profiles.(profileName) = params;
 %wrap in a struct for saving
 set = struct;
-set.(expType) = profiles;
+set.(expType) = profiles; %#ok<STRNU>
 
 %save the updated set of profiles to each repos
 %where files exist already, append

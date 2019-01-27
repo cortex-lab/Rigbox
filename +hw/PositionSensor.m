@@ -1,7 +1,8 @@
 classdef PositionSensor < hw.DataLogging
   %HW.POSITIONSENSOR Abstract class for tracking positions from a sensor
   %   Takes care of logging positions and times every time readPosition is
-  %   called. Has a zeroing function and a gain parameter.
+  %   called. Has a zeroing function and a gain parameter.  This class is
+  %   intended only for linear position sensors.
   %
   % Part of Rigbox
 
@@ -17,7 +18,7 @@ classdef PositionSensor < hw.DataLogging
     LastPosition %Most recent position read
   end
   
-  properties (Access = protected)
+  properties (SetAccess = protected)
     ZeroOffset = 0
   end
 
@@ -35,7 +36,10 @@ classdef PositionSensor < hw.DataLogging
     end
     
     function value = get.LastPosition(obj)
-      value = obj.DataBuffer(obj.SampleCount);
+      value = [];
+      if obj.SampleCount
+        value = obj.DataBuffer(obj.SampleCount);
+      end
     end
 
     function zero(obj, log)

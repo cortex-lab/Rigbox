@@ -107,7 +107,7 @@ classdef ParamEditor < handle
        obj.SetValuesButton = uicontrol('Parent', conditionButtonBox,...
          'Style', 'pushbutton',...
          'String', 'Set values',...
-         'TooltipString', sprintf('Set selected values to specified value, range or function'),...
+         'TooltipString', 'Set selected values to specified value, range or function',...
          'Enable', 'off',...
          'Callback', @(~, ~) obj.setSelectedValues());
         
@@ -394,10 +394,12 @@ classdef ParamEditor < handle
     end
     
     function data = controlValue2Param(obj, currParam, data, allowTypeChange)
+      % Convert the values displayed in the UI ('control values') to
+      % parameter values.  String representations of numrical arrays and
+      % functions are converted back to their 'native' classes.
       if nargin < 4
         allowTypeChange = false;
       end
-      % convert from control value to parameter value
       switch class(currParam)
         case 'function_handle'
           data = str2func(data);
@@ -432,13 +434,17 @@ classdef ParamEditor < handle
     end
     
     function data = paramValue2Control(obj, data)
-      % convert from parameter value to control value
+      % convert from parameter value to control value, i.e. a value class
+      % that can be easily displayed and edited by the user.  Everything
+      % except logicals are converted to charecter arrays.
       switch class(data)
         case 'function_handle'
           % convert a function handle to it's string name
           data = func2str(data);
         case 'logical'
           data = data ~= 0; % If logical do nothing, basically.
+        case 'string'
+          data = char(data); % Strings not allowed in condition table data
         otherwise
           if isnumeric(data)
             % format numeric types as string number list
@@ -448,7 +454,7 @@ classdef ParamEditor < handle
             data = strJoin(data, ', ');
           end
       end
-      % all other data types stay as they are, including e.g. strings
+      % all other data types stay as they are
     end
     
     function fillConditionTable(obj)
@@ -482,15 +488,14 @@ classdef ParamEditor < handle
       title = obj.Parameters.title(name);
       description = obj.Parameters.description(name);
       
-%       if isnumeric(value) % Why? All this would do is convert logical values to char; everything else dealt with by paramValue2Control.  MW 2017-02-15
-%         value = num2str(value);
-%       end
       if islogical(value) % If parameter is logical, make checkbox
-        ctrl = uicontrol('Parent', parent,...
-          'Style', 'checkbox',...
-          'TooltipString', description,...
-          'Value', value,... % Added 2017-02-15 MW set checkbox to what ever the parameter value is
-          'Callback', @(src, e) obj.updateGlobal(name, src));
+        for i = 1:length(value)
+          ctrl(end+1) = uicontrol('Parent', parent,...
+            'Style', 'checkbox',...
+            'TooltipString', description,...
+            'Value', value(i),... % Added 2017-02-15 MW set checkbox to what ever the parameter value is
+            'Callback', @(src, e) obj.updateGlobal(name, src));
+        end
       elseif ischar(value)
         ctrl = uicontrol('Parent', parent,...
           'BackgroundColor', [1 1 1],...

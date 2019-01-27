@@ -88,10 +88,13 @@ classdef MControl < handle
       addlistener(obj.AlyxPanel, 'Disconnected', @obj.expSubjectChanged);
       try
         if isfield(rig, 'scale') && ~isempty(rig.scale)
-          obj.WeighingScale = fieldOrDefault(rig, 'scale');
+          obj.WeighingScale = getOr(rig, 'scale');
           init(obj.WeighingScale);
+          % Add listners for new reading, both for the log tab and also for
+          % the weigh button in the Alyx Panel.
           obj.Listeners = [obj.Listeners,...
-            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}];
+            {event.listener(obj.WeighingScale, 'NewReading', @obj.newScalesReading)}...
+            {event.listener(obj.WeighingScale, 'NewReading', @(src,evt)obj.AlyxPanel.updateWeightButton(src,evt))}];
         end
       catch
         obj.log('Warning: could not connect to weighing scales');
@@ -343,8 +346,8 @@ classdef MControl < handle
               subject = dat.parseExpRef(evt.Ref);
               sd = rig.AlyxInstance.getData(sprintf('subjects/%s', subject));
               obj.log('Water requirement remaining for %s: %.2f (%.2f already given)', ...
-                  subject, sd.water_requirement_remaining, ...
-                  sd.water_requirement_total-sd.water_requirement_remaining);
+                  subject, sd.remaining_water, ...
+                  sd.expected_water-sd.remaining_water);
           catch
               subject = dat.parseExpRef(evt.Ref);
               obj.log('Warning: unable to query Alyx about %s''s water requirements', subject);
@@ -617,6 +620,7 @@ classdef MControl < handle
         MinSignificantWeight = 5; %grams
         if g >= MinSignificantWeight
           obj.WeightReadingPlot = obj.WeightAxes.scatter(floor(now), g, 20^2, 'p', 'filled');
+          obj.WeightAxes.XLim = [min(get(obj.WeightAxes.Handle, 'XTick')) max(now)];
           set(obj.RecordWeightButton, 'Enable', 'on', 'String', sprintf('Record %.1fg', g));
         end
       end

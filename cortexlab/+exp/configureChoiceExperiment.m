@@ -34,14 +34,14 @@ toneLen = params.Struct.onsetToneDuration; % seconds
 toneMaxAmp = params.Struct.onsetToneMaxAmp;
 rampLen = 0.01; %secs - length of amplitude ramp up/down
 toneSamples = toneMaxAmp*aud.pureTone(toneFreq, toneLen, audSampleRate, rampLen);
-toneSamples = repmat(toneSamples, 2, 1); % replicate across two channels/stereo
+toneSamples = repmat(toneSamples, dev.NrOutputChannels, 1); % replicate across channels/stereo
 params.set('onsetToneSamples', {toneSamples},...
   sprintf('The data samples for the onset tone, sampled at %iHz', audSampleRate), 'normalised');
 
 %% Generate noise burst for negative feedback
 % white noise, duplicated across two channels
 noiseSamples = repmat(...
-  randn(1, params.Struct.negFeedbackSoundDuration*audSampleRate), 2, 1);
+  randn(1, params.Struct.negFeedbackSoundDuration*audSampleRate), dev.NrOutputChannels, 1);
 params.set('negFeedbackSoundSamples', {noiseSamples},...
   sprintf('The samples for the negative feedback sound, sampled at %iHz', audSampleRate),...
   'normalised');
@@ -117,6 +117,8 @@ if isfield(params.Struct, 'rewardOnStimulus') && any(params.Struct.rewardOnStimu
   % or 'onsetToneSoundPlayed' 'stimulusCueStarted'
   stimRewardHandler = exp.EventHandler('stimulusCueStarted');
   stimRewardHandler.addAction(exp.DeliverReward('rewardOnStimulus'));
+  % Small delay to allow time for screen flip before the samples output
+  stimRewardHandler.Delay = exp.FixedTime(0.05);
   experiment.addEventHandler(stimRewardHandler);
   terminationHandler = exp.EventHandler('responseMade');
   terminationHandler.addCallback(@(inf,t)reset(inf.Experiment.RewardController));

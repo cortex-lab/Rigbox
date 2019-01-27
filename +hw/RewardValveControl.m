@@ -14,6 +14,9 @@ classdef RewardValveControl < hw.PulseSwitcher & handle
     % 'volumeMicroLitres' indicating the duration the valve was open, and the
     % measured volume (in ul) for that delivery. These points are interpolated
     % to work out how long to open the valve for arbitrary volumes.
+    WaterType = 'Water'
+    % The type of water dispenced by the rig.  This is used to populate the
+    % water_type field in Alyx sessions.
   end
   
   methods

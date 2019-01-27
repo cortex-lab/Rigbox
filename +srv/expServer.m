@@ -19,6 +19,8 @@ toggleBackground = KbName('b');
 rewardId = 1;
 
 %% Initialisation
+% Pull latest changes from remote
+git.update();
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
@@ -42,7 +44,20 @@ KbQueueCreate();
 KbQueueStart();
 
 % get rig hardware
-rig = hw.devices;
+try
+  rig = hw.devices;
+catch ME
+  fun.applyForce({
+  @() communicator.close(),...
+  @() delete(listener),...
+  @KbQueueRelease,...
+  @() Screen('CloseAll'),...
+  @() PsychPortAudio('Close'),...
+  @() Priority(0),... %set back to normal priority level
+  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
+  });
+  rethrow(ME)
+end
 
 cleanup = onCleanup(@() fun.applyForce({
   @() communicator.close(),...
@@ -170,16 +185,17 @@ ShowCursor();
           end
         case 'run'
           % exp run request
-          [expRef, preDelay, postDelay, Alyx] = args{:};
-          Alyx.Headless = true; % Supress all dialog prompts
+          [expRef, preDelay, postDelay, AlyxInstance] = args{:};
+          if isempty(AlyxInstance); AlyxInstance = Alyx('',''); end
+          AlyxInstance.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
             log('Starting experiment ''%s''', expRef);
             communicator.send(id, []);
             try
               communicator.send('status', {'starting', expRef});
-              runExp(expRef, preDelay, postDelay, Alyx);
+              aborted = runExp(expRef, preDelay, postDelay, AlyxInstance);
               log('Experiment ''%s'' completed', expRef);
-              communicator.send('status', {'completed', expRef});
+              communicator.send('status', {'completed', expRef, aborted});
             catch runEx
               communicator.send('status', {'expException', expRef, runEx.message});
               log('Exception during experiment ''%s'' because ''%s''', expRef, runEx.message);
@@ -193,7 +209,8 @@ ShowCursor();
         case 'quit'
           if ~isempty(experiment)
             immediately = args{1};
-            AlyxInstance = args{2};
+            AlyxInstance = iff(isempty(args{2}), Alyx('',''), args{2});
+            AlyxInstance.Headless = true;
             if immediately
               log('Aborting experiment');
             else
@@ -208,7 +225,8 @@ ShowCursor();
             log('Quit message received but no experiment is running\n');
           end
         case 'updateAlyxInstance' %recieved new Alyx Instance from Stimulus Control
-            AlyxInstance = args{1}; %get struct
+            AlyxInstance = iff(isempty(args{1}), Alyx('',''), args{1});
+            AlyxInstance.Headless = true;
             if ~isempty(AlyxInstance)
               experiment.AlyxInstance = AlyxInstance; %set property for current experiment
             end
@@ -217,7 +235,7 @@ ShowCursor();
     end
   end
 
-  function runExp(expRef, preDelay, postDelay, Alyx)
+  function aborted = runExp(expRef, preDelay, postDelay, Alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -248,11 +266,25 @@ ShowCursor();
     experiment.AlyxInstance = Alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
+    aborted = strcmp(experiment.Data.endStatus, 'aborted');
     % clear the active experiment var
+    experiment.delete()
     experiment = [];
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
+    % save a copy of the hardware in JSON
+    fid = fopen(dat.expFilePath(expRef, 'hw-info', 'master', 'json'), 'w');
+    fprintf(fid, '%s', obj2json(rig));
+    fclose(fid);
+    if ~strcmp(dat.parseExpRef(expRef), 'default')
+      try
+        Alyx.registerFile(hwInfo);
+      catch ex
+        warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
+      end
+    end
+
     if rig.timeline.UseTimeline
       %stop the timeline system
       rig.timeline.stop();

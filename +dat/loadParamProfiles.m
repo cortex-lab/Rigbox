@@ -8,7 +8,7 @@ function p = loadParamProfiles(expType)
 % 2017-02 MW Param struct now sorted in ASCII dictionary order
 
 fn = 'parameterProfiles.mat';
-masterPath = fullfile(dat.reposPath('expInfo', 'master'), fn);
+masterPath = fullfile(dat.reposPath('main', 'master'), fn);
 
 p = struct; %default is to return an empty struct
 
@@ -18,7 +18,8 @@ if file.exists(masterPath)
   loaded = load(masterPath, expType); %load profiles for specific experiment type
   warning(origState);
   if isfield(loaded, expType)
-    p = orderfields(loaded.(expType)); %extract those profiles to return
+    [~, I] = sort(lower(fieldnames(loaded.(expType))));
+    p = orderfields(loaded.(expType), I); %extract those profiles to return
   end
 end
 
