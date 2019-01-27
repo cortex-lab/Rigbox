@@ -120,6 +120,7 @@ classdef SignalsExp < handle
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
     
+    BallSocket
   end
   
   properties (Access = protected)
@@ -159,6 +160,12 @@ classdef SignalsExp < handle
         @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
       obj.Inputs.keyboard = net.origin('keyboard');
+      ball = net.origin('ball');
+      ballHost = getOr(paramStruct, 'ballHostname', []);
+      if ~isempty(ballHost)
+        obj.Inputs.ball = ball.subscriptable();
+        obj.BallSocket = srv.BallUDPService(ballHost, obj.Inputs.ball);
+      end
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
@@ -732,6 +739,7 @@ classdef SignalsExp < handle
         drawnow; % allow other callbacks to execute
       end
       ensureWindowReady(obj); % complete any outstanding refresh
+      if ~isempty(obj.BallSocket); delete(obj.BallSocket); end
     end
     
     function checkInput(obj)
