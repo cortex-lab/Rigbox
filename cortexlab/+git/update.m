@@ -9,7 +9,12 @@ function update(scheduled)
 if nargin < 1; scheduled = getOr(dat.paths, 'updateSchedule', 0); end
 
 root = fileparts(which('addRigboxPaths'));
-lastFetch = getOr(dir(fullfile(root, '.git', 'FETCH_HEAD')), 'datenum');
+% Attempt to find date of last fetch
+fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
+lastFetch = iff(exist(fetch_head,'file')==2, ... % If FETCH_HEAD file exists
+  @()getOr(dir(fetch_head), 'datenum'), 0); % Retrieve date modified
+% If the code has not been fetched in over a week, force and update,
+% otherwise return
 if (scheduled && weekday(now) ~= scheduled && now - lastFetch < 7) || ...
         (~scheduled && now - lastFetch < 1/24)
   return
