@@ -11,8 +11,8 @@ function update(scheduled)
 % TODO Find quicker way to check for changes
 % See also DAT.PATHS
 
-% If not given as input argument, find 'scheduled' in 'dat.paths'. If not
-% found, set 'scheduled' to 0.
+% If not given as input argument, use 'updateSchedule' in 'dat.paths'. If
+% not found, set 'scheduled' to 0.
 if nargin < 1; scheduled = getOr(dat.paths, 'updateSchedule', 0); end
 root = fileparts(which('addRigboxPaths')); % Rigbox root directory
 % Attempt to find date of last fetch
@@ -26,9 +26,9 @@ lastFetch = iff(exist(fetch_head,'file')==2, ... % If FETCH_HEAD file exists
 % 2. The updates are scheduled for today and the last fetch was today.
 % 3. The updates are scheduled for every day and the last fetch was less
 % than an hour ago.
-if ((scheduled && weekday(now)) ~= (scheduled && (now - lastFetch < 7))) || ...
-    ((scheduled && weekday(now)) == (scheduled && (now - lastFetch < 1))) || ...
-    (~scheduled && (now - lastFetch < 1/24))
+if (scheduled && (weekday(now) ~= scheduled) && now - lastFetch < 7) || ...
+    (scheduled && (weekday(now) == scheduled) && now - lastFetch < 1) || ...
+        (~scheduled && now - lastFetch < 1/24)
   return
 end
 disp('Updating code...')
