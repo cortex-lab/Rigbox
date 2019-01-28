@@ -194,8 +194,8 @@ classdef ChoiceWorld < exp.LIARExperiment
                     numCorrect = 0;
                   end
                   sessionData = struct('end_time', obj.AlyxInstance.datestr(now), ...
-                    'subject', subject, 'n_trials', numTrials, 'n_correct_trials', numCorrect);
-                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'put');
+                    'n_trials', numTrials, 'n_correct_trials', numCorrect);
+                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'patch');
                 else
                   % Infer from date session and retrieve using expFilePath
                 end
