@@ -576,6 +576,11 @@ classdef SignalsExp < handle
       obj.Data.startDateTime = now;
       obj.Data.startDateTimeStr = datestr(obj.Data.startDateTime);
       
+      % Start listening to the ball UDPs, if availiable
+      if ~isempty(obj.BallSocket)
+        bind(obj.BallSocket);
+      end
+      
       %init end status to nothing
       obj.Data.endStatus = [];
       

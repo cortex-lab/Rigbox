@@ -8,6 +8,7 @@ classdef BallUDPService < srv.BasicUDPService
   %     net = sig.Net;
   %     ball = net.subscriptableOrigin('ball');
   %     ballSocket = srv.BallUDPService(ballHost, ball);
+  %     bind(ballSocket);
   %
   %   See also SRV.BASICUDPSERVICE, UDP.
   %
@@ -22,39 +23,20 @@ classdef BallUDPService < srv.BasicUDPService
     Ball
   end
       
-  methods
-    function delete(obj)
-      % To be called before destroying BasicUDPService object.  Deletes all
-      % timers, sockets and listeners Tidy up after ourselves by closing
-      % the listening sockets
-      if ~isempty(obj.Socket)
-        fclose(obj.Socket); % Close the connection
-        delete(obj.Socket); % Delete the socket
-        obj.Socket = []; % Delete udp object
-        obj.Listener = []; % Delete any listeners to that object
-        if ~isempty(obj.ResponseTimer) % If there is a timer object 
-          stop(obj.ResponseTimer) % Stop the timer..
-          delete(obj.ResponseTimer) % Delete the timer...
-          obj.ResponseTimer = []; % ... and remove it
-        end
-      end
-    end
-    
-    function obj = BallUDPService(ball, remoteHost)
+  methods    
+    function obj = BallUDPService(remoteHost, ball)
       % SRV.BASICUDPSERVICE(remoteHost [remotePort, listenPort])
       %   remoteHost is the hostname of the service with which to send and
-      %   receive messages.
-      if nargin < 2; remoteHost = ''; end
-      obj.RemoteHost = remoteHost;
-      obj.ListenPort = 9999;
-      obj.Socket = udp(remoteHost, 'LocalPort', obj.ListenPort);
-      obj.Socket.ReadAsyncMode = 'continuous';
+      %   receive messages.  
+      %
+      % See also EXP.SIGNALSEXP
+      if nargin < 2; remoteHost = ''; end      
+      obj = obj@srv.BasicUDPService(remoteHost, [], 9999);
+      % Clear function created by superclass
+      obj.Socket.BytesAvailableFcn = '';
       obj.Socket.DatagramReceivedFcn = @(~,~)obj.processMsg;
-      obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
-        'PostSet',@(src,~)obj.update(src));
       % Set ball origin signal
       obj.Ball = ball;
-      obj.bind;
     end
             
     function start(~, ~, ~)
@@ -65,17 +47,15 @@ classdef BallUDPService < srv.BasicUDPService
       % Send stop message to remotehost and await confirmation
     end
                 
-%     function receiveUDP(obj)
-%       obj.LastReceivedMessage = strtrim(fscanf(obj.Socket));
-%       % Remove any more accumulated inputs to the listener
-% %       obj.Socket.flushinput();
-%       notify(obj, 'MessageReceived')
-%     end
-    
   end
   
   methods (Access = protected)
       function processMsg(obj)
+       % PROCESSMSG Convert UDP string to struct and post to ball Signal
+       %  Reads in the buffer as a character array, trims any trailing
+       %  spaces and converts to cell array of numbers.  This is then
+       %  assigned to the fields of a structure and posted to the origin
+       %  Signal stored in obj.Ball
        obj.LastReceivedMessage = strtrim(char(fread(obj.Socket)'));
        C = cellfun(@str2num,strsplit(obj.LastReceivedMessage), 'uni', 0);
        [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});

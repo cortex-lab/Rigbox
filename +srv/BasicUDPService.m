@@ -90,11 +90,17 @@ classdef BasicUDPService < srv.Service
       %   remoteHost is the hostname of the service with which to send and
       %   receive messages.
       obj.RemoteHost = remoteHost; % Set hostname
-      obj.RemoteIP = ipaddress(remoteHost); % Get IP address
       if nargin >= 3; obj.ListenPort = listenPort; end % Set local port
       if nargin >= 2; obj.RemotePort = remotePort; end % Set remote port
-      obj.Socket = udp(obj.RemoteIP,... % Create udp object
-        'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
+      if isempty(obj.RemotePort)
+        obj.Socket = udp(obj.RemoteHost, 'LocalPort', obj.ListenPort);
+      else
+        obj.RemoteIP = ipaddress(remoteHost); % Get IP address
+        obj.Socket = udp(obj.RemoteIP,... % Create udp object
+          'RemotePort', obj.RemotePort, 'LocalPort', obj.ListenPort);
+        % Add listener for when the remote service's status is requested
+        obj.addlistener('Status', 'PreGet', @(~,~)obj.requestStatus);
+      end
       obj.Socket.ReadAsyncMode = 'continuous';
       obj.Socket.BytesAvailableFcnCount = 10; % Number of bytes in buffer required to trigger BytesAvailableFcn
       obj.Socket.BytesAvailableFcn = @(~,~)obj.receiveUDP; % Add callback to receiveUDP when enough bytes arrive in the buffer
@@ -104,8 +110,6 @@ classdef BasicUDPService < srv.Service
       % Add listener for when the observable properties are set 
       obj.addlistener({'RemoteHost', 'ListenPort', 'RemotePort', 'EnablePortSharing'},...
         'PostSet',@(src,~)obj.update(src));
-      % Add listener for when the remote service's status is requested
-      obj.addlistener('Status', 'PreGet', @(~,~)obj.requestStatus);
     end
     
     function update(obj, src)
