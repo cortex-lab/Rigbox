@@ -247,10 +247,10 @@ classdef MControl < handle
     end
     
     function loadParamProfile(obj, profile)
+      set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
-        %delete existing parameters control
-        delete(obj.ParamEditor);
-        set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
+        % Clear existing parameters control
+        % TODO
       end
       
       factory = obj.NewExpFactory; % Find which 'world' we are in
@@ -305,12 +305,18 @@ classdef MControl < handle
         paramStruct = rmfield(paramStruct, 'services');
       end
       obj.Parameters.Struct = paramStruct;
-      if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
-        obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
-        obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
-        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
-          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
-        end
+      if isempty(paramStruct); return; end
+      % Now parameters are loaded, pass to ParamEditor for display, etc.
+      if isempty(obj.ParamEditor)
+        panel = uipanel('Parent', obj.ParamPanel, 'Position', [0 0 1 1]);
+%         panel = uiextras.Panel('Parent', obj.ParamPanel);
+        obj.ParamEditor = eui.ParamEditor(obj.Parameters, panel); % Build parameter list in Global panel by calling eui.ParamEditor
+      else
+        obj.ParamEditor.buildUI(obj.Parameters);
+      end
+      obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+      if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+        set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
     end
     
