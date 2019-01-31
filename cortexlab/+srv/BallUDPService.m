@@ -58,9 +58,15 @@ classdef BallUDPService < srv.BasicUDPService
        %  Signal stored in obj.Ball
        obj.LastReceivedMessage = strtrim(char(fread(obj.Socket)'));
        C = cellfun(@str2num,strsplit(obj.LastReceivedMessage), 'uni', 0);
-       [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});
-       post(obj.Ball, s);
-       disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
+       try
+         [s.time, s.Ax, s.Ay, s.Bx, s.By] = deal(C{:});
+         post(obj.Ball, s);
+         disp(['Received ''' obj.LastReceivedMessage ''' from ' obj.RemoteHost])
+       catch ex
+         warning('BallUDPService:processMsg:Failed', ...
+           'Failed to process message ''%s'': %s', ...
+           obj.LastReceivedMessage, ex.message)
+       end
       end
-    end
+  end
 end

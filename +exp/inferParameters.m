@@ -26,7 +26,16 @@ e.pars = net.subscriptableOrigin('pars');
 e.pars.CacheSubscripts = true;
 e.visual = net.subscriptableOrigin('visual');
 e.audio.Devices = @dummyDev;
-e.inputs = net.subscriptableOrigin('inputs');
+% e.inputs = net.subscriptableOrigin('inputs');
+
+e.inputs = StructRef;
+e.inputs.wheel = net.origin('wheel');
+e.inputs.wheelMM = net.origin('wheelMM');
+e.inputs.wheelDeg = net.origin('wheelMM');
+e.inputs.lick = net.origin('lick');
+e.inputs.keyboard = net.origin('keyboard');
+e.inputs.ball = net.subscriptableOrigin('ball');
+
 e.outputs = net.subscriptableOrigin('outputs');
 
 try
