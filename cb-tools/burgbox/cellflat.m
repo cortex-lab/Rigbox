@@ -18,7 +18,7 @@ for i = 1:numel(c)
   if isempty(elem)
     elem = {elem};
   end
-  flat = [flat; elem];
+  flat = [flat; ensureCell(elem)];
 end
 
 end

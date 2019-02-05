@@ -130,8 +130,8 @@ classdef ImageArray < img.ImageSeries
       else
         %TODO: generate it
       end
-      obj.BaseGenerator = fieldOrDefault(s, 'baseGenerator', []);
-      obj.Transforms = fieldOrDefault(s, 'transforms', []);
+      obj.BaseGenerator = getOr(s, 'baseGenerator', []);
+      obj.Transforms = getOr(s, 'transforms', []);
     end
   end
   

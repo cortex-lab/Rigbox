@@ -89,7 +89,7 @@ classdef MControl < handle
       addlistener(obj.AlyxPanel, 'Disconnected', @obj.expSubjectChanged);
       try
         if isfield(rig, 'scale') && ~isempty(rig.scale)
-          obj.WeighingScale = fieldOrDefault(rig, 'scale');
+          obj.WeighingScale = getOr(rig, 'scale');
           init(obj.WeighingScale);
           % Add listners for new reading, both for the log tab and also for
           % the weigh button in the Alyx Panel.

@@ -17,11 +17,11 @@ classdef DaqSingleScan < hw.ControlSignalGenerator
       obj.Scale = scale;
     end
 
-    function samples = waveform(obj, v)
+    function samples = waveform(obj, varargin)
       % just take the first value (if multiple were provided) and output
       % it, scaled, as a single number. This will result in the analog
       % output channel switching to that value and staying there. 
-      samples = v(1)*obj.Scale; 
+      samples = varargin{end}*obj.Scale; 
     end
   end
   

@@ -142,14 +142,14 @@ classdef AlyxPanel < handle
                 'String', 'Manual weighing', ...
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.recordWeight);
-            % Button to launch dialog for submitting gel administrations
+            % Button to launch dialog for submitting water administrations
             % for future dates
             uicontrol('Parent', waterbox,...
                 'Style', 'pushbutton', ...
                 'String', 'Give water in future', ...
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.giveFutureWater);
-            % Check box to indicate whether water was gel or liquid
+            % Dropdown to indicate water type (sucrose, gel, etc.)
             obj.WaterType = uicontrol('Parent', waterbox,...
                 'Style', 'popupmenu', ...
                 'String', {'Water'}, ...
@@ -309,8 +309,10 @@ classdef AlyxPanel < handle
             % paramProfiles file.  This may be used to notify weekend staff
             % of the experimentor's intent to train on that date.  
             thisDate = now;
-            prompt = sprintf(['Enter space-separated numbers \n'...
-              '[tomorrow, day after that, day after that.. etc] \n',...
+            waterType = obj.WaterType.String{obj.WaterType.Value};
+            prompt = sprintf(['To post future ', strrep(lower(waterType), '%', '%%'), ', ',...
+              'enter space-separated numbers, i.e. \n',...
+              '[tomorrow, day after that, day after that.. etc] \n\n',...
               'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
             amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
@@ -326,13 +328,18 @@ classdef AlyxPanel < handle
               delim = iff(size(days,1) < 3, ' and ', {', ', ' and '});
               obj.log('%s marked for training on %s',...
                 obj.Subject, strjoin(strtrim(string(days)), delim));
+            else % If no training dates given, delete from structure
+              try
+                dat.delParamProfile('WeekendWater', obj.Subject);
+              catch % Subject field may not exist is never marked for training
+              end
             end
             
             futWtrDates = futDates(amt > 0); % future water giving dates
             amtWtrDates = amt(amt > 0); % amount of water to give on future water dates
             
             for d = 1:length(futWtrDates)
-                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), 'Water');
+                obj.AlyxInstance.postWater(obj.Subject, amtWtrDates(d), futWtrDates(d), waterType);
                 [~,day] = weekday(futWtrDates(d), 'long');
                 obj.log('Water administration of %.2f for %s posted successfully to alyx for %s %s',...
                     amtWtrDates(d), obj.Subject, day, datestr(futWtrDates(d), 'dd mmm yyyy'));
@@ -371,7 +378,7 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
-                    weight = getOr(record, 'weight', NaN); % Get today's measured weight
+                    weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
                     water = getOr(record, 'given_water_liquid', 0); % Get total water given
                     gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
                     expected_weight = getOr(record, 'expected_weight', NaN);
@@ -449,11 +456,11 @@ classdef AlyxPanel < handle
             try
                 w = postWeight(ai, weight, subject);
                 obj.log('Alyx weight posting succeeded: %.2f for %s', w.weight, w.subject);
-            catch
+            catch ex
                 if ~ai.IsLoggedIn % if not logged in, save the weight for later
                     obj.log('Warning: Weight not posted to Alyx; will be posted upon login.');
                 else
-                    obj.log('Warning: Alyx weight posting failed!');
+                    obj.log('Warning: Alyx weight posting failed! %s', ex.message);
                 end
             end
             % Update weight and refresh login timer
@@ -473,7 +480,7 @@ classdef AlyxPanel < handle
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
-            if isempty(sessions) || ~strcmp(sessions{end}.start_time(1:10), thisDate(1:10))
+            if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), thisDate(1:10))
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
@@ -538,8 +545,7 @@ classdef AlyxPanel < handle
             % If not logged in or 'default' is selected, return
             if ~obj.AlyxInstance.IsLoggedIn||strcmp(obj.Subject, 'default'); return; end
             % collect the data for the table
-            endpnt = sprintf('water-requirement/%s?start_date=2016-01-01&end_date=%s', obj.Subject, datestr(now, 'yyyy-mm-dd'));
-            wr = obj.AlyxInstance.getData(endpnt);
+            wr = obj.AlyxInstance.getData(['water-requirement/', obj.Subject]);
             iw = iff(isempty(wr.implant_weight), 0, wr.implant_weight);
             records = catStructs(wr.records, nan);
             % no weighings found
@@ -548,7 +554,7 @@ classdef AlyxPanel < handle
                 return
             end
             expected = [records.expected_weight];
-            expected(expected==0) = nan;
+            expected(expected==0|isnan([records.weighing_at])) = nan;
             dates = cellfun(@(x)datenum(x), {records.date});
             
             % build the figure to show it
@@ -561,13 +567,18 @@ classdef AlyxPanel < handle
                 ax = axes('Parent', plotBox);
             end
             
-            plot(ax, dates, [records.weight], '.-');
+            plot(ax, dates, [records.weighing_at], '.-');
             hold(ax, 'on');
             plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
             plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
             box(ax, 'off');
             % Change the plot x axis limits
-            if numel(dates) > 1; xlim(ax, [min(dates) max(dates)]); end
+            maxDate = max(dates([records.is_water_restricted]|~isnan([records.weighing_at])));
+            if numel(dates) > 1 && ~isempty(maxDate)
+              xlim(ax, [min(dates) maxDate])
+            else
+              maxDate = now;
+            end
             if nargin == 1
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
             else
@@ -578,23 +589,23 @@ classdef AlyxPanel < handle
             
             if nargin==1
                 ax = axes('Parent', plotBox);
-                plot(ax, dates, ([records.weight]-iw)./(expected-iw), '.-');
+                plot(ax, dates, ([records.weighing_at]-iw)./(expected-iw), '.-');
                 hold(ax, 'on');
                 plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
                 plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
                 box(ax, 'off');
-                xlim(ax, [min(dates) max(dates)]);
+                xlim(ax, [min(dates) maxDate]);
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
                 ylabel(ax, 'weight as pct (%)');
                 
                 axWater = axes('Parent',plotBox);
-                plot(axWater, dates, obj.round([records.given_water_liquid]+[records.given_water_hydrogel], 'up'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_total], 'up'), '.-');
                 hold(axWater, 'on');
                 plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
-                xlim(axWater, [min(dates) max(dates)]);
+                xlim(axWater, [min(dates) maxDate]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
                 ylabel(axWater, 'water/hydrogel (mL)');
                 
@@ -603,23 +614,24 @@ classdef AlyxPanel < handle
                 histTable = uitable('Parent', histbox,...
                     'FontName', 'Consolas',...
                     'RowName', []);
-                weightsByDate = num2cell([records.weight]);
+                weightsByDate = num2cell([records.weighing_at]);
                 weightsByDate = cellfun(@(x)sprintf('%.1f', x), weightsByDate, 'uni', false);
-                weightsByDate(isnan([records.weight])) = {[]};
-                weightPctByDate = num2cell(([records.weight]-iw)./(expected-iw));
+                weightsByDate(isnan([records.weighing_at])) = {[]};
+                weightPctByDate = num2cell(([records.weighing_at]-iw)./(expected-iw));
                 weightPctByDate = cellfun(@(x)sprintf('%.1f', x*100), weightPctByDate, 'uni', false);
-                weightPctByDate(isnan([records.weight])) = {[]};
+                weightPctByDate(isnan([records.weighing_at])|~[records.is_water_restricted]) = {[]};
                 
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
                     weightsByDate', ...
-                    arrayfun(@(x)sprintf('%.1f', 0.8*(x-iw)+iw), [records.expected_weight]', 'uni', false), ...
+                    arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', 0.8*(x-iw)+iw)), expected', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
                     num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
-                    [records.given_water_liquid]'+[records.given_water_hydrogel]', [records.expected_water]',...
-                    [records.given_water_liquid]'+[records.given_water_hydrogel]'-[records.expected_water]')));
+                    [records.given_water_total]', [records.expected_water]',...
+                    [records.given_water_total]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
+                waterDat(~[records.is_water_restricted],[1,3]) = {'ad lib'};
                 dat = horzcat(dat, waterDat);
                 
                 set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
@@ -710,7 +722,7 @@ classdef AlyxPanel < handle
                 case 'down'
                     A = ceil(a*c)/c;
                 otherwise
-                    A = round(a*c)/c;
+                    A = round(a, sigFigures, 'significant');
             end
         end
     end

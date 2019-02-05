@@ -20,8 +20,7 @@ rewardId = 1;
 
 %% Initialisation
 % Pull latest changes from remote
-schedule = getOr(dat.paths, 'updateSchedule', 2);
-git.update(true, schedule); 
+git.update();
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
@@ -45,7 +44,20 @@ KbQueueCreate();
 KbQueueStart();
 
 % get rig hardware
-rig = hw.devices;
+try
+  rig = hw.devices;
+catch ME
+  fun.applyForce({
+  @() communicator.close(),...
+  @() delete(listener),...
+  @KbQueueRelease,...
+  @() Screen('CloseAll'),...
+  @() PsychPortAudio('Close'),...
+  @() Priority(0),... %set back to normal priority level
+  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
+  });
+  rethrow(ME)
+end
 
 cleanup = onCleanup(@() fun.applyForce({
   @() communicator.close(),...
@@ -256,18 +268,18 @@ ShowCursor();
     communicator.EventMode = false; % back to pull message mode
     aborted = strcmp(experiment.Data.endStatus, 'aborted');
     % clear the active experiment var
+    experiment.delete()
     experiment = [];
     rig.stimWindow.BackgroundColour = bgColour;
     rig.stimWindow.flip(); % clear the screen after
     
     % save a copy of the hardware in JSON
-    name = dat.expFilePath(expRef, 'hw-info', 'master');
-    fid = fopen([name(1:end-3) 'json'], 'w');
+    fid = fopen(dat.expFilePath(expRef, 'hw-info', 'master', 'json'), 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
     if ~strcmp(dat.parseExpRef(expRef), 'default')
       try
-        Alyx.registerFile([name(1:end-3) 'json']);
+        Alyx.registerFile(hwInfo);
       catch ex
         warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
       end
