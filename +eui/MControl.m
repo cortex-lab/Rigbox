@@ -250,7 +250,7 @@ classdef MControl < handle
       set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
         % Clear existing parameters control
-        % TODO
+        clear(obj.ParamEditor)
       end
       
       factory = obj.NewExpFactory; % Find which 'world' we are in

@@ -7,6 +7,7 @@ classdef ParamEditor < handle
   end
   
   properties %(Access = private)
+    UIPanel
     GlobalUI
     ConditionalUI
     Parent
@@ -27,11 +28,12 @@ classdef ParamEditor < handle
       if nargin < 2
         f = figure('Name', 'Parameters', 'NumberTitle', 'off',...
           'Toolbar', 'none', 'Menubar', 'none', 'DeleteFcn', @(~,~)obj.delete);
+        obj.Listener = event.listener(f, 'SizeChanged', @(~,~)obj.onResize);
       end
       obj.Parent = f;
-      obj.Listener = event.listener(f, 'SizeChanged', @(~,~)obj.onResize);
-      obj.GlobalUI = eui.FieldPanel(f, obj);
-      obj.ConditionalUI = eui.ConditionPanel(f, obj);
+      obj.UIPanel = uix.HBox('Parent', f);
+      obj.GlobalUI = eui.FieldPanel(obj.UIPanel, obj);
+      obj.ConditionalUI = eui.ConditionPanel(obj.UIPanel, obj);
       obj.buildUI(pars);
     end
     
@@ -57,10 +59,14 @@ classdef ParamEditor < handle
       end
     end
     
-    function buildUI(obj, pars)
-      obj.Parameters = pars;
+    function clear(obj)
       clear(obj.GlobalUI);
       clear(obj.ConditionalUI);
+    end
+    
+    function buildUI(obj, pars)
+      obj.Parameters = pars;
+      obj.clear()
       c = obj.GlobalUI;
       names = pars.GlobalNames;
       for nm = names'
@@ -75,12 +81,12 @@ classdef ParamEditor < handle
         end
       end
       obj.fillConditionTable();
-      obj.GlobalUI.onResize();
       %%% Special parameters
       if ismember('randomiseConditions', obj.Parameters.Names) && ~pars.Struct.randomiseConditions
         obj.ConditionalUI.ConditionTable.RowName = 'numbered';
         set(obj.ConditionalUI.ContextMenus(2), 'Checked', 'off');
       end
+      obj.GlobalUI.onResize();
     end
     
     function setRandomized(obj, value)

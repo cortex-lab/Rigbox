@@ -28,7 +28,8 @@ classdef FieldPanel < handle
   methods
     function obj = FieldPanel(f, ParamEditor, varargin)
       obj.ParamEditor = ParamEditor;
-      obj.UIPanel = uipanel('Parent', f, 'BorderType', 'none',...
+      p = uix.Panel('Parent', f);
+      obj.UIPanel = uipanel('Parent', p, 'BorderType', 'none',...
           'BackgroundColor', 'white', 'Position', [0 0 0.5 1]);
       obj.Listener = event.listener(obj.UIPanel, 'SizeChanged', @obj.onResize);
     end
