@@ -55,10 +55,9 @@ try
   for i = 1:size(paramNames,1)
       parsStruct.(paramNames{i}) = paramValues{i}.Node.CurrValue;
   end
+  szFcn = @(a)iff(ischar(a), @()size(a,1), @()size(a,2));
   sz = iff(isempty(fieldnames(parsStruct)), 1,... % if there are no paramters sz = 1
-      structfun(@(a)size(a,2), parsStruct)); % otherwise get number of columns
-  isChar = structfun(@ischar, parsStruct); % we disregard charecter arrays
-  if any(isChar); sz = sz(~isChar); end
+      structfun(szFcn, parsStruct)); % otherwise get number of columns
   % add 'numRepeats' parameter, where total number of trials = 1000
   parsStruct.numRepeats = ones(1,max(sz))*floor(1000/max(sz));
   parsStruct.defFunction = expdef;
