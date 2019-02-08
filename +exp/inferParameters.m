@@ -18,34 +18,16 @@ else
   expdef = which(func2str(expdef));
 end
 
-net = sig.Net;
-e = struct;
-e.t = net.origin('t');
-e.events = net.subscriptableOrigin('events');
-e.pars = net.subscriptableOrigin('pars');
-e.pars.CacheSubscripts = true;
-e.visual = net.subscriptableOrigin('visual');
-e.audio.Devices = @dummyDev;
-e.inputs = net.subscriptableOrigin('inputs');
-e.outputs = net.subscriptableOrigin('outputs');
+e = sig.void;
+pars = sig.void(true);
+audio.Devices = @dummyDev;
 
 try
+  expdeffun(e.t, e.events, pars, e.visual, e.inputs, e.outputs, audio);
     
-  expdeffun(e.t, e.events, e.pars, e.visual, e.inputs, e.outputs, e.audio);
-    
-  % paramNames will be the strings corresponding to the fields of e.pars
+  % paramNames will be the strings corresponding to the fields of pars
   % that the user tried to reference in her expdeffun.
-  paramNames = e.pars.Subscripts.keys';
-  %The paramValues are signals corresponding to those parameters and they
-  %will all be empty, except when they've been given explicit numerical
-  %definitions right at the end of the function - and in that case, we'll
-  %take those values (extracted into matlab datatypes, from the signals,
-  %using .Node.CurrValue) to be the desired default values.
-  paramValues = e.pars.Subscripts.values';
-  parsStruct = cell2struct(cell(size(paramNames)), paramNames);
-  for i = 1:size(paramNames,1)
-      parsStruct.(paramNames{i}) = paramValues{i}.Node.CurrValue;
-  end
+  parsStruct = pars.Subscripts;
   sz = iff(isempty(fieldnames(parsStruct)), 1,... % if there are no paramters sz = 1
       structfun(@(a)size(a,2), parsStruct)); % otherwise get number of columns
   isChar = structfun(@ischar, parsStruct); % we disregard charecter arrays
@@ -60,11 +42,8 @@ try
   ExpPanel_fn = [path filesep ExpPanel_name ext];
   if exist(ExpPanel_fn,'file'); parsStruct.expPanelFun = ExpPanel_name; end
 catch ex
-  net.delete();
   rethrow(ex)
 end
-
-net.delete();
 
   function dev = dummyDev(~)
     % Returns a dummy audio device structure, regardless of input
