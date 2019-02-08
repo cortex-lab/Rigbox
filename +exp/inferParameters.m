@@ -5,12 +5,6 @@ function parsStruct = inferParameters(expdef)
 % create some signals just to pass to the definition function and track
 % which parameter names are used
 
-% if ischar(expdef) && file.exists(expdef)
-%   expdeffun = fileFunction(expdef);
-% else
-%   expdeffun = expdef;
-%   expdef = which(func2str(expdef));
-% end
 if ischar(expdef) && file.exists(expdef)
   expdeffun = fileFunction(expdef);
 else
@@ -28,6 +22,14 @@ try
   % paramNames will be the strings corresponding to the fields of pars
   % that the user tried to reference in her expdeffun.
   parsStruct = pars.Subscripts;
+  
+  % Check for reserved fieldnames
+  reserved = {'randomiseConditions', 'services', 'expPanelFun', ...
+    'numRepeats', 'defFunction', 'waterType', 'isPassive'};
+  assert(~any(ismember(fieldnames(parsStruct), reserved)), ...
+    'Lord have mercy, the following param names are reserved:\n%s', ...
+    strjoin(intersect(fieldnames(parsStruct), reserved), ', '))
+  
   sz = iff(isempty(fieldnames(parsStruct)), 1,... % if there are no paramters sz = 1
       structfun(@(a)size(a,2), parsStruct)); % otherwise get number of columns
   isChar = structfun(@ischar, parsStruct); % we disregard charecter arrays
