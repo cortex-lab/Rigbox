@@ -217,6 +217,8 @@ classdef AlyxPanel < handle
             % Logging out does not cause the token to expire, instead the
             % token is simply deleted from this object.
             
+            % Temporarily disable the Subject Selector
+            obj.NewExpSubject.UIControl.Enable = 'off';
             % Reset headless flag in case user wishes to retry connection
             obj.AlyxInstance.Headless = false;
             % Are we logging in or out?
@@ -282,6 +284,8 @@ classdef AlyxPanel < handle
                 notify(obj, 'Disconnected'); % Notify listeners of logout
                 obj.log('Logged out of Alyx');
             end
+            % Reable the Subject Selector
+            obj.NewExpSubject.UIControl.Enable = 'on';
             obj.dispWaterReq()
         end
         
