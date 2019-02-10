@@ -601,13 +601,13 @@ classdef AlyxPanel < handle
                 axWater = axes('Parent',plotBox);
                 plot(axWater, dates, obj.round([records.given_water_total], 'up'), '.-');
                 hold(axWater, 'on');
-                plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_supplement], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_reward], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
                 xlim(axWater, [min(dates) maxDate]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
-                ylabel(axWater, 'water/hydrogel (mL)');
+                ylabel(axWater, 'water (mL)');
                 
                 % Create table of useful weight and water information,
                 % sorted by date
@@ -627,14 +627,14 @@ classdef AlyxPanel < handle
                     arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', 0.8*(x-iw)+iw)), expected', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
-                    num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
+                    num2cell(horzcat([records.given_water_reward]', [records.given_water_supplement]', ...
                     [records.given_water_total]', [records.expected_water]',...
                     [records.given_water_total]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
                 waterDat(~[records.is_water_restricted],[1,3]) = {'ad lib'};
                 dat = horzcat(dat, waterDat);
                 
-                set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
+                set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'supplement', 'total', 'min water', 'excess'}, ...
                     'Data', dat(end:-1:1,:),...
                     'ColumnEditable', false(1,5));
                 histbox.Widths = [ -1 725];
