@@ -318,7 +318,7 @@ classdef AlyxPanel < handle
               'enter space-separated numbers, i.e. \n',...
               '[tomorrow, day after that, day after that.. etc] \n\n',...
               'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
-            amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
+            amtStr = newid(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
                 return  % user pressed 'Close' or 'x'
             end
@@ -450,10 +450,10 @@ classdef AlyxPanel < handle
                 dlgTitle = 'Manual weight logging';
                 numLines = 1;
                 defaultAns = {'',''};
-                weight = inputdlg(prompt, dlgTitle, numLines, defaultAns);
+                weight = newid(prompt, dlgTitle, numLines, defaultAns);
                 if isempty(weight); return; end
             end
-            % inputdlg returns weight as a cell, otherwise it may now be
+            % newid returns weight as a cell, otherwise it may now be
             weight = ensureCell(weight); % ensure it's a cell
             % convert to double if weight is a string
             weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
