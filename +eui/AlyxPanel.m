@@ -217,6 +217,8 @@ classdef AlyxPanel < handle
             % Logging out does not cause the token to expire, instead the
             % token is simply deleted from this object.
             
+            % Temporarily disable the Subject Selector
+            obj.NewExpSubject.UIControl.Enable = 'off';
             % Reset headless flag in case user wishes to retry connection
             obj.AlyxInstance.Headless = false;
             % Are we logging in or out?
@@ -282,6 +284,8 @@ classdef AlyxPanel < handle
                 notify(obj, 'Disconnected'); % Notify listeners of logout
                 obj.log('Logged out of Alyx');
             end
+            % Reable the Subject Selector
+            obj.NewExpSubject.UIControl.Enable = 'on';
             obj.dispWaterReq()
         end
         
@@ -314,7 +318,7 @@ classdef AlyxPanel < handle
               'enter space-separated numbers, i.e. \n',...
               '[tomorrow, day after that, day after that.. etc] \n\n',...
               'Enter "0" to skip a day\nEnter "-1" to indicate training for that day\n']);
-            amtStr = inputdlg(prompt,'Future Amounts', [1 50]);
+            amtStr = newid(prompt,'Future Amounts', [1 50]);
             if isempty(amtStr)||~obj.AlyxInstance.IsLoggedIn
                 return  % user pressed 'Close' or 'x'
             end
@@ -446,10 +450,10 @@ classdef AlyxPanel < handle
                 dlgTitle = 'Manual weight logging';
                 numLines = 1;
                 defaultAns = {'',''};
-                weight = inputdlg(prompt, dlgTitle, numLines, defaultAns);
+                weight = newid(prompt, dlgTitle, numLines, defaultAns);
                 if isempty(weight); return; end
             end
-            % inputdlg returns weight as a cell, otherwise it may now be
+            % newid returns weight as a cell, otherwise it may now be
             weight = ensureCell(weight); % ensure it's a cell
             % convert to double if weight is a string
             weight = iff(ischar(weight{1}), str2double(weight{1}), weight{1});
@@ -601,13 +605,13 @@ classdef AlyxPanel < handle
                 axWater = axes('Parent',plotBox);
                 plot(axWater, dates, obj.round([records.given_water_total], 'up'), '.-');
                 hold(axWater, 'on');
-                plot(axWater, dates, obj.round([records.given_water_hydrogel], 'down'), '.-');
-                plot(axWater, dates, obj.round([records.given_water_liquid], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_supplement], 'down'), '.-');
+                plot(axWater, dates, obj.round([records.given_water_reward], 'down'), '.-');
                 plot(axWater, dates, obj.round([records.expected_water], 'up'), 'r', 'LineWidth', 2.0);
                 box(axWater, 'off');
                 xlim(axWater, [min(dates) maxDate]);
                 set(axWater, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(axWater, 'XTick'), 'uni', false))
-                ylabel(axWater, 'water/hydrogel (mL)');
+                ylabel(axWater, 'water (mL)');
                 
                 % Create table of useful weight and water information,
                 % sorted by date
@@ -627,14 +631,14 @@ classdef AlyxPanel < handle
                     arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', 0.8*(x-iw)+iw)), expected', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
-                    num2cell(horzcat([records.given_water_liquid]', [records.given_water_hydrogel]', ...
+                    num2cell(horzcat([records.given_water_reward]', [records.given_water_supplement]', ...
                     [records.given_water_total]', [records.expected_water]',...
                     [records.given_water_total]'-[records.expected_water]')));
                 waterDat = cellfun(@(x)sprintf('%.2f', x), waterDat, 'uni', false);
                 waterDat(~[records.is_water_restricted],[1,3]) = {'ad lib'};
                 dat = horzcat(dat, waterDat);
                 
-                set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'hydrogel', 'total', 'min water', 'excess'}, ...
+                set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'supplement', 'total', 'min water', 'excess'}, ...
                     'Data', dat(end:-1:1,:),...
                     'ColumnEditable', false(1,5));
                 histbox.Widths = [ -1 725];

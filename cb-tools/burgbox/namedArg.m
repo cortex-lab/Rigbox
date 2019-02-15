@@ -8,7 +8,7 @@ function [present, value, defIdx] = namedArg(args, name)
 
 % 2014-02 CB created
 
-defIdx = find(cellfun(@(a) isequal(a, name), args), 1);
+defIdx = find(cellfun(@(a) strcmpi(a, name), args), 1);
 if ~isempty(defIdx)
   present = true;
   value = args{defIdx + 1};
