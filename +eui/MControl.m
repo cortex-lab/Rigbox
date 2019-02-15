@@ -17,6 +17,7 @@ classdef MControl < handle
   
   properties
     LoggingDisplay % control for showing log output
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
   end
   
   properties (SetAccess = private)
@@ -33,7 +34,6 @@ classdef MControl < handle
   properties (Access = private)
     ParamEditor
     ParamPanel
-    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
     BeginExpButton % The 'Start' button that begins an experiment
     RigOptionsButton % The 'Options' button that opens the rig options dialog
     NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
