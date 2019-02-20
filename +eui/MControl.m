@@ -17,10 +17,10 @@ classdef MControl < handle
   
   properties
     LoggingDisplay % control for showing log output
-    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
   end
   
   properties (SetAccess = private)
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
     LogSubject % Subject selector control
     NewExpSubject % Experiment selector control
     NewExpType % Experiment type selector control
