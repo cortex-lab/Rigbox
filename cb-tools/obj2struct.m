@@ -23,12 +23,15 @@ if isobject(obj)
     end
     s = obj2struct(m);
   else % Normal object
+    s.ClassContructor = class(obj); % Supply class name for loading object
     names = fieldnames(obj); % Get list of public properties
     for i = 1:length(names)
-      if isobject(obj.(names{i})) % Property contains an object
+      if isempty(obj) % Object and therefore all properties are empty
+        s.(names{i}) = [];
+      elseif isobject(obj.(names{i})) % Property contains an object
         if startsWith(class(obj.(names{i})),'daq.ni.')
           % Do not attempt to save ni daq sessions of channels
-          s.(names{i}) = []; 
+          s.(names{i}) = [];
         else % Recurse
           s.(names{i}) = obj2struct(obj.(names{i}));
         end
@@ -55,7 +58,6 @@ if isobject(obj)
         s.(names{i}) = obj.(names{i});
       end
     end
-    s.ClassContructor = class(obj); % Supply class name for loading object
   end
 elseif iscell(obj)
   % If dealing with cell array, recurse through elements
