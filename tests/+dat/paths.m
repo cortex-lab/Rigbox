@@ -18,9 +18,8 @@ end
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
-p.localAlyxQueue = fullfile(p.rigbox, 'tests', 'data', 'alyx');
-p.databaseURL = 'https://alyx-dev.cortexlab.net';
-% p.databaseURL = 'https://dev.alyx.internationalbrainlab.org/';
+p.localAlyxQueue = fullfile(p.rigbox, 'alyx-matlab', 'tests', 'data');
+p.databaseURL = 'https://test.alyx.internationalbrainlab.org';
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
 
 % Under the new system of having data grouped by mouse
