@@ -211,7 +211,7 @@ classdef AlyxPanel < handle
             end
         end
         
-        function login(obj)
+        function login(obj, varargin)
             % Used both to log in and out of Alyx.  Logging means to
             % generate an Alyx token with which to send/request data.
             % Logging out does not cause the token to expire, instead the
@@ -222,7 +222,7 @@ classdef AlyxPanel < handle
             % Are we logging in or out?
             if ~obj.AlyxInstance.IsLoggedIn % logging in
                 % attempt login
-                obj.AlyxInstance = obj.AlyxInstance.login(); % returns an instance if success, empty if you cancel
+                obj.AlyxInstance = obj.AlyxInstance.login(varargin{:}); % returns an instance if success, empty if you cancel
                 if obj.AlyxInstance.IsLoggedIn % successful
                     % Start log in timer, to automatically log out after 30
                     % minutes of 'inactivity' (defined as not calling
