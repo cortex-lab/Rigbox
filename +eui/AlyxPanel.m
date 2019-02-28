@@ -574,7 +574,7 @@ classdef AlyxPanel < handle
             box(ax, 'off');
             % Change the plot x axis limits
             maxDate = max(dates([records.is_water_restricted]|~isnan([records.weighing_at])));
-            if numel(dates) > 1 && ~isempty(maxDate)
+            if numel(dates) > 1 && ~isempty(maxDate) && min(dates) ~= maxDate
               xlim(ax, [min(dates) maxDate])
             else
               maxDate = now;
