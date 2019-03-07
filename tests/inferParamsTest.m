@@ -12,6 +12,12 @@ assert(isequal(parameters, correct),'Fundamental problem: inferParameters not re
 pars = exp.inferParameters([expDefPath filesep 'advancedChoiceWorld.m']);
 load(fullfile(expDefPath, 'advancedChoiceWorld_parameters.mat'));
 
+assert(strcmp(pars.defFunction, [expDefPath filesep 'advancedChoiceWorld.m']), ...
+  'Incorrect expDef path')
+
+% Remove defFunction field before comparison
+pars = rmfield(pars, 'defFunction'); 
+parameters = rmfield(parameters, 'defFunction');
 assert(isequal(pars, parameters), 'Unexpected parameter struct returned')
 
 %% Test 2: choiceWorld
@@ -19,6 +25,9 @@ assert(isequal(pars, parameters), 'Unexpected parameter struct returned')
 pars = exp.inferParameters([expDefPath filesep 'choiceWorld.m']);
 load(fullfile(expDefPath, 'choiceWorld_parameters.mat'));
 
+% Remove defFunction field before comparison
+pars = rmfield(pars, 'defFunction'); 
+parameters = rmfield(parameters, 'defFunction');
 assert(isequal(pars, parameters), 'Unexpected parameter struct returned')
 
 %% Test 3: single global parameter
