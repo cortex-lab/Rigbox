@@ -720,6 +720,8 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
+        % make sure some minimum time passes before updating signals, to 
+        % improve performance on MC
         if (obj.Clock.now - t) > 0.1 || obj.IsLooping == false
           sendSignalUpdates(obj);
           t = obj.Clock.now;

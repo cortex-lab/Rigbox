@@ -70,7 +70,7 @@ if init
   devs = getOr(rig, 'audioDevices', PsychPortAudio('GetDevices'));
   % Sanitize the names
   names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
-  names = iff(ismember('defaut', names), names, @()[{'default'} names(2:end)]);
+  names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
   for i = 1:length(names); devs(i).DeviceName = names{i}; end
   rig.audioDevices = devs;
 end
