@@ -1,4 +1,4 @@
-function expServer(useTimelineOverride, bgColour)
+function expServer(varargin)
 %SRV.EXPSERVER Start the presentation server
 %   TODO
 %
@@ -20,7 +20,7 @@ rewardId = 1;
 
 %% Initialisation
 % Pull latest changes from remote
-git.update();
+%git.update();
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
@@ -70,12 +70,44 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+%% Get/Set Input Args
 
-if nargin < 2
-  bgColour = 127*[1 1 1]; % mid gray by default
+% define default input args:
+argsStruct.TimelineOverride = 0; % use timeline
+argsStruct.BgColour = [127 127 127]; % gray default
+argsStruct.HideCursor = 1; % hide cursor
+
+% get input args, reshape into two rows (into name-value pairs): 
+% 1st row = arg names, 2nd row = arg values 
+pairedArgs = reshape(varargin,2,[]);
+
+% if the name-value pairs don't match up, throw error
+if ~all(cellfun(@ischar, (pairedArgs(1,:)))) ||... 
+    ~all(cellfun(@isnumeric, (pairedArgs(2,:)))) ||...
+    mod(length(v),2)
+  error(['If using input arguments, %s requires them to be constructed'... 
+    'in name-value pairs'], mfilename);
 end
-% open the stimulus window
+
+% for the specified input args, change default input args to new values 
+for pair = pairedArgs
+  argName = pair{1};
+  if any(strcmpi(argName, fieldnames(argsStruct)))
+    argsStruct.(argName) = pair{2};
+  end
+end
+
+if argsStruct.HideCursor
+  HideCursor();
+end
+
+if argsStruct.TimelineOverride
+  toggleTimeline(useTimelineOverride);
+else
+  toggleTimeline(rig.timeline.UseTimeline);
+end
+
+bgColour = argsStruct.bgColour;
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
 
@@ -84,13 +116,6 @@ fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
   '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
 log('Started presentation server on port %i', listenPort);
-
-if nargin < 1 || isempty(useTimelineOverride)
-  % toggle use of timeline according to rig default setting
-  toggleTimeline(rig.timeline.UseTimeline);
-else
-  toggleTimeline(useTimelineOverride);
-end
 
 running = true;
 
