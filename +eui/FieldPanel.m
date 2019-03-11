@@ -83,7 +83,7 @@ classdef FieldPanel < handle
     
     function makeConditional(obj, name)
       if nargin == 1
-        selected = obj.UIPanel.Parent.CurrentObject; %FIXME Doesn't work is parent is not figure
+        selected = obj.ParamEditor.Root.CurrentObject;
         if isa(selected, 'matlab.ui.control.UIControl') && ...
             strcmp(selected.Style, 'text')
           name = selected.String;
