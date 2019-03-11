@@ -11,6 +11,7 @@ classdef ParamEditor < handle
     GlobalUI
     ConditionalUI
     Parent
+    Root
     Listener
   end
   
@@ -23,18 +24,25 @@ classdef ParamEditor < handle
   end
   
   methods
-    function obj = ParamEditor(pars, f)
+    function obj = ParamEditor(pars, parent)
       if nargin == 0; pars = []; end
       if nargin < 2
-        f = figure('Name', 'Parameters', 'NumberTitle', 'off',...
+        parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
           'Toolbar', 'none', 'Menubar', 'none', 'DeleteFcn', @(~,~)obj.delete);
         obj.Listener = event.listener(f, 'SizeChanged', @(~,~)obj.onResize);
       end
-      obj.Parent = f;
-      obj.UIPanel = uix.HBox('Parent', f);
+      obj.Root = parent;
+      while ~isa(obj.Root, 'matlab.ui.Figure'); obj.Root = obj.Root.Parent; end
+      
+      obj.Parent = parent;
+      obj.UIPanel = uix.HBox('Parent', parent);
       obj.GlobalUI = eui.FieldPanel(obj.UIPanel, obj);
       obj.ConditionalUI = eui.ConditionPanel(obj.UIPanel, obj);
       obj.buildUI(pars);
+      % FIXME Current hack for drawing params first time
+      pos = obj.Root.Position;
+      obj.Root.Position = pos+0.01;
+      obj.Root.Position = pos;
     end
     
     function delete(obj)
@@ -44,9 +52,9 @@ classdef ParamEditor < handle
         
     function set.Enable(obj, value)
       cUI = obj.ConditionalUI;
-      fig = obj.Parent;
+      parent = obj.UIPanel;
       if value == true
-        arrayfun(@(prop) set(prop, 'Enable', 'on'), findobj(fig,'Enable','off'));
+        arrayfun(@(prop) set(prop, 'Enable', 'on'), findobj(parent,'Enable','off'));
         if isempty(cUI.SelectedCells)
           set(cUI.MakeGlobalButton, 'Enable', 'off');
           set(cUI.DeleteConditionButton, 'Enable', 'off');
@@ -54,7 +62,7 @@ classdef ParamEditor < handle
         end
         obj.Enable = true;
       else
-        arrayfun(@(prop) set(prop, 'Enable', 'off'), findobj(fig,'Enable','on'));
+        arrayfun(@(prop) set(prop, 'Enable', 'off'), findobj(parent,'Enable','on'));
         obj.Enable = false;
       end
     end

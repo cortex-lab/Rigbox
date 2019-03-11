@@ -33,12 +33,14 @@ classdef ConditionPanel < handle
       % Create a child menu for the uiContextMenus
       c = uicontextmenu;
       obj.UIPanel.UIContextMenu = c;
-      obj.ContextMenus = uimenu(c, 'Label', 'Make Global', 'MenuSelectedFcn', @(~,~)obj.makeGlobal);
+      obj.ContextMenus = uimenu(c, 'Label', 'Make Global', ...
+        'MenuSelectedFcn', @(~,~)obj.makeGlobal, 'Enable', 'off');
       fcn = @(s,~)obj.ParamEditor.setRandomized(~strcmp(s.Checked, 'on'));
       obj.ContextMenus(2) = uimenu(c, 'Label', 'Randomize conditions', ...
         'MenuSelectedFcn', fcn, 'Checked', 'on', 'Tag', 'randomize button');
       obj.ContextMenus(3) = uimenu(c, 'Label', 'Sort by selected column', ...
-        'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), 'Tag', 'sort by');
+        'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), ...
+        'Tag', 'sort by', 'Enable', 'off');
       % Create condition table
       p = uix.Panel('Parent', obj.UIPanel);
       obj.ConditionTable = uitable('Parent', p,...
