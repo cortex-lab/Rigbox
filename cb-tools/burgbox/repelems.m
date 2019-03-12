@@ -4,6 +4,8 @@ function rarr = repelems(arr, n)
 %   specified by the corresponding element of 'n'. e.g.
 %     REPELEMS([0 1 2], [2 1 3]) % returns [0 0 1 2 2 2]
 %
+% See also exp.Parameters/toConditionServer
+%
 % Part of Burgbox
 
 % 2013-06 CB created
