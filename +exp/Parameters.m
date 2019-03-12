@@ -81,6 +81,17 @@ classdef Parameters < handle
     end
     
     function str = title(obj, name)
+      % TITLE Turns param struct field name into title for UI label
+      %  Input name must be a fieldname in Struct or cell array thereof.
+      %  The returned str is the fieldname with a space inserted between
+      %  upper case letters, and the first letter capitalized.  If units
+      %  field is present, the unit is added to the string in brackets
+      %
+      %  Example:
+      %    obj.title('numRepeats') % returns 'Num repeats'
+      %    obj.title({'numRepeats', 'rewardVolume'}) 
+      %    % returns {'Num repeats', 'Reward volume (ul)'}
+      % See also INDIVTITLE
       if iscell(name)
         str = mapToCell(@obj.indivTitle, name);
       else
@@ -126,7 +137,7 @@ classdef Parameters < handle
       n = numTrialConditions(obj); % Number of trial conditions (table rows)
       if n < 1; n = 2; end % If there are none, let's add two conditions
       % Repeat value accross all trial conditions
-      if isnumeric(currValue) || islogical(currValue)
+      if isnumeric(currValue) || islogical(currValue) || isstring(currValue)
         newValue = repmat(currValue, 1, n);
       else
         newValue = repmat({currValue}, 1, n);
@@ -167,7 +178,7 @@ classdef Parameters < handle
     end
     
     function [globalParams, trialParams] = assortForExperiment(obj)
-      % divide into global and trial-specific parameter structures
+      % Divide into global and trial-specific parameter structures
 
       %% group trial-specific parameters into a struct with length of parameters
       % the second dimension (number of columns) specifies parameters for
@@ -219,6 +230,9 @@ classdef Parameters < handle
     end
 
     function [ctrl, label] = ui(obj, name, parent)
+      % FIXME method not used at all(?)
+      % Seems to reuse code put into indivTitle method
+      % Doesn't return uicontrols if units aren't '°' or 's'
       ctrl = [];
       label = [];
       unitField = [name 'Units'];

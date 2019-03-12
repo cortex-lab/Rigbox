@@ -14,44 +14,40 @@ classdef ParamEditorTest < matlab.unittest.TestCase
   end
   
   methods (TestClassSetup)
-    function killFigures(testCase)
+    function setup(testCase)
+      % Hide figures and add teardown function to restore settings
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
 %       set(0,'DefaultFigureVisible','off');
-    end
-    
-    function loadData(testCase)
+      testCase.addTearDown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
+      testCase.addTearDown(@close, testCase.Figure);
+      
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
       %  respecively
-%       load('data/parameters.mat', 'parameters')
       testCase.Parameters = exp.choiceWorldParams;
-    end
-    
-    function setupEditor(testCase)
+      
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
       % Create stand-alone panel
+      testCase.startMeasuring();
       testCase.ParamEditor = eui.ParamEditor;
+      testCase.stopMeasuring();
       testCase.Figure = gcf();
       testCase.fatalAssertTrue(isa(testCase.ParamEditor, 'eui.ParamEditor'))
     end
+    
   end
-  
-  methods (TestClassTeardown)
-    function restoreFigures(testCase)
-      set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
-      close(testCase.Figure)
-    end
-  end
-  
+    
   methods (TestMethodSetup)
     function buildParams(testCase)
       % Re-build the parameters before each test so that changes in
       % previous test don't persist
       PE = testCase.ParamEditor;
       pars = exp.Parameters(testCase.Parameters);
+      testCase.startMeasuring();
       PE.buildUI(pars);
+      testCase.stopMeasuring();
       % Number of global parameters: find all text labels
       nGlobalLabels = numel(findobj(testCase.Figure, 'Style', 'text'));
       nGlobalInput = numel(findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit'));
@@ -87,8 +83,10 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       % Set the focused object to one of the parameter labels
       set(testCase.Figure, 'CurrentObject', ...
         findobj(testCase.Figure, 'String', 'rewardVolume'))
+      testCase.startMeasuring();
       testCase.verifyWarningFree(c.MenuSelectedFcn, ...
         'Problem making parameter conditional');
+      testCase.stopMeasuring();
       % Verify change in UI elements
       testCase.verifyTrue(numel(gLabels()) == nGlobalLabels-1, ...
         'Global parameter UI element not removed')
