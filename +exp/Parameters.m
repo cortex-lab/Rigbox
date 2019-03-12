@@ -122,8 +122,10 @@ classdef Parameters < handle
     
     function makeTrialSpecific(obj, name)
       assert(~obj.isTrialSpecific(name), '''%s'' is already trial-specific', name);
-      currValue = obj.Struct.(name);
-      n = numTrialConditions(obj);
+      currValue = obj.Struct.(name); % Current value of parameter
+      n = numTrialConditions(obj); % Number of trial conditions (table rows)
+      if n < 1; n = 2; end % If there are none, let's add two conditions
+      % Repeat value accross all trial conditions
       if isnumeric(currValue) || islogical(currValue)
         newValue = repmat(currValue, 1, n);
       else

@@ -1,12 +1,12 @@
 classdef ParamEditor < handle
   %UNTITLED2 Summary of this class goes here
-  %   Detailed explanation goes here
+  %   ParamEditor deals with setting the paramters via a GUI
   
   properties
     Parameters
   end
   
-  properties %(Access = private)
+  properties (Access = {?eui.ConditionPanel, ?eui.FieldPanel})
     UIPanel
     GlobalUI
     ConditionalUI
@@ -29,20 +29,29 @@ classdef ParamEditor < handle
       if nargin < 2
         parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
           'Toolbar', 'none', 'Menubar', 'none', 'DeleteFcn', @(~,~)obj.delete);
-        obj.Listener = event.listener(f, 'SizeChanged', @(~,~)obj.onResize);
       end
       obj.Root = parent;
       while ~isa(obj.Root, 'matlab.ui.Figure'); obj.Root = obj.Root.Parent; end
-      
-      obj.Parent = parent;
-      obj.UIPanel = uix.HBox('Parent', parent);
-      obj.GlobalUI = eui.FieldPanel(obj.UIPanel, obj);
-      obj.ConditionalUI = eui.ConditionPanel(obj.UIPanel, obj);
+%       obj.Listener = event.listener(parent, 'SizeChanged', @(~,~)obj.onResize);
+      obj.Parent = uix.HBox('Parent', parent);
+      obj.GlobalUI = eui.FieldPanel(obj.Parent, obj);
+      obj.ConditionalUI = eui.ConditionPanel(obj.Parent, obj);
       obj.buildUI(pars);
       % FIXME Current hack for drawing params first time
       pos = obj.Root.Position;
       obj.Root.Position = pos+0.01;
       obj.Root.Position = pos;
+    end
+    
+    function selected = getSelected(obj)
+      % GETSELECTED Return the object currently in focus
+      %  Returns handle to the object currently in focus in the figure,
+      %  that is, the object last clicked on by the user.  This is used by
+      %  the FieldPanel context menu to determine which parameter was
+      %  selected.
+      %
+      % See also EUI.FIELDPANEL
+      selected = obj.Root.CurrentObject;
     end
     
     function delete(obj)
@@ -52,7 +61,7 @@ classdef ParamEditor < handle
         
     function set.Enable(obj, value)
       cUI = obj.ConditionalUI;
-      parent = obj.UIPanel;
+      parent = obj.Parent; % FIXME: use tags instead?
       if value == true
         arrayfun(@(prop) set(prop, 'Enable', 'on'), findobj(parent,'Enable','off'));
         if isempty(cUI.SelectedCells)
@@ -74,21 +83,25 @@ classdef ParamEditor < handle
     
     function buildUI(obj, pars)
       obj.Parameters = pars;
-      obj.clear()
-      c = obj.GlobalUI;
-      names = pars.GlobalNames;
+      obj.clear() % Clear the current parameter UI elements
+      if isempty(pars); return; end % Nothing to build
+      c = obj.GlobalUI; % Handle to FieldPanel object
+      names = pars.GlobalNames; % Names of the global parameters
       for nm = names'
+        % RandomiseConditions is a special parameter represented in the
+        % context menu, don't create global param field
         if strcmp(nm, 'randomiseConditions'); continue; end
         if islogical(pars.Struct.(nm{:})) % If parameter is logical, make checkbox
           ctrl = uicontrol('Parent', c.UIPanel, 'Style', 'checkbox', ...
-            'Value', pars.Struct.(nm{:}), 'BackgroundColor', 'white');
+            'Value', pars.Struct.(nm{:}));
           addField(c, nm{:}, ctrl);
-        else
+        else % Otherwise create the default field; a text box
           [~, ctrl] = addField(c, nm{:});
           ctrl.String = obj.paramValue2Control(pars.Struct.(nm{:}));
         end
       end
-      obj.fillConditionTable();
+      % Populate the trial conditions table
+      obj.ConditionalUI.fillConditionTable();
       %%% Special parameters
       if ismember('randomiseConditions', obj.Parameters.Names) && ~pars.Struct.randomiseConditions
         obj.ConditionalUI.ConditionTable.RowName = 'numbered';
@@ -104,7 +117,7 @@ classdef ParamEditor < handle
         description = 'Whether to randomise the conditional paramters or present them in order';
         obj.Parameters.set('randomiseConditions', false, description, 'logical')
       elseif ismember('randomiseConditions', obj.Parameters.Names)
-        obj.update('randomiseConditions', logical(value));
+        obj.updateGlobal('randomiseConditions', logical(value));
       end
       menu = obj.ConditionalUI.ContextMenus(2);
       if value == false
@@ -115,26 +128,10 @@ classdef ParamEditor < handle
         menu.Checked = 'on';
       end
     end
-    
-    function fillConditionTable(obj)
-      % Build the condition table
-      titles = obj.Parameters.TrialSpecificNames;
-      [~, trialParams] = obj.Parameters.assortForExperiment;
-      if isempty(titles)
-        obj.ConditionalUI.ButtonPanel.Visible = 'off';
-        obj.ConditionalUI.UIPanel.Visible = 'off';
-        obj.GlobalUI.UIPanel.Position(3) = 1;
-      else
-        obj.ConditionalUI.ButtonPanel.Visible = 'on';
-        obj.ConditionalUI.UIPanel.Visible = 'on';
-        data = reshape(struct2cell(trialParams), numel(titles), [])';
-        data = mapToCell(@(e) obj.paramValue2Control(e), data);
-        set(obj.ConditionalUI.ConditionTable, 'ColumnName', titles, 'Data', data,...
-          'ColumnEditable', true(1, numel(titles)));
-      end
-    end
-    
+        
     function addEmptyConditionToParam(obj, name)
+      % Add a new trial specific condition to the table
+      % See also EUI.CONDITIONPANEL/NEWCONDITION
       assert(obj.Parameters.isTrialSpecific(name),...
         'Tried to add a new condition to global parameter ''%s''', name);
       % work out what the right 'empty' is for the parameter
@@ -166,8 +163,7 @@ classdef ParamEditor < handle
       obj.Parameters.Struct.(name) = cat(2, obj.Parameters.Struct.(name), newValue);
     end
     
-    function newValue = update(obj, name, value, row)
-      % FIXME change name to updateGlobal
+    function newValue = updateGlobal(obj, name, value, row)
       if nargin < 4; row = 1; end
       currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
@@ -189,7 +185,7 @@ classdef ParamEditor < handle
       value = obj.Parameters.Struct.(name)(:,row);
       obj.Parameters.makeGlobal(name, value);
       % Refresh the table of conditions
-      obj.fillConditionTable;
+      obj.ConditionalUI.fillConditionTable;
       % Add new global parameter to field panel
       if islogical(value) % If parameter is logical, make checkbox
         ctrl = uicontrol('Parent', obj.GlobalUI.UIPanel, 'Style', 'checkbox', ...
@@ -204,65 +200,78 @@ classdef ParamEditor < handle
     end
       
     function onResize(obj)
-      %%% resize condition table
-      notify(obj.ConditionalUI.ButtonPanel, 'SizeChanged');
+      % ONRESIZE Resize widths of the two panels
+      %  To maximize space resize the widths of the Conditional and Global
+      %  panels
+      %
+      % FIXME Resize buggy due to tolerences
+      
+      % If there are no conditional params assume Condition table is hidden
+      % and GlobalUI takes up all space
+      if numel(obj.Parameters.TrialSpecificNames) == 0; return; end
       cUI = obj.ConditionalUI.UIPanel;
       gUI = obj.GlobalUI.UIPanel;
       
+      % The position of the end column in the Global panel (in pixels)
       pos = obj.GlobalUI.Controls(end).Position;
       colExtent = pos(1) + pos(3) + obj.GlobalUI.Margin;
       colWidth = pos(3) + obj.GlobalUI.Margin + obj.GlobalUI.ColSpacing; % FIXME: inaccurate
+      % The amount of space the Global panel takes up in pixels
       pos = getpixelposition(gUI);
       gUIExtent = pos(3);
+      % The amount of space the Conditional panel takes up in pixels
       pos = getpixelposition(cUI);
       cUIExtent = pos(3);
-      
+      % The actual extent of the table in pixels
       extent = get(obj.ConditionalUI.ConditionTable, 'Extent');
-      panelWidth = cUI.Position(3);
-      if colExtent > gUIExtent && cUIExtent > obj.ConditionalUI.MinWidth
+      requiredTableWidth = extent(3);
+      
+      if floor(gUIExtent - colExtent) <= 2 && cUIExtent < obj.ConditionalUI.MinWidth
+        % No space at all. Compromise by having both panels take up half
+        % the figure
+        obj.Parent.Widths = [-1 -1];
+      elseif floor(gUIExtent - colExtent) <= 2 && cUIExtent > obj.ConditionalUI.MinWidth
         % If global UI controls are cut off and there is no dead space in
         % the table but the minimum table width hasn't been reached, reduce
         % the conditional UI width: table has scroll bar and global panel
         % does not
-        % FIXME calculate how much space required for min control width
-%         obj.GlobalUI.MinCtrlWidth
-        % Calculate conditional UI width in normalized units
-        requiredWidth = (cUI.Position(3) / cUIExtent) * (colExtent - gUIExtent);
-        minConditionalWidth = (cUI.Position(3) / cUIExtent) * obj.ConditionalUI.MinWidth;
-        if requiredWidth < minConditionalWidth
+        minRequiredGlobal = cUIExtent - (colExtent - gUIExtent);
+        if minRequiredGlobal < obj.ConditionalUI.MinWidth && sign(minRequiredGlobal) == 1
+          % If the extra space taken by Global doesn't reduce Conditional
+          % beyond its minimum, use the Global's minimum
+          obj.Parent.Widths = [colExtent -1];
+        elseif minRequiredGlobal > requiredTableWidth && sign(minRequiredGlobal) == 1
+          % If the required width is smaller that the required table width,
+          % use required table width
+          obj.Parent.Widths = [-1 requiredTableWidth];
+        else
           % If the required width is smaller that the minimum table width,
           % use minimum table width
-          cUI.Position(3) = minConditionalWidth;
-        else % Otherwise use this width
-          cUI.Position(3) = requiredWidth;
+          obj.Parent.Widths = [-1 obj.ConditionalUI.MinWidth];
         end
-        cUI.Position(1) = 1-cUI.Position(3);
-        gUI.Position(3) = 1-cUI.Position(3);
-      elseif extent(3) < 1 && colWidth < obj.GlobalUI.MaxCtrlWidth
+      elseif requiredTableWidth < cUIExtent && colWidth < obj.GlobalUI.MaxCtrlWidth
         % If there is dead table space and the global UI columns are cut
         % off or squashed, reduce the conditional panel
-        cUI.Position(3) = cUI.Position(3) - (panelWidth - (panelWidth * extent(3)));
-        cUI.Position(1) = cUI.Position(1) + (panelWidth - (panelWidth * extent(3)));
-        gUI.Position(3) = cUI.Position(1);
-      elseif extent(3) < 1 && colExtent < gUIExtent
+        % If the extra space is minimum, return
+        if floor(cUIExtent - requiredTableWidth) <= 2 && ...
+            sign(floor(cUIExtent - requiredTableWidth)) == 1
+          return
+        end
+        obj.Parent.Widths = [colExtent -1];%[-1 requiredTableWidth];
+      elseif requiredTableWidth < cUIExtent && colExtent < gUIExtent
         % Plenty of space! Increase conditional UI a bit
         deadspace = gUIExtent - colExtent; % Spece between panels in pixels
-        % Convert global UI pixels to relative units
-        gUI.Position(3) = (gUI.Position(3) / gUIExtent) * (gUIExtent - (deadspace/2));
-        cUI.Position(1) = gUI.Position(3);
-        cUI.Position(3) = 1-gUI.Position(3);
-      elseif extent(3) >= 1 && colExtent < gUIExtent
+        obj.Parent.Widths = [-1 cUIExtent +  deadspace/2];
+      elseif requiredTableWidth >= cUIExtent && colExtent < gUIExtent
         % If the table space is cut off and there is dead space in the
         % global UI panel, reduce the global UI panel
         % If the extra space is minimum, return
         if floor(gUIExtent - colExtent) <= 2; return; end
+        % Get total space
         deadspace = gUIExtent - colExtent; % Spece between panels in pixels
-        gUI.Position(3) = (gUI.Position(3) / gUIExtent) * (gUIExtent - deadspace);
-        cUI.Position(3) = 1-gUI.Position(3);
-        cUI.Position(1) = gUI.Position(3);
-      else
-        % Compromise by having both panels take up half the figure
-%         [cUI.Position([1,3]),  gUI.Position(3)] = deal(0.5);
+        obj.Parent.Widths = [-1 cUIExtent + (deadspace/2)];
+%         cUI.Position(3) = 1-gUI.Position(3);
+%         cUI.Position(1) = gUI.Position(3);
       end
       notify(obj.ConditionalUI.ButtonPanel, 'SizeChanged');
     end

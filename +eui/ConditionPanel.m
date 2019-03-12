@@ -1,5 +1,5 @@
 classdef ConditionPanel < handle
-  %UNTITLED Summary of this class goes here
+  %UNTITLED Deals with formatting trial conditions UI table
   %   Detailed explanation goes here
   % TODO Document
   % TODO Add sort by column
@@ -16,7 +16,7 @@ classdef ConditionPanel < handle
     ContextMenus
   end
   
-  properties %(Access = protected)
+  properties (Access = protected)
     ParamEditor
     Listener
     NewConditionButton
@@ -29,7 +29,8 @@ classdef ConditionPanel < handle
   methods
     function obj = ConditionPanel(f, ParamEditor, varargin)
       obj.ParamEditor = ParamEditor;
-      obj.UIPanel = uix.VBox('Parent', f, 'BackgroundColor', 'white');
+      obj.UIPanel = uix.VBox('Parent', f);
+%       obj.UIPanel.BackgroundColor = 'white';
       % Create a child menu for the uiContextMenus
       c = uicontextmenu;
       obj.UIPanel.UIContextMenu = c;
@@ -42,7 +43,7 @@ classdef ConditionPanel < handle
         'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), ...
         'Tag', 'sort by', 'Enable', 'off');
       % Create condition table
-      p = uix.Panel('Parent', obj.UIPanel);
+      p = uix.Panel('Parent', obj.UIPanel, 'BorderType', 'none');
       obj.ConditionTable = uitable('Parent', p,...
         'FontName', 'Consolas',...
         'RowName', [],...
@@ -53,48 +54,37 @@ classdef ConditionPanel < handle
         'CellEditCallback', @obj.onEdit,...
         'CellSelectionCallback', @obj.onSelect);
       % Create button panel to hold condition control buttons
-      obj.ButtonPanel = uix.HBox('Parent', obj.UIPanel, ...
-        'BackgroundColor', 'white');
-      % Create callback so that width of button panel is slave to width of
-      % conditional UIPanel
-%       b = obj.ButtonPanel;
-%       fcn = @(s)set(obj.ButtonPanel, 'Position', ...
-%         [s.Position(1) b.Position(2) s.Position(3) b.Position(4)]);
-%       obj.Listener = event.listener(obj.UIPanel, 'SizeChanged', @(s,~)fcn(s));
+      obj.ButtonPanel = uix.HBox('Parent', obj.UIPanel);
       % Define some common properties
-      props.BackgroundColor = 'white';
+%       props.BackgroundColor = 'white';
       props.Style = 'pushbutton';
       props.Units = 'normalized';
       props.Parent = obj.ButtonPanel;
       % Create out four buttons
       obj.NewConditionButton = uicontrol(props,...
         'String', 'New condition',...
-        ...'Position',[0 0 1/4 1],...
         'TooltipString', 'Add a new condition',...
         'Callback', @(~, ~) obj.newCondition());
       obj.DeleteConditionButton = uicontrol(props,...
         'String', 'Delete condition',...
-        ...'Position',[1/4 0 1/4 1],...
         'TooltipString', 'Delete the selected condition',...
         'Enable', 'off',...
         'Callback', @(~, ~) obj.deleteSelectedConditions());
        obj.MakeGlobalButton = uicontrol(props,...
          'String', 'Globalise parameter',...
-         ...'Position',[2/4 0 1/4 1],...
          'TooltipString', sprintf(['Make the selected condition-specific parameter global (i.e. not vary by trial)\n'...
             'This will move it to the global parameters section']),...
          'Enable', 'off',...
          'Callback', @(~, ~) obj.makeGlobal());
        obj.SetValuesButton = uicontrol(props,...
          'String', 'Set values',...
-         ...'Position',[3/4 0 1/4 1],...
          'TooltipString', 'Set selected values to specified value, range or function',...
          'Enable', 'off',...
          'Callback', @(~, ~) obj.setSelectedValues());
        obj.ButtonPanel.Widths = [-1 -1 -1 -1];
        obj.UIPanel.Heights = [-1 25];
     end
-
+    
     function onEdit(obj, src, eventData)
       disp('updating table cell');
       row = eventData.Indices(1);
@@ -229,7 +219,7 @@ classdef ConditionPanel < handle
         elseif length(newVals)<length(currVals) % too few new values
           % populate as many cells as possible
           newVals = [newVals ...
-            cellfun(@(a)ui.ParamEditor.controlValue2Param(2,a),...
+            cellfun(@(a)obj.ParamEditor.controlValue2Param(2,a),...
             currVals(length(newVals)+1:end),'UniformOutput',0)];
         end
         ic = strcmp(obj.ConditionTable.ColumnName, paramName); % find edited param names
@@ -242,6 +232,25 @@ classdef ConditionPanel < handle
       notify(obj.ParamEditor, 'Changed');
     end
     
+    function fillConditionTable(obj)
+      % Build the condition table
+      titles = obj.ParamEditor.Parameters.TrialSpecificNames;
+      [~, trialParams] = obj.ParamEditor.Parameters.assortForExperiment;
+      if isempty(titles)
+        obj.ButtonPanel.Visible = 'off';
+        obj.UIPanel.Visible = 'off';
+        obj.ParamEditor.Parent.Widths = [-1, 1];
+      else
+        obj.ButtonPanel.Visible = 'on';
+        obj.UIPanel.Visible = 'on';
+        obj.ParamEditor.Parent.Widths = [-1, -1];
+        data = reshape(struct2cell(trialParams), numel(titles), [])';
+        data = mapToCell(@(e) obj.ParamEditor.paramValue2Control(e), data);
+        set(obj.ConditionTable, 'ColumnName', titles, 'Data', data,...
+          'ColumnEditable', true(1, numel(titles)));
+      end
+    end
+    
     function newCondition(obj)
       disp('adding new condition row');
       PE = obj.ParamEditor;
@@ -249,7 +258,6 @@ classdef ConditionPanel < handle
         PE.Parameters.TrialSpecificNames);
       obj.ParamEditor.fillConditionTable();
     end
-    
     
   end
   

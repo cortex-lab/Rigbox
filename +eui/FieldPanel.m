@@ -1,18 +1,18 @@
 classdef FieldPanel < handle
-  %UNTITLED Summary of this class goes here
+  %UNTITLED Deals with formatting global parameter UI elements
   %   Detailed explanation goes here
   
   properties
     MinCtrlWidth = 40
     MaxCtrlWidth = 140
-    Margin = 4
+    Margin = 14
     RowSpacing = 1
     ColSpacing = 3
     UIPanel
     ContextMenu
   end
   
-  properties %(Access = protected)
+  properties (Access = ?eui.ParamEditor)
     ParamEditor
     MinRowHeight
     Listener
@@ -26,21 +26,22 @@ classdef FieldPanel < handle
   end
   
   methods
-    function obj = FieldPanel(f, ParamEditor, varargin)
+    function obj = FieldPanel(f, ParamEditor)
       obj.ParamEditor = ParamEditor;
-      p = uix.Panel('Parent', f);
+      p = uix.Panel('Parent', f, 'BorderType', 'none');
       obj.UIPanel = uipanel('Parent', p, 'BorderType', 'none',...
-          'BackgroundColor', 'white', 'Position', [0 0 0.5 1]);
+        'Position', [0 0 0.5 1]);
       obj.Listener = event.listener(obj.UIPanel, 'SizeChanged', @obj.onResize);
     end
 
     function [label, ctrl] = addField(obj, name, ctrl)
+      % TODO Maybe use exp.Parameters/ui
       if isempty(obj.ContextMenu)
         obj.ContextMenu = uicontextmenu;
-        uimenu(obj.ContextMenu, 'Label', 'Make Coditional', ...
+        uimenu(obj.ContextMenu, 'Label', 'Make Conditional', ...
           'MenuSelectedFcn', @(~,~)obj.makeConditional);
       end
-      props.BackgroundColor = 'white';
+%       props.BackgroundColor = 'white';
       props.HorizontalAlignment = 'left';
       props.UIContextMenu = obj.ContextMenu;
       props.Parent = obj.UIPanel;
@@ -59,18 +60,18 @@ classdef FieldPanel < handle
       switch get(src, 'style')
         case 'checkbox'
           newValue = logical(get(src, 'value'));
-          obj.ParamEditor.update(id, newValue);
+          obj.ParamEditor.updateGlobal(id, newValue);
         case 'edit'
           % if successful update the control with default formatting and
           % modified colour
-          newValue = obj.ParamEditor.update(id, get(src, 'string'));
+          newValue = obj.ParamEditor.updateGlobal(id, get(src, 'string'));
           set(src, 'String', obj.ParamEditor.paramValue2Control(newValue));
       end
       changed = strcmp(id,{obj.Labels.String});
       obj.Labels(changed).ForegroundColor = [1 0 0];
     end
     
-    function clear(obj, idx) % FIXME Rename to clearFields
+    function clear(obj, idx)
       if nargin == 1
         idx = true(size(obj.Labels));
       end
@@ -82,8 +83,20 @@ classdef FieldPanel < handle
     end
     
     function makeConditional(obj, name)
+      % MAKECONDITIONAL Make field parameter into a trial condition
+      %  This function removes the selected field from the global UI panel
+      %  and calls Condition UI to add a column to the trial condition
+      %  table.  It also makes a change to the ParamEditor's Parameters via
+      %  the makeTrialSpecific method.
+      %
+      %  While this function can be called with a parameter name, the
+      %  FieldPanel object is normally a protected property of the
+      %  ParamEditor class, and the only calls to this function are via the
+      %  context menu callback function
+      % 
+      % See also eui.Parameters/makeTrialSpecific, eui.ConditionPanel/fillConditionTable
       if nargin == 1
-        selected = obj.ParamEditor.Root.CurrentObject;
+        selected = obj.ParamEditor.getSelected();
         if isa(selected, 'matlab.ui.control.UIControl') && ...
             strcmp(selected.Style, 'text')
           name = selected.String;
@@ -97,7 +110,7 @@ classdef FieldPanel < handle
       
       obj.clear(idx);
       obj.ParamEditor.Parameters.makeTrialSpecific(name);
-      obj.ParamEditor.fillConditionTable();
+      obj.ParamEditor.ConditionalUI.fillConditionTable();
       obj.onResize;
     end
     
