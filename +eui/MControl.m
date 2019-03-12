@@ -247,6 +247,7 @@ classdef MControl < handle
     end
     
     function loadParamProfile(obj, profile)
+      tic
       set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
         % Clear existing parameters control
@@ -308,9 +309,7 @@ classdef MControl < handle
       if isempty(paramStruct); return; end
       % Now parameters are loaded, pass to ParamEditor for display, etc.
       if isempty(obj.ParamEditor)
-        panel = uipanel('Parent', obj.ParamPanel, 'Position', [0 0 1 1]);
-%         panel = uiextras.Panel('Parent', obj.ParamPanel);
-        obj.ParamEditor = eui.ParamEditor(obj.Parameters, panel); % Build parameter list in Global panel by calling eui.ParamEditor
+        obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
       else
         obj.ParamEditor.buildUI(obj.Parameters);
       end
@@ -318,6 +317,7 @@ classdef MControl < handle
       if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
         set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
+      disp(toc)
     end
     
     function paramChanged(obj)
