@@ -23,7 +23,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     function setup(testCase)
       % Hide figures and add teardown function to restore settings
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off');
+      set(0,'DefaultFigureVisible','off');
       testCase.addTeardown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
             
       % Loads validation data
@@ -209,7 +209,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       selection_fn = testCase.Table.CellSelectionCallback;
       selection_fn([],event)
             
-      % Retrieve function handle for new condition
+      % Retrieve function handle for delete condition
       callback_fn = pick(findobj(testCase.Figure, 'String', 'Delete condition'), 'Callback');
       testCase.verifyWarningFree(callback_fn, 'Warning encountered deleting trial conditions')
       
