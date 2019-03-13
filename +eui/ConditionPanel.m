@@ -41,7 +41,7 @@ classdef ConditionPanel < handle
         'MenuSelectedFcn', fcn, 'Checked', 'on', 'Tag', 'randomize button');
       obj.ContextMenus(3) = uimenu(c, 'Label', 'Sort by selected column', ...
         'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), ...
-        'Tag', 'sort by', 'Enable', 'off');
+        'Tag', 'sort by', 'Enable', 'off'); % TODO Implement sort by column
       % Create condition table
       p = uix.Panel('Parent', obj.UIPanel, 'BorderType', 'none');
       obj.ConditionTable = uitable('Parent', p,...
@@ -118,25 +118,19 @@ classdef ConditionPanel < handle
     end
     
     function onSelect(obj, ~, eventData)
-      obj.SelectedCells = eventData.Indices;
-      if size(eventData.Indices, 1) > 0
-        % cells selected, enable buttons
-        set(obj.MakeGlobalButton, 'Enable', 'on');
-        set(obj.DeleteConditionButton, 'Enable', 'on');
-        set(obj.SetValuesButton, 'Enable', 'on');
-        set(obj.ContextMenus(1), 'Enable', 'on');
-        set(obj.ContextMenus(3), 'Enable', 'on');
-      else
-        % nothing selected, disable buttons
-        set(obj.MakeGlobalButton, 'Enable', 'off');
-        set(obj.DeleteConditionButton, 'Enable', 'off');
-        set(obj.SetValuesButton, 'Enable', 'off');
-        set(obj.ContextMenus(1), 'Enable', 'off');
-        set(obj.ContextMenus(3), 'Enable', 'off');
-      end
+      % If at least one cell is selected, ensure buttons and menu items are
+      % enabled, otherwise disable them.
+      if nargin > 2; obj.SelectedCells = eventData.Indices; end
+      controls = ...
+        [obj.MakeGlobalButton, ...
+        obj.DeleteConditionButton, ...
+        obj.SetValuesButton, ...
+        obj.ContextMenus([1,3])];
+      set(controls, 'Enable', iff(size(obj.SelectedCells, 1) > 0, 'on', 'off'));
     end
 
     function makeGlobal(obj)
+      % FIXME Don't allow only numRepeats to remain
       if isempty(obj.SelectedCells)
         disp('nothing selected')
         return
@@ -146,6 +140,11 @@ classdef ConditionPanel < handle
       rows = num2cell(obj.SelectedCells(iu,1)); %get rows of unique selected cols
       PE = obj.ParamEditor;
       cellfun(@PE.globaliseParamAtCell, names, rows);
+      % If only numRepeats remains, globalise it
+      if isequal(PE.Parameters.TrialSpecificNames, {'numRepeats'})
+        PE.Parameters.Struct.numRepeats(1,1) = sum(PE.Parameters.Struct.numRepeats);
+        PE.globaliseParamAtCell('numRepeats', 1)
+      end
     end
     
     function deleteSelectedConditions(obj)
@@ -158,7 +157,7 @@ classdef ConditionPanel < handle
       % See also EXP.PARAMETERS, GLOBALISESELECTEDPARAMETERS
       rows = unique(obj.SelectedCells(:,1));
       names = obj.ConditionTable.ColumnName;
-      numConditions = size(obj.ConditionTable.Data,2);
+      numConditions = size(obj.ConditionTable.Data,1);
       % If the number of remaining conditions is 1 or less...
       if numConditions-length(rows) <= 1
           remainingIdx = find(all(1:numConditions~=rows,1));
@@ -169,10 +168,10 @@ classdef ConditionPanel < handle
           %... globalize them
           obj.makeGlobal;
       else % Otherwise delete the selected conditions as usual
-          obj.ParamEditor.Parameters.removeConditions(rows); %FIXME: Should be in ParamEditor
+          obj.ParamEditor.Parameters.removeConditions(rows);
       end
-      % Refresh the table of conditions FIXME: Should be in ParamEditor
-      obj.ParamEditor.fillConditionTable();
+      % Refresh the table of conditions
+      obj.fillConditionTable();
     end
     
     function setSelectedValues(obj) % Set multiple fields in conditional table
@@ -244,11 +243,11 @@ classdef ConditionPanel < handle
         obj.ButtonPanel.Visible = 'on';
         obj.UIPanel.Visible = 'on';
         obj.ParamEditor.Parent.Widths = [-1, -1];
-        data = reshape(struct2cell(trialParams), numel(titles), [])';
-        data = mapToCell(@(e) obj.ParamEditor.paramValue2Control(e), data);
-        set(obj.ConditionTable, 'ColumnName', titles, 'Data', data,...
-          'ColumnEditable', true(1, numel(titles)));
       end
+      data = reshape(struct2cell(trialParams), numel(titles), [])';
+      data = mapToCell(@(e) obj.ParamEditor.paramValue2Control(e), data);
+      set(obj.ConditionTable, 'ColumnName', titles, 'Data', data,...
+        'ColumnEditable', true(1, numel(titles)));
     end
     
     function newCondition(obj)
@@ -256,7 +255,7 @@ classdef ConditionPanel < handle
       PE = obj.ParamEditor;
       cellfun(@PE.addEmptyConditionToParam, ...
         PE.Parameters.TrialSpecificNames);
-      obj.ParamEditor.fillConditionTable();
+      obj.fillConditionTable();
     end
     
   end

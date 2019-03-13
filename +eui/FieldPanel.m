@@ -60,11 +60,11 @@ classdef FieldPanel < handle
       switch get(src, 'style')
         case 'checkbox'
           newValue = logical(get(src, 'value'));
-          obj.ParamEditor.updateGlobal(id, newValue);
+          obj.ParamEditor.update(id, newValue);
         case 'edit'
           % if successful update the control with default formatting and
           % modified colour
-          newValue = obj.ParamEditor.updateGlobal(id, get(src, 'string'));
+          newValue = obj.ParamEditor.update(id, get(src, 'string'));
           set(src, 'String', obj.ParamEditor.paramValue2Control(newValue));
       end
       changed = strcmp(id,{obj.Labels.String});
