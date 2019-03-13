@@ -1,32 +1,47 @@
 classdef FieldPanel < handle
-  %UNTITLED Deals with formatting global parameter UI elements
-  %   Detailed explanation goes here
+  %FIELDPANEL Deals with formatting global parameter UI elements
+  %   Designed to be an element of the EUI.PARAMEDITOR class that manages
+  %   the UI elements associated with all Global parameters.
   
   properties
+    % Minimum allowable width (in pixels) for each UIControl element
     MinCtrlWidth = 40
+    % Maximum allowable width (in pixels) for each UIControl element
     MaxCtrlWidth = 140
+    % Space (in pixels) between parent container and parameter fields
     Margin = 14
+    % Space (in pixels) between each parameter field row
     RowSpacing = 1
+    % Space (in pixels) between each parameter field column
     ColSpacing = 3
+    % Handle to parent UI container
     UIPanel
+    % Handles to context menu option for making a parameter conditional
     ContextMenu
   end
   
   properties (Access = ?eui.ParamEditor)
+    % Handle to EUI.PARAMEDITOR object
     ParamEditor
+    % Minimum height (in pixels) of each field row.  See ONRESIZE
     MinRowHeight
+    % Listener handle for when parent container is resized
     Listener
+    % Array of UIControl labels
     Labels
+    % Array of UIControl elements.  Either 'edit' or 'checkbox' controls
     Controls
+    % Array widths, one for each label in Labels.  See ONRESIZE
     LabelWidths
-  end
-  
-  events
-    Changed
   end
   
   methods
     function obj = FieldPanel(f, ParamEditor)
+      % FIELDPANEL Panel UI for Global parameters 
+      %  Input f may be a figure or other UI container object
+      %  ParamEditor is a handle to an eui.ParamEditor object.
+      % 
+      % See also EUI.PARAMEDITOR, EUI.CONDITIONPANEL
       obj.ParamEditor = ParamEditor;
       p = uix.Panel('Parent', f, 'BorderType', 'none');
       obj.UIPanel = uipanel('Parent', p, 'BorderType', 'none',...
@@ -35,7 +50,14 @@ classdef FieldPanel < handle
     end
 
     function [label, ctrl] = addField(obj, name, ctrl)
-      % TODO Maybe use exp.Parameters/ui
+      % ADDFIELD Adds a new field label and input control
+      %  Adds a label and control element for representing Global
+      %  parameters.  The input name should be identical to a parameter
+      %  fieldname.  From this the label string title is derived using
+      %  exp.Parameters/title.  Callback are added for the context menu and
+      %  for edits
+      %
+      % See also ONEDIT, EXP.PARAMETERS/TITLE, EUI.PARAMEDITOR/BUILDUI
       if isempty(obj.ContextMenu)
         obj.ContextMenu = uicontextmenu;
         uimenu(obj.ContextMenu, 'Label', 'Make Conditional', ...
@@ -134,11 +156,20 @@ classdef FieldPanel < handle
     end
     
     function delete(obj)
+      % DELETE Deletes the UI container
+      %   Called when this object or its parant ParamEditor is deleted
+      % See also CLEAR
       disp('delete called');
       delete(obj.UIPanel);
     end
        
     function onResize(obj, ~, ~)
+      % ONRESIZE Re-position field UI elements after container resize
+      %  Calculates the positions all field labels and input controls.
+      %  These are organised into rows and columns that maximize use of
+      %  space.
+      %
+      % See also EUI.PARAMEDITOR/ONRESIZE
       if isempty(obj.Controls)
         return
       end
