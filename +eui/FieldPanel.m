@@ -45,7 +45,9 @@ classdef FieldPanel < handle
       props.HorizontalAlignment = 'left';
       props.UIContextMenu = obj.ContextMenu;
       props.Parent = obj.UIPanel;
-      label = uicontrol('Style', 'text', 'String', name, props);
+      props.Tag = name;
+      title = obj.ParamEditor.Parameters.title(name);
+      label = uicontrol('Style', 'text', 'String', title, props);
       if nargin < 3
         ctrl = uicontrol('Style', 'edit', props);
       end
@@ -56,6 +58,14 @@ classdef FieldPanel < handle
     end
     
     function onEdit(obj, src, id)
+      % ONEDIT Callback for edits to field controls
+      %  Updates the underlying parameter struct, changes the UI
+      %  value/string and changes the label colour to red. The src object
+      %  should be the edit or checkbox ui control that has been edited,
+      %  and id is the unformatted parameter name (stored in the Tag
+      %  property of the label and control elements).
+      %
+      % See also ADDFIELD, EUI.PARAMEDITOR/UPDATE
       disp(id);
       switch get(src, 'style')
         case 'checkbox'
@@ -67,11 +77,14 @@ classdef FieldPanel < handle
           newValue = obj.ParamEditor.update(id, get(src, 'string'));
           set(src, 'String', obj.ParamEditor.paramValue2Control(newValue));
       end
-      changed = strcmp(id,{obj.Labels.String});
+      changed = strcmp(src.Tag,{obj.Labels.Tag});
       obj.Labels(changed).ForegroundColor = [1 0 0];
     end
     
     function clear(obj, idx)
+      % CLEAR Delete a parameter field
+      %  Deletes the label and control elements at index idx.  If no index
+      %  given, all controls are deleted.  
       if nargin == 1
         idx = true(size(obj.Labels));
       end
@@ -99,18 +112,24 @@ classdef FieldPanel < handle
         selected = obj.ParamEditor.getSelected();
         if isa(selected, 'matlab.ui.control.UIControl') && ...
             strcmp(selected.Style, 'text')
-          name = selected.String;
+          name = selected.Tag;
         else % Assume control
-          name = obj.Labels([obj.Controls]==selected).String;
+          name = obj.Labels([obj.Controls]==selected).Tag;
         end
       end
-      idx = strcmp(name,{obj.Labels.String});
+      idx = strcmp(name,{obj.Labels.Tag});
       assert(~ismember(name, {'randomiseConditions'}), ...
         '%s can not be made a conditional parameter', name)
       
       obj.clear(idx);
+      % FIXME The below code could be in a makeConditional method of
+      % eui.ParamEditor, thus more clearly separating class functionality:
+      % Editing the exp.Parameters object directly should only be done by
+      % ParamEditor.  This would also make subclassing these panel classes
+      % more straightforward
       obj.ParamEditor.Parameters.makeTrialSpecific(name);
       obj.ParamEditor.ConditionalUI.fillConditionTable();
+      notify(obj.ParamEditor, 'Changed');
       obj.onResize;
     end
     

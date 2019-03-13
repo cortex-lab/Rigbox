@@ -9,10 +9,14 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     Figure
     % Handle to trial conditions UI Table
     Table
+    % Test parameter structure
+    Parameters
   end
   
-  properties %(MethodSetupParameter)
-    Parameters
+  properties (SetAccess = private)
+    % Flag set to true each time the ParamEditor's Changed event is
+    % notified
+    Changed = false
   end
   
   methods (TestClassSetup)
@@ -21,7 +25,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
 %       set(0,'DefaultFigureVisible','off');
       testCase.addTeardown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
-      
+            
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
@@ -59,6 +63,13 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       % Ensure all conditional params have column in table
       testCase.fatalAssertTrue(isequal(size(testCase.Table.Data), ...
         [PE.Parameters.numTrialConditions, numel(PE.Parameters.TrialSpecificNames)]))
+      % Add callback for verifying that Changed event listeners are
+      % notified
+      callback = @(~,~)testCase.setChanged(true);
+      lh = event.listener(testCase.ParamEditor, 'Changed', callback);
+      testCase.addTeardown(@delete, lh);
+      % Reset the Changed flag
+      testCase.Changed = false;
     end
   end
   
@@ -69,6 +80,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       % conditional, and that the underlying Parameters object is also
       % affected
       PE = testCase.ParamEditor;
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
       % Number of global parameters: find all text labels
       gLabels = @()findobj(testCase.Figure, 'Style', 'text');
       gInputs = @()findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit');
@@ -80,9 +92,12 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       c = findobj(testCase.Figure, 'Text', 'Make Conditional');
       % Set the focused object to one of the parameter labels
       set(testCase.Figure, 'CurrentObject', ...
-        findobj(testCase.Figure, 'String', 'rewardVolume'))
+        findobj(testCase.Figure, 'Tag', 'rewardVolume'))
       testCase.verifyWarningFree(c.MenuSelectedFcn, ...
         'Problem making parameter conditional');
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
       % Verify change in UI elements
       testCase.verifyTrue(numel(gLabels()) == nGlobalLabels-1, ...
         'Global parameter UI element not removed')
@@ -152,14 +167,16 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     
     function test_newCondition(testCase)
       PE = testCase.ParamEditor;
-      
       tableRows = size(testCase.Table.Data, 1);
       
       % Make function handle param conditional to test default value
       % Set the focused object to one of the parameter labels
       set(testCase.Figure, 'CurrentObject', ...
-        findobj(testCase.Figure, 'String', 'experimentFun'))
+        findobj(testCase.Figure, 'Tag', 'experimentFun'))
       feval(pick(findobj(testCase.Figure, 'Text', 'Make Conditional'), 'MenuSelectedFcn'))
+      
+      % Reset Changed flag
+      testCase.Changed = false;
       
       % Retrieve function handle for new condition
       fn = pick(findobj(testCase.Figure, 'String', 'New condition'), 'Callback');
@@ -177,11 +194,15 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       [~, trialParams] = PE.Parameters.assortForExperiment;
       testCase.verifyTrue(isequal(struct2cell(trialParams(end)), ...
         {@nop; zeros(2,1); zeros(3,1); false; 0}))
+      
+      % Verify listeners WEREN'T notified
+      testCase.verifyTrue(~testCase.Changed, ...
+        'Shouldn''t have notified listeners of parameter change')
     end
     
     function test_deleteCondition(testCase)
       PE = testCase.ParamEditor;
-      
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
       tableRows = size(testCase.Table.Data, 1);
       % Select some cells to delete
       event.Indices = [(1:5)' ones(5,1)];
@@ -200,6 +221,10 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       testCase.assertEqual(size(testCase.Table.Data), ...
         [PE.Parameters.numTrialConditions, numel(PE.Parameters.TrialSpecificNames)])
       
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
+      
       % Test behaviour when < 2 conditions remain
       event.Indices = [(1:PE.Parameters.numTrialConditions-1)' ...
         ones(PE.Parameters.numTrialConditions-1,1)];
@@ -216,13 +241,14 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     
     function test_setValues(testCase)
       % TODO Add test for the set values button.  For now let's fail this
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
       PE = testCase.ParamEditor;
       testCase.assertTrue(false, 'Test not implemented')
     end
     
     function test_globaliseParam(testCase)
       PE = testCase.ParamEditor;
-      
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
       tableCols = size(testCase.Table.Data, 2);
       % Globalize one param
       event.Indices = [1, 2];
@@ -239,6 +265,10 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       % Verify change in Parameters object for conditional
       testCase.verifyEqual(size(testCase.Table.Data), ...
         [PE.Parameters.numTrialConditions, numel(PE.Parameters.TrialSpecificNames)])
+      
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
       
       % Test removal of all but numRepeats: numRepeats should automatically
       % globalize
@@ -280,6 +310,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     function test_paramEdits(testCase)
       % Test basic edits to Global UI controls and Condition table
       PE = testCase.ParamEditor;
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
 
       % Retreive all global parameters labels and input controls
       gLabels = findobj(testCase.Figure, 'Style', 'text');
@@ -302,6 +333,10 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       par = strcmpi(PE.Parameters.GlobalNames, strrep(gLabels(idx).String, ' ', ''));
       testCase.verifyEqual(PE.Parameters.Struct.(PE.Parameters.GlobalNames{par}), 666, ...
         'UI edit failed to update parameters struct')
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
+      testCase.Changed = false;
       
       % Test editing global param, 'checkbox' UI
       idx = find(strcmp({gInputs.Style}, 'checkbox'), 1);
@@ -319,6 +354,10 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       testCase.verifyEqual(...
         PE.Parameters.Struct.(PE.Parameters.GlobalNames{par}), gInputs(idx).Value==true, ...
         'UI checkbox failed to update parameters struct')
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
+      testCase.Changed = false;
       
       % Test edits to conditions table
       callback_fcn = testCase.Table.CellEditCallback;
@@ -333,6 +372,9 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       value = PE.Parameters.Struct.(PE.Parameters.TrialSpecificNames{1});
       testCase.verifyEqual(value(:,1), [0;5], ...
         'Table UI failed to update parameters struct')
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
     end
     
     function test_interactivity(testCase)
@@ -372,6 +414,12 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       testCase.verifyEmpty(disabled, 'Not all ui elements enabled')
     end
     
+  end
+  
+  methods
+    function setChanged(testCase, value)
+      testCase.Changed = value;
+    end
   end
   
 end

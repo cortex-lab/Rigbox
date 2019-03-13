@@ -169,6 +169,7 @@ classdef ConditionPanel < handle
           obj.makeGlobal;
       else % Otherwise delete the selected conditions as usual
           obj.ParamEditor.Parameters.removeConditions(rows);
+          notify(obj.ParamEditor, 'Changed')
       end
       % Refresh the table of conditions
       obj.fillConditionTable();
