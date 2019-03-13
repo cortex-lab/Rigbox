@@ -60,19 +60,21 @@ classdef ParamEditor < handle
     end
         
     function set.Enable(obj, value)
+      % Disable all UI elements
+      %  Render the GUI view-only by disabling all UI elements.  Used for
+      %  viewing parameters during an active experiment when the parameters
+      %  can no longer be adjusted.
+      % See also EUI.EXPPANEL, EUI.CONDITIONPANEL/ONSELECT
       cUI = obj.ConditionalUI;
+      contextMenus = [cUI.ContextMenus obj.GlobalUI.ContextMenu.Children]';
       parent = obj.Parent; % FIXME: use tags instead?
       if value == true
-        arrayfun(@(prop) set(prop, 'Enable', 'on'), findobj(parent,'Enable','off'));
-        if isempty(cUI.SelectedCells)
-          set(cUI.MakeGlobalButton, 'Enable', 'off');
-          set(cUI.DeleteConditionButton, 'Enable', 'off');
-          set(cUI.SetValuesButton, 'Enable', 'off');
-        end
-        obj.Enable = true;
+        arrayfun(@(prop) set(prop, 'Enable', 'on'), ...
+          [contextMenus; findobj(parent,'Enable','off')]);
+        cUI.onSelect() % Re-disable buttons if no cells were selected
       else
-        arrayfun(@(prop) set(prop, 'Enable', 'off'), findobj(parent,'Enable','on'));
-        obj.Enable = false;
+        arrayfun(@(prop) set(prop, 'Enable', 'off'), ...
+          [contextMenus; findobj(parent,'Enable','on')]);
       end
     end
     
@@ -117,7 +119,7 @@ classdef ParamEditor < handle
         description = 'Whether to randomise the conditional paramters or present them in order';
         obj.Parameters.set('randomiseConditions', false, description, 'logical')
       elseif ismember('randomiseConditions', obj.Parameters.Names)
-        obj.updateGlobal('randomiseConditions', logical(value));
+        obj.update('randomiseConditions', logical(value));
       end
       menu = obj.ConditionalUI.ContextMenus(2);
       if value == false
@@ -163,7 +165,7 @@ classdef ParamEditor < handle
       obj.Parameters.Struct.(name) = cat(2, obj.Parameters.Struct.(name), newValue);
     end
     
-    function newValue = updateGlobal(obj, name, value, row)
+    function newValue = update(obj, name, value, row)
       if nargin < 4; row = 1; end
       currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
@@ -188,8 +190,8 @@ classdef ParamEditor < handle
       obj.ConditionalUI.fillConditionTable;
       % Add new global parameter to field panel
       if islogical(value) % If parameter is logical, make checkbox
-        ctrl = uicontrol('Parent', obj.GlobalUI.UIPanel, 'Style', 'checkbox', ...
-          'Value', value, 'BackgroundColor', 'white');
+        ctrl = uicontrol('Parent', obj.GlobalUI.UIPanel, ...
+          'Style', 'checkbox', 'Value', value);
         addField(obj.GlobalUI, name, ctrl);
       else
         [~, ctrl] = addField(obj.GlobalUI, name);
@@ -306,7 +308,8 @@ classdef ParamEditor < handle
       % Convert the values displayed in the UI ('control values') to
       % parameter values.  String representations of numrical arrays and
       % functions are converted back to their 'native' classes.
-      if nargin < 4
+      % TODO Implement string support
+      if nargin < 3
         allowTypeChange = false;
       end
       switch class(currParam)
@@ -339,6 +342,11 @@ classdef ParamEditor < handle
           else
             error('Cannot update unimplemented type ''%s''', class(currParam));
           end
+      end
+      % If necessary, assert that type didn't change
+      if ~allowTypeChange
+        assert(strcmp(class(currParam), class(data)), ...
+          sprintf('Type change from %s to %s not allowed', class(currParam), class(data)))
       end
     end
 

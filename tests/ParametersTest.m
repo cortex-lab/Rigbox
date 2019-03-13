@@ -3,10 +3,8 @@ classdef ParametersTest < matlab.unittest.TestCase
   properties
     % Parameters object
     Parameters
+    % Number of trial conditions (rows in table)
     nConditional = 6
-  end
-  
-  properties %(MethodSetupParameter)
     % Parameters structure
     ParamStruct
   end
@@ -38,9 +36,7 @@ classdef ParametersTest < matlab.unittest.TestCase
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
       % Create stand-alone panel
-      testCase.startMeasuring('gen_empty_obj');
       testCase.Parameters = exp.Parameters();
-      testCase.stopMeasuring('gen_empty_obj');
       testCase.fatalAssertTrue(isa(testCase.Parameters, 'exp.Parameters'))
     end
   end
@@ -49,9 +45,7 @@ classdef ParametersTest < matlab.unittest.TestCase
     function buildParams(testCase)
       % Re-load the param structure before each test so that changes in
       % previous test don't persist
-      testCase.startMeasuring('setStruct');
       testCase.Parameters.Struct = testCase.ParamStruct;
-      testCase.stopMeasuring('setStruct');
       testCase.fatalAssertTrue(length(testCase.Parameters.TrialSpecificNames) == 3)
       testCase.fatalAssertTrue(length(testCase.Parameters.GlobalNames) == 5)
       testCase.fatalAssertTrue(length(testCase.Parameters.Names) == 8)
@@ -80,18 +74,14 @@ classdef ParametersTest < matlab.unittest.TestCase
       % Test single param title
       testCase.verifyEqual(p.title('numRepeats'), 'Num repeats')
       % Test array of param titles, including those with units
-      testCase.startMeasuring('title');
       str = p.title({'numRepeats', 'charParam', 'arrayParam', 'logicalParam'});
-      testCase.stopMeasuring('title');
       expected = {'Num repeats', 'Char param', 'Array param (mW)', 'Logical param'};
       testCase.verifyTrue(isequal(str, expected))
     end
     
     function test_assortForExperiment(testCase)
       p = testCase.Parameters;
-      testCase.startMeasuring('assort');
       [globalParams, trialParams] = testCase.verifyWarningFree(@()p.assortForExperiment);
-      testCase.stopMeasuring('assort');
       testCase.verifyTrue(isstruct(globalParams))
       testCase.verifyTrue(isequal(fieldnames(globalParams), p.GlobalNames))
       testCase.verifyTrue(isequal(size(trialParams), [1 testCase.nConditional]))
@@ -100,9 +90,7 @@ classdef ParametersTest < matlab.unittest.TestCase
     
     function test_makeGlobal(testCase)
       p = testCase.Parameters;
-      testCase.startMeasuring('makeGlobal');
       p.makeGlobal('numRepeats')
-      testCase.stopMeasuring('makeGlobal');
       testCase.verifyTrue(~p.isTrialSpecific('numRepeats'))
       testCase.verifyTrue(numel(p.Struct.numRepeats)==1)
       p.makeGlobal('arrayParam')
@@ -113,6 +101,7 @@ classdef ParametersTest < matlab.unittest.TestCase
       testCase.verifyEqual(p.Struct.logicalArrayParam, false)
       try
         p.makeGlobal('numRepeats')
+        testCase.verifyTrue(false, 'Failed to throw error')
       catch ex
         testCase.verifyEqual(ex.message, '''numRepeats'' is already global')
       end
@@ -120,9 +109,7 @@ classdef ParametersTest < matlab.unittest.TestCase
     
     function test_removeConditions(testCase)
       p = testCase.Parameters;
-      testCase.startMeasuring('removeConditions');
       p.removeConditions([2,4,6]);
-      testCase.stopMeasuring('removeConditions');
       % Expected result for arrayParam
       expected = magic(testCase.nConditional);
       expected = expected(:,[1,3,5]);
@@ -134,16 +121,14 @@ classdef ParametersTest < matlab.unittest.TestCase
     function test_description(testCase)
       p = testCase.Parameters;
       testCase.verifyEqual(p.description('numRepeats'), 'No. of repeats of each condition')
-      testCase.verifyTrue(isempty(p.description('arrayParam')))
+      testCase.verifyEmpty(p.description('arrayParam'))
       testCase.verifyTrue(numel(p.description({'numRepeats', 'charParam'}))==2)
     end
     
     function test_toConditionServer(testCase)
       % Test behaviour when numRepeats is conditional
       p = testCase.Parameters;
-      testCase.startMeasuring('toConditionServer');
       [cs, globalParams, trialParams] = p.toConditionServer;
-      testCase.stopMeasuring('toConditionServer');
       testCase.verifyTrue(isa(cs, 'exp.PresetConditionServer'))
       testCase.verifyTrue(isstruct(globalParams))
       testCase.verifyTrue(isequal(fieldnames(globalParams), p.GlobalNames))
@@ -177,14 +162,19 @@ classdef ParametersTest < matlab.unittest.TestCase
       result = [trialParams.arrayParam];
       testCase.verifyTrue(~isequal(result, noneRandom), ...
         'Expected trial conditions to be randomised')
+      
+      % Test behaviour when trialParams is empty
+      names = p.TrialSpecificNames;
+      for i = 1:length(names); p.makeGlobal(names{i}); end
+      [~, ~, trialParams] = p.toConditionServer(true);
+      testCase.assertEmpty(fieldnames(trialParams))
+      testCase.verifyTrue(~isempty(trialParams), 'Trial conditions empty')
     end
     
     function test_makeTrialSpecific(testCase)
       p = testCase.Parameters;
       % Test making simply numerical param trial specific
-      testCase.startMeasuring('makeTrialSpecific');
       p.makeTrialSpecific('doubleParam')
-      testCase.stopMeasuring('makeTrialSpecific');
       testCase.verifyTrue(p.isTrialSpecific('doubleParam'))
       testCase.verifyTrue(isequal(p.Struct.doubleParam, repmat(3,1,testCase.nConditional)))
       testCase.verifyTrue(ismember('doubleParam', p.TrialSpecificNames))
@@ -200,6 +190,7 @@ classdef ParametersTest < matlab.unittest.TestCase
       testCase.verifyTrue(isstring(p.Struct.strParam))
       try
         p.makeTrialSpecific('numRepeats')
+        testCase.verifyTrue(false, 'Failed to throw error')
       catch ex
         testCase.verifyEqual(ex.message, '''numRepeats'' is already trial-specific')
       end
@@ -208,10 +199,8 @@ classdef ParametersTest < matlab.unittest.TestCase
     function test_set(testCase)
       p = testCase.Parameters;
       % Test setting simple param with units and description
-      testCase.startMeasuring('setPar');
       p.set('randomiseConditions', true, ...
         'Flag for whether to randomise trial conditions', 'logical')
-      testCase.stopMeasuring('setPar');
       testCase.verifyTrue(ismember('randomiseConditions', p.GlobalNames))
       testCase.verifyTrue(p.Struct.randomiseConditions == true)
       testCase.verifyTrue(isfield(p.Struct, 'randomiseConditionsDescription'))
@@ -230,11 +219,6 @@ classdef ParametersTest < matlab.unittest.TestCase
       p.set('globalPar', false(1, testCase.nConditional+1))
       testCase.verifyTrue(ismember('globalPar', p.TrialSpecificNames))
     end
-    
-%     function test_ui(testCase)
-%       p = testCase.Parameters;
-%     end
-    
   end
   
 end

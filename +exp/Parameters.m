@@ -220,7 +220,9 @@ classdef Parameters < handle
         % We also remove the numRepeats parameter from the globalParams
         % since the trial elements are literally repeated now
         nreps = globalParams.numRepeats;
-        trialParams = repmat(trialParams, 1, nreps);
+        trialParams = iff(isempty(trialParams), ...
+          @()repelems(struct, nreps),...
+          @()repmat(trialParams, 1, nreps));
         globalParams = rmfield(globalParams, 'numRepeats');
       end
       if randomOrder
@@ -229,29 +231,6 @@ classdef Parameters < handle
       cs = exp.PresetConditionServer(globalParams, trialParams);
     end
 
-    function [ctrl, label] = ui(obj, name, parent)
-      % FIXME method not used at all(?)
-      % Seems to reuse code put into indivTitle method
-      % Doesn't return uicontrols if units aren't '°' or 's'
-      ctrl = [];
-      label = [];
-      unitField = [name 'Units'];
-      if isfield(obj.Params, unitField)
-        value = obj.Params.(name);
-        units = obj.Params.(unitField);
-        words = lower(regexprep(name, '([a-z])([A-Z])', '$1 $2'));
-        words(1) = upper(words(1));
-        title = sprintf('%s (%s)', words, units);
-        description = obj.Params.([name 'Description']);
-        if any(strcmp(units, {'°', 's'}))
-          label = uicontrol('Parent', parent, 'Style', 'text', 'String', title);
-          ctrl = uicontrol('Parent', parent,...
-            'Style', 'edit',...
-            'String', num2str(value),...
-            'TooltipString', description);
-        end
-      end
-    end
   end
   
   methods (Access = protected)
