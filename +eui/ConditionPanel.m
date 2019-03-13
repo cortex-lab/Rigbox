@@ -1,33 +1,48 @@
 classdef ConditionPanel < handle
-  %UNTITLED Deals with formatting trial conditions UI table
-  %   Detailed explanation goes here
-  % TODO Document
+  %CONDITIONPANEL Deals with formatting trial conditions UI table
+  %   Designed to be an element of the EUI.PARAMEDITOR class that manages
+  %   the UI elements associated with all Conditional parameters.
   % TODO Add sort by column
   % TODO Add set condition idx
-  % TODO Use tags for menu items
   
   properties
+    % Handle to UI Table that represents trial conditions
     ConditionTable
+    % Minimum UI Panel width allowed.  See also EUI.PARAMEDITOR/ONRESIZE
     MinWidth = 80
 %     MaxWidth = 140
 %     Margin = 4
+    % Handle to parent UI container
     UIPanel
+    % Handle to UI container for buttons
     ButtonPanel
+    % Handles to context menu items
     ContextMenus
   end
   
   properties (Access = protected)
+    % Handle to EUI.PARAMEDITOR object
     ParamEditor
-    Listener
+    % UIControl button for adding a new trial condition (row) to the table
     NewConditionButton
+    % UIControl button for deleting trial conditions (rows) from the table
     DeleteConditionButton
+    % UIControl button for making conditional parameter (column) global
     MakeGlobalButton
+    % UIControl button for setting multiple table cells at once
     SetValuesButton
-    SelectedCells %[row, column;...] of each selected cell
+    % Indicies of selected table cells  as array [row, column;...] of each
+    % selected cell
+    SelectedCells 
   end
   
   methods
     function obj = ConditionPanel(f, ParamEditor, varargin)
+      % FIELDPANEL Panel UI for Conditional parameters 
+      %  Input f may be a figure or other UI container object
+      %  ParamEditor is a handle to an eui.ParamEditor object.
+      % 
+      % See also EUI.PARAMEDITOR, EUI.FIELDPANEL
       obj.ParamEditor = ParamEditor;
       obj.UIPanel = uix.VBox('Parent', f);
 %       obj.UIPanel.BackgroundColor = 'white';
@@ -108,18 +123,26 @@ classdef ConditionPanel < handle
     end
     
     function clear(obj)
+      % CLEAR Clear all table data
+      %  Clears all trial condition data from UI Table
+      % 
+      % See also EUI.PARAMEDITOR/BUILDUI, EUI.PARAMEDITOR/CLEAR
       set(obj.ConditionTable, 'ColumnName', [], ...
         'Data', [], 'ColumnEditable', false);
     end
     
     function delete(obj)
+      % DELETE Deletes the UI container
+      %   Called when this object or its parant ParamEditor is deleted
+      % See also CLEAR
       disp('delete called');
       delete(obj.UIPanel);
     end
     
     function onSelect(obj, ~, eventData)
-      % If at least one cell is selected, ensure buttons and menu items are
-      % enabled, otherwise disable them.
+      % ONSELECT Callback for when table cells are (de-)selected
+      %   If at least one cell is selected, ensure buttons and menu items
+      %   are enabled, otherwise disable them.
       if nargin > 2; obj.SelectedCells = eventData.Indices; end
       controls = ...
         [obj.MakeGlobalButton, ...
@@ -130,7 +153,12 @@ classdef ConditionPanel < handle
     end
 
     function makeGlobal(obj)
-      % FIXME Don't allow only numRepeats to remain
+      % MAKEGLOBAL Make condition parameter (table column) global
+      %  Find all selected columns are turn into global parameters, using
+      %  the value of the first selected cell as the global parameter
+      %  value.
+      %
+      % See also eui.ParamEditor/globaliseParamAtCell
       if isempty(obj.SelectedCells)
         disp('nothing selected')
         return
@@ -175,7 +203,19 @@ classdef ConditionPanel < handle
       obj.fillConditionTable();
     end
     
-    function setSelectedValues(obj) % Set multiple fields in conditional table
+    function setSelectedValues(obj) 
+      % SETSELECTEDVALUES Set multiple fields in conditional table at once
+      %  Generates an input dialog for setting multiple trial conditions at
+      %  once.  Also allows the use of function handles for more complex
+      %  values.
+      % 
+      %  Examples:
+      %   (1:10:100) % Sets selected rows to [1 11 21 31 41 51 61 71 81 91]
+      %   @(~)randi(100) % Assigned random integer to each selected row
+      %   @(a)a*50 % Multiplies each condition value by 50
+      %   false % Sets all selected rows to false
+      % 
+      % See also SETNEWVALS, ONEDIT
       disp('updating table cells');
       cols = obj.SelectedCells(:,2); % selected columns
       uCol = unique(obj.SelectedCells(:,2));
@@ -233,7 +273,10 @@ classdef ConditionPanel < handle
     end
     
     function fillConditionTable(obj)
-      % Build the condition table
+      % FILLCONDITIONTABLE Build the condition table
+      %  Populates the UI Table with trial specific parameters, where each
+      %  row is a trial condition (that is, a parameter column) and each
+      %  column is a different trial specific parameter
       titles = obj.ParamEditor.Parameters.TrialSpecificNames;
       [~, trialParams] = obj.ParamEditor.Parameters.assortForExperiment;
       if isempty(titles)
@@ -252,6 +295,10 @@ classdef ConditionPanel < handle
     end
     
     function newCondition(obj)
+      % Adds a new trial condition (row) to the ConditionTable
+      %  Adds new row and populates it with sensible 'default' values.
+      %  These are mostly zeros or empty values.  
+      % See also eui.ParamEditor/addEmptyConditionToParam
       disp('adding new condition row');
       PE = obj.ParamEditor;
       cellfun(@PE.addEmptyConditionToParam, ...

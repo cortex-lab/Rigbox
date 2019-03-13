@@ -177,6 +177,8 @@ classdef ParamEditor < handle
         
     function addEmptyConditionToParam(obj, name)
       % Add a new trial specific condition to the table
+      %  Adds a new trial condition to each trial specific parameter.  That
+      %  is, adds a new column to each parameter.
       % See also EUI.CONDITIONPANEL/NEWCONDITION
       assert(obj.Parameters.isTrialSpecific(name),...
         'Tried to add a new condition to global parameter ''%s''', name);
