@@ -9,7 +9,7 @@ classdef FieldPanel < handle
     % Maximum allowable width (in pixels) for each UIControl element
     MaxCtrlWidth = 140
     % Space (in pixels) between parent container and parameter fields
-    Margin = 14
+    Margin = 4
     % Space (in pixels) between each parameter field row
     RowSpacing = 1
     % Space (in pixels) between each parameter field column
@@ -49,30 +49,31 @@ classdef FieldPanel < handle
       obj.Listener = event.listener(obj.UIPanel, 'SizeChanged', @obj.onResize);
     end
 
-    function [label, ctrl] = addField(obj, name, ctrl)
+    function [label, ctrl] = addField(obj, name, type)
       % ADDFIELD Adds a new field label and input control
       %  Adds a label and control element for representing Global
       %  parameters.  The input name should be identical to a parameter
-      %  fieldname.  From this the label string title is derived using
-      %  exp.Parameters/title.  Callback are added for the context menu and
-      %  for edits
+      %  fieldname.  Type is an optional input specifying the style of
+      %  uicontrol (default 'edit').  From this the label string title is
+      %  derived using exp.Parameters/title.  Callbacks are added for the
+      %  context menu and for edits
       %
       % See also ONEDIT, EXP.PARAMETERS/TITLE, EUI.PARAMEDITOR/BUILDUI
+      if nargin < 3; type = 'edit'; end
       if isempty(obj.ContextMenu)
         obj.ContextMenu = uicontextmenu;
         uimenu(obj.ContextMenu, 'Label', 'Make Conditional', ...
           'MenuSelectedFcn', @(~,~)obj.makeConditional);
       end
 %       props.BackgroundColor = 'white';
+      props.TooltipString = obj.ParamEditor.Parameters.description(name);
       props.HorizontalAlignment = 'left';
       props.UIContextMenu = obj.ContextMenu;
       props.Parent = obj.UIPanel;
       props.Tag = name;
       title = obj.ParamEditor.Parameters.title(name);
       label = uicontrol('Style', 'text', 'String', title, props);
-      if nargin < 3
-        ctrl = uicontrol('Style', 'edit', props);
-      end
+      ctrl = uicontrol('Style', type, props);
       callback = @(src,~)onEdit(obj, src, name);
       set(ctrl, 'Callback', callback);
       obj.Labels = [obj.Labels; label];

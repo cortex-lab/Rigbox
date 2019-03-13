@@ -59,6 +59,7 @@ classdef ParamEditor < handle
 %       obj.Listener = event.listener(parent, 'SizeChanged', @(~,~)obj.onResize);
       obj.Parent = uix.HBox('Parent', parent);
       obj.GlobalUI = eui.FieldPanel(obj.Parent, obj);
+      if nargin == 2; obj.GlobalUI.Margin = 14; end % FIXME Add as generic input name-value pair
       obj.ConditionalUI = eui.ConditionPanel(obj.Parent, obj);
       obj.buildUI(pars);
       % FIXME Current hack for drawing params first time
@@ -138,9 +139,8 @@ classdef ParamEditor < handle
         % context menu, don't create global param field
         if strcmp(nm, 'randomiseConditions'); continue; end
         if islogical(pars.Struct.(nm{:})) % If parameter is logical, make checkbox
-          ctrl = uicontrol('Parent', c.UIPanel, 'Style', 'checkbox', ...
-            'Value', pars.Struct.(nm{:}), 'Tag', nm{:});
-          addField(c, nm{:}, ctrl);
+          [~, ctrl] = addField(c, nm{:}, 'checkbox');
+          ctrl.Value = pars.Struct.(nm{:});
         else % Otherwise create the default field; a text box
           [~, ctrl] = addField(c, nm{:});
           ctrl.String = obj.paramValue2Control(pars.Struct.(nm{:}));
@@ -242,9 +242,8 @@ classdef ParamEditor < handle
       obj.ConditionalUI.fillConditionTable;
       % Add new global parameter to field panel
       if islogical(value) % If parameter is logical, make checkbox
-        ctrl = uicontrol('Parent', obj.GlobalUI.UIPanel, ...
-          'Style', 'checkbox', 'Value', value);
-        addField(obj.GlobalUI, name, ctrl);
+        [~, ctrl] = addField(obj.GlobalUI, name, 'checkbox');
+        ctrl.Value = value;
       else
         [~, ctrl] = addField(obj.GlobalUI, name);
         ctrl.String = obj.paramValue2Control(value);

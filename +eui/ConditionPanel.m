@@ -101,10 +101,18 @@ classdef ConditionPanel < handle
     end
     
     function onEdit(obj, src, eventData)
+      % ONEDIT Callback for edits to condition table
+      %  Updates the underlying parameter struct, changes the UI table
+      %  data. The src object should be the UI Table that has been edited,
+      %  and eventData contains the table indices of the edited cell.
+      %
+      % See also FILLCONDITIONTABLE, EUI.PARAMEDITOR/UPDATE
       disp('updating table cell');
       row = eventData.Indices(1);
       col = eventData.Indices(2);
-      paramName = obj.ConditionTable.ColumnName{col};
+      assert(all(cellfun(@strcmpi, strrep(obj.ConditionTable.ColumnName, ' ', ''), ...
+        obj.ParamEditor.Parameters.TrialSpecificNames)), 'Unexpected condition names')
+      paramName = obj.ParamEditor.Parameters.TrialSpecificNames{col};
       newValue = obj.ParamEditor.update(paramName, eventData.NewData, row);
       reformed = obj.ParamEditor.paramValue2Control(newValue);
       % If successful update the cell with default formatting
@@ -163,10 +171,10 @@ classdef ConditionPanel < handle
         disp('nothing selected')
         return
       end
-      [cols, iu] = unique(obj.SelectedCells(:,2));
-      names = obj.ConditionTable.ColumnName(cols);
-      rows = num2cell(obj.SelectedCells(iu,1)); %get rows of unique selected cols
       PE = obj.ParamEditor;
+      [cols, iu] = unique(obj.SelectedCells(:,2));
+      names = PE.Parameters.TrialSpecificNames(cols);
+      rows = num2cell(obj.SelectedCells(iu,1)); %get rows of unique selected cols
       cellfun(@PE.globaliseParamAtCell, names, rows);
       % If only numRepeats remains, globalise it
       if isequal(PE.Parameters.TrialSpecificNames, {'numRepeats'})
@@ -180,7 +188,6 @@ classdef ConditionPanel < handle
       % The callback for the 'Delete condition' button.  This removes the
       % selected conditions from the table and if less than two conditions
       % remain, globalizes them.
-      %     TODO: comment function better, index in a clearer fashion
       %
       % See also EXP.PARAMETERS, GLOBALISESELECTEDPARAMETERS
       rows = unique(obj.SelectedCells(:,1));
@@ -277,8 +284,9 @@ classdef ConditionPanel < handle
       %  Populates the UI Table with trial specific parameters, where each
       %  row is a trial condition (that is, a parameter column) and each
       %  column is a different trial specific parameter
-      titles = obj.ParamEditor.Parameters.TrialSpecificNames;
-      [~, trialParams] = obj.ParamEditor.Parameters.assortForExperiment;
+      P = obj.ParamEditor.Parameters;
+      titles = P.title(P.TrialSpecificNames);
+      [~, trialParams] = P.assortForExperiment;
       if isempty(titles)
         obj.ButtonPanel.Visible = 'off';
         obj.UIPanel.Visible = 'off';
