@@ -321,6 +321,9 @@ classdef MControl < handle
     end
     
     function paramChanged(obj)
+      % PARAMCHANGED Indicate to user that parameters have been updated
+      %  Changes the label above the ParamEditor indicating that the
+      %  parameters have been edited
       s = get(obj.ParamProfileLabel, 'String');
       if ~strEndsWith(s, '[EDITED]')
         set(obj.ParamProfileLabel, 'String', [s ' ' '[EDITED]'], 'ForegroundColor', [1 0 0]);

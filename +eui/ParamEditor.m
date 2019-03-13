@@ -1,30 +1,54 @@
 classdef ParamEditor < handle
-  %UNTITLED2 Summary of this class goes here
-  %   ParamEditor deals with setting the paramters via a GUI
+  %PARAMEDITOR GUI for visualizing and editing experiment parameters
+  %   ParamEditor deals with setting the paramters via a GUI.  In general
+  %   this class is involved in constructing a UI comprising a Global UI
+  %   panel, handled by the EUI.FIELDPANEL class, and a Condition table,
+  %   handled by the EUI.CONDITIONPANEL class.  It is also responsible for
+  %   updating the underlying EXP.PARAMETERS object and notifying
+  %   downstream listeners of parameter changes.
+  %
+  % See also EUI.FIELDPANEL, EUI.CONDITIONPANEL
   
   properties
+    % An exp.Parameters object, which keeps track of all parameter changes
     Parameters
   end
   
   properties (Access = {?eui.ConditionPanel, ?eui.FieldPanel})
-    UIPanel
+    % Handle to the EUI.FIELDPANEL object, which manages the display of the
+    % Global parameters
     GlobalUI
+    % Handle to the EUI.CONDITIONPANEL object, which manages the display of
+    % the trial conditions within a ui table
     ConditionalUI
+    % Handle to the parent container for the ParamEditor.  If constructor
+    % called with no parant input, then this will be a figure handle, the
+    % same as Root
     Parent
+    % Handle to the figure within which the ParamEditor is displayed
     Root
+    % A listener for changes to the figure size.  See also ONRESIZE
     Listener
   end
   
   properties (Dependent)
+    % Flag for making editor read only by disabling all UI controls
     Enable
   end
   
   events
+    % Event notified each time a user makes an edit to a parameter
     Changed
   end
   
   methods
     function obj = ParamEditor(pars, parent)
+      % PARAMEDITOR GUI for visualizing and editing experiment parameters
+      %  The input pars is expected to be an instance of the exp.Parameters
+      %  class.  Parant is a handle to a parent figure or UI Panel.  If no
+      %  parant is given, the editor is created in a new figure.
+      %
+      % See also EUI.FIELDPANEL, EUI.CONDITIONPANEL
       if nargin == 0; pars = []; end
       if nargin < 2
         parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
@@ -55,6 +79,10 @@ classdef ParamEditor < handle
     end
     
     function delete(obj)
+      % DELETE Deletes all panels
+      %  Called when the ParamEditor object is deleted or its parant figure
+      %  is closed.  Deletes all UI elements and data.
+      % See also CLEAR
       delete(obj.GlobalUI);
       delete(obj.ConditionalUI);
     end
@@ -79,11 +107,27 @@ classdef ParamEditor < handle
     end
     
     function clear(obj)
+      % CLEAR Clear the Global and Condition panels
+      %  Deletes all UI fields (labels and control elements) and clears the
+      %  Condition Table data.
+      % 
+      % See also BUILDUI
       clear(obj.GlobalUI);
       clear(obj.ConditionalUI);
     end
     
     function buildUI(obj, pars)
+      % BUILDUI Populate Global and Condition UI panels with paramter set
+      %  Clears any existing fields and the condition table, then loads new
+      %  UI controls and labels for the Global parameters, and fills the
+      %  condition table.  The input pars must be an instance of the
+      %  exp.Parameters class.
+      %
+      %  RandomiseConditions is not added as a field but instead is
+      %  represented as a context menu item
+      %
+      % See also EXP.PARAMETERS, EUI.FIELDPANEL/ADDFIELD,
+      % EUI.CONDITIONPANEL/FILLCONDITIONTABLE
       obj.Parameters = pars;
       obj.clear() % Clear the current parameter UI elements
       if isempty(pars); return; end % Nothing to build
@@ -95,7 +139,7 @@ classdef ParamEditor < handle
         if strcmp(nm, 'randomiseConditions'); continue; end
         if islogical(pars.Struct.(nm{:})) % If parameter is logical, make checkbox
           ctrl = uicontrol('Parent', c.UIPanel, 'Style', 'checkbox', ...
-            'Value', pars.Struct.(nm{:}));
+            'Value', pars.Struct.(nm{:}), 'Tag', nm{:});
           addField(c, nm{:}, ctrl);
         else % Otherwise create the default field; a text box
           [~, ctrl] = addField(c, nm{:});
@@ -166,6 +210,12 @@ classdef ParamEditor < handle
     end
     
     function newValue = update(obj, name, value, row)
+      % UPDATE Updates the exp.Parameters object with new value
+      %  Called when either the Condition table or Global param fields are
+      %  updated by the user.  Updated the underlying paramters structure
+      %  and notifies listeners of the change via the Changed event.
+      %
+      % See also EUI.FIELDPANEL/ONEDIT, EUI.CONDITIONPANEL/ONEDIT
       if nargin < 4; row = 1; end
       currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
