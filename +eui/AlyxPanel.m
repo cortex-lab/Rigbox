@@ -716,16 +716,29 @@ classdef AlyxPanel < handle
     end
     
     methods (Static)
-        function A = round(a, direction, sigFigures)
-            if nargin < 3; sigFigures = 2; end
-            c = 1*10^sigFigures;
+        function A = round(a, direction, N)
+          % ROUND Rounds a value a up or down to the nearest N s.f.
+          %   Rounds a value in the specified direction to the nearest N
+          %   significant figures.  The default behaviour is the same as
+          %   MATLAB's builtin round function, that is to round to the
+          %   nearest value.
+          % 
+          %   Examples:
+          %     eui.AlyxPanel.round(0.8437, 'up') % 0.85
+          %     eui.AlyxPanel.round(12.65, 'up', 3) % 12.6
+          %     eui.AlyxPanel.round(12.6, 'down'), 12);
+          %
+          % See also ROUND
+            if nargin < 2; direction = 'nearest'; end
+            if nargin < 3; N = 2; end
+            c = 10^(N-ceil(log10(a)));
             switch direction
                 case 'up'
                     A = ceil(a*c)/c;
                 case 'down'
-                    A = ceil(a*c)/c;
+                    A = floor(a*c)/c;
                 otherwise
-                    A = round(a, sigFigures, 'significant');
+                    A = round(a, N, 'significant');
             end
         end
     end
