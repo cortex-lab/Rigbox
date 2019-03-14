@@ -347,92 +347,6 @@ classdef AlyxPanel < handle
             end
         end
         
-        function dispWaterReq(obj, src, ~)
-            % Display the amount of water required by the selected subject
-            % for it to reach its minimum requirement.  This function is
-            % also used to update the selected subject, for example it is
-            % this funtion to use as a callback to subject dropdown
-            % listeners
-            ai = obj.AlyxInstance;
-            % Set the selected subject if it is an input
-            if nargin>1; obj.Subject = src.Selected; end
-            if ~ai.IsLoggedIn
-                set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
-                    'String', 'Log in to see water requirements');
-                return
-            end
-            % Refresh the timer as the user isn't inactive
-            stop(obj.LoginTimer); start(obj.LoginTimer)
-            try
-                s = ai.getData('water-restricted-subjects'); % struct with data about restricted subjects
-                idx = strcmp(obj.Subject, {s.nickname});
-                if ~any(idx) % Subject not on water restriction
-                    set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
-                        'String', sprintf('Subject %s not on water restriction', obj.Subject));
-                else
-                    % Get information on weight and water given
-                    endpnt = sprintf('water-requirement/%s?start_date=%s&end_date=%s',...
-                        obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
-                    wr = ai.getData(endpnt); % Get today's weight and water record
-                    if ~isempty(wr.records)
-                        record = wr.records(end);
-                    else
-                        record = struct();
-                    end
-                    weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
-                    water = getOr(record, 'given_water_liquid', 0); % Get total water given
-                    gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
-                    expected_weight = getOr(record, 'expected_weight', NaN);
-                    % Set colour based on weight percentage
-                    weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
-                    if weight_pct < 0.8 % Mouse below 80% original weight
-                        colour = [0.91, 0.41, 0.17]; % Orange
-                        weight_pct = '< 80%';
-                    elseif weight_pct < 0.7 % Mouse below 70% original weight
-                        colour = 'red';
-                        weight_pct = '< 70%';
-                    else
-                        colour = 'black'; % Mouse above 80% or no weight measured today
-                        weight_pct = '> 80%';
-                    end
-                    % Round up water remaining to the near 0.01
-                    remainder = obj.round(s(idx).remaining_water, 'up');
-                    % Set text
-                    set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
-                        sprintf(['Subject %s requires %.2f of %.2f today\n\t '...
-                        'Weight today: %.2f (%s)    Water today: %.2f'], obj.Subject, ...
-                        remainder, obj.round(s(idx).expected_water, 'up'), weight, ...
-                        weight_pct, obj.round(sum([water gel]), 'down')));
-                    % Set WaterRemaining attribute for changeWaterText callback
-                    obj.WaterRemaining = remainder;
-                end
-            catch me
-                d = me.message; %FIXME: JSON no longer returned
-                if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
-                    set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
-                        'String', sprintf('Subject %s not found in alyx', obj.Subject));
-                else
-                  rethrow(me)
-                end
-            end
-        end
-        
-        function changeWaterText(obj, src, ~)
-            % Update the panel text to show the amount of water still
-            % required for the subject to reach its minimum requirement.
-            % This text is updated before the value in the water text box
-            % has been posted to Alyx.  For example if the user is unsure
-            % how much gel over the minimum they have weighed out, pressing
-            % return will display this without posting to Alyx
-            %
-            % See also DISPWATERREQ, GIVEWATER
-            if obj.AlyxInstance.IsLoggedIn && ~isempty(obj.WaterRemaining)
-                rem = obj.WaterRemaining;
-                curr = str2double(src.String);
-                set(obj.WaterRemainingText, 'String', sprintf('(%.2f)', rem-curr));
-            end
-        end
-        
         function recordWeight(obj, weight, subject)
             % Post a subject's weight to Alyx.  If no inputs are provided,
             % create an input dialog for the user to input a weight.  If no
@@ -509,7 +423,7 @@ classdef AlyxPanel < handle
                         else % success
                             obj.log(['Created new base session in Alyx for ' obj.Subject]);
                         end
-                    case 'No'
+                  otherwise
                         return
                 end
             else
@@ -674,6 +588,76 @@ classdef AlyxPanel < handle
             end
         end
         
+        function dispWaterReq(obj, src, ~)
+            % Display the amount of water required by the selected subject
+            % for it to reach its minimum requirement.  This function is
+            % also used to update the selected subject, for example it is
+            % this funtion to use as a callback to subject dropdown
+            % listeners
+            ai = obj.AlyxInstance;
+            % Set the selected subject if it is an input
+            if nargin>1; obj.Subject = src.Selected; end
+            if ~ai.IsLoggedIn
+                set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+                    'String', 'Log in to see water requirements');
+                return
+            end
+            % Refresh the timer as the user isn't inactive
+            stop(obj.LoginTimer); start(obj.LoginTimer)
+            try
+                s = ai.getData('water-restricted-subjects'); % struct with data about restricted subjects
+                idx = strcmp(obj.Subject, {s.nickname});
+                if ~any(idx) % Subject not on water restriction
+                    set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+                        'String', sprintf('Subject %s not on water restriction', obj.Subject));
+                else
+                    % Get information on weight and water given
+                    endpnt = sprintf('water-requirement/%s?start_date=%s&end_date=%s',...
+                        obj.Subject, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
+                    wr = ai.getData(endpnt); % Get today's weight and water record
+                    if ~isempty(wr.records)
+                        record = wr.records(end);
+                    else
+                        record = struct();
+                    end
+                    weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
+                    water = getOr(record, 'given_water_liquid', 0); % Get total water given
+                    gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
+                    expected_weight = getOr(record, 'expected_weight', NaN);
+                    % Set colour based on weight percentage
+                    weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
+                    if weight_pct < 0.8 % Mouse below 80% original weight
+                        colour = [0.91, 0.41, 0.17]; % Orange
+                        weight_pct = '< 80%';
+                    elseif weight_pct < 0.7 % Mouse below 70% original weight
+                        colour = 'red';
+                        weight_pct = '< 70%';
+                    else
+                        colour = 'black'; % Mouse above 80% or no weight measured today
+                        weight_pct = '> 80%';
+                    end
+                    % Round up water remaining to the near 0.01
+                    remainder = obj.round(s(idx).remaining_water, 'up');
+                    % Set text
+                    set(obj.WaterRequiredText, 'ForegroundColor', colour, 'String', ...
+                        sprintf(['Subject %s requires %.2f of %.2f today\n\t '...
+                        'Weight today: %.2f (%s)    Water today: %.2f'], obj.Subject, ...
+                        remainder, obj.round(s(idx).expected_water, 'up'), weight, ...
+                        weight_pct, obj.round(sum([water gel]), 'down')));
+                    % Set WaterRemaining attribute for changeWaterText callback
+                    obj.WaterRemaining = remainder;
+                end
+            catch me
+                d = me.message; %FIXME: JSON no longer returned
+                if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
+                    set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
+                        'String', sprintf('Subject %s not found in alyx', obj.Subject));
+                else
+                  rethrow(me)
+                end
+            end
+        end
+        
         function updateWeightButton(obj, src, ~)
             % Function for changing the text on the weight button to reflect the
             % current weight value obtained by the scale.  This function must be
@@ -693,7 +677,27 @@ classdef AlyxPanel < handle
                 'StopFcn', @(src,~)delete(src), 'StartDelay', 10);
             start(obj.WeightTimer)
         end
+                
+    end
+    
+    methods (Access = protected)
         
+        function changeWaterText(obj, src, ~)
+            % Update the panel text to show the amount of water still
+            % required for the subject to reach its minimum requirement.
+            % This text is updated before the value in the water text box
+            % has been posted to Alyx.  For example if the user is unsure
+            % how much gel over the minimum they have weighed out, pressing
+            % return will display this without posting to Alyx
+            %
+            % See also DISPWATERREQ, GIVEWATER
+            if obj.AlyxInstance.IsLoggedIn && ~isempty(obj.WaterRemaining)
+                rem = obj.WaterRemaining;
+                curr = str2double(src.String);
+                set(obj.WaterRemainingText, 'String', sprintf('(%.2f)', rem-curr));
+            end
+        end
+                
         function log(obj, varargin)
             % Function for displaying timestamped information about
             % occurrences.  If the LoggingDisplay property is unset, the
