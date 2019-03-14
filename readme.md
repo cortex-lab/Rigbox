@@ -60,8 +60,7 @@ and restart MATLAB.
 
 To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
 ```
-git pull
-git submodule update --remote
+git pull --recurse-submodules
 ```
 ## Running an experiment in MATLAB
 
