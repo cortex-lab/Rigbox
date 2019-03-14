@@ -1,4 +1,4 @@
-classdef ParamEditorPerfTest < matlab.perftest.TestCase
+classdef ParamEditor_perf < matlab.perftest.TestCase
   
   properties
     % Figure visibility setting before running tests
@@ -23,7 +23,7 @@ classdef ParamEditorPerfTest < matlab.perftest.TestCase
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
-      %  respecively
+      %  respectively
       testCase.Parameters = exp.choiceWorldParams;
       
       % Check paths file

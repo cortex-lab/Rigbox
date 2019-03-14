@@ -1,4 +1,4 @@
-classdef ParametersTest < matlab.unittest.TestCase
+classdef Parameters_test < matlab.unittest.TestCase
   
   properties
     % Parameters object
