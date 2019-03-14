@@ -247,7 +247,6 @@ classdef MControl < handle
     end
     
     function loadParamProfile(obj, profile)
-      tic
       set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
         % Clear existing parameters control
@@ -317,7 +316,6 @@ classdef MControl < handle
       if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
         set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
-      disp(toc)
     end
     
     function paramChanged(obj)

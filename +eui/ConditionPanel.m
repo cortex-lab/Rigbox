@@ -45,7 +45,6 @@ classdef ConditionPanel < handle
       % See also EUI.PARAMEDITOR, EUI.FIELDPANEL
       obj.ParamEditor = ParamEditor;
       obj.UIPanel = uix.VBox('Parent', f);
-%       obj.UIPanel.BackgroundColor = 'white';
       % Create a child menu for the uiContextMenus
       c = uicontextmenu;
       obj.UIPanel.UIContextMenu = c;
@@ -71,7 +70,6 @@ classdef ConditionPanel < handle
       % Create button panel to hold condition control buttons
       obj.ButtonPanel = uix.HBox('Parent', obj.UIPanel);
       % Define some common properties
-%       props.BackgroundColor = 'white';
       props.Style = 'pushbutton';
       props.Units = 'normalized';
       props.Parent = obj.ButtonPanel;
@@ -107,7 +105,6 @@ classdef ConditionPanel < handle
       %  and eventData contains the table indices of the edited cell.
       %
       % See also FILLCONDITIONTABLE, EUI.PARAMEDITOR/UPDATE
-      disp('updating table cell');
       row = eventData.Indices(1);
       col = eventData.Indices(2);
       assert(all(cellfun(@strcmpi, strrep(obj.ConditionTable.ColumnName, ' ', ''), ...
@@ -143,7 +140,6 @@ classdef ConditionPanel < handle
       % DELETE Deletes the UI container
       %   Called when this object or its parant ParamEditor is deleted
       % See also CLEAR
-      disp('delete called');
       delete(obj.UIPanel);
     end
     
@@ -223,7 +219,6 @@ classdef ConditionPanel < handle
       %   false % Sets all selected rows to false
       % 
       % See also SETNEWVALS, ONEDIT
-      disp('updating table cells');
       cols = obj.SelectedCells(:,2); % selected columns
       uCol = unique(obj.SelectedCells(:,2));
       rows = obj.SelectedCells(:,1); % selected rows
@@ -307,7 +302,6 @@ classdef ConditionPanel < handle
       %  Adds new row and populates it with sensible 'default' values.
       %  These are mostly zeros or empty values.  
       % See also eui.ParamEditor/addEmptyConditionToParam
-      disp('adding new condition row');
       PE = obj.ParamEditor;
       cellfun(@PE.addEmptyConditionToParam, ...
         PE.Parameters.TrialSpecificNames);

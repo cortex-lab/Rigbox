@@ -1,4 +1,4 @@
-classdef ParamEditorTest < matlab.unittest.TestCase
+classdef ParamEditor_test < matlab.unittest.TestCase
   
   properties
     % Figure visibility setting before running tests
@@ -29,7 +29,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
-      %  respecively
+      %  respectively
       testCase.Parameters = exp.choiceWorldParams;
       
       % Check paths file
@@ -242,7 +242,7 @@ classdef ParamEditorTest < matlab.unittest.TestCase
     function test_setValues(testCase)
       % TODO Add test for the set values button.  For now let's fail this
       testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
-      PE = testCase.ParamEditor;
+%       PE = testCase.ParamEditor;
       testCase.assertTrue(false, 'Test not implemented')
     end
     

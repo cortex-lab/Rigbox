@@ -65,7 +65,6 @@ classdef FieldPanel < handle
         uimenu(obj.ContextMenu, 'Label', 'Make Conditional', ...
           'MenuSelectedFcn', @(~,~)obj.makeConditional);
       end
-%       props.BackgroundColor = 'white';
       props.TooltipString = obj.ParamEditor.Parameters.description(name);
       props.HorizontalAlignment = 'left';
       props.UIContextMenu = obj.ContextMenu;
@@ -89,7 +88,6 @@ classdef FieldPanel < handle
       %  property of the label and control elements).
       %
       % See also ADDFIELD, EUI.PARAMEDITOR/UPDATE
-      disp(id);
       switch get(src, 'style')
         case 'checkbox'
           newValue = logical(get(src, 'value'));
@@ -160,7 +158,6 @@ classdef FieldPanel < handle
       % DELETE Deletes the UI container
       %   Called when this object or its parant ParamEditor is deleted
       % See also CLEAR
-      disp('delete called');
       delete(obj.UIPanel);
     end
        
