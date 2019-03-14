@@ -1,7 +1,33 @@
 function expServer(varargin)
-%SRV.EXPSERVER Start the presentation server
-%   TODO
+%SRV.EXPSERVER sets up and runs stimulus presentation on the stimulus server 
+%   This function sets up the stimulus server to receive communication from
+%   the master computer, via a java websocket. This function then runs the 
+%   the experiment on the stimulus server. Optional name-value paired input
+%   arguments can be used (see examples below).
 %
+% Inputs (optional):
+%   'bgColour': a 3-element array specifying the background colour of the
+%   screens presenting the visual stimuli. 8-bit precision (element values
+%   can range from 0-255). Default: [127 127 127] % gray 
+%   
+%   'runTimeline': a logical flag specifying whether or not to run
+%   hw.timeline during the experiment. Default: 1 % run timeline
+%
+%   'hideCursor': a logical flag specifying whether or not to disable 
+%   MATLAB interaction during the experiment. Default: 1 % disable MATLAB
+%   interaction
+%
+% Examples:
+%   % Run expServer with default input arg values:
+%   srv.expServer;
+%
+%   % Run expServer with a black background, disabled timeline, and enabled
+%   % MATLAB interaction
+%   srv.expServer('bgColour', [255 255 255], 'runTimeline', 0, ...
+%   'hideCursor', 0);
+%
+% See also: io.WSJCommunicator 
+% 
 % Part of Rigbox
 
 % 2013-06 CB created
@@ -73,9 +99,9 @@ cleanup = onCleanup(@() fun.applyForce({
 %% Get/Set Input Args
 
 % define default input args:
-argsStruct.TimelineOverride = 0; % use timeline
-argsStruct.BgColour = [127 127 127]; % gray default
-argsStruct.HideCursor = 1; % hide cursor
+argsStruct.bgColour = [127 127 127]; % gray 
+argsStruct.runTimeline = 1; % use timeline
+argsStruct.hideCursor = 1; % hide cursor
 
 % get input args, reshape into two rows (into name-value pairs): 
 % 1st row = arg names, 2nd row = arg values 
@@ -97,14 +123,14 @@ for pair = pairedArgs
   end
 end
 
-if argsStruct.HideCursor
+if argsStruct.hideCursor
   HideCursor();
 end
 
-if argsStruct.TimelineOverride
-  toggleTimeline(useTimelineOverride);
-else
+if argsStruct.runTimeline
   toggleTimeline(rig.timeline.UseTimeline);
+else
+  toggleTimeline(useTimelineOverride);
 end
 
 bgColour = argsStruct.bgColour;
