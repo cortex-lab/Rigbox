@@ -27,7 +27,7 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off');
+      set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -143,7 +143,12 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
     end
     
     function test_launchSessionURL(testCase)
+      % Test the launch of the session page in the admin Web interface
       testCase.Panel;
+      % Set new subject
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
+      testCase.assertEmpty(testCase.Panel.AlyxInstance.SessionURL)
+      testCase.Panel.launchSessionURL()
     end
     
     function test_launchSubjectURL(testCase)
