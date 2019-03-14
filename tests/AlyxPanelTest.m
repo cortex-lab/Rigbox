@@ -5,13 +5,15 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
     FigureVisibleDefault
     % AlyxPanel instance
     Panel
+    % Parent container for AlyxPanel
+    Parent
     % Figure handle for AlyxPanel
     hPanel
     % Figure handle for any extra figures opened during tests
     Figure
     % List of subjects returned by the test database
     Subjects = {'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
-    % bui.Selector object for setting the subject list in tests
+    % bui.Selector for setting the subject list in tests
     SubjectUI
     % Expected Y-axis labels for the viewSubjectHistory plots
     Ylabels = {'water (mL)', 'weight as pct (%)', 'weight (g)'}
@@ -25,7 +27,7 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-      set(0,'DefaultFigureVisible','off');
+%       set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -48,13 +50,21 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
         'NumberTitle', 'off',...
         'Units', 'normalized',...
         'OuterPosition', [0.1 0.1 0.4 .4]);
-      parent = uiextras.VBox('Parent', testCase.hPanel, 'Visible', 'on');
-      testCase.Panel = eui.AlyxPanel(parent);
       % subject selector
+      parent = uiextras.VBox('Parent', testCase.hPanel, 'Visible', 'on');
       sbox = uix.HBox('Parent', parent);
       bui.label('Select subject: ', sbox);
       % Subject dropdown box
       testCase.SubjectUI = bui.Selector(sbox, [{'default'}; testCase.Subjects]);
+      % Logging display
+      uicontrol('Parent', parent, 'Style', 'listbox',...
+        'Enable', 'inactive', 'String', {}, 'Tag', 'Logging Display');
+      % Create panel
+      testCase.Panel = eui.AlyxPanel(parent);
+      testCase.Parent = parent.Children(1);
+      % Rearrange
+      parent.Children = parent.Children([2,1,3]);
+      parent.Sizes = [50 150 150];
       % set a callback on subject selection so that we can show water
       % requirements for new mice as they are selected.  This should
       % be set by any other GUI that instantiates this object (e.g.
@@ -126,6 +136,84 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
       tableData = child_handle.Data;
       expected = {'algernon', '0.00', '<html><body bgcolor=#FFFFFF>0.00</body></html>'};
       testCase.verifyTrue(isequal(tableData, expected));
+    end
+    
+    function test_dispWaterReq(testCase)
+      testCase.Panel;
+    end
+    
+    function test_launchSessionURL(testCase)
+      testCase.Panel;
+    end
+    
+    function test_launchSubjectURL(testCase)
+      testCase.Panel;
+    end
+    
+    function test_recordWeight(testCase)
+      testCase.Panel;
+    end
+    
+    function test_login(testCase)
+      % Test panel behaviour when logged in and out
+      testCase.assertTrue(testCase.Panel.AlyxInstance.IsLoggedIn);
+      % Check log
+      logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
+      testCase.verifyTrue(endsWith(logPanel.String{1}, 'Logged into Alyx successfully as test_user'))
+      labels = findobj(testCase.Parent, 'Style', 'text');
+      % Check all components enabled
+      testCase.verifyEmpty(findobj(testCase.Parent, 'Enable', 'off'))
+      % Check labels
+      testCase.verifyEqual(labels(3).String, 'You are logged in as test_user')
+      testCase.verifyTrue(~contains(labels(2).String, 'Log in'))
+      
+      % Log out
+      testCase.Panel.login;
+      testCase.assertTrue(~testCase.Panel.AlyxInstance.IsLoggedIn);
+      % Check log
+      testCase.verifyTrue(endsWith(logPanel.String{end}, 'Logged out of Alyx'))
+      % Check all components disabled
+      testCase.verifyTrue(numel(findobj(testCase.Parent, 'Enable', 'on')) <= 2,...
+      'Unexpected number of enabled UI elements')
+      % Check labels
+      testCase.verifyEqual(labels(3).String, 'Not logged in')
+      testCase.verifyEqual(labels(2).String, 'Log in to see water requirements')
+    end
+    
+    function test_updateWeightButton(testCase)
+      testCase.Panel;
+    end
+    
+    function test_log(testCase)
+      testCase.Panel;
+    end
+    
+    function test_giveWater(testCase)
+      testCase.Panel;
+    end
+    
+    function test_giveFutureWater(testCase)
+      testCase.Panel;
+    end
+    
+    function test_changeWaterText(testCase)
+      testCase.Panel;
+    end
+    
+    function test_round(testCase)
+      % Test round up
+      testCase.verifyEqual(testCase.Panel.round(0.8437, 'up'), 0.85);
+      testCase.verifyEqual(testCase.Panel.round(0.8437, 'up', 3), 0.844);
+      testCase.verifyEqual(testCase.Panel.round(12.6, 'up'), 13);
+      
+      % Test round down
+      testCase.verifyEqual(testCase.Panel.round(0.8437, 'down'), 0.84);
+      testCase.verifyEqual(testCase.Panel.round(0.78375, 'down', 3), 0.783);
+      testCase.verifyEqual(testCase.Panel.round(12.6, 'down'), 12);
+      
+      % Test default behaviour
+      testCase.verifyEqual(testCase.Panel.round(0.8437), 0.84);
+      testCase.verifyEqual(testCase.Panel.round(0.855), 0.86);
     end
     
   end
