@@ -1,5 +1,5 @@
 %inferParams test
-expDefPath = fullfile(fileparts(which('addRigboxPaths')), 'tests', 'expDefinitions');
+expDefPath = fullfile(fileparts(which('addRigboxPaths')), 'tests', 'helpers', 'expDefinitions');
 
 % preconditions
 parameters = exp.inferParameters(@nop);

@@ -33,8 +33,20 @@ classdef Parameters_test < matlab.unittest.TestCase
     end
     
     function setupClass(testCase)
+      % add a teardown for pre-test path:
+      % (first arg is fixture instance (i.e. environment - when to
+      % teardown (when this is out of scope)))
+      % (second arg is tearDownFcn (i.e. what to execute during teardown))
+      p = path;
+      testCase.addTeardown(@path,p);
+      
+      % add the the 'helpers' folder in the 'tests' folder for using the
+      % 'tests' folder's version of 'dat.paths'
+      curpath = fileparts(mfilename('fullpath'));
+      addpath([curpath '\helpers'])
+      
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
+      assert(endsWith(which('dat.paths'), fullfile('tests', 'helpers', '+dat', 'paths.m')));
       % Create stand-alone panel
       testCase.Parameters = exp.Parameters();
       testCase.fatalAssertTrue(isa(testCase.Parameters, 'exp.Parameters'))
