@@ -25,7 +25,19 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
       set(0,'DefaultFigureVisible','off');
       testCase.addTeardown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
-            
+      
+      % add a teardown for pre-test path:
+      % (first arg is fixture instance (i.e. environment - when to
+      % teardown (when this is out of scope)))
+      % (second arg is tearDownFcn (i.e. what to execute during teardown))
+      p = path;
+      testCase.addTeardown(@path,p);
+      
+      % add the the 'helpers' folder in the 'tests' folder for using the
+      % 'tests' folder's version of 'dat.paths'
+      curpath = fileparts(mfilename('fullpath'));
+      addpath([curpath '\helpers'])
+      
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
@@ -33,7 +45,7 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       testCase.Parameters = exp.choiceWorldParams;
       
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
+      assert(endsWith(which('dat.paths'), fullfile('tests', 'helpers', '+dat', 'paths.m')));
       % Create stand-alone panel
       testCase.ParamEditor = eui.ParamEditor;
       testCase.Figure = gcf();

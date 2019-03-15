@@ -10,8 +10,6 @@ classdef ConditionPanel < handle
     ConditionTable
     % Minimum UI Panel width allowed.  See also EUI.PARAMEDITOR/ONRESIZE
     MinWidth = 80
-%     MaxWidth = 140
-%     Margin = 4
     % Handle to parent UI container
     UIPanel
     % Handle to UI container for buttons
