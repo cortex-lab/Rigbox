@@ -32,9 +32,12 @@ function expServer(varargin)
 
 % 2013-06 CB created
 
-%% Parameters
-global AGL GL GLU %#ok<NUSED>
-listenPort = io.WSJCommunicator.DefaultListenPort;
+%% Initialisation
+
+% initialise global vars for use by openGL in PTB
+global AGL GL GLU %#ok<NUSED> 
+
+% initialise keyboard hotkeys
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
 rewardPulseKey = KbName('space');
@@ -44,25 +47,31 @@ timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
 rewardId = 1;
 
-%% Initialisation
 % Pull latest changes from remote
 %git.update();
+
 % random seed random number generator
 rng('shuffle');
-% communicator for receiving commands from clients
+
+% set-up "communicator" for receiving commands from 'MC' via TCP/IP
+% listen port
+listenPort = io.WSJCommunicator.DefaultListenPort;
 communicator = io.WSJCommunicator.server(listenPort);
+
+% create a listener for "communicator" which runs 'handleMessage' when a
+% message is received from 'MC'.
 listener = event.listener(communicator, 'MessageReceived',...
   @(~,msg) handleMessage(msg.Id, msg.Data, msg.Sender));
 communicator.EventMode = false;
-communicator.open();
+communicator.open(); % open the connection
 
-experiment = []; % currently running experiment, if any
+% initialise "experiment" to hold the experiment that will be run
+experiment = [];
 
 % set PsychPortAudio verbosity to warning level
 oldPpaVerbosity = PsychPortAudio('Verbosity', 2);
 Priority(1); % increase thread priority level
 
-% OpenGL
 InitializeMatlabOpenGL;
 
 % listen to keyboard events
@@ -123,16 +132,17 @@ for pair = pairedArgs
   end
 end
 
-if argsStruct.hideCursor
+if argsStruct.hideCursor % then disable MATLAB interaction
   HideCursor();
 end
 
-if argsStruct.runTimeline
+if argsStruct.runTimeline % then run timeline
   toggleTimeline(rig.timeline.UseTimeline);
-else
+else % don't run timeline
   toggleTimeline(useTimelineOverride);
 end
 
+% set screen(s) background colour
 bgColour = argsStruct.bgColour;
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
