@@ -22,7 +22,7 @@ classdef ParamEditor < handle
     % the trial conditions within a ui table
     ConditionalUI
     % Handle to the parent container for the ParamEditor.  If constructor
-    % called with no parant input, then this will be a figure handle, the
+    % called with no parent input, then this will be a figure handle, the
     % same as Root
     Parent
     % Handle to the figure within which the ParamEditor is displayed
@@ -45,8 +45,8 @@ classdef ParamEditor < handle
     function obj = ParamEditor(pars, parent)
       % PARAMEDITOR GUI for visualizing and editing experiment parameters
       %  The input pars is expected to be an instance of the exp.Parameters
-      %  class.  Parant is a handle to a parent figure or UI Panel.  If no
-      %  parant is given, the editor is created in a new figure.
+      %  class.  Parent is a handle to a parent figure or UI Panel.  If no
+      %  parent is given, the editor is created in a new figure.
       %
       % See also EUI.FIELDPANEL, EUI.CONDITIONPANEL
       if nargin == 0; pars = []; end
@@ -81,7 +81,7 @@ classdef ParamEditor < handle
     
     function delete(obj)
       % DELETE Deletes all panels
-      %  Called when the ParamEditor object is deleted or its parant figure
+      %  Called when the ParamEditor object is deleted or its parent figure
       %  is closed.  Deletes all UI elements and data.
       % See also CLEAR
       delete(obj.GlobalUI);

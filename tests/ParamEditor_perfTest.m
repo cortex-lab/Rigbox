@@ -1,4 +1,6 @@
-classdef ParamEditor_perfTest < matlab.perftest.TestCase
+classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
+[fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture
+ParamEditor_perfTest < matlab.perftest.TestCase
   
   properties
     % Figure visibility setting before running tests
@@ -18,19 +20,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       % Hide figures and add teardown function to restore settings
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
       set(0,'DefaultFigureVisible','off');
-      testCase.addTeardown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
-      
-      % add a teardown for pre-test path:
-      % (first arg is fixture instance (i.e. environment - when to
-      % teardown (when this is out of scope)))
-      % (second arg is tearDownFcn (i.e. what to execute during teardown))
-      p = path;
-      testCase.addTeardown(@path,p);
-      
-      % add the the 'helpers' folder in the 'tests' folder for using the
-      % 'tests' folder's version of 'dat.paths'
-      curpath = fileparts(mfilename('fullpath'));
-      addpath([curpath '\helpers'])
+      testCase.addTeardown(@set, 0,... 
+        'DefaultFigureVisible', testCase.FigureVisibleDefault);
       
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
@@ -39,7 +30,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       testCase.Parameters = exp.choiceWorldParams;
       
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests', 'helpers', '+dat', 'paths.m')));
+      assert(endsWith(which('dat.paths'),... 
+        fullfile('tests', 'fixtures', '+dat', 'paths.m')));
       % Create stand-alone panel
       testCase.ParamEditor = eui.ParamEditor;
       testCase.Figure = gcf();
@@ -62,7 +54,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       PE.buildUI(pars);
       % Number of global parameters: find all text labels
       nGlobalLabels = numel(findobj(testCase.Figure, 'Style', 'text'));
-      nGlobalInput = numel(findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit'));
+      nGlobalInput = numel(findobj(testCase.Figure,...
+        'Style', 'checkbox', '-or', 'Style', 'edit'));
       % Ensure all global params have UI input and label
       assert(nGlobalLabels == numel(PE.Parameters.GlobalNames))
       assert(nGlobalInput == numel(PE.Parameters.GlobalNames))
@@ -99,7 +92,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       PE = testCase.ParamEditor;
       % Number of global parameters: find all text labels
       gLabels = @()findobj(testCase.Figure, 'Style', 'text');
-      gInputs = @()findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit');
+      gInputs = @()findobj(testCase.Figure, 'Style', 'checkbox',... 
+        '-or', 'Style', 'edit');
       nGlobalLabels = numel(gLabels());
       nGlobalInputs = numel(gInputs());
       tableSz = size(testCase.Table.Data);
@@ -140,10 +134,12 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       % Set the focused object to one of the parameter labels
       set(testCase.Figure, 'CurrentObject', ...
         findobj(testCase.Figure, 'Tag', 'experimentFun'))
-      feval(pick(findobj(testCase.Figure, 'Text', 'Make Conditional'), 'MenuSelectedFcn'))
+      feval(pick(findobj(testCase.Figure, 'Text', 'Make Conditional'),...
+        'MenuSelectedFcn'))
             
       % Retrieve function handle for new condition
-      fn = pick(findobj(testCase.Figure, 'String', 'New condition'), 'Callback');
+      fn = pick(findobj(testCase.Figure, 'String', 'New condition'),...
+        'Callback');
       testCase.startMeasuring();
       fn()
       testCase.stopMeasuring();
@@ -166,7 +162,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       selection_fn([],event)
             
       % Retrieve function handle for delete condition
-      callback_fn = pick(findobj(testCase.Figure, 'String', 'Delete condition'), 'Callback');
+      callback_fn = pick(findobj(testCase.Figure,...
+        'String', 'Delete condition'), 'Callback');
       testCase.startMeasuring();
       callback_fn()
       testCase.stopMeasuring();
@@ -189,7 +186,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       selection_fn([],event)
 
       % Retrieve function handle for new condition
-      callback_fn = pick(findobj(testCase.Figure, 'String', 'Globalise parameter'), 'Callback');
+      callback_fn = pick(findobj(testCase.Figure, 'String',...
+        'Globalise parameter'), 'Callback');
       testCase.startMeasuring();
       callback_fn()
       testCase.stopMeasuring();
@@ -208,7 +206,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
 
       % Retreive all global parameters labels and input controls
       gLabels = findobj(testCase.Figure, 'Style', 'text');
-      gInputs = findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit');
+      gInputs = findobj(testCase.Figure, 'Style', 'checkbox',...
+        '-or', 'Style', 'edit');
 
       % Test editing global param, 'edit' UI
       idx = find(strcmp({gInputs.Style}, 'edit'), 1);
@@ -226,7 +225,8 @@ classdef ParamEditor_perfTest < matlab.perftest.TestCase
       testCase.verifyEqual(gLabels(idx).ForegroundColor, [1 0 0], ...
         'Unexpected label colour')
       % Verify change in underlying param struct
-      par = strcmpi(PE.Parameters.GlobalNames, strrep(gLabels(idx).String, ' ', ''));
+      par = strcmpi(PE.Parameters.GlobalNames,...
+        strrep(gLabels(idx).String, ' ', ''));
       testCase.verifyEqual(PE.Parameters.Struct.(PE.Parameters.GlobalNames{par}), 666, ...
         'UI edit failed to update parameters struct')
             

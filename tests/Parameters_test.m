@@ -1,4 +1,6 @@
-classdef Parameters_test < matlab.unittest.TestCase
+classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
+[fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture
+  Parameters_test < matlab.unittest.TestCase
   
   properties
     % Parameters object
@@ -32,21 +34,10 @@ classdef Parameters_test < matlab.unittest.TestCase
         'functionParam', @(pars,rig)exp.configureChoiceExperiment(exp.ChoiceWorld,pars,rig));
     end
     
-    function setupClass(testCase)
-      % add a teardown for pre-test path:
-      % (first arg is fixture instance (i.e. environment - when to
-      % teardown (when this is out of scope)))
-      % (second arg is tearDownFcn (i.e. what to execute during teardown))
-      p = path;
-      testCase.addTeardown(@path,p);
-      
-      % add the the 'helpers' folder in the 'tests' folder for using the
-      % 'tests' folder's version of 'dat.paths'
-      curpath = fileparts(mfilename('fullpath'));
-      addpath([curpath '\helpers'])
-      
+    function setupClass(testCase)     
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests', 'helpers', '+dat', 'paths.m')));
+      assert(endsWith(which('dat.paths'), fullfile('tests', 'fixtures',...
+        '+dat', 'paths.m')));
       % Create stand-alone panel
       testCase.Parameters = exp.Parameters();
       testCase.fatalAssertTrue(isa(testCase.Parameters, 'exp.Parameters'))
