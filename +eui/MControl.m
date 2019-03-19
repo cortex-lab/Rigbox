@@ -375,7 +375,7 @@ classdef MControl < handle
       % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL, EUI.EXPPANEL
         
       % If rig is connected check no experiments are running...
-      expRef = rig.ExpRunnning; % returns expRef if running
+      expRef = rig.ExpRunning; % returns expRef if running
       if expRef
 %           error('Experiment %s already running of %s', expDef, rig.Name)
           choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
