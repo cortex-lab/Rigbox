@@ -442,6 +442,10 @@ classdef AlyxPanel < handle
         end
         
         function launchSubjectURL(obj)
+            % LAUNCHSUBJECTURL Launch the Webpage for the current subject
+            %  Launches Web page in the default Web browser.
+            %
+            % See also LAUNCHSESSIONURL
             ai = obj.AlyxInstance;
             if ai.IsLoggedIn
                 s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
