@@ -1,4 +1,7 @@
-classdef AlyxPanelTest < matlab.unittest.TestCase
+classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
+    matlab.unittest.fixtures.PathFixture('fixtures'),...
+    matlab.unittest.fixtures.PathFixture('util')})... 
+    AlyxPanel_test < matlab.unittest.TestCase
   
   properties
     % Figure visibility setting before running tests
@@ -35,14 +38,15 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
       %  Graph data is a cell array where each element is the graph number
       %  (1:3) and within each element is a cell of X- and Y- axis values
       %  respecively
-      load('data/viewSubjectData.mat', 'tableData', 'graphData')
+      testdata = fullfile('fixtures', 'data', 'viewSubjectData.mat');
+      load(testdata, 'tableData', 'graphData')
       testCase.TableData = tableData;
       testCase.GraphData = graphData;
     end
     
     function setupPanel(testCase)
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests','+dat','paths.m')));
+      assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
         'MenuBar', 'none',...
@@ -144,10 +148,18 @@ classdef AlyxPanelTest < matlab.unittest.TestCase
     
     function test_launchSessionURL(testCase)
       % Test the launch of the session page in the admin Web interface
-      testCase.Panel;
+      p = testCase.Panel;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      testCase.assertEmpty(testCase.Panel.AlyxInstance.SessionURL)
+      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, now);
+      testCase.assertEmpty(todaySession)
+      
+      % Add mock user response
+      mockDialog = MockDialog.instance;
+      mockDialog.UseDefaults = false;
+      mockDialog.Dialogs(0) = 'No';
+      mockDialog.Dialogs(1) = 'Yes';
+      
       testCase.Panel.launchSessionURL()
     end
     
