@@ -29,7 +29,7 @@ classdef RemoteRig < handle
     %active services on the rig, 'active' if any services are currently
     %running
     Status
-    ExpRunnning %Reference of currently running experiment, if any/known
+    ExpRunning %Reference of currently running experiment, if any/known
   end
   
   events
@@ -120,7 +120,7 @@ classdef RemoteRig < handle
       end
     end
     
-    function value = get.ExpRunnning(obj)
+    function value = get.ExpRunning(obj)
       value = []; % default to empty means none
       if obj.pConnected
         r = obj.exchange({'status'});
