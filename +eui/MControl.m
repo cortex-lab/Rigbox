@@ -545,6 +545,10 @@ classdef MControl < handle
         % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        if strcmpi(rig.Status, 'running') 
+            obj.log('Failed because another experiment is running');
+            return;
+        end
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
         if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn &&...
             ~strcmp(obj.NewExpSubject.Selected,'default') &&...
