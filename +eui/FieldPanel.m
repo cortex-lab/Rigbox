@@ -156,7 +156,7 @@ classdef FieldPanel < handle
     
     function delete(obj)
       % DELETE Deletes the UI container
-      %   Called when this object or its parant ParamEditor is deleted
+      %   Called when this object or its parent ParamEditor is deleted
       % See also CLEAR
       delete(obj.UIPanel);
     end

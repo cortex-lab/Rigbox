@@ -1,4 +1,6 @@
-classdef ParamEditor_test < matlab.unittest.TestCase
+classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
+[fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture 
+  ParamEditor_test < matlab.unittest.TestCase
   
   properties
     % Figure visibility setting before running tests
@@ -24,19 +26,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       % Hide figures and add teardown function to restore settings
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
       set(0,'DefaultFigureVisible','off');
-      testCase.addTeardown(@set, 0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
-      
-      % add a teardown for pre-test path:
-      % (first arg is fixture instance (i.e. environment - when to
-      % teardown (when this is out of scope)))
-      % (second arg is tearDownFcn (i.e. what to execute during teardown))
-      p = path;
-      testCase.addTeardown(@path,p);
-      
-      % add the the 'helpers' folder in the 'tests' folder for using the
-      % 'tests' folder's version of 'dat.paths'
-      curpath = fileparts(mfilename('fullpath'));
-      addpath([curpath '\helpers'])
+      testCase.addTeardown(@set, 0,...
+        'DefaultFigureVisible', testCase.FigureVisibleDefault);
       
       % Loads validation data
       %  Graph data is a cell array where each element is the graph number
@@ -45,7 +36,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       testCase.Parameters = exp.choiceWorldParams;
       
       % Check paths file
-      assert(endsWith(which('dat.paths'), fullfile('tests', 'helpers', '+dat', 'paths.m')));
+      assert(endsWith(which('dat.paths'),...
+        fullfile('tests', 'fixtures', '+dat', 'paths.m')));
       % Create stand-alone panel
       testCase.ParamEditor = eui.ParamEditor;
       testCase.Figure = gcf();
@@ -68,7 +60,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       PE.buildUI(pars);
       % Number of global parameters: find all text labels
       nGlobalLabels = numel(findobj(testCase.Figure, 'Style', 'text'));
-      nGlobalInput = numel(findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit'));
+      nGlobalInput = numel(findobj(testCase.Figure, 'Style', 'checkbox',...
+        '-or', 'Style', 'edit'));
       % Ensure all global params have UI input and label
       testCase.fatalAssertTrue(nGlobalLabels == numel(PE.Parameters.GlobalNames))
       testCase.fatalAssertTrue(nGlobalInput == numel(PE.Parameters.GlobalNames))
@@ -95,7 +88,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
       % Number of global parameters: find all text labels
       gLabels = @()findobj(testCase.Figure, 'Style', 'text');
-      gInputs = @()findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit');
+      gInputs = @()findobj(testCase.Figure, 'Style', 'checkbox',...
+        '-or', 'Style', 'edit');
       nGlobalLabels = numel(gLabels());
       nGlobalInputs = numel(gInputs());
       tableSz = size(testCase.Table.Data);
@@ -140,7 +134,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       PE = testCase.ParamEditor;
       % Test function handle
       testCase.verifyEqual(PE.paramValue2Control(@nop), 'nop')
-      testCase.verifyEqual(PE.controlValue2Param(@nop, 'identity'), @identity)
+      testCase.verifyEqual(PE.controlValue2Param(@nop, 'identity'),...
+        @identity)
       
       % Test logical array
       testCase.verifyEqual(PE.paramValue2Control(true(1,2)), true(1,2))
@@ -163,7 +158,6 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       % Test string data 
       % TODO Outcome will change in near future
       testCase.verifyEqual(PE.paramValue2Control("hello"), 'hello')
-%       testCase.verifyEqual(PE.controlValue2Param("hello", "Goodbye"), "Goodbye")
 
       % Test numeric data
       testCase.verifyEqual(PE.paramValue2Control(pi), '3.1416')
@@ -185,14 +179,17 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       % Set the focused object to one of the parameter labels
       set(testCase.Figure, 'CurrentObject', ...
         findobj(testCase.Figure, 'Tag', 'experimentFun'))
-      feval(pick(findobj(testCase.Figure, 'Text', 'Make Conditional'), 'MenuSelectedFcn'))
+      feval(pick(findobj(testCase.Figure, 'Text', 'Make Conditional'),...
+        'MenuSelectedFcn'))
       
       % Reset Changed flag
       testCase.Changed = false;
       
       % Retrieve function handle for new condition
-      fn = pick(findobj(testCase.Figure, 'String', 'New condition'), 'Callback');
-      testCase.verifyWarningFree(fn, 'Warning encountered adding trial condition')
+      fn = pick(findobj(testCase.Figure, 'String', 'New condition'),...
+        'Callback');
+      testCase.verifyWarningFree(fn,...
+        'Warning encountered adding trial condition')
       
       % Verify change in table data
       testCase.verifyEqual(size(testCase.Table.Data, 1), tableRows+1, ...
@@ -222,15 +219,17 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       selection_fn([],event)
             
       % Retrieve function handle for delete condition
-      callback_fn = pick(findobj(testCase.Figure, 'String', 'Delete condition'), 'Callback');
-      testCase.verifyWarningFree(callback_fn, 'Warning encountered deleting trial conditions')
+      callback_fn = pick(findobj(testCase.Figure,...
+        'String', 'Delete condition'), 'Callback');
+      testCase.verifyWarningFree(callback_fn,...
+        'Warning encountered deleting trial conditions')
       
       % Verify change in table data
       testCase.verifyEqual(size(testCase.Table.Data, 1), tableRows-5, ...
         'Unexpected number of trial conditions')
       
       % Verify change in Parameters object for conditional
-      testCase.assertEqual(size(testCase.Table.Data), ...
+      testCase.assertEqual(size(testCase.Table.Data),...
         [PE.Parameters.numTrialConditions, numel(PE.Parameters.TrialSpecificNames)])
       
       % Verify Changed event triggered
@@ -241,7 +240,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       event.Indices = [(1:PE.Parameters.numTrialConditions-1)' ...
         ones(PE.Parameters.numTrialConditions-1,1)];
       selection_fn([],event)
-      testCase.verifyWarningFree(callback_fn, 'Warning encountered deleting trial conditions')
+      testCase.verifyWarningFree(callback_fn,...
+        'Warning encountered deleting trial conditions')
       
       % Verify change in table data
       testCase.verifyEmpty(testCase.Table.Data, ...
@@ -268,8 +268,10 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       selection_fn([],event)
 
       % Retrieve function handle for new condition
-      callback_fn = pick(findobj(testCase.Figure, 'String', 'Globalise parameter'), 'Callback');
-      testCase.verifyWarningFree(callback_fn, 'Warning encountered globalising params')
+      callback_fn = pick(findobj(testCase.Figure,...
+        'String', 'Globalise parameter'), 'Callback');
+      testCase.verifyWarningFree(callback_fn,...
+        'Warning encountered globalising params')
       
       % Verify change in table data
       testCase.verifyEqual(size(testCase.Table.Data,2), tableCols-1, ...
@@ -288,7 +290,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       event.Indices = [ones(n,1), (1:n)'];
       numRepeatsTotal = sum(PE.Parameters.Struct.numRepeats);
       selection_fn([],event)
-      testCase.verifyWarningFree(callback_fn, 'Warning encountered globalising params')
+      testCase.verifyWarningFree(callback_fn,...
+        'Warning encountered globalising params')
 
       % Verify numRepeats is global
       testCase.verifyTrue(~PE.Parameters.isTrialSpecific('numRepeats'), ...
@@ -309,7 +312,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       n = numel(PE.Parameters.TrialSpecificNames);
       event.Indices = [ones(n-1,1), (2:n)'];
       selection_fn([],event)
-      testCase.verifyWarningFree(callback_fn, 'Warning encountered globalising params')
+      testCase.verifyWarningFree(callback_fn,...
+        'Warning encountered globalising params')
       
       % Verify change in table data
       testCase.verifyEqual(size(testCase.Table.Data,2), 1, ...
@@ -326,7 +330,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
 
       % Retreive all global parameters labels and input controls
       gLabels = findobj(testCase.Figure, 'Style', 'text');
-      gInputs = findobj(testCase.Figure, 'Style', 'checkbox', '-or', 'Style', 'edit');
+      gInputs = findobj(testCase.Figure, 'Style', 'checkbox',...
+        '-or', 'Style', 'edit');
 
       % Test editing global param, 'edit' UI
       idx = find(strcmp({gInputs.Style}, 'edit'), 1);
@@ -409,7 +414,8 @@ classdef ParamEditor_test < matlab.unittest.TestCase
       % Find all disabled controls
       disabled = findobj(testCase.Figure, 'Enable', 'off');
       % Verify buttons greyed out
-      testCase.verifyEmpty(disabled, 'Unexpected number of disabled ui elements')
+      testCase.verifyEmpty(disabled,...
+        'Unexpected number of disabled ui elements')
       
       % Test disabling param editor altogether
       PE.Enable = false;
