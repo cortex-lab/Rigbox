@@ -5,14 +5,18 @@ expected = num2cell(1:5)';
 
 assert(isequal(flat, expected), 'Failed to remove outer cell')
 
-%% Test 2: Flatten highly nested cell array
+%% Test 2: Return cell when passed single element arrays
+flat = cellflat({});
+assert(iscell(flat) && isequal(flat, {}), 'Failed to return as cell')
+
+%% Test 3: Flatten highly nested cell array
 arr = {cell(2,1), {num2cell(1:5)}, {{'one'}}, {cell(1,2)}};
 flat = cellflat(arr);
 expected = [{[]; [];}; num2cell(1:5)'; {'one'; []; []}];
 
 assert(isequal(flat, expected), 'Failed to flatten nested cells')
 
-%% Test 3: Flatten cell array of Signals
+%% Test 4: Flatten cell array of Signals
 net = sig.Net;
 A = net.origin('A');
 B = net.origin('B');
