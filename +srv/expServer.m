@@ -1,6 +1,33 @@
 function expServer(useTimelineOverride, bgColour)
 %SRV.EXPSERVER Start the presentation server
-%   TODO
+%   Principle function for running experiments.  ExpServer listens for
+%   commands via TCP/IP Web sockets to start, stop and pause stimulus
+%   presentation experiments.  
+%
+%   Inputs:
+%     useTimelineOverride (logical) - Flag indicating whether to start
+%       Timeline.  If empty the default is the UseTimeline flag in the
+%       hardware file.  Timeline may still be toggled by pressing the 't'
+%       key.
+%     bgColour (1-by-3 double) - The background colour of the stimulus
+%       window.  If not specified the background colour specified in the
+%       harware file is used.
+%
+%   Key bindings:
+%     t - Toggle Timeline on and off.  The default state is defined in the
+%       hardware file but may be overridden as the first input argument.
+%     w - Toggle reward on and off.  This switches the output of the first
+%       DAQ output channel between its 'high' and 'low' state.  The
+%       specific DAQ channel and its default state are set in the hardware
+%       file.
+%     space - Deliver default reward, specified by the DefaultCommand
+%       property in the hardware file.
+%     m - Perform water calibration. 
+%     b - Toggle the background colour between the default and white.
+%     g - Perform gamma correction
+%     
+%
+% See also MC, io.WSJCommunicator, hw.devices, srv.prepareExp, hw.Timeline
 %
 % Part of Rigbox
 
@@ -96,6 +123,7 @@ running = true;
 
 %% Main loop for service
 while running
+  % Check for messages when out of event mode
   if communicator.IsMessageAvailable
     [msgid, msgdata, host] = communicator.receive();
     handleMessage(msgid, msgdata, host);
@@ -130,7 +158,6 @@ while running
   if firstPress(rewardPulseKey) > 0
     log('Delivering default reward');
     def = [rig.daqController.SignalGenerators(rewardId).DefaultCommand];
-    %     def = rewardSig.DefaultCommand;
     rig.daqController.command(def);
   end
   
