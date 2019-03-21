@@ -8,11 +8,15 @@ classdef WSJCommunicator < io.Communicator
   % 2014-08 CB created
   
   properties (Dependent, SetAccess = protected)
+    % Flag set to true while there is a message in the buffer
     IsMessageAvailable
+    % The role of the Commuicator object, either 'client' or 'server'
+    % depending on which constructor method was used
     Role
   end
   
   properties (Constant)
+    % The listen port used if one isn't already specified in the URI
     DefaultListenPort = 2014
   end
   
@@ -25,11 +29,14 @@ classdef WSJCommunicator < io.Communicator
   properties (Transient)
     WebSocket
     hWebSocket %handle to java WebSocket
-    EventMode = false
+    % When true listeners are notified of new messages via the
+    % MessageRecieved event
+    EventMode logical = false
   end
   
   properties (Access = private, Transient)
-    Listener
+    Listener % TODO This property appears to be unused.  Test before removing
+    % Handle to java.util.LinkedList object containing recieved data
     InBuffer
   end
   
