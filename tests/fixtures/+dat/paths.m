@@ -7,7 +7,7 @@ function p = paths(rig)
 
 % 2013-03 CB created
 
-thishost = 'dummyRig';
+thishost = 'testRig';
 
 if nargin < 1 || isempty(rig)
   rig = thishost;
@@ -18,13 +18,13 @@ end
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
-p.localAlyxQueue = fullfile(p.rigbox, 'alyx-matlab', 'tests', 'data');
+p.localAlyxQueue = fullfile(p.rigbox, 'tests', 'fixtures', 'alyxQ');
 p.databaseURL = 'https://test.alyx.internationalbrainlab.org';
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
-p.mainRepository = fullfile(p.rigbox, 'tests', 'data', 'Subjects');
+p.mainRepository = fullfile(p.rigbox, 'tests', 'fixtures', 'Subjects');
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver

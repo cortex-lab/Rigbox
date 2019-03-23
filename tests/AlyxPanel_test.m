@@ -1,11 +1,13 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     matlab.unittest.fixtures.PathFixture('fixtures'),...
-    matlab.unittest.fixtures.PathFixture('util')})... 
+    matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'util'])})... 
     AlyxPanel_test < matlab.unittest.TestCase
   
   properties
     % Figure visibility setting before running tests
     FigureVisibleDefault
+    % Instance of MockDialog object
+    Mock
     % AlyxPanel instance
     Panel
     % Parent container for AlyxPanel
@@ -30,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-      set(0,'DefaultFigureVisible','off');
+%       set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -47,6 +49,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function setupPanel(testCase)
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
+      % Check temp mainRepo folder is empty.  An extra safe measure as we
+      % don't won't to delete important folders by accident!
+      mainRepo = getOr(dat.paths, 'mainRepository');
+      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+        'Test experiment repo not empty.  Please set another path or manual empty folder');
+      
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
         'MenuBar', 'none',...
@@ -80,6 +88,17 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Panel.login('test_user', 'TapetesBloc18');
       testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
         'Failed to log into Alyx');
+      
+      % Verify subject folders created
+      present = ismember([{'default'}; testCase.Subjects], dat.listSubjects);
+      testCase.verifyTrue(all(present), 'Failed to create missing subject folders')
+      
+      % Ensure local Alyx queue set up
+      alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
+      testCase.resetQueue(alyxQ);
+      
+      % Setup dialog mocking
+      testCase.Mock = MockDialog('char');
     end
   end
   
@@ -87,16 +106,27 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function restoreFigures(testCase)
       set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
       close(testCase.hPanel)
+      % Remove subject directories
+      dataRepo = getOr(dat.paths, 'mainRepository');
+      assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
+      % Remove Alyx queue
+      alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
+      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alx queue')
     end
   end
   
   methods (TestMethodTeardown)
-    function closeFigure(testCase)
+    function methodTaredown(testCase)
+      % Ensure local Alyx queue set up
+      alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
+      testCase.resetQueue(alyxQ);
       % Close any figures opened during the test
       if ~isempty(testCase.Figure); close(testCase.Figure); end
+      % Reset state of dialog mock
+      testCase.Mock.reset;
     end
   end
-  
+      
   methods (Test)
     function test_viewSubjectHistory(testCase)
       % Post some weights for plotting
@@ -164,11 +194,67 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_launchSubjectURL(testCase)
-      testCase.Panel;
+      % Test the launch of the subject page in the admin Web interface
+      p = testCase.Panel;
+      % Set new subject
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
+      [failed, url] = p.launchSubjectURL;
+      testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
+      expected = ['https:\\test.alyx.internationalbrainlab.org\admin\'...
+        'subjects\subject\bcefd268-68c2-4ea8-9b60-588ee4e99ebb\change'];
+      testCase.verifyEqual(url, expected, 'unexpected subject page url')
     end
     
     function test_recordWeight(testCase)
       testCase.Panel;
+      % Set subject on water restriction
+      testCase.SubjectUI.Option{end+1} = 'algernon';
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      % Find label for weight
+      labels = findall(testCase.Parent, 'Style', 'text');
+      weight_text = labels(cellfun(@(ch)size(ch,1)==2,{labels.String}));
+      
+      % Post weight < 70 
+      weight = randi(13) + rand;
+      testCase.Panel.recordWeight(weight)
+      expected = sprintf('Weight today: %.2f (< 70%%)', weight);
+      testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
+        'Failed to update weight label value')
+      testCase.verifyEqual(weight_text.ForegroundColor, [1 0 0],...
+        'Failed to update weight label color')
+      
+      % Post weight < 80 
+      weight = 16 + rand;
+      testCase.Panel.recordWeight(weight)
+      expected = sprintf('Weight today: %.2f (< 80%%)', weight);
+      testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
+        'Failed to update weight label value')
+      testCase.verifyEqual(weight_text.ForegroundColor, [.91 .41 .17],...
+        'Failed to update weight label color')
+      
+      % Check log
+      logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
+      expected = sprintf('Alyx weight posting succeeded: %.2f for algernon', weight);
+      testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
+      
+      % Test manual weight dialog
+      weight = 25 + rand;
+      testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
+      testCase.Panel.recordWeight()
+      
+      expected = sprintf('Alyx weight posting succeeded: %.2f for algernon', weight);
+      testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
+      
+      % Test weight post when logged out
+      testCase.Panel.logout
+      testCase.Panel.recordWeight()
+      
+      expected = 'Warning: Weight not posted to Alyx; will be posted upon login.';
+      testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
+      
+      % Check post was saved
+      savedPost = dir([getOr(dat.paths, 'localAlyxQueue') filesep '*.post']);
+      testCase.assertNotEmpty(savedPost, 'Post not saved')
     end
     
     function test_login(testCase)
@@ -198,10 +284,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_updateWeightButton(testCase)
-      testCase.Panel;
-    end
-    
-    function test_log(testCase)
       testCase.Panel;
     end
     
@@ -235,4 +317,17 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
   end
   
+  
+  methods (Static)    
+    function resetQueue(alyxQ)
+      % Create test directory if it doesn't exist
+      if exist(alyxQ, 'dir') ~= 7
+        mkdir(alyxQ);
+      else % Delete any queued posts
+        files = dir(alyxQ);
+        files = {files(endsWith({files.name},{'put', 'patch', 'post'})).name};
+        cellfun(@delete, fullfile(alyxQ, files))
+      end
+    end
+  end
 end

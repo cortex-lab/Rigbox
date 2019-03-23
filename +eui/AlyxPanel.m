@@ -441,17 +441,23 @@ classdef AlyxPanel < handle
             web(adminURL, '-browser');
         end
         
-        function launchSubjectURL(obj)
+        function [stat, url] = launchSubjectURL(obj)
             % LAUNCHSUBJECTURL Launch the Webpage for the current subject
-            %  Launches Web page in the default Web browser.
+            %  Launches Web page in the default Web browser.  Note that the
+            %  logged in state of the AlyxPanel is independent of the
+            %  browser cookies, therefore you may need to log in to see the
+            %  subject page.
+            %
+            %  Outputs:
+            %    stat (double) - returns the status of the operation: 
+            %      0 if successful, 1 or 2 if unsuccessful.
+            %    url (char) - the url for the subject page
             %
             % See also LAUNCHSESSIONURL
             ai = obj.AlyxInstance;
-            if ai.IsLoggedIn
-                s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
-                subjURL = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
-                web(subjURL, '-browser');
-            end
+            s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
+            url = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
+            stat = web(url, '-browser');
         end
         
         function viewSubjectHistory(obj, ax)
@@ -630,12 +636,12 @@ classdef AlyxPanel < handle
                     expected_weight = getOr(record, 'expected_weight', NaN);
                     % Set colour based on weight percentage
                     weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
-                    if weight_pct < 0.8 % Mouse below 80% original weight
-                        colour = [0.91, 0.41, 0.17]; % Orange
-                        weight_pct = '< 80%';
-                    elseif weight_pct < 0.7 % Mouse below 70% original weight
+                    if weight_pct < 0.7 % Mouse below 70% original weight
                         colour = 'red';
                         weight_pct = '< 70%';
+                    elseif weight_pct < 0.8 % Mouse below 80% original weight
+                        colour = [0.91, 0.41, 0.17]; % Orange
+                        weight_pct = '< 80%';
                     else
                         colour = 'black'; % Mouse above 80% or no weight measured today
                         weight_pct = '> 80%';
