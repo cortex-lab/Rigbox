@@ -34,12 +34,11 @@ classdef MockDialog < handle
   methods (Static)
     
     function obj = instance(keyType)
-      if nargin == 0; keyType = 'uint32'; end
       persistent inst
       if isempty(inst)
         inst = MockDialog();
       end
-      if inst.Dialogs.Count ~= 0 && ~strcmp(inst.Dialogs.KeyType, keyType)
+      if nargin > 0 && ~strcmp(inst.Dialogs.KeyType, keyType)
         warning('MockDialog:Instance:SetKeyType', ...
           'KeyType change from to %s. Resetting object', keyType)
         inst.reset();
@@ -49,21 +48,15 @@ classdef MockDialog < handle
       obj = inst;
     end
     
-%     function reset()
-%       delete(inst)
-%       clear('inst')
-%       obj = [];
-%       clear('MockDialog')
-%     end
-
   end
   
   methods
     
     function reset(obj)
       keySet = obj.Dialogs.keys;
-      remove(obj.Dialogs,keySet)
+      remove(obj.Dialogs,keySet);
       obj.NumCalls = 0;
+      obj.InTest = false;
     end
     
     function answer = newCall(obj, type, varargin)
@@ -110,27 +103,27 @@ classdef MockDialog < handle
           if isstruct(varargin{end}); varargin(end) = []; end
           if length(varargin) < 3
             def = 'Yes'; % Default is 'Yes'
-          elseif length(varargin(3:end)) == length(unique(varargin(3:end))
+          elseif length(varargin(3:end)) == length(unique(varargin(3:end)))
             def = varargin(3); % Custom button one is default
           else
             def = varargin(end); % Assume last input default
           end
-          if strcmp(obj.Dialog.KeyType, 'char')
+          if strcmp(obj.Dialogs.KeyType, 'char')
             key = varargin{1}; % Key is prompt
           else
             key = obj.NumCalls;
-            if key > obj.Dialog.Count
-              key = key - obj.Dialog.Count*floor(key/obj.Dialog.Count);
-              key = typecast(key, obj.Dialog.KeyType);
+            if key > obj.Dialogs.Count
+              key = key - obj.Dialogs.Count*floor(key/obj.Dialogs.Count);
+              key = typecast(key, obj.Dialogs.KeyType);
             end
           end
         case 'inputdlg'
           % Find key
-          if ~strcmp(obj.Dialog.KeyType, 'char')
+          if ~strcmp(obj.Dialogs.KeyType, 'char')
             key = obj.NumCalls;
-            if key > obj.Dialog.Count
-              key = key - obj.Dialog.Count*floor(key/obj.Dialog.Count);
-              key = typecast(key, obj.Dialog.KeyType);
+            if key > obj.Dialogs.Count
+              key = key - obj.Dialogs.Count*floor(key/obj.Dialogs.Count);
+              key = typecast(key, obj.Dialogs.KeyType);
             end
           elseif isempty(varargin)
             key = 'Input';
@@ -140,7 +133,7 @@ classdef MockDialog < handle
             key = varargin{2};
           end
           % Set default answer as default returned value
-          def = iff(length(varargin) > 3, @()varargin(4), {});
+          def = iff(length(varargin) > 3, @()varargin{4}, {});
         otherwise
           % pass
           return
@@ -155,6 +148,9 @@ classdef MockDialog < handle
         answer = answer.first;
         obj.Dialogs(key) = obj.Dialogs(key).rest;
       end
+      
+      % inputdlg always returns a cell
+      if strcmp(type, 'inputdlg'); answer = ensureCell(answer); end
       obj.NumCalls = obj.NumCalls + 1; % Iterate number of calls
     end
       
