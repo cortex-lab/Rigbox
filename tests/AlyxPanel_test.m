@@ -32,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off');
+      set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -98,7 +98,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.resetQueue(alyxQ);
       
       % Setup dialog mocking
-      testCase.Mock = MockDialog('char');
+      testCase.Mock = MockDialog.instance('char');
     end
   end
   
@@ -106,6 +106,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function restoreFigures(testCase)
       set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
       close(testCase.hPanel)
+      delete(testCase.Panel)
       % Remove subject directories
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
@@ -207,6 +208,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_recordWeight(testCase)
       testCase.Panel;
+      testCase.Mock.InTest = true;
+      testCase.Mock.UseDefaults = false;
       % Set subject on water restriction
       testCase.SubjectUI.Option{end+1} = 'algernon';
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
@@ -239,14 +242,26 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Test manual weight dialog
       weight = 25 + rand;
+      button = findobj(testCase.Parent, 'String', 'Manual weighing');
+      testCase.assertTrue(~isempty(button), 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
-      testCase.Panel.recordWeight()
+      button.Callback()
       
       expected = sprintf('Alyx weight posting succeeded: %.2f for algernon', weight);
       testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
+      testCase.verifyEqual(weight_text.ForegroundColor, zeros(1,3),...
+        'Failed to update weight label color')
+      
+      % Test button with weighing scale listener
+      src.readGrams = randi(35) + rand;
+      testCase.Panel.updateWeightButton(src,[])
+      button.Callback()
+      expected = sprintf('Weight today: %.2f', src.readGrams);
+      testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
+        'Failed to update weight label value')
       
       % Test weight post when logged out
-      testCase.Panel.logout
+      testCase.Panel.login
       testCase.Panel.recordWeight()
       
       expected = 'Warning: Weight not posted to Alyx; will be posted upon login.';
@@ -269,7 +284,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check labels
       testCase.verifyEqual(labels(3).String, 'You are logged in as test_user')
       testCase.verifyTrue(~contains(labels(2).String, 'Log in'))
-      
+            
       % Log out
       testCase.Panel.login;
       testCase.assertTrue(~testCase.Panel.AlyxInstance.IsLoggedIn);
@@ -284,7 +299,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_updateWeightButton(testCase)
-      testCase.Panel;
+      % Find the weight button
+      button = findobj(testCase.Parent, 'String', 'Manual weighing');
+      testCase.assertTrue(~isempty(button), 'Unable to find button object')
+      callbk_fn = button.Callback;
+      src.readGrams = randi(35) + rand;
+      testCase.Panel.updateWeightButton(src,[])
+      % Check button updated
+      testCase.verifyEqual(button.String, sprintf('Record %.1fg',src.readGrams))
+      testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
+      callbk_fn = button.Callback;
+      
+      % Check button resets
+      pause(10)
+      testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
+      testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
     
     function test_giveWater(testCase)
@@ -316,7 +345,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
   end
-  
   
   methods (Static)    
     function resetQueue(alyxQ)

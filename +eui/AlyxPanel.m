@@ -210,6 +210,11 @@ classdef AlyxPanel < handle
                 delete(obj.LoginTimer) % ... delete it...
                 obj.LoginTimer = []; % ... and remove it
             end
+            if ~isempty(obj.WeightTimer) % If there is a timer object
+                stop(obj.WeightTimer) % Stop the timer...
+                delete(obj.WeightTimer) % ... delete it...
+                obj.WeightTimer = []; % ... and remove it
+            end
         end
         
         function login(obj, varargin)
