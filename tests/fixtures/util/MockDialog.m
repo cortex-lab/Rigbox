@@ -113,24 +113,12 @@ classdef MockDialog < handle
           if strcmp(obj.Dialogs.KeyType, 'char')
             key = varargin{1}; % Key is prompt
           else
-            key = obj.NumCalls;
-            if key > obj.Dialogs.Count
-              key = key - obj.Dialogs.Count*floor(key/obj.Dialogs.Count);
-              key = typecast(key, obj.Dialogs.KeyType);
-            end
+            key = obj.fromCount;
           end
         case 'inputdlg'
           % Find key
           if ~strcmp(obj.Dialogs.KeyType, 'char')
-            if ~obj.UseDefaults
-              assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
-                'No values saved in Dialogs property')
-            end
-            key = obj.NumCalls;
-            if key > obj.Dialogs.Count
-              key = key - obj.Dialogs.Count*floor(key/uint32(obj.Dialogs.Count));
-              key = typecast(key, obj.Dialogs.KeyType);
-            end
+            key = obj.fromCount;
           elseif isempty(varargin)
             key = 'Input';
           elseif length(varargin) == 1 % Use prompt string
@@ -160,6 +148,25 @@ classdef MockDialog < handle
       obj.NumCalls = obj.NumCalls + 1; % Iterate number of calls
     end
       
+  end
+  
+  methods (Access = private)
+    
+    function key = fromCount()
+      if strcmp(obj.Dialogs.KeyType, 'char')
+        key = [];
+        return
+      elseif ~obj.UseDefaults
+        assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
+          'No values saved in Dialogs property')
+      end
+      key = obj.NumCalls;
+      if key > obj.Dialogs.Count
+        key = key - obj.Dialogs.Count*floor(key/uint32(obj.Dialogs.Count));
+        key = typecast(key, obj.Dialogs.KeyType);
+      end
+    end
+    
   end
     
 end
