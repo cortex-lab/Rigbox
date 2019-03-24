@@ -17,7 +17,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     % Figure handle for any extra figures opened during tests
     Figure
     % List of subjects returned by the test database
-    Subjects = {'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'}
+    Subjects = {'ZM_1085'; 'ZM_1087'; 'ZM_1094'; 'ZM_1098'; 'ZM_335'; 'algernon'}
     % bui.Selector for setting the subject list in tests
     SubjectUI
     % Expected Y-axis labels for the viewSubjectHistory plots
@@ -90,7 +90,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to log into Alyx');
       
       % Verify subject folders created
-      present = ismember([{'default'}; testCase.Subjects], dat.listSubjects);
+      present = ismember([{'default'}; testCase.Subjects(1:end-1)], dat.listSubjects);
       testCase.verifyTrue(all(present), 'Failed to create missing subject folders')
       
       % Ensure local Alyx queue set up
@@ -107,6 +107,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
       close(testCase.hPanel)
       delete(testCase.Panel)
+      % Double check no figures left
+      figHandles = findobj('Type', 'figure');
+      if ~isempty(figHandles)
+        idx = cellfun(@(n)any(strcmp(n, testCase.Subjects)),{figHandles.Name});
+        close(figHandles(idx))
+      end
       % Remove subject directories
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
@@ -118,6 +124,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   methods (TestMethodTeardown)
     function methodTaredown(testCase)
+      % Ensure still logged in
+      if ~testCase.Panel.AlyxInstance.IsLoggedIn
+        testCase.Panel.login('test_user', 'TapetesBloc18');
+        testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
+          'Failed to log into Alyx');
+      end
       % Ensure local Alyx queue set up
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
       testCase.resetQueue(alyxQ);
@@ -159,8 +171,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
           size(testCase.GraphData{i}{1},1));
         xData = vertcat(ax_h(i).Children(:).XData);
         yData = vertcat(ax_h(i).Children(:).YData);
-        testCase.verifyEqual(xData, testCase.GraphData{i}{1});
-        testCase.verifyEqual(yData, testCase.GraphData{i}{2});
+        expected = testCase.GraphData{i};
+        testCase.verifyEqual(xData(:,1:size(expected{1},2)), expected{1});
+        testCase.verifyEqual(yData(:,1:size(expected{2},2)), expected{2});
       end
     end
     
@@ -169,14 +182,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Figure = gcf();
       child_handle = testCase.Figure.Children.Children;
       tableData = child_handle.Data;
-      expected = {'algernon', '0.00', '<html><body bgcolor=#FFFFFF>0.00</body></html>'};
-      testCase.verifyTrue(isequal(tableData, expected));
+      testCase.verifyEqual(size(tableData), [1 3], 'Unexpected number of table entries')
     end
     
     function test_dispWaterReq(testCase)
       % Set subject on water restriction
-      testCase.SubjectUI.Option{end+1} = 'algernon';
-      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      testCase.SubjectUI.Selected = 'algernon';
       % Find label for weight
       labels = findall(testCase.Parent, 'Style', 'text');
       weight_text = labels(cellfun(@(ch)size(ch,1)==2,{labels.String}));
@@ -198,18 +209,27 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_launchSessionURL(testCase)
       % Test the launch of the session page in the admin Web interface
       p = testCase.Panel;
+      testCase.Mock.InTest = true;
+      testCase.Mock.UseDefaults = false;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, now);
-      testCase.assertEmpty(todaySession)
+      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'start_date', now);
       
       % Add mock user response
-      mockDialog = MockDialog.instance;
-      mockDialog.UseDefaults = false;
-      mockDialog.Dialogs(0) = 'No';
-      mockDialog.Dialogs(1) = 'Yes';
+      key = 'Would you like to create a new base session?';
+      testCase.Mock.Dialogs(key) = iff(isempty(todaySession), 'Yes', 'No');
       
-      testCase.Panel.launchSessionURL()
+      [failed, url] = testCase.assertWarningFree(@()p.launchSessionURL);
+      testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
+      if isempty(todaySession)
+        expected = url;
+      else
+        uuid = todaySession.url(find(todaySession.url=='/', 1, 'last')+1:end);
+        expected = ['https://test.alyx.internationalbrainlab.org/admin/', ...
+          'actions/session/', uuid, '/change'];
+      end
+      
+      testCase.verifyEqual(url, expected, 'Unexpected url')
     end
     
     function test_launchSubjectURL(testCase)
@@ -229,8 +249,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set subject on water restriction
-      testCase.SubjectUI.Option{end+1} = 'algernon';
-      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      testCase.SubjectUI.Selected = 'algernon';
       % Find label for weight
       labels = findall(testCase.Parent, 'Style', 'text');
       weight_text = labels(cellfun(@(ch)size(ch,1)==2,{labels.String}));
@@ -274,6 +293,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       src.readGrams = randi(35) + rand;
       testCase.Panel.updateWeightButton(src,[])
       button.Callback()
+      tic
       expected = sprintf('Weight today: %.2f', src.readGrams);
       testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
         'Failed to update weight label value')
@@ -288,6 +308,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check post was saved
       savedPost = dir([getOr(dat.paths, 'localAlyxQueue') filesep '*.post']);
       testCase.assertNotEmpty(savedPost, 'Post not saved')
+      
+      % Ensure button reset
+      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); end
     end
     
     function test_login(testCase)
@@ -301,7 +324,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEmpty(findobj(testCase.Parent, 'Enable', 'off'))
       % Check labels
       testCase.verifyEqual(labels(3).String, 'You are logged in as test_user')
-      testCase.verifyTrue(~contains(labels(2).String, 'Log in'))
+      testCase.verifyTrue(~contains(labels(2).String(1,:), 'Log in'))
             
       % Log out
       testCase.Panel.login;
@@ -313,7 +336,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       'Unexpected number of enabled UI elements')
       % Check labels
       testCase.verifyEqual(labels(3).String, 'Not logged in')
-      testCase.verifyEqual(labels(2).String, 'Log in to see water requirements')
+      testCase.verifyEqual(labels(2).String(1,:), 'Log in to see water requirements')
     end
     
     function test_updateWeightButton(testCase)
@@ -323,13 +346,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       src.readGrams = randi(35) + rand;
       testCase.Panel.updateWeightButton(src,[])
+      tic
       % Check button updated
       testCase.verifyEqual(button.String, sprintf('Record %.1fg',src.readGrams))
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
       callbk_fn = button.Callback;
       
       % Check button resets
-      pause(10)
+      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
@@ -337,8 +361,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_giveWater(testCase)
       testCase.Panel;
       % Set subject on water restriction
-      testCase.SubjectUI.Option{end+1} = 'algernon';
-      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      testCase.SubjectUI.Selected = 'algernon';
       % Ensure there's a weight for today
       testCase.Panel.recordWeight(20)
       % Find input for water
@@ -393,7 +416,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_giveFutureWater(testCase)
       testCase.Panel;
-      subject = testCase.SubjectUI.Option{end};
+      subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
       
       testCase.Mock.InTest = true;

@@ -210,7 +210,7 @@ classdef AlyxPanel < handle
                 delete(obj.LoginTimer) % ... delete it...
                 obj.LoginTimer = []; % ... and remove it
             end
-            if ~isempty(obj.WeightTimer) % If there is a timer object
+            if ~isempty(obj.WeightTimer) && isvalid(obj.WeightTimer)
                 stop(obj.WeightTimer) % Stop the timer...
                 delete(obj.WeightTimer) % ... delete it...
                 obj.WeightTimer = []; % ... and remove it
@@ -387,16 +387,22 @@ classdef AlyxPanel < handle
             obj.dispWaterReq
         end
         
-        function launchSessionURL(obj)
+        function [stat, url] = launchSessionURL(obj)
             % Launch the Webpage for the current base session in the
             % default Web browser.  If no session exists for today's date,
             % a new base session is created accordingly.
+            %
+            %  Outputs:
+            %    stat (double) - returns the status of the operation: 
+            %      0 if successful, 1 or 2 if unsuccessful.
+            %    url (char) - the url for the subject page
             %
             % See also LAUNCHSUBJECTURL
             ai = obj.AlyxInstance;
             % determine whether there is a session for this subj and date
             thisDate = ai.datestr(now);
             sessions = ai.getData(['sessions?type=Base&subject=' obj.Subject]);
+            stat = -1; url = [];
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
@@ -416,7 +422,8 @@ classdef AlyxPanel < handle
                         d.narrative = 'auto-generated session';
                         d.start_time = thisDate;
                         d.type = 'Base';
-                        
+                        d.users = {obj.AlyxInstance.User};
+
                         thisSess = ai.postData('sessions', d);
                         if ~isfield(thisSess,'subject') % fail
                             warning('Submitted base session did not return appropriate values');
@@ -432,7 +439,7 @@ classdef AlyxPanel < handle
                         return
                 end
             else
-                thisSess = sessions{end};
+                thisSess = sessions(end);
             end
             
             % parse the uuid from the url in the session object
@@ -440,10 +447,10 @@ classdef AlyxPanel < handle
             uuid = u(find(u=='/', 1, 'last')+1:end);
             
             % make the admin url
-            adminURL = fullfile(ai.BaseURL, 'admin', 'actions', 'session', uuid, 'change');
+            url = [ai.BaseURL, '/admin/actions/session/', uuid, '/change'];
             
             % launch the website
-            web(adminURL, '-browser');
+            stat = web(url, '-browser');
         end
         
         function [stat, url] = launchSubjectURL(obj)
@@ -749,15 +756,17 @@ classdef AlyxPanel < handle
           % See also ROUND
             if nargin < 2; direction = 'nearest'; end
             if nargin < 3; N = 2; end
-            c = 10^(N-ceil(log10(a)));
+            c = 10.^(N-ceil(log10(a)));
+            c(c==Inf) = 0;
             switch direction
                 case 'up'
-                    A = ceil(a*c)/c;
+                    A = ceil(a.*c)./c;
                 case 'down'
-                    A = floor(a*c)/c;
+                    A = floor(a.*c)./c;
                 otherwise
                     A = round(a, N, 'significant');
             end
+            A(a == 0) = 0;
         end
     end
 end
