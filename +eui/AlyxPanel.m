@@ -636,8 +636,7 @@ classdef AlyxPanel < handle
                         record = struct();
                     end
                     weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
-                    water = getOr(record, 'given_water_liquid', 0); % Get total water given
-                    gel = getOr(record, 'given_water_hydrogel', 0); % Get total gel given
+                    water = getOr(record, 'given_water_total', 0); % Get total water given
                     expected_weight = getOr(record, 'expected_weight', NaN);
                     % Set colour based on weight percentage
                     weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
@@ -658,7 +657,7 @@ classdef AlyxPanel < handle
                         sprintf(['Subject %s requires %.2f of %.2f today\n\t '...
                         'Weight today: %.2f (%s)    Water today: %.2f'], obj.Subject, ...
                         remainder, obj.round(s(idx).expected_water, 'up'), weight, ...
-                        weight_pct, obj.round(sum([water gel]), 'down')));
+                        weight_pct, obj.round(water, 'down')));
                     % Set WaterRemaining attribute for changeWaterText callback
                     obj.WaterRemaining = remainder;
                 end

@@ -32,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-      set(0,'DefaultFigureVisible','off');
+%       set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -174,7 +174,25 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_dispWaterReq(testCase)
-      testCase.Panel;
+      % Set subject on water restriction
+      testCase.SubjectUI.Option{end+1} = 'algernon';
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      % Find label for weight
+      labels = findall(testCase.Parent, 'Style', 'text');
+      weight_text = labels(cellfun(@(ch)size(ch,1)==2,{labels.String}));
+      button = findobj(testCase.Parent, 'String', 'Refresh');
+      testCase.assertTrue(numel([weight_text button])==2, ...
+        'Unable to retrieve all required UI elements');
+      
+      % Update weight outside of Panel
+      w = testCase.Panel.AlyxInstance.postWeight(randi(35)+rand, 'algernon');
+      testCase.assertTrue(~isempty(w), 'Failed to update Alyx')
+      
+      prev = weight_text.String(2,:);
+      button.Callback(); % Hit refresh
+      new = weight_text.String(2,:);
+      
+      testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
     end
     
     function test_launchSessionURL(testCase)
@@ -318,14 +336,106 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_giveWater(testCase)
       testCase.Panel;
+      % Set subject on water restriction
+      testCase.SubjectUI.Option{end+1} = 'algernon';
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{end};
+      % Ensure there's a weight for today
+      testCase.Panel.recordWeight(20)
+      % Find input for water
+      input = findall(testCase.Parent, 'Style', 'edit');
+      % Find labels
+      labels = findall(testCase.Parent, 'Style', 'text');
+      wtr_text = labels(cellfun(@(ch)size(ch,1)==2,{labels.String}));
+      remaining = labels(cellfun(@(ch)all(size(ch)==[1 2]),{labels.String}));
+      % Find Give water button
+      button = findall(testCase.Parent, 'String', 'Give water');
+      testCase.assertTrue(numel([input wtr_text remaining button])==4, ...
+        'Unable to retrieve all required UI elements');
+      
+      % Test return callback
+      amount = rand;
+      input.String = num2str(amount);
+      input.Callback(input, []);
+      % Get record from Alyx
+      endpnt = sprintf('water-requirement/%s?start_date=%s&end_date=%s',...
+        testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
+      [vals, record] = get_test_data;
+      
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      rem = str2double(remaining.String(2:end-1));
+      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.1, 'Given water mismatch')
+      
+      % Test give water callback
+      button.Callback()
+      [vals, record] = get_test_data;
+            
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      rem = str2double(remaining.String(2:end-1));
+      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.1, 'Given water mismatch')
+      
+      % Check log
+      logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
+      expected = sprintf('%.2f for "%s"', amount, testCase.SubjectUI.Selected);
+      testCase.verifyTrue(contains(logPanel.String{end}, expected), 'Failed to update log')
+      
+      function [vals, record] = get_test_data()
+        wr = testCase.Panel.AlyxInstance.getData(endpnt); % Get today's weight and water record
+        record = wr.records(end);
+        vals = [cell2mat(textscan(wtr_text.String(1,:), '%*s %*s %*s %.2f %*s %.2f %*s')),...
+          cell2mat(textscan(wtr_text.String(2,end-10:end), '%*s %.2f'))];
+        vals(isnan(vals)) = 0;
+      end
     end
     
     function test_giveFutureWater(testCase)
       testCase.Panel;
-    end
-    
-    function test_changeWaterText(testCase)
-      testCase.Panel;
+      subject = testCase.SubjectUI.Option{end};
+      testCase.SubjectUI.Selected = subject;
+      
+      testCase.Mock.InTest = true;
+      testCase.Mock.UseDefaults = false;
+
+      % Find Give water in future button
+      button = findall(testCase.Parent, 'String', 'Give water in future');
+      testCase.assertTrue(numel(button)==1, 'Unable to retrieve all required UI elements');
+      
+      amount = rand;
+      responses = {['0 0 -1 ', num2str(amount), ' -1'], '0 0 -1'};
+      testCase.Mock.Dialogs('Future Amounts') = fun.CellSeq.create(responses);
+      button.Callback();
+      
+      % Check training day added
+      toTrian = dat.loadParamProfiles('WeekendWater');
+      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', 0.1, ...
+        'Failed to add training dates to saved params')
+      
+      % Check water posted to Alyx
+      wr = testCase.Panel.AlyxInstance.getData(['subjects/', subject]);
+      last = wr.water_administrations(end);
+      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', 0.01, ...
+        'Date of post incorrect')
+      testCase.verifyEqual(last.water_administered, amount, 'RelTol', 0.1, ...
+        'Incorrect amount posted to Alyx')
+
+      % Check log
+      logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
+      expected = contains(logPanel.String{end}, sprintf('%.2f for %s', amount, subject)) ...
+        && endsWith(logPanel.String{end}, datestr(now+4, 'dddd dd mmm yyyy'));
+      testCase.verifyTrue(expected, 'Water administration not logged')
+      expected = endsWith(logPanel.String{end-1}, ...
+        sprintf('%s marked for training on %s and %s', ...
+        subject, datestr(now+3, 'dddd'), datestr(now+5, 'dddd')));
+      testCase.verifyTrue(expected, 'Training days not logged')
+      
+      % Check training day removed
+      button.Callback();
+      toTrian = dat.loadParamProfiles('WeekendWater');
+      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
+        'Failed to add training dates to saved params')
     end
     
     function test_round(testCase)
