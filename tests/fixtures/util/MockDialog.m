@@ -24,10 +24,11 @@ classdef MockDialog < handle
     InTest logical = false
     % Containers map of user input, whose keys are either dialog titles or
     % function call number
-    Dialogs = containers.Map('KeyType', 'uint32')
-    % 
+    Dialogs = containers.Map('KeyType', 'uint32', 'ValueType', 'any')
+    % When true use default values for all dialogs (equivalent to user
+    % pressing return key)
     UseDefaults logical = true
-    % Number of calls to newCall % TODO must be uint
+    % Number of calls to newCall
     NumCalls uint32 {mustBeInteger, mustBeNonnegative} = 0
   end
     
@@ -40,9 +41,9 @@ classdef MockDialog < handle
       end
       if nargin > 0 && ~strcmp(inst.Dialogs.KeyType, keyType)
         warning('MockDialog:Instance:SetKeyType', ...
-          'KeyType change from to %s. Resetting object', keyType)
+          'KeyType change to %s. Resetting object', keyType)
         inst.reset();
-        inst.Dialogs = containers.Map('KeyType', keyType);
+        inst.Dialogs = containers.Map('KeyType', keyType, 'ValueType', 'any');
       end
         
       obj = inst;
@@ -57,6 +58,7 @@ classdef MockDialog < handle
       remove(obj.Dialogs,keySet);
       obj.NumCalls = 0;
       obj.InTest = false;
+      obj.UseDefaults = true;
     end
     
     function answer = newCall(obj, type, varargin)
@@ -120,9 +122,13 @@ classdef MockDialog < handle
         case 'inputdlg'
           % Find key
           if ~strcmp(obj.Dialogs.KeyType, 'char')
+            if ~obj.UseDefaults
+              assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
+                'No values saved in Dialogs property')
+            end
             key = obj.NumCalls;
             if key > obj.Dialogs.Count
-              key = key - obj.Dialogs.Count*floor(key/obj.Dialogs.Count);
+              key = key - obj.Dialogs.Count*floor(key/uint32(obj.Dialogs.Count));
               key = typecast(key, obj.Dialogs.KeyType);
             end
           elseif isempty(varargin)
