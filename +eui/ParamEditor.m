@@ -218,6 +218,8 @@ classdef ParamEditor < handle
       %  and notifies listeners of the change via the Changed event.
       %
       % See also EUI.FIELDPANEL/ONEDIT, EUI.CONDITIONPANEL/ONEDIT
+      
+      
       if nargin < 4; row = 1; end
       currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
@@ -226,7 +228,11 @@ classdef ParamEditor < handle
         obj.Parameters.Struct.(name){:,row} = newValue;
       else
         newValue = obj.controlValue2Param(currValue, value);
-        obj.Parameters.Struct.(name)(:,row) = newValue;
+        if isstr(newValue)
+           obj.Parameters.Struct.(name) = newValue;
+        else
+            obj.Parameters.Struct.(name)(:,row) = newValue;
+        end
       end
       notify(obj, 'Changed');
     end
