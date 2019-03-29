@@ -247,6 +247,15 @@ ShowCursor();
         case 'run'
           % exp run request
           [expRef, preDelay, postDelay, AlyxInstance] = args{:};
+          % assert that experiment not already running
+          if ~isempty(experiment)
+            failMsg = sprintf(...
+              'Failed because another experiment (ref ''%s'') running', ...
+              experiment.Data.expRef);
+            log(failMsg);
+            communicator.send(id, {'fail', expRef, failMsg});
+            return
+          end
           if isempty(AlyxInstance); AlyxInstance = Alyx('',''); end
           AlyxInstance.Headless = true; % Supress all dialog prompts
           if dat.expExists(expRef)
