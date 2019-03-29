@@ -43,8 +43,9 @@ classdef ConditionPanel < handle
       % See also EUI.PARAMEDITOR, EUI.FIELDPANEL
       obj.ParamEditor = ParamEditor;
       obj.UIPanel = uix.VBox('Parent', f);
-      % Create a child menu for the uiContextMenus
-      c = uicontextmenu;
+      % Create a child menu for the uiContextMenus. The input arg is the 
+      % figure holding the panel
+      c = uicontextmenu(ancestor(f, 'Figure'));
       obj.UIPanel.UIContextMenu = c;
       obj.ContextMenus = uimenu(c, 'Label', 'Make Global', ...
         'MenuSelectedFcn', @(~,~)obj.makeGlobal, 'Enable', 'off');

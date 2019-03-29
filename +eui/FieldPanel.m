@@ -61,7 +61,7 @@ classdef FieldPanel < handle
       % See also ONEDIT, EXP.PARAMETERS/TITLE, EUI.PARAMEDITOR/BUILDUI
       if nargin < 3; type = 'edit'; end
       if isempty(obj.ContextMenu)
-        obj.ContextMenu = uicontextmenu;
+        obj.ContextMenu = uicontextmenu(ancestor(obj.UIPanel, 'Figure'));
         uimenu(obj.ContextMenu, 'Label', 'Make Conditional', ...
           'MenuSelectedFcn', @(~,~)obj.makeConditional);
       end
