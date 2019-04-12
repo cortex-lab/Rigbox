@@ -17,7 +17,7 @@ profiles = dat.loadParamProfiles(expType);
 profiles.(profileName) = params;
 %wrap in a struct for saving
 set = struct;
-set.(expType) = profiles; %#ok<STRNU>
+set.(expType) = profiles;
 
 %save the updated set of profiles to each repos
 %where files exist already, append
