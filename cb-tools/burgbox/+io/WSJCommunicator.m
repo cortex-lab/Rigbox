@@ -29,7 +29,6 @@ classdef WSJCommunicator < io.Communicator
   end
   
   properties (Access = private, Transient)
-    Listener
     InBuffer
   end
   
