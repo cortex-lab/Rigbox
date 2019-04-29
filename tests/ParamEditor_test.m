@@ -156,8 +156,16 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       end
       
       % Test string data 
-      % TODO Outcome will change in near future
+      % Strings converted to char arrays due to Table limitations
       testCase.verifyEqual(PE.paramValue2Control("hello"), 'hello')
+      % Strings should be joined across rows
+      testCase.verifyEqual(PE.paramValue2Control(["hello";"hi"]), 'hello, hi')
+      % Verify conditional string parameters are parsed correctly
+      actual = PE.paramValue2Control(["hello","goodbye";"hi","bye"]);
+      testCase.verifyEqual(size(actual), [1 12 2])
+      % Check that string control values are converted correctly
+      actual = PE.controlValue2Param(["hello","hi"],actual(:,:,2));
+      testCase.verifyEqual(["goodbye";"bye"], actual)
 
       % Test numeric data
       testCase.verifyEqual(PE.paramValue2Control(pi), '3.1416')
