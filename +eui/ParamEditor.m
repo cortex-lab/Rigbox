@@ -54,8 +54,7 @@ classdef ParamEditor < handle
         parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
           'Toolbar', 'none', 'Menubar', 'none', 'DeleteFcn', @(~,~)obj.delete);
       end
-      obj.Root = parent;
-      while ~isa(obj.Root, 'matlab.ui.Figure'); obj.Root = obj.Root.Parent; end
+      obj.Root = ancestor(parent, 'Figure');
 %       obj.Listener = event.listener(parent, 'SizeChanged', @(~,~)obj.onResize);
       obj.Parent = uix.HBox('Parent', parent);
       obj.GlobalUI = eui.FieldPanel(obj.Parent, obj);
