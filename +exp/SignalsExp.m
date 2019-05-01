@@ -169,7 +169,10 @@ classdef SignalsExp < handle
         obj.PassiveMode = true;
         expRef = paramStruct.Passive;
         block = loadVar(dat.expFilePath(expRef, 'Block', 'master'), 'block');
-        obj.Wheel = block.inputs.wheelValues;
+        obj.Wheel.values = block.inputs.wheelValues;
+        obj.Wheel.MillimetresFactor = rig.mouseInput.MillimetresFactor;
+        obj.Wheel.ZeroOffset = rig.mouseInput.ZeroOffset;
+        obj.Wheel.EncoderResolution = rig.mouseInput.EncoderResolution;
         paramStruct = loadVar(dat.expFilePath(expRef, 'Parameters', 'master'), 'parameters');
         [~, globalStruct] = toConditionServer(...
           exp.Parameters(paramStruct));
@@ -697,7 +700,7 @@ classdef SignalsExp < handle
         %% signalling
 %         tic
         if obj.PassiveMode
-          wx = obj.Wheel(obj.PassiveLoopIdx);
+          wx = obj.Wheel.values(obj.PassiveLoopIdx);
           obj.PassiveLoopIdx = obj.PassiveLoopIdx+1;
         else
           wx = readAbsolutePosition(obj.Wheel);
