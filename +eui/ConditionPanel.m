@@ -53,7 +53,7 @@ classdef ConditionPanel < handle
       obj.ContextMenus(2) = uimenu(c, 'Label', 'Randomize conditions', ...
         'MenuSelectedFcn', fcn, 'Checked', 'on', 'Tag', 'randomize button');
       obj.ContextMenus(3) = uimenu(c, 'Label', 'Sort by selected column', ...
-        'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), ...
+        'MenuSelectedFcn', @(~,~)obj.sortByColumn, ...
         'Tag', 'sort by', 'Enable', 'off'); % TODO Implement sort by column
       % Create condition table
       p = uix.Panel('Parent', obj.UIPanel, 'BorderType', 'none');
@@ -271,6 +271,31 @@ classdef ConditionPanel < handle
           = cellfun(@(a)ui.ParamEditor.paramValue2Control(a), newVals', 'UniformOutput', 0);
       end
       notify(obj.ParamEditor, 'Changed');
+    end
+    
+    function sortByColumn(obj)
+      % SORTBYCOLUMN Sort all conditions by selected column
+      %  If the selected column is already sorted in ascended order then
+      %  the conditions are ordered in descending order instead.
+      %  TODO Sort by multiple columns
+      %  @body currently all conditions are sorted by first selected column
+      if isempty(obj.SelectedCells)
+        disp('nothing selected')
+        return
+      end
+      PE = obj.ParamEditor;
+      % Get selected column name and retrieve data
+      cols = unique(obj.SelectedCells(:,2));
+      names = PE.Parameters.TrialSpecificNames(cols);
+      toSort = PE.Parameters.Struct.(names{1});
+      direction = iff(issorted(toSort','rows'), 'descend', 'ascend');
+      [~, I] = sortrows(toSort', direction);
+      % Update parameters with new permutation
+      for p = PE.Parameters.TrialSpecificNames'
+        data = PE.Parameters.Struct.(p{:});
+        PE.Parameters.Struct.(p{:}) = data(:,I);
+      end
+      obj.fillConditionTable % Redraw table
     end
     
     function fillConditionTable(obj)
