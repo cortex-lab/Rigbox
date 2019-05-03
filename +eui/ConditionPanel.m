@@ -218,12 +218,13 @@ classdef ConditionPanel < handle
       %   false % Sets all selected rows to false
       % 
       % See also SETNEWVALS, ONEDIT
+      PE = obj.ParamEditor;
       cols = obj.SelectedCells(:,2); % selected columns
       uCol = unique(obj.SelectedCells(:,2));
       rows = obj.SelectedCells(:,1); % selected rows
       % get current values of selected cells
       currVals = arrayfun(@(u)obj.ConditionTable.Data(rows(cols==u),u), uCol, 'UniformOutput', 0);
-      names = obj.ConditionTable.ColumnName(uCol); % selected column names
+      names = PE.Parameters.TrialSpecificNames(uCol); % selected column names
       promt = cellfun(@(a,b) [a ' (' num2str(sum(cols==b)) ')'],...
         names, num2cell(uCol), 'UniformOutput', 0); % names of columns & num selected rows
       defaultans = cellfun(@(c) c(1), currVals);
@@ -260,15 +261,15 @@ classdef ConditionPanel < handle
         elseif length(newVals)<length(currVals) % too few new values
           % populate as many cells as possible
           newVals = [newVals ...
-            cellfun(@(a)obj.ParamEditor.controlValue2Param(2,a),...
+            cellfun(@(a)PE.controlValue2Param(2,a),...
             currVals(length(newVals)+1:end),'UniformOutput',0)];
         end
-        ic = strcmp(obj.ConditionTable.ColumnName, paramName); % find edited param names
+        ic = strcmp(PE.Parameters.TrialSpecificNames, paramName); % find edited param names
         % update param struct
-        obj.ParamEditor.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
+        PE.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
         % update condtion table with strings
         obj.ConditionTable.Data(rows(cols==find(ic)),ic)...
-          = cellfun(@(a)ui.ParamEditor.paramValue2Control(a), newVals', 'UniformOutput', 0);
+          = cellfun(@(a)PE.paramValue2Control(a), newVals', 'UniformOutput', 0);
       end
       notify(obj.ParamEditor, 'Changed');
     end
