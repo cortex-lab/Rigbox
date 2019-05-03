@@ -2,7 +2,6 @@ classdef ConditionPanel < handle
   %CONDITIONPANEL Deals with formatting trial conditions UI table
   %   Designed to be an element of the EUI.PARAMEDITOR class that manages
   %   the UI elements associated with all Conditional parameters.
-  % TODO Add sort by column
   % TODO Add set condition idx
   
   properties
@@ -53,8 +52,8 @@ classdef ConditionPanel < handle
       obj.ContextMenus(2) = uimenu(c, 'Label', 'Randomize conditions', ...
         'MenuSelectedFcn', fcn, 'Checked', 'on', 'Tag', 'randomize button');
       obj.ContextMenus(3) = uimenu(c, 'Label', 'Sort by selected column', ...
-        'MenuSelectedFcn', @(~,~)disp('feature not yet implemented'), ...
-        'Tag', 'sort by', 'Enable', 'off'); % TODO Implement sort by column
+        'MenuSelectedFcn', @(~,~)obj.sortByColumn, ...
+        'Tag', 'sort by', 'Enable', 'off');
       % Create condition table
       p = uix.Panel('Parent', obj.UIPanel, 'BorderType', 'none');
       obj.ConditionTable = uitable('Parent', p,...
@@ -218,12 +217,13 @@ classdef ConditionPanel < handle
       %   false % Sets all selected rows to false
       % 
       % See also SETNEWVALS, ONEDIT
+      PE = obj.ParamEditor;
       cols = obj.SelectedCells(:,2); % selected columns
       uCol = unique(obj.SelectedCells(:,2));
       rows = obj.SelectedCells(:,1); % selected rows
       % get current values of selected cells
       currVals = arrayfun(@(u)obj.ConditionTable.Data(rows(cols==u),u), uCol, 'UniformOutput', 0);
-      names = obj.ConditionTable.ColumnName(uCol); % selected column names
+      names = PE.Parameters.TrialSpecificNames(uCol); % selected column names
       promt = cellfun(@(a,b) [a ' (' num2str(sum(cols==b)) ')'],...
         names, num2cell(uCol), 'UniformOutput', 0); % names of columns & num selected rows
       defaultans = cellfun(@(c) c(1), currVals);
@@ -260,17 +260,42 @@ classdef ConditionPanel < handle
         elseif length(newVals)<length(currVals) % too few new values
           % populate as many cells as possible
           newVals = [newVals ...
-            cellfun(@(a)obj.ParamEditor.controlValue2Param(2,a),...
+            cellfun(@(a)PE.controlValue2Param(2,a),...
             currVals(length(newVals)+1:end),'UniformOutput',0)];
         end
-        ic = strcmp(obj.ConditionTable.ColumnName, paramName); % find edited param names
+        ic = strcmp(PE.Parameters.TrialSpecificNames, paramName); % find edited param names
         % update param struct
-        obj.ParamEditor.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
+        PE.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
         % update condtion table with strings
         obj.ConditionTable.Data(rows(cols==find(ic)),ic)...
-          = cellfun(@(a)ui.ParamEditor.paramValue2Control(a), newVals', 'UniformOutput', 0);
+          = cellfun(@(a)PE.paramValue2Control(a), newVals', 'UniformOutput', 0);
       end
       notify(obj.ParamEditor, 'Changed');
+    end
+    
+    function sortByColumn(obj)
+      % SORTBYCOLUMN Sort all conditions by selected column
+      %  If the selected column is already sorted in ascended order then
+      %  the conditions are ordered in descending order instead.
+      %  TODO Sort by multiple columns
+      %  @body currently all conditions are sorted by first selected column
+      if isempty(obj.SelectedCells)
+        disp('nothing selected')
+        return
+      end
+      PE = obj.ParamEditor;
+      % Get selected column name and retrieve data
+      cols = unique(obj.SelectedCells(:,2));
+      names = PE.Parameters.TrialSpecificNames(cols);
+      toSort = PE.Parameters.Struct.(names{1});
+      direction = iff(issorted(toSort','rows'), 'descend', 'ascend');
+      [~, I] = sortrows(toSort', direction);
+      % Update parameters with new permutation
+      for p = PE.Parameters.TrialSpecificNames'
+        data = PE.Parameters.Struct.(p{:});
+        PE.Parameters.Struct.(p{:}) = data(:,I);
+      end
+      obj.fillConditionTable % Redraw table
     end
     
     function fillConditionTable(obj)
