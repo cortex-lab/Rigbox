@@ -141,6 +141,14 @@ The "tests" directory contains code for running unit tests within Rigbox.
 
 Additional information on the [alyx-matlab](https://github.com/cortex-lab/alyx-matlab), [npy-matlab](https://github.com/kwikteam/npy-matlab), [signals](https://github.com/cortex-lab/signals) and [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) submodules can be found in their respective github repositories.
 
+## Acknowledgements
+
+<Add links to third party code>
+
+## Contributing
+
+Please read [CONTRIBUTING.md]() for details on our code of conduct, and the process of contributing code to this repository via pull requests.
+
 ## Authors
 
-The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by a number of people at [CortexLab](https://www.ucl.ac.uk/cortexlab).
+The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells, Jai Bhagat and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab).
