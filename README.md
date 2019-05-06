@@ -146,8 +146,8 @@ Additional information on the [alyx-matlab](https://github.com/cortex-lab/alyx-m
 
 ## Contributing
 
-Please read [CONTRIBUTING.md]() for details on our code of conduct, and the process of contributing code to this repository via pull requests.
+Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/dev/CONTRIBUTING.md) for details on how to contribute code to this repository and our code of conduct.
 
 ## Authors
 
-The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells, Jai Bhagat and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab).
+The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab).
