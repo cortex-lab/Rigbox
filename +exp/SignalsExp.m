@@ -700,8 +700,12 @@ classdef SignalsExp < handle
         %% signalling
 %         tic
         if obj.PassiveMode
-          wx = obj.Wheel.values(obj.PassiveLoopIdx);
-          obj.PassiveLoopIdx = obj.PassiveLoopIdx+1;
+            if obj.PassiveLoopIdx <= length(obj.Wheel.values)
+                wx = obj.Wheel.values(obj.PassiveLoopIdx);
+                obj.PassiveLoopIdx = obj.PassiveLoopIdx+1;
+            else
+                obj.quit(true);
+            end
         else
           wx = readAbsolutePosition(obj.Wheel);
         end
