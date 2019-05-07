@@ -151,7 +151,6 @@ classdef SignalsExp < handle
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
-      obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
@@ -171,7 +170,6 @@ classdef SignalsExp < handle
         globalPars, allCondPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
-%       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -183,14 +181,14 @@ classdef SignalsExp < handle
       fprintf('takes %i args\n', nargout(expDefFun));
       expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
         obj.Outputs, obj.Audio);
+      obj.Events.expStop = iff(isfield(obj.Events, 'expStop'),...
+        @()merge(obj.Events.expStop, lastTrialOver), lastTrialOver);
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
-        lastTrialOver.into(obj.Events.expStop) %newTrial if more
-        onValue(obj.Events.expStop, @(~)quit(obj));];
-%         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
+        obj.Events.expStop.onValue(@(~)quit(obj))];        
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
       allCondPars.post(allCondStruct);
@@ -407,7 +405,7 @@ classdef SignalsExp < handle
     
     function quit(obj, immediately)
       if isempty(obj.Events.expStop.Node.CurrValue)
-        obj.Events.expStop.post(true);
+        obj.Events.expStop = net.origin('expStop').post(true);
       end
       %stop delay timers. todo: need to use a less global tag
       tmrs = timerfind('Tag', 'sig.delay');
