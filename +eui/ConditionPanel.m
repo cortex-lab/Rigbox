@@ -2,7 +2,6 @@ classdef ConditionPanel < handle
   %CONDITIONPANEL Deals with formatting trial conditions UI table
   %   Designed to be an element of the EUI.PARAMEDITOR class that manages
   %   the UI elements associated with all Conditional parameters.
-  % TODO Add sort by column
   % TODO Add set condition idx
   
   properties
@@ -54,7 +53,7 @@ classdef ConditionPanel < handle
         'MenuSelectedFcn', fcn, 'Checked', 'on', 'Tag', 'randomize button');
       obj.ContextMenus(3) = uimenu(c, 'Label', 'Sort by selected column', ...
         'MenuSelectedFcn', @(~,~)obj.sortByColumn, ...
-        'Tag', 'sort by', 'Enable', 'off'); % TODO Implement sort by column
+        'Tag', 'sort by', 'Enable', 'off');
       % Create condition table
       p = uix.Panel('Parent', obj.UIPanel, 'BorderType', 'none');
       obj.ConditionTable = uitable('Parent', p,...

@@ -266,6 +266,72 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       testCase.assertTrue(false, 'Test not implemented')
     end
     
+    function test_sortByColumn(testCase)
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
+      PE = testCase.ParamEditor;
+      callback_fn = pick(findobj(testCase.Figure,...
+        'Tag', 'sort by'), 'MenuSelectedFcn');
+
+      % Select a single row parameter column to sort
+      event.Indices = [1 find(strcmp(testCase.Table.ColumnName, 'Num repeats'),1)];
+      selection_fn = testCase.Table.CellSelectionCallback;
+      selection_fn([],event)
+      
+      % Sort ascending
+      callback_fn()
+      expected = [zeros(1,8) ones(1,4)*250];
+      testCase.verifyEqual(PE.Parameters.Struct.numRepeats, expected, ...
+        'Failed to sort ascending')
+      
+      % Verify params listeners not notified. NB: Behaviour may change in
+      % future as underlying params struct is changed
+      testCase.verifyTrue(~testCase.Changed, 'Changed flag incorrect')
+      
+      % Sort descending
+      callback_fn()
+      testCase.verifyEqual(PE.Parameters.Struct.numRepeats, fliplr(expected), ...
+        'Failed to sort descending')
+      
+      % Repeat test for multi-row parameter
+      event.Indices = [1 find(strcmp(testCase.Table.ColumnName, ...
+        'Feedback for response'),1)];
+      selection_fn([],event)
+      
+      % Sort ascending
+      callback_fn()
+      expected = [-ones(1,6) ones(1,6); ones(1,6) -ones(1,6); -ones(1,12)];
+      expected(3,[6 end]) = 1;
+      testCase.verifyEqual(PE.Parameters.Struct.feedbackForResponse, expected, ...
+        'Failed to sort multi-row parameter')
+    end
+    
+    function test_randomiseConditions(testCase)
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
+      PE = testCase.ParamEditor;
+      button = findobj(testCase.Figure, 'Tag', 'randomize button');
+      testCase.assertEqual(button.Checked, 'on', 'Conditions not randomized by default')
+      
+      % Deselect randomize
+      button.MenuSelectedFcn(button);
+      testCase.verifyEqual(testCase.Table.RowName, 'numbered', ...
+        'Condition indicies not shown in table')
+      testCase.assertTrue(ismember('randomiseConditions',PE.Parameters.GlobalNames),...
+        'randomiseConditions parameter not present')
+      testCase.verifyTrue(~PE.Parameters.Struct.randomiseConditions, ...
+        'randomiseConditions parameter not set correctly')
+      testCase.verifyEqual(button.Checked, 'off', 'Context menu failed to update')
+      % Verify that randomiseConditions parameter is hidden from table
+      testCase.verifyEmpty(findobj(testCase.Figure, 'String', 'Randomise conditions'),...
+        'Unexpected parameter label')
+      
+      % Reselect randomize
+      button.MenuSelectedFcn(button);
+      testCase.verifyEmpty(testCase.Table.RowName, 'Condition indicies shown in table')
+      testCase.verifyTrue(PE.Parameters.Struct.randomiseConditions, ...
+        'randomiseConditions parameter not set correctly')
+      testCase.verifyEqual(button.Checked, 'on', 'Context menu failed to update')
+    end
+    
     function test_globaliseParam(testCase)
       PE = testCase.ParamEditor;
       testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
