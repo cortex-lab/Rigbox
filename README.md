@@ -1,7 +1,7 @@
 ----------
 # Rigbox
 
-Rigbox is a (mostly) object-oriented MATLAB software package for designing and controlling neurophysiological behavioural experiments (principally, the [steering wheel setup](https://www.ucl.ac.uk/cortexlab/tools/wheel) which [we](https://www.ucl.ac.uk/cortexlab) developed to probe mouse behaviour). Rigbox requires two machines, one for stimulus presentation ('the stimulus server') and another for controlling and monitoring the experiment ('mc').
+Rigbox is a a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, and creates an environment where experimental parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
 
 ## Getting Started
 
@@ -11,7 +11,7 @@ The following is a brief description of how to install Rigbox on your experiment
 
 Rigbox has the following software dependencies:
 * Windows Operating System (7 or later, 64-bit)
-* MATLAB (2016b or later) 
+* MATLAB (2017b or later) 
 * The following MathWorks MATLAB toolboxes:
     * Data Acquisition Toolbox
     * Signal Processing Toolbox
@@ -22,13 +22,10 @@ Rigbox has the following software dependencies:
     * [Psychophsics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
     * [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html)        
 
-(* *Note*: You can download all required MathWorks MATLAB toolboxes directly within MATLAB via the "Add-Ons" button in the top Toolstrip with the "Home" tab selected.)
-![MATLAB Home Toolstrip](http://i67.tinypic.com/k0zue.png)
-​
-Afterwards, you can use the MATLAB "ver" command to bring up the list of installed MathWorks toolboxes.
+All required MathWorks MATLAB toolboxes can be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip.
 
 Additionally, Rigbox works with a number of extra submodules (included):
-* [signals](https://github.com/cortex-lab/signals) (for running bespoke experiment designs)
+* [signals](https://github.com/cortex-lab/signals) (for designing bespoke experiments)
 * [alyx-matlab](https://github.com/cortex-lab/alyx-matlab) (for registering data to, and retrieving from, an Alyx database)
 * [npy-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
 * [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) (for analyzing data from the steering wheel task) 
