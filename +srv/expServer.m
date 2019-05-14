@@ -4,6 +4,7 @@ function expServer(varargin)
 %   the master computer, via a tcp/ip java websocket. This function then 
 %   runs the experiment on the stimulus server. Optional name-value paired
 %   input arguments can be used (see examples below).
+
 %
 % Inputs (optional):
 %   'bgColour': a 3-element array specifying the background colour of the
