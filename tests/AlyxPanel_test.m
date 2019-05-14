@@ -32,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off');
+      set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -264,7 +264,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to update weight label color')
       
       % Post weight < 80 
-      weight = 16 + rand;
+      weight = 25 + rand;
       testCase.Panel.recordWeight(weight)
       expected = sprintf('Weight today: %.2f (< 80%%)', weight);
       testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
@@ -278,7 +278,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
       
       % Test manual weight dialog
-      weight = 25 + rand;
+      weight = 30 + rand;
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
       testCase.assertTrue(~isempty(button), 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
@@ -299,7 +299,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to update weight label value')
       
       % Test weight post when logged out
-      testCase.Panel.login
+      testCase.Panel.login % log out
       testCase.Panel.recordWeight()
       
       expected = 'Warning: Weight not posted to Alyx; will be posted upon login.';
