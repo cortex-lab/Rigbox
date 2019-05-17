@@ -37,7 +37,7 @@ e = sig.void;
 pars = sig.void(true);
 audio.Devices = @dummyDev;
 
-% try to call the exp def file get the parameters defined in the file
+% try to call the exp def file to get the parameters defined in the file
 try
   expdeffun(e.t, e.events, pars, e.visual, e.inputs, e.outputs, audio);
   parsStruct = pars.Subscripts;
