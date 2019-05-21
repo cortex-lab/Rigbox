@@ -223,4 +223,3 @@ classdef FieldPanel < handle
   end
   
 end
-
