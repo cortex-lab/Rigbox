@@ -71,9 +71,9 @@ classdef Parameters < handle
       n = numel(obj.pNames);
       obj.IsTrialSpecific = struct;
       isTrialSpecificDefault = @(n) ...
-        ~strcmp(n, 'randomiseConditions') &&... % randomiseConditions always global
-        ((ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 1) > 1) ||... % Number of rows > 1 for chars
-        (~ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 2) > 1)); % Number of columns > 1 for all others
+        strcmp(n, 'numRepeats') ||... % numRepeats always trail specific
+        (ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 1) > 1) ||... % Number of rows > 1 for chars
+        (~ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 2) > 1); % Number of columns > 1 for all others
       for i = 1:n
         name = obj.pNames{i};
         obj.IsTrialSpecific.(name) = isTrialSpecificDefault(name);
@@ -195,8 +195,8 @@ classdef Parameters < handle
         'UniformOutput', false);
       % concatenate trial parameter
       trialParamValues = cat(1, trialParamValues{:});
-      if isempty(trialParamValues) % Removed MW 30.01.19
-        trialParamValues = {};
+      if isempty(trialParamValues)
+        trialParamValues = {1};
       end
       trialParams = cell2struct(trialParamValues, trialParamNames, 1)';
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);
