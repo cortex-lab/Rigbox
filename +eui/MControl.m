@@ -763,7 +763,8 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox);
+      url = char(getOr(dat.paths, 'databaseURL', ''));
+      obj.AlyxPanel = eui.AlyxPanel(headerBox, isempty(url));
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
