@@ -26,7 +26,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function setup(testCase)
       % Hide figures and add teardown function to restore settings
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off'); %TODO uncomment
+      set(0,'DefaultFigureVisible','off');
       testCase.addTeardown(@set, 0,...
         'DefaultFigureVisible', testCase.FigureVisibleDefault);
       
@@ -269,7 +269,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       mock = MockDialog.instance('char');
       mock.InTest = true;
       mock.UseDefaults = false;
-      mock.Dialogs('Set values') = {(1:10:100), @(~)randi(100), @(a)a*50};
+      mock.Dialogs('Set values') = fun.CellSeq.create({'(1:10:100)', '@(~)randi(100)', '@(a)a*50'});
 
       % Select some cells to set
       event.Indices = [(1:5)' ones(5,1)*4];
@@ -280,8 +280,25 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callback_fn = pick(findobj(testCase.Figure,...
         'String', 'Set values'), 'Callback');
       callback_fn()
-%       PE = testCase.ParamEditor;
-      testCase.assertTrue(false, 'Test not implemented')
+
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
+      
+      P = testCase.ParamEditor.Parameters;
+      % Verify values changed
+      expected = (1:10:100);
+      testCase.verifyEqual(P.Struct.numRepeats(1:5), expected(1:5), ...
+        'Failed to modify parameters')
+      
+      callback_fn()
+      values = P.Struct.numRepeats(1:5);
+      testCase.verifyTrue(all(values < 100), ...
+        'Failed to modify parameters')
+      
+      callback_fn()
+      testCase.verifyEqual(P.Struct.numRepeats(1:5)/50, values, ...
+        'Failed to modify parameters')
     end
     
     function test_sortByColumn(testCase)
