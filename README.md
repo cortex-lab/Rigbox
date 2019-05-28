@@ -39,8 +39,8 @@ git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 2. Open MATLAB, make sure Rigbox and all subdirectories are in your path, run: 
 > addRigboxPaths 
 and restart MATLAB.
-3. Set the correct paths on both machines by following the instructions in the '/docs/setup/paths_config' file.
-4. On the stimulus server, set the hardware configuration by following the instructions in the '/docs/setup/hardware_config' file.
+3. Set the correct paths on both computers by following the instructions in the '/docs/setup/paths_config' file.
+4. On the stimulus computer, set the hardware configuration by following the instructions in the '/docs/setup/hardware_config' file.
 5. To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
 ```
 git pull --recurse-submodules
@@ -54,7 +54,7 @@ On the stimulus computer, run:
 On the master computer, run:
 > mc
 
-This opens a GUI that will allow you to choose a subject, edit some of the experimental parameters and press 'Start' to begin the basic steering wheel task on the stimulus server.
+This opens a GUI that will allow you to choose a subject, edit some of the experimental parameters and press 'Start' to begin the basic steering wheel task on the stimulus computer.
 
 ## Code organization
 
@@ -68,7 +68,7 @@ The "data" package contains code pertaining to the organization and logging of d
 
 The "user interface" package contains code pertaining to the Rigbox user interface. It contains code for constructing the mc GUI (MControl.m), and for plotting live experiment data or generating tables for viewing experiment parameters and subject logs. 
 
-This package is exclusively used by the mc computer.
+This package is exclusively used by the master computer.
 
 ### +exp
 
@@ -76,7 +76,7 @@ The "experiments" package is for the initialization and running of behavioural e
 
 The package also triggers auxiliary services (e.g. starting remote acquisition software), and loads parameters for presentation for each trail. The principle two base classes that control these experiments are 'Experiment' and its "signals package" counterpart, 'SignalsExp'.
 
-This package is almost exclusively used by the stimulus server.
+This package is almost exclusively used by the stimulus computer.
 
 ### +hw
 
@@ -90,11 +90,11 @@ The "psychometrics" package contains simple functions for processing and plottin
 
 ### +srv
 
-The "stim server" package contains the expServer function as well as classes that manage communications between rig computers.  
+The "stim server" package contains the 'expServer' function as well as classes that manage communications between rig computers.  
 
-The 'Service' base class allows the stimulus server to start and stop auxiliary acquisition systems at the beginning and end of experiments.
+The 'Service' base class allows the stimulus computer to start and stop auxiliary acquisition systems at the beginning and end of experiments.
 
-The 'StimulusControl' class is used by the mc computer to manage the stimulus server.
+The 'StimulusControl' class is used by the master computer to manage the stimulus computer.
 
 * *Note*: Lower-level communication protocol code is found in the "cortexlab/+io" package.
 
@@ -114,7 +114,7 @@ The 'StimulusControl' class is used by the mc computer to manage the stimulus se
 
 ### cortexlab
 
-The "cortexlab" directory is intended for functions and classes that are rig or cortexlab specific, for instance code that allows compatibility with other stimulus presentation packages used by cortexlab (e.g. MPEP)
+The "cortexlab" directory is intended for functions and classes that are rig or CortexLab specific, for example, code that allows compatibility with other stimulus presentation packages used by CortexLab (e.g. MPEP)
 
 ### tests
 
