@@ -1,6 +1,6 @@
 function [expRef, expSeq] = newExp(subject, expDate, expParams)
 %DAT.NEWEXP Create a new unique experiment in the database
-%   [ref, seq, url] = DAT.NEWEXP(subject, expDate, expParams[, AlyxInstance])
+%   [ref, seq] = DAT.NEWEXP(subject, expDate, expParams)
 %   Create a new experiment by creating the relevant folder tree in the
 %   local and main data repositories in the following format:
 %

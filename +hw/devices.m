@@ -69,8 +69,8 @@ if init
   % Get list of audio devices
   devs = getOr(rig, 'audioDevices', PsychPortAudio('GetDevices'));
   % Sanitize the names
-  names = matlab.lang.makeValidName([{'default'} {devs(2:end).DeviceName}],...
-    'ReplacementStyle', 'delete');
+  names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
+  names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
   for i = 1:length(names); devs(i).DeviceName = names{i}; end
   rig.audioDevices = devs;
 end

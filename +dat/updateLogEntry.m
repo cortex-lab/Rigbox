@@ -13,7 +13,11 @@ function updateLogEntry(subject, id, newEntry)
 if isfield(newEntry, 'AlyxInstance')
   % Update session narrative on Alyx
   if ~isempty(newEntry.comments) && ~strcmp(subject, 'default')
-    newEntry.comments = newEntry.AlyxInstance.updateNarrative(newEntry.comments);
+    try
+      newEntry.comments = newEntry.AlyxInstance.updateNarrative(newEntry.comments);
+    catch
+      warning('Alyx:updateNarrative:UploadFailed', 'Failed to update Alyx session narrative');
+    end
   end
   newEntry = rmfield(newEntry, 'AlyxInstance');
 end

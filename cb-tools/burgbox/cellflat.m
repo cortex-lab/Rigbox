@@ -2,7 +2,7 @@ function flat = cellflat(c)
 %cellflat Eliminates nesting from nested cell arrays
 %   flat = cellflat(C) returns all elements from cell array `C`, including
 %   those nested within further cell arrays (etc) in a single flat cell
-%   array.
+%   array.  NB: Cells always returned as a column array.
 %
 % Part of Burgbox
 
@@ -18,7 +18,7 @@ for i = 1:numel(c)
   if isempty(elem)
     elem = {elem};
   end
-  flat = [flat; elem];
+  flat = [flat; ensureCell(elem)];
 end
 
 end

@@ -20,6 +20,7 @@ classdef MControl < handle
   end
   
   properties (SetAccess = private)
+    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
     LogSubject % Subject selector control
     NewExpSubject % Experiment selector control
     NewExpType % Experiment type selector control
@@ -33,7 +34,6 @@ classdef MControl < handle
   properties (Access = private)
     ParamEditor
     ParamPanel
-    AlyxPanel % holds the AlyxPanel object (see buildUI(), eui.AlyxPanel())
     BeginExpButton % The 'Start' button that begins an experiment
     RigOptionsButton % The 'Options' button that opens the rig options dialog
     NewExpFactory % A struct containing all availiable experiment types and function handles to constructors for their default parameters
@@ -247,10 +247,10 @@ classdef MControl < handle
     end
     
     function loadParamProfile(obj, profile)
+      set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
-        %delete existing parameters control
-        delete(obj.ParamEditor);
-        set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
+        % Clear existing parameters control
+        clear(obj.ParamEditor)
       end
       
       factory = obj.NewExpFactory; % Find which 'world' we are in
@@ -305,16 +305,23 @@ classdef MControl < handle
         paramStruct = rmfield(paramStruct, 'services');
       end
       obj.Parameters.Struct = paramStruct;
-      if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
+      if isempty(paramStruct); return; end
+      % Now parameters are loaded, pass to ParamEditor for display, etc.
+      if isempty(obj.ParamEditor)
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
-        obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
-        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
-          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
-        end
+      else
+        obj.ParamEditor.buildUI(obj.Parameters);
+      end
+      obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+      if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+        set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
     end
     
     function paramChanged(obj)
+      % PARAMCHANGED Indicate to user that parameters have been updated
+      %  Changes the label above the ParamEditor indicating that the
+      %  parameters have been edited
       s = get(obj.ParamProfileLabel, 'String');
       if ~strEndsWith(s, '[EDITED]')
         set(obj.ParamProfileLabel, 'String', [s ' ' '[EDITED]'], 'ForegroundColor', [1 0 0]);
@@ -375,7 +382,7 @@ classdef MControl < handle
       % See also REMOTERIGCHANGED, SRV.STIMULUSCONTROL, EUI.EXPPANEL
         
       % If rig is connected check no experiments are running...
-      expRef = rig.ExpRunnning; % returns expRef if running
+      expRef = rig.ExpRunning; % returns expRef if running
       if expRef
 %           error('Experiment %s already running of %s', expDef, rig.Name)
           choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
@@ -545,6 +552,10 @@ classdef MControl < handle
         % See also SRV.STIMULUSCONTROL, EUI.EXPPANEL, EUI.ALYXPANEL
         set([obj.BeginExpButton obj.RigOptionsButton], 'Enable', 'off'); % Grey out buttons
         rig = obj.RemoteRigs.Selected; % Find which rig is selected
+        if strcmpi(rig.Status, 'running') 
+            obj.log('Failed because another experiment is running');
+            return;
+        end
         % Save the current instance of Alyx so that eui.ExpPanel can register water to the correct account
         if ~obj.AlyxPanel.AlyxInstance.IsLoggedIn &&...
             ~strcmp(obj.NewExpSubject.Selected,'default') &&...
@@ -752,7 +763,8 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox);
+      url = char(getOr(dat.paths, 'databaseURL', ''));
+      obj.AlyxPanel = eui.AlyxPanel(headerBox, isempty(url));
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
