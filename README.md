@@ -1,18 +1,18 @@
 ----------
 # Rigbox
 
-Rigbox is a a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, and creates an environment where experimental parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
+Rigbox is a a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, implements a viewing model for visual stimuli, and creates an environment where experimental parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
 
 ## Getting Started
 
-The following is a brief description of how to install Rigbox on your experimental rig. Additional detailed, step-by-step information can be found [here](https://www.ucl.ac.uk/cortexlab/tools/wheel).
+The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [ReadTheDocs](https://rigbox.readthedocs.io/en/latest/). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
 
-## Prerequisites
+### Prerequisites
 
 Rigbox has the following software dependencies:
 * Windows Operating System (7 or later, 64-bit)
 * MATLAB (2017b or later) 
-* The following MathWorks MATLAB toolboxes:
+* The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
     * Data Acquisition Toolbox
     * Signal Processing Toolbox
     * Instrument Control Toolbox
@@ -22,49 +22,36 @@ Rigbox has the following software dependencies:
     * [Psychophsics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
     * [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html)        
 
-All required MathWorks MATLAB toolboxes can be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip.
-
 Additionally, Rigbox works with a number of extra submodules (included):
 * [signals](https://github.com/cortex-lab/signals) (for designing bespoke experiments)
 * [alyx-matlab](https://github.com/cortex-lab/alyx-matlab) (for registering data to, and retrieving from, an Alyx database)
 * [npy-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
 * [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) (for analyzing data from the steering wheel task) 
 
-## Installation via git
+### Installation via git
 
 0. It is highly recommended to install Rigbox via git. If not already downloaded and installed, install [git](https://git-scm.com/download/win) (and the included minGW software environment and Git Bash MinTTY terminal emulator). After installing, launch the Git Bash terminal. 
-1. To install Rigbox, use the following commands in the Git Bash terminal to clone the repository from github to your local machine.  (* *Note*: It is *not* recommended to clone directly into the MATLAB folder)
+1. To install Rigbox, run the following commands in the Git Bash terminal to clone the repository from GitHub to your local machine.  (* *Note*: It is *not* recommended to clone directly into the MATLAB folder)
 ```
 cd ~
-git clone https://github.com/cortex-lab/Rigbox.git
+git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
-2. Pull the latest Rigbox-lite branch. This branch is currently the cleanest one, though in the future it will likely be merged with the master branch.  
-```
-cd Rigbox/
-git checkout rigbox-lite
-```
-3. Clone the submodules:
-```
-git submodule update --init
-```
-4. Open MATLAB, make sure Rigbox and all subdirectories are in your path, run: 
+2. Open MATLAB, make sure Rigbox and all subdirectories are in your path, run: 
 > addRigboxPaths 
-
 and restart MATLAB.
-
-5. Set the correct paths by following the instructions in the 'Rigbox\+dat\paths.m' file on both machines.
-6. On the stimulus server, load 'Rigbox\Repositories\code\config\exampleRig\hardware.mat' and edit according to your specific hardware setup (link to detailed instructions above, under 'Getting started').
-
-To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
+3. Set the correct paths on both machines by following the instructions in the '/docs/setup/paths_config' file.
+4. On the stimulus server, set the hardware configuration by following the instructions in the '/docs/setup/hardware_config' file.
+5. To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
 ```
 git pull --recurse-submodules
 ```
-## Running an experiment in MATLAB
 
-On the stimulus server, run:
+### Running an experiment in MATLAB
+
+On the stimulus computer, run:
 > srv.expServer
 
-On the mc computer, run:
+On the master computer, run:
 > mc
 
 This opens a GUI that will allow you to choose a subject, edit some of the experimental parameters and press 'Start' to begin the basic steering wheel task on the stimulus server.
@@ -139,7 +126,10 @@ Additional information on the [alyx-matlab](https://github.com/cortex-lab/alyx-m
 
 ## Acknowledgements
 
-<Add links to third party code>
+* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) for code pertaining to Rigbox's UI
+* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual stimulus presentation
+* [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device
+* [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets
 
 ## Contributing
 
@@ -147,4 +137,4 @@ Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/dev/CONT
 
 ## Authors
 
-The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab).
+The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
