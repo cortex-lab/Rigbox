@@ -1,7 +1,7 @@
 todo:
         autoAssign: true
-        keyword: ['FIXME','TODO','%TODO','%FIXME','@todo','@fixme']
-        bodyKeyword: ['@body','BODY']
+        keyword: ['TODO','FIXME','%TODO','%FIXME','@todo','@fixme','todo:','fixme:','@todo:','@fixme:']
+        bodyKeyword: ['BODY','@body','body:','@body:']
         blobLines: 5
         caseSensitive: false
         label: true

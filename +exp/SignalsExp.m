@@ -151,7 +151,6 @@ classdef SignalsExp < handle
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
-      obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
@@ -171,7 +170,6 @@ classdef SignalsExp < handle
         globalPars, allCondPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
-%       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -182,15 +180,21 @@ classdef SignalsExp < handle
       end
       fprintf('takes %i args\n', nargout(expDefFun));
       expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
-        obj.Outputs, obj.Audio);
+          obj.Outputs, obj.Audio);
+      % if user defined 'expStop' in their exp def, allow 'expStop' to also
+      % take value at 'lastTrialOver', else just set to 'lastTrialOver'
+      if isfield(obj.Events, 'expStop')
+        obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
+      else
+        obj.Events.expStop = lastTrialOver;
+      end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         lastTrialOver.into(obj.Events.expStop) %newTrial if more
-        onValue(obj.Events.expStop, @(~)quit(obj));];
-%         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
+        obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
       allCondPars.post(allCondStruct);
@@ -406,7 +410,10 @@ classdef SignalsExp < handle
     end
     
     function quit(obj, immediately)
+      % if the experiment was stopped via 'mc' or 'q' key
       if isempty(obj.Events.expStop.Node.CurrValue)
+        % re-assign 'expStop' as an origin signal and post to it
+        obj.Events.expStop = obj.Net.origin('expStop');
         obj.Events.expStop.post(true);
       end
       %stop delay timers. todo: need to use a less global tag
@@ -720,6 +727,8 @@ classdef SignalsExp < handle
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
           obj.StimWindowInvalid = false;
         end
+        % make sure some minimum time passes before updating signals, to 
+        % improve performance on MC
         if (obj.Clock.now - t) > 0.1 || obj.IsLooping == false
           sendSignalUpdates(obj);
           t = obj.Clock.now;

@@ -66,7 +66,7 @@ switch lower(location)
   case {'local' 'l'}
     p = paths.localRepository;
   otherwise
-    error('"%s" is not a recognised repository location.', location{1});
+    error('"%s" is not a recognised repository location.', location);
 end
 
 end

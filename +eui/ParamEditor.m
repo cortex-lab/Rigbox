@@ -1,157 +1,184 @@
 classdef ParamEditor < handle
-  %EUI.PARAMEDITOR UI control for configuring experiment parameters
-  %   TODO. See also EXP.PARAMETERS.
+  %PARAMEDITOR GUI for visualizing and editing experiment parameters
+  %   ParamEditor deals with setting the paramters via a GUI.  In general
+  %   this class is involved in constructing a UI comprising a Global UI
+  %   panel, handled by the EUI.FIELDPANEL class, and a Condition table,
+  %   handled by the EUI.CONDITIONPANEL class.  It is also responsible for
+  %   updating the underlying EXP.PARAMETERS object and notifying
+  %   downstream listeners of parameter changes.
   %
-  % Part of Rigbox
-
-  % 2012-11 CB created  
-  % 2017-03 MW/NS Made global panel scrollable & improved performance of
-  % buildGlobalUI.
-  % 2017-03 MW Added set values button
+  % See also EUI.FIELDPANEL, EUI.CONDITIONPANEL
   
   properties
-    GlobalVSpacing = 20
+    % An exp.Parameters object, which keeps track of all parameter changes
     Parameters
   end
   
+  properties (Access = {?eui.ConditionPanel, ?eui.FieldPanel})
+    % Handle to the EUI.FIELDPANEL object, which manages the display of the
+    % Global parameters
+    GlobalUI
+    % Handle to the EUI.CONDITIONPANEL object, which manages the display of
+    % the trial conditions within a ui table
+    ConditionalUI
+    % Handle to the parent container for the ParamEditor.  If constructor
+    % called with no parent input, then this will be a figure handle, the
+    % same as Root
+    Parent
+    % Handle to the figure within which the ParamEditor is displayed
+    Root
+    % A listener for changes to the figure size.  See also ONRESIZE
+    Listener
+  end
+  
   properties (Dependent)
+    % Flag for making editor read only by disabling all UI controls
     Enable
   end
   
-  properties (Access = private)
-    Root
-    GlobalGrid
-    ConditionTable
-    TableColumnParamNames = {}
-    NewConditionButton
-    DeleteConditionButton
-    MakeGlobalButton
-    SetValuesButton
-    SelectedCells %[row, column;...] of each selected cell
-    GlobalControls
-  end
-  
   events
+    % Event notified each time a user makes an edit to a parameter
     Changed
   end
   
   methods
-    function obj = ParamEditor(params, parent)
-      if nargin < 2 % Can call this function to display parameters is new window
+    function obj = ParamEditor(pars, parent)
+      % PARAMEDITOR GUI for visualizing and editing experiment parameters
+      %  The input pars is expected to be an instance of the exp.Parameters
+      %  class.  Parent is a handle to a parent figure or UI Panel.  If no
+      %  parent is given, the editor is created in a new figure.
+      %
+      % See also EUI.FIELDPANEL, EUI.CONDITIONPANEL
+      if nargin == 0; pars = []; end
+      if nargin < 2
         parent = figure('Name', 'Parameters', 'NumberTitle', 'off',...
-          'Toolbar', 'none', 'Menubar', 'none');
+          'Toolbar', 'none', 'Menubar', 'none', 'DeleteFcn', @(~,~)obj.delete);
       end
-      obj.Parameters = params;
-      obj.build(parent);
+      obj.Root = ancestor(parent, 'Figure');
+%       obj.Listener = event.listener(parent, 'SizeChanged', @(~,~)obj.onResize);
+      obj.Parent = uix.HBox('Parent', parent);
+      obj.GlobalUI = eui.FieldPanel(obj.Parent, obj);
+      if nargin == 2; obj.GlobalUI.Margin = 14; end % FIXME Add as generic input name-value pair
+      obj.ConditionalUI = eui.ConditionPanel(obj.Parent, obj);
+      obj.buildUI(pars);
+      % FIXME Current hack for drawing params first time
+      pos = obj.Root.Position;
+      obj.Root.Position = pos+0.01;
+      obj.Root.Position = pos;
+    end
+    
+    function selected = getSelected(obj)
+      % GETSELECTED Return the object currently in focus
+      %  Returns handle to the object currently in focus in the figure,
+      %  that is, the object last clicked on by the user.  This is used by
+      %  the FieldPanel context menu to determine which parameter was
+      %  selected.
+      %
+      % See also EUI.FIELDPANEL
+      selected = obj.Root.CurrentObject;
     end
     
     function delete(obj)
-      disp('ParamEditor destructor called');
-      if obj.Root.isvalid
-        obj.Root.delete();
-      end
+      % DELETE Deletes all panels
+      %  Called when the ParamEditor object is deleted or its parent figure
+      %  is closed.  Deletes all UI elements and data.
+      % See also CLEAR
+      delete(obj.GlobalUI);
+      delete(obj.ConditionalUI);
     end
-    
-    function value = get.Enable(obj)
-      value = obj.Root.Enable;
-    end
-    
-    function set.Enable(obj, value)
-      obj.Root.Enable = value;
-    end
-  end
-  
-  methods %(Access = protected)
-    function build(obj, parent) % Build parameters panel
-      obj.Root = uiextras.HBox('Parent', parent, 'Padding', 5, 'Spacing', 5); % Add horizontal container for Global and Conditional panels
-%       globalPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
-%         'Title', 'Global', 'Padding', 5);
-      globPanel = uiextras.Panel('Parent', obj.Root,... % Make 'Global' parameters panel
-        'Title', 'Global', 'Padding', 5);
-      globalPanel = uix.ScrollingPanel('Parent', globPanel,... % Make 'Global' scroll panel
-        'Padding', 5);
-      
-      obj.GlobalGrid = uiextras.Grid('Parent', globalPanel, 'Padding', 4); % Make grid for parameter fields
-      obj.buildGlobalUI; % Populate Global panel
-      globalPanel.Heights = sum(obj.GlobalGrid.RowSizes)+45;
-      
-      conditionPanel = uiextras.Panel('Parent', obj.Root,...
-        'Title', 'Conditional', 'Padding', 5); % Make 'Conditional' parameters panel
-      conditionVBox = uiextras.VBox('Parent', conditionPanel);
-      obj.ConditionTable = uitable('Parent', conditionVBox,...
-        'FontName', 'Consolas',...
-        'RowName', [],...
-        'CellEditCallback', @obj.cellEditCallback,...
-        'CellSelectionCallback', @obj.cellSelectionCallback);
-      obj.fillConditionTable();
-      conditionButtonBox = uiextras.HBox('Parent', conditionVBox);
-      conditionVBox.Sizes = [-1 25];
-      obj.NewConditionButton = uicontrol('Parent', conditionButtonBox,...
-        'Style', 'pushbutton',...
-        'String', 'New condition',...
-        'TooltipString', 'Add a new condition',...
-        'Callback', @(~, ~) obj.newCondition());
-      obj.DeleteConditionButton = uicontrol('Parent', conditionButtonBox,...
-        'Style', 'pushbutton',...
-        'String', 'Delete condition',...
-        'TooltipString', 'Delete the selected condition',...
-        'Enable', 'off',...
-        'Callback', @(~, ~) obj.deleteSelectedConditions());
-       obj.MakeGlobalButton = uicontrol('Parent', conditionButtonBox,...
-         'Style', 'pushbutton',...
-         'String', 'Globalise parameter',...
-         'TooltipString', sprintf(['Make the selected condition-specific parameter global (i.e. not vary by trial)\n'...
-            'This will move it to the global parameters section']),...
-         'Enable', 'off',...
-         'Callback', @(~, ~) obj.globaliseSelectedParameters());
-       obj.SetValuesButton = uicontrol('Parent', conditionButtonBox,...
-         'Style', 'pushbutton',...
-         'String', 'Set values',...
-         'TooltipString', 'Set selected values to specified value, range or function',...
-         'Enable', 'off',...
-         'Callback', @(~, ~) obj.setSelectedValues());
         
-        obj.Root.Sizes = [sum(obj.GlobalGrid.ColumnSizes) + 32, -1];
-    end
-    
-    function buildGlobalUI(obj) % Function to essemble global parameters
-      globalParamNames = fieldnames(obj.Parameters.assortForExperiment); % assortForExperiment divides params into global and trial-specific parameter structures
-      obj.GlobalControls = gobjects(length(globalParamNames),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)  
-      for i=1:length(globalParamNames) % using for loop (sorry Chris!) to populate object array 2017-02-14 MW
-          [obj.GlobalControls(i,1), obj.GlobalControls(i,2), obj.GlobalControls(i,3)]... % [editors, labels, buttons]
-              = obj.addParamUI(globalParamNames{i});
+    function set.Enable(obj, value)
+      % Disable all UI elements
+      %  Render the GUI view-only by disabling all UI elements.  Used for
+      %  viewing parameters during an active experiment when the parameters
+      %  can no longer be adjusted.
+      % See also EUI.EXPPANEL, EUI.CONDITIONPANEL/ONSELECT
+      cUI = obj.ConditionalUI;
+      contextMenus = [cUI.ContextMenus obj.GlobalUI.ContextMenu.Children]';
+      parent = obj.Parent; % FIXME: use tags instead?
+      if value == true
+        arrayfun(@(prop) set(prop, 'Enable', 'on'), ...
+          [contextMenus; findobj(parent,'Enable','off')]);
+        cUI.onSelect() % Re-disable buttons if no cells were selected
+      else
+        arrayfun(@(prop) set(prop, 'Enable', 'off'), ...
+          [contextMenus; findobj(parent,'Enable','on')]);
       end
-      % Above code replaces the following as after 2014a, MATLAB doesn't no
-      % longer uses numrical handles but instead uses object arrays
-%       [editors, labels, buttons] = cellfun(...
-%         @(n) obj.addParamUI(n), fieldnames(globalParams), 'UniformOutput', false);
-%       editors = cell2mat(editors);
-%       labels = cell2mat(labels);
-%       buttons = cell2mat(buttons);
-%       obj.GlobalControls = [labels, editors, buttons];
-%       obj.GlobalGrid.Children = obj.GlobalControls(:);
-
-%       obj.GlobalGrid.Children =
-%       blah = cat(1,obj.GlobalControls(:,1),obj.GlobalControls(:,2),obj.GlobalControls(:,3));
-%       Doesn't work for some reason - MW 2017-02-15
-
-      child_handles = allchild(obj.GlobalGrid); % Get child handles for GlobalGrid
-      child_handles = [child_handles(end-1:-3:1); child_handles(end:-3:1); child_handles(end-2:-3:1)]; % Reorder them so all labels come first, then ctrls, then buttons
-%       child_handles = [child_handles(2:3:end); child_handles(3:3:end); child_handles(1:3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
-      obj.GlobalGrid.Contents = child_handles; % Set children to new order
-      % uistack
-
-      obj.GlobalGrid.ColumnSizes = [180, 200, 40]; % Set column sizes
-      obj.GlobalGrid.Spacing = 1;
-      obj.GlobalGrid.RowSizes = repmat(obj.GlobalVSpacing, 1, size(obj.GlobalControls, 1));
     end
     
-%     function swapConditions(obj, idx1, idx2) % Function started, never
-%     finished - MW 2017-02-15
-% %       params = obj.Parameters.trial
-%     end
+    function clear(obj)
+      % CLEAR Clear the Global and Condition panels
+      %  Deletes all UI fields (labels and control elements) and clears the
+      %  Condition Table data.
+      % 
+      % See also BUILDUI
+      clear(obj.GlobalUI);
+      clear(obj.ConditionalUI);
+    end
     
+    function buildUI(obj, pars)
+      % BUILDUI Populate Global and Condition UI panels with paramter set
+      %  Clears any existing fields and the condition table, then loads new
+      %  UI controls and labels for the Global parameters, and fills the
+      %  condition table.  The input pars must be an instance of the
+      %  exp.Parameters class.
+      %
+      %  RandomiseConditions is not added as a field but instead is
+      %  represented as a context menu item
+      %
+      % See also EXP.PARAMETERS, EUI.FIELDPANEL/ADDFIELD,
+      % EUI.CONDITIONPANEL/FILLCONDITIONTABLE
+      obj.Parameters = pars;
+      obj.clear() % Clear the current parameter UI elements
+      if isempty(pars); return; end % Nothing to build
+      c = obj.GlobalUI; % Handle to FieldPanel object
+      names = pars.GlobalNames; % Names of the global parameters
+      for nm = names'
+        % RandomiseConditions is a special parameter represented in the
+        % context menu, don't create global param field
+        if strcmp(nm, 'randomiseConditions'); continue; end
+        if islogical(pars.Struct.(nm{:})) % If parameter is logical, make checkbox
+          [~, ctrl] = addField(c, nm{:}, 'checkbox');
+          ctrl.Value = pars.Struct.(nm{:});
+        else % Otherwise create the default field; a text box
+          [~, ctrl] = addField(c, nm{:});
+          ctrl.String = obj.paramValue2Control(pars.Struct.(nm{:}));
+        end
+      end
+      % Populate the trial conditions table
+      obj.ConditionalUI.fillConditionTable();
+      %%% Special parameters
+      if ismember('randomiseConditions', obj.Parameters.Names) && ~pars.Struct.randomiseConditions
+        obj.ConditionalUI.ConditionTable.RowName = 'numbered';
+        set(obj.ConditionalUI.ContextMenus(2), 'Checked', 'off');
+      end
+      obj.GlobalUI.onResize();
+    end
+    
+    function setRandomized(obj, value)
+      % If randomiseConditions doesn't exist and new value is false, add
+      % the parameter and set it to false
+      if ~ismember('randomiseConditions', obj.Parameters.Names) && value == false
+        description = 'Whether to randomise the conditional paramters or present them in order';
+        obj.Parameters.set('randomiseConditions', false, description, 'logical')
+      elseif ismember('randomiseConditions', obj.Parameters.Names)
+        obj.update('randomiseConditions', logical(value));
+      end
+      menu = obj.ConditionalUI.ContextMenus(2);
+      if value == false
+        obj.ConditionalUI.ConditionTable.RowName = 'numbered';
+        menu.Checked = 'off';
+      else
+        obj.ConditionalUI.ConditionTable.RowName = [];
+        menu.Checked = 'on';
+      end
+    end
+        
     function addEmptyConditionToParam(obj, name)
+      % Add a new trial specific condition to the table
+      %  Adds a new trial condition to each trial specific parameter.  That
+      %  is, adds a new column to each parameter.
+      % See also EUI.CONDITIONPANEL/NEWCONDITION
       assert(obj.Parameters.isTrialSpecific(name),...
         'Tried to add a new condition to global parameter ''%s''', name);
       % work out what the right 'empty' is for the parameter
@@ -183,221 +210,161 @@ classdef ParamEditor < handle
       obj.Parameters.Struct.(name) = cat(2, obj.Parameters.Struct.(name), newValue);
     end
     
-    function cellSelectionCallback(obj, src, eventData)
-      obj.SelectedCells = eventData.Indices;
-      if size(eventData.Indices, 1) > 0
-        %cells selected, enable buttons
-        set(obj.MakeGlobalButton, 'Enable', 'on');
-        set(obj.DeleteConditionButton, 'Enable', 'on');
-        set(obj.SetValuesButton, 'Enable', 'on');
-      else
-        %nothing selected, disable buttons
-        set(obj.MakeGlobalButton, 'Enable', 'off');
-        set(obj.DeleteConditionButton, 'Enable', 'off');
-        set(obj.SetValuesButton, 'Enable', 'off');
-      end
-    end
-    
-    function newCondition(obj)
-      disp('adding new condition row');
-      cellfun(@obj.addEmptyConditionToParam, obj.Parameters.TrialSpecificNames);
-      obj.fillConditionTable();
-    end
-    
-    function deleteSelectedConditions(obj)
-      %DELETESELECTEDCONDITIONS Removes the selected conditions from table
-      % The callback for the 'Delete condition' button.  This removes the
-      % selected conditions from the table and if less than two conditions
-      % remain, globalizes them.
-      %     TODO: comment function better, index in a clearer fashion
+    function newValue = update(obj, name, value, row)
+      % UPDATE Updates the exp.Parameters object with new value
+      %  Called when either the Condition table or Global param fields are
+      %  updated by the user.  Updated the underlying paramters structure
+      %  and notifies listeners of the change via the Changed event.
       %
-      % See also EXP.PARAMETERS, GLOBALISESELECTEDPARAMETERS
-      rows = unique(obj.SelectedCells(:,1));
-      % If the number of remaining conditions is 1 or less...
-      names = obj.Parameters.TrialSpecificNames;
-      numConditions = size(obj.Parameters.Struct.(names{1}),2);
-      if numConditions-length(rows) <= 1
-          remainingIdx = find(all(1:numConditions~=rows,1));
-          if isempty(remainingIdx); remainingIdx = 1; end
-          % change selected cells to be all fields (except numRepeats which
-          % is assumed to always be the last column)
-          obj.SelectedCells =[ones(length(names)-1,1)*remainingIdx, (1:length(names)-1)'];
-          %... globalize them
-          obj.globaliseSelectedParameters;
-          obj.Parameters.removeConditions(rows)
-%           for i = 1:numel(names)
-%               newValue = iff(any(remainingIdx), obj.Struct.(names{i})(:,remainingIdx), obj.Struct.(names{i})(1));
-%               % If the parameter is Num repeats, set the value
-%               if strcmp(names{i}, 'numRepeats')
-%                   obj.Struct.(names{i}) = newValue;
-%               else
-%                   obj.makeGlobal(names{i}, newValue);
-%               end
-%           end
-      else % Otherwise delete the selected conditions as usual
-      obj.Parameters.removeConditions(rows);
-      end
-      obj.fillConditionTable(); %refresh the table of conditions
-    end
-    
-    function globaliseSelectedParameters(obj)
-      [cols, iu] = unique(obj.SelectedCells(:,2));
-      names = obj.TableColumnParamNames(cols);
-      rows = obj.SelectedCells(iu,1); %get rows of unique selected cols
-      arrayfun(@obj.globaliseParamAtCell, rows, cols);
-      obj.fillConditionTable(); %refresh the table of conditions
-      %now add global controls for parameters
-      newGlobals = gobjects(length(names),3); % Initialize object array (faster than assigning to end of array which results in two calls to constructor)  
-      for i=length(names):-1:1 % using for loop (sorry Chris!) to initialize and populate object array 2017-02-15 MW
-          [newGlobals(i,1), newGlobals(i,2), newGlobals(i,3)]... % [editors, labels, buttons]
-              = obj.addParamUI(names{i});
-      end
-
-%       [editors, labels, buttons] = arrayfun(@obj.addParamUI, names); %
-%       2017-02-15 MW can no longer use arrayfun with object outputs
-      idx = size(obj.GlobalControls, 1); % Calculate number of current Global params
-      new = numel(newGlobals);
-      obj.GlobalControls = [obj.GlobalControls; newGlobals]; % Add new globals to object
-      ggHandles = obj.GlobalGrid.Contents;
-      ggHandles = [ggHandles(1:idx); ggHandles((end-new+2):3:end);...
-          ggHandles(idx+1:idx*2); ggHandles((end-new+1):3:end);... 
-          ggHandles(idx*2+1:idx*3); ggHandles((end-new+3):3:end)]; % Reorder them so all labels come first, then ctrls, then buttons
-      obj.GlobalGrid.Contents = ggHandles; % Set children to new order
-     
-      % Reset sizes
-      obj.GlobalGrid.RowSizes = repmat(obj.GlobalVSpacing, 1, size(obj.GlobalControls, 1));
-      set(get(obj.GlobalGrid, 'Parent'),...
-          'Heights', sum(obj.GlobalGrid.RowSizes)+45); % Reset height of globalPanel
-      obj.GlobalGrid.ColumnSizes = [180, 200, 40]; 
-      obj.GlobalGrid.Spacing = 1;
-    end
-    
-    function globaliseParamAtCell(obj, row, col)
-      name = obj.TableColumnParamNames{col};
-      value = obj.Parameters.Struct.(name)(:,row);
-      obj.Parameters.makeGlobal(name, value);
-    end
-    
-    function setSelectedValues(obj) % Set multiple fields in conditional table
-      disp('updating table cells');
-      cols = obj.SelectedCells(:,2); % selected columns
-      uCol = unique(obj.SelectedCells(:,2));
-      rows = obj.SelectedCells(:,1); % selected rows
-      % get current values of selected cells
-      currVals = arrayfun(@(u)obj.ConditionTable.Data(rows(cols==u),u), uCol, 'UniformOutput', 0);
-      names = obj.TableColumnParamNames(uCol); % selected column names
-      promt = cellfun(@(a,b) [a ' (' num2str(sum(cols==b)) ')'],...
-          names, num2cell(uCol), 'UniformOutput', 0); % names of columns & num selected rows
-      defaultans = cellfun(@(c) c(1), currVals);
-      answer = inputdlg(promt,'Set values', 1, cellflat(defaultans)); % prompt for input
-      if isempty(answer) % if user presses cancel
-          return
-      end
-      % set values for each column
-      cellfun(@(a,b,c) setNewVals(a,b,c), answer, currVals, names, 'UniformOutput', 0); 
-        function newVals = setNewVals(userIn, currVals, paramName)
-            % check array orientation
-            currVals = iff(size(currVals,1)>size(currVals,2),currVals',currVals);
-          if strStartsWith(userIn,'@') % anon function
-              func_h = str2func(userIn);
-              % apply function to each cell
-              currVals = cellfun(@str2double,currVals, 'UniformOutput', 0); % convert from char
-              newVals = cellfun(func_h, currVals, 'UniformOutput', 0); 
-          elseif any(userIn==':') % array syntax
-              arr = eval(userIn);
-              newVals = num2cell(arr); % convert to cell array
-          elseif any(userIn==','|userIn==';') % 2D arrays
-            C = strsplit(userIn, ';');
-            newVals = cellfun(@(c)textscan(c, '%f',...
-            'ReturnOnError', false,...
-            'delimiter', {' ', ','}, 'MultipleDelimsAsOne', 1),...
-            C);
-          else % single value to copy across all cells
-              userIn = str2double(userIn); 
-              newVals = num2cell(ones(size(currVals))*userIn);
-          end
-          
-          if length(newVals)>length(currVals) % too many new values
-              newVals = newVals(1:length(currVals)); % truncate new array 
-          elseif length(newVals)<length(currVals) % too few new values
-              % populate as many cells as possible
-              newVals = [newVals ...
-                  cellfun(@(a)obj.controlValue2Param(2,a),...
-                  currVals(length(newVals)+1:end),'UniformOutput',0)]; 
-          end
-         ic = strcmp(obj.TableColumnParamNames,paramName); % find edited param names
-         % update param struct
-         obj.Parameters.Struct.(paramName)(:,rows(cols==find(ic))) = cell2mat(newVals);
-         % update condtion table with strings
-         obj.ConditionTable.Data(rows(cols==find(ic)),ic)...
-             = cellfun(@(a)obj.paramValue2Control(a), newVals', 'UniformOutput', 0);
-        end
-      notify(obj, 'Changed');
-    end
-    
-    function cellEditCallback(obj, src, eventData)
-      disp('updating table cell');
-      row = eventData.Indices(1);
-      col = eventData.Indices(2);
-      paramName = obj.TableColumnParamNames{col};
-      currValue = obj.Parameters.Struct.(paramName)(:,row);
+      % See also EUI.FIELDPANEL/ONEDIT, EUI.CONDITIONPANEL/ONEDIT
+      if nargin < 4; row = 1; end
+      currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
         % cell holders are allowed to be different types of value
-        newParam = obj.controlValue2Param(currValue{1}, eventData.NewData, true);
-        obj.Parameters.Struct.(paramName){:,row} = newParam;
+        newValue = obj.controlValue2Param(currValue{1}, value, true);
+        obj.Parameters.Struct.(name){:,row} = newValue;
       else
-        newParam = obj.controlValue2Param(currValue, eventData.NewData);
-        obj.Parameters.Struct.(paramName)(:,row) = newParam;
-      end
-      % if successful update the cell with default formatting
-      data = get(src, 'Data');
-      reformed = obj.paramValue2Control(newParam);
-      if iscell(reformed)
-        % the reformed data type is a cell, this should be a one element
-        % wrapping cell
-        if numel(reformed) == 1
-          reformed = reformed{1};
+        newValue = obj.controlValue2Param(currValue, value);
+        if ischar(newValue)
+           obj.Parameters.Struct.(name) = newValue;
         else
-          error('Cannot handle data reformatted data type');
-        end        
+           obj.Parameters.Struct.(name)(:,row) = newValue;
+        end
       end
-      data{row,col} = reformed;      
-      set(src, 'Data', data);
-      %notify listeners of change
       notify(obj, 'Changed');
     end
     
-    function updateGlobal(obj, param, src)
-      currParamValue = obj.Parameters.Struct.(param);
-      switch get(src, 'style')
-        case 'checkbox'
-          newValue = logical(get(src, 'value'));
-          obj.Parameters.Struct.(param) = newValue;
-        case 'edit'
-          newValue = obj.controlValue2Param(currParamValue, get(src, 'string'));
-          obj.Parameters.Struct.(param) = newValue;
-          % if successful update the control with default formatting and
-          % modified colour
-          set(src, 'String', obj.paramValue2Control(newValue),...
-            'ForegroundColor', [1 0 0]); %red indicating it has changed
-          %notify listeners of change
-          notify(obj, 'Changed');
+    function globaliseParamAtCell(obj, name, row)
+      % Make parameter 'name' a global parameter and set it's value to be
+      % that of the specified row.
+      %
+      % See also EXP.PARAMETERS/MAKEGLOBAL, UI.CONDITIONPANEL/MAKEGLOBAL
+      value = obj.Parameters.Struct.(name)(:,row);
+      obj.Parameters.makeGlobal(name, value);
+      % Refresh the table of conditions
+      obj.ConditionalUI.fillConditionTable;
+      % Add new global parameter to field panel
+      if islogical(value) % If parameter is logical, make checkbox
+        [~, ctrl] = addField(obj.GlobalUI, name, 'checkbox');
+        ctrl.Value = value;
+      else
+        [~, ctrl] = addField(obj.GlobalUI, name);
+        ctrl.String = obj.paramValue2Control(value);
       end
+      obj.GlobalUI.onResize();
+      obj.notify('Changed');
     end
-
-    function [data, paramNames, titles] = tableData(obj)
-      [~, trialParams] = obj.Parameters.assortForExperiment;
-      paramNames = fieldnames(trialParams);
-      titles = obj.Parameters.title(paramNames);
-      data = reshape(struct2cell(trialParams), numel(paramNames), [])';
-      data = mapToCell(@(e) obj.paramValue2Control(e), data);
+      
+    function onResize(obj)
+      % ONRESIZE Resize widths of the two panels
+      %  To maximize space resize the widths of the Conditional and Global
+      %  panels
+      %
+      % FIXME Resize buggy due to tolerences
+      
+      % If there are no conditional params assume Condition table is hidden
+      % and GlobalUI takes up all space
+      if numel(obj.Parameters.TrialSpecificNames) == 0; return; end
+      cUI = obj.ConditionalUI.UIPanel;
+      gUI = obj.GlobalUI.UIPanel;
+      
+      % The position of the end column in the Global panel (in pixels)
+      pos = obj.GlobalUI.Controls(end).Position;
+      colExtent = pos(1) + pos(3) + obj.GlobalUI.Margin;
+      colWidth = pos(3) + obj.GlobalUI.Margin + obj.GlobalUI.ColSpacing; % FIXME: inaccurate
+      % The amount of space the Global panel takes up in pixels
+      pos = getpixelposition(gUI);
+      gUIExtent = pos(3);
+      % The amount of space the Conditional panel takes up in pixels
+      pos = getpixelposition(cUI);
+      cUIExtent = pos(3);
+      % The actual extent of the table in pixels
+      extent = get(obj.ConditionalUI.ConditionTable, 'Extent');
+      requiredTableWidth = extent(3);
+      
+      if floor(gUIExtent - colExtent) <= 2 && cUIExtent < obj.ConditionalUI.MinWidth
+        % No space at all. Compromise by having both panels take up half
+        % the figure
+        obj.Parent.Widths = [-1 -1];
+      elseif floor(gUIExtent - colExtent) <= 2 && cUIExtent > obj.ConditionalUI.MinWidth
+        % If global UI controls are cut off and there is no dead space in
+        % the table but the minimum table width hasn't been reached, reduce
+        % the conditional UI width: table has scroll bar and global panel
+        % does not
+        minRequiredGlobal = cUIExtent - (colExtent - gUIExtent);
+        if minRequiredGlobal < obj.ConditionalUI.MinWidth && sign(minRequiredGlobal) == 1
+          % If the extra space taken by Global doesn't reduce Conditional
+          % beyond its minimum, use the Global's minimum
+          obj.Parent.Widths = [colExtent -1];
+        elseif minRequiredGlobal > requiredTableWidth && sign(minRequiredGlobal) == 1
+          % If the required width is smaller that the required table width,
+          % use required table width
+          obj.Parent.Widths = [-1 requiredTableWidth];
+        else
+          % If the required width is smaller that the minimum table width,
+          % use minimum table width
+          obj.Parent.Widths = [-1 obj.ConditionalUI.MinWidth];
+        end
+      elseif requiredTableWidth < cUIExtent && colWidth < obj.GlobalUI.MaxCtrlWidth
+        % If there is dead table space and the global UI columns are cut
+        % off or squashed, reduce the conditional panel
+        % If the extra space is minimum, return
+        if floor(cUIExtent - requiredTableWidth) <= 2 && ...
+            sign(floor(cUIExtent - requiredTableWidth)) == 1
+          return
+        end
+        obj.Parent.Widths = [colExtent -1];%[-1 requiredTableWidth];
+      elseif requiredTableWidth < cUIExtent && colExtent < gUIExtent
+        % Plenty of space! Increase conditional UI a bit
+        deadspace = gUIExtent - colExtent; % Spece between panels in pixels
+        obj.Parent.Widths = [-1 cUIExtent +  deadspace/2];
+      elseif requiredTableWidth >= cUIExtent && colExtent < gUIExtent
+        % If the table space is cut off and there is dead space in the
+        % global UI panel, reduce the global UI panel
+        % If the extra space is minimum, return
+        if floor(gUIExtent - colExtent) <= 2; return; end
+        % Get total space
+        deadspace = gUIExtent - colExtent; % Spece between panels in pixels
+        obj.Parent.Widths = [-1 cUIExtent + (deadspace/2)];
+%         cUI.Position(3) = 1-gUI.Position(3);
+%         cUI.Position(1) = gUI.Position(3);
+      end
+      notify(obj.ConditionalUI.ButtonPanel, 'SizeChanged');
+    end
+  end
+  
+  methods (Static)
+    function data = paramValue2Control(data)
+      % convert from parameter value to control value, i.e. a value class
+      % that can be easily displayed and edited by the user.  Everything
+      % except logicals are converted to charecter arrays.
+      switch class(data)
+        case 'function_handle'
+          % convert a function handle to it's string name
+          data = func2str(data);
+        case 'logical'
+          data = data ~= 0; % If logical do nothing, basically.
+        case 'string'
+          data = arrayfun(@(n) strjoin(data(:,n), ', '), 1:size(data,2));
+          data = char(data); % Strings not allowed in condition table data
+        otherwise
+          if isnumeric(data)
+            % format numeric types as string number list
+            strlist = mapToCell(@num2str, data);
+            data = strJoin(strlist, ', ');
+          elseif iscellstr(data) %#ok<ISCLSTR>
+            data = strJoin(data, ', ');
+          end
+      end
+      % all other data types stay as they are
     end
     
-    function data = controlValue2Param(obj, currParam, data, allowTypeChange)
+    function data = controlValue2Param(currParam, data, allowTypeChange)
       % Convert the values displayed in the UI ('control values') to
       % parameter values.  String representations of numrical arrays and
       % functions are converted back to their 'native' classes.
-      if nargin < 4
+      % TODO Implement string support
+      if nargin < 3
         allowTypeChange = false;
       end
       switch class(currParam)
@@ -406,7 +373,10 @@ classdef ParamEditor < handle
         case 'logical'
           data = data ~= 0;
         case 'char'
-          % do nothing - strings stay as strings
+          % do nothing - chars stay as they are
+        case 'string'
+          if ischar(data); data = strsplit(string(data), {', ' ','}); end
+          data = data(:);
         otherwise
           if isnumeric(currParam)
             % parse string as numeric vector
@@ -431,112 +401,13 @@ classdef ParamEditor < handle
             error('Cannot update unimplemented type ''%s''', class(currParam));
           end
       end
-    end
-    
-    function data = paramValue2Control(obj, data)
-      % convert from parameter value to control value, i.e. a value class
-      % that can be easily displayed and edited by the user.  Everything
-      % except logicals are converted to charecter arrays.
-      switch class(data)
-        case 'function_handle'
-          % convert a function handle to it's string name
-          data = func2str(data);
-        case 'logical'
-          data = data ~= 0; % If logical do nothing, basically.
-        case 'string'
-          data = char(data); % Strings not allowed in condition table data
-        otherwise
-          if isnumeric(data)
-            % format numeric types as string number list
-            strlist = mapToCell(@num2str, data);
-            data = strJoin(strlist, ', ');
-          elseif iscellstr(data)
-            data = strJoin(data, ', ');
-          end
+      % If necessary, assert that type didn't change
+      if ~allowTypeChange
+        assert(strcmp(class(currParam), class(data)), ...
+          sprintf('Type change from %s to %s not allowed', class(currParam), class(data)))
       end
-      % all other data types stay as they are
-    end
-    
-    function fillConditionTable(obj)
-      [data, params, titles] = obj.tableData;
-      set(obj.ConditionTable, 'ColumnName', titles, 'Data', data,...
-        'ColumnEditable', true(1, numel(titles)));
-      obj.TableColumnParamNames = params;
-    end
-    
-    function makeTrialSpecific(obj, paramName, ctrls)
-      [uirow, ~] = find(obj.GlobalControls == ctrls{1});
-      assert(numel(uirow) == 1, 'Unexpected number of matching global controls');
-      cellfun(@(c) delete(c), ctrls);
-      obj.GlobalControls(uirow,:) = [];
-      obj.GlobalGrid.RowSizes(uirow) = [];
-      obj.Parameters.makeTrialSpecific(paramName);
-      obj.fillConditionTable();
-      set(get(obj.GlobalGrid, 'Parent'),...
-          'Heights', sum(obj.GlobalGrid.RowSizes)+45); % Reset height of globalPanel
     end
 
-    function [ctrl, label, buttons] = addParamUI(obj, name) % Adds ui element for each parameter
-      parent = obj.GlobalGrid; % Made by build function above
-      ctrl = [];
-      label = [];
-      buttons = [];
-      if iscell(name) % 2017-02-14 MW function now called with arrayFun (instead of cellFun)
-        name = name{1,1}; 
-      end
-      value = obj.paramValue2Control(obj.Parameters.Struct.(name));  % convert from parameter value to control value (everything but logical values become strings)
-      title = obj.Parameters.title(name);
-      description = obj.Parameters.description(name);
-      
-      if islogical(value) % If parameter is logical, make checkbox
-        for i = 1:length(value)
-          ctrl(end+1) = uicontrol('Parent', parent,...
-            'Style', 'checkbox',...
-            'TooltipString', description,...
-            'Value', value(i),... % Added 2017-02-15 MW set checkbox to what ever the parameter value is
-            'Callback', @(src, e) obj.updateGlobal(name, src));
-        end
-      elseif ischar(value)
-        ctrl = uicontrol('Parent', parent,...
-          'BackgroundColor', [1 1 1],...
-          'Style', 'edit',...
-          'String', value,...
-          'TooltipString', description,...
-          'UserData', name,... % save the name of the parameter in userdata
-          'HorizontalAlignment', 'left',...
-          'Callback', @(src, e) obj.updateGlobal(name, src));
-%       elseif iscellstr(value)
-%         lines = mkStr(value, [], sprintf('\n'), []);
-%         ctrl = uicontrol('Parent', parent,...
-%           'BackgroundColor', [1 1 1],...
-%           'Style', 'edit',...
-%           'Max', 2,... %make it multiline
-%           'String', lines,...
-%           'TooltipString', description,...
-%           'HorizontalAlignment', 'left',...
-%           'UserData', name,... % save the name of the parameter in userdata
-%           'Callback', @(src, e) obj.updateGlobal(name, src));
-      end
-
-      if ~isempty(ctrl) % If control box is made, add label and conditional button
-        label = uicontrol('Parent', parent,...
-          'Style', 'text', 'String', title, 'HorizontalAlignment', 'left',...
-          'TooltipString', description); % Why not use bui.label? MW 2017-02-15
-        bbox = uiextras.HBox('Parent', parent); % Make HBox for button
-        % UIContainer no longer present in GUILayoutToolbox, it used to
-        % call uipanel with the following args:  
-        % 'Units', 'Normalized'; 'BorderType', 'none')
-%         buttons = bbox.UIContainer; 
-        buttons = uicontrol('Parent', bbox, 'Style', 'pushbutton',... % Make 'conditional parameter' button
-          'String', '[...]',...
-          'TooltipString', sprintf(['Make this a condition parameter (i.e. vary by trial).\n'...
-            'This will move it to the trial conditions table.']),...
-          'FontSize', 7,...
-          'Callback', @(~,~) obj.makeTrialSpecific(name, {ctrl, label, bbox}));
-        bbox.Sizes = 29; % Resize button height to 29px
-      end
-    end
   end
-    
 end
 
