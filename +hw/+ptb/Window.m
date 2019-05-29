@@ -463,6 +463,7 @@ classdef Window < hw.Window
       [light, clock, acqRate] = obj.measuredStim(colours, dev, lightIn, clockIn, clockOut);
       
       %% assess the delay between digital and analog
+      
       [xc, lags ] = xcorr(light, clock, 1000, 'coeff');
 %       figure; plot(lags,xc)
       [~,imax] = max(xc);
@@ -479,6 +480,7 @@ classdef Window < hw.Window
       tt = (1:ns)/acqRate;
       
       figure; plot(tt,clock);
+      ylabel('clock signal'); title('Clock'); 
       
       upCrossings = find(diff( clock > 1 ) ==  1);
       dnCrossings = find(diff( clock > 1 ) == -1);
@@ -490,7 +492,7 @@ classdef Window < hw.Window
       end
       plot( tt, light ); hold on
       xlabel('Time (s)');
-      ylabel('Signal (Volts)');
+      ylabel('Photodiode Signal (Volts)');
       set(gca,'ylim',[0 1.1*max(light)]);
       title(sprintf('In this plot. digital has been delayed by %2.2f ms', delay));
       
