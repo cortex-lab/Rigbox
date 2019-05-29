@@ -359,13 +359,14 @@ ShowCursor();
   function calibrateGamma()
     stimWindow = rig.stimWindow;
     DaqDev = rig.daqController.DaqIds;
-    lightIn = 'ai0'; % defaults from hw.psy.Window
-    clockIn = 'ai1';
-    clockOut = 'port1/line0 (PFI4)';
-    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-        'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    lightIn = 'ai1'; % defaults from hw.psy.Window
+    clockIn = 'ai0';
+    clockOut = 'port1/line0';
+    clockOutHint = 'PFI4';
+    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s (%s).\r'...
+        'Press any key to contiue\n'],lightIn,clockIn,clockOut,clockOutHint);
     pause; % wait for keypress
-    stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+    stimWindow.Calibration = stimWindow.calibration(DaqDev,lightIn, clockIn, clockOut); % calibration
     pause(1);
     saveGamma(stimWindow.Calibration);
     stimWindow.applyCalibration(stimWindow.Calibration);
