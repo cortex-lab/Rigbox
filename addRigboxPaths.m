@@ -23,8 +23,8 @@ assert(any(strcmpi('VCRuntime140.dll',{sys32.name})), 'Rigbox:setup:libraryRequi
    'Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.'],...
    'https://www.microsoft.com/en-us/download/details.aspx?id=48145')
 
-% Check MATLAB 2016b is running
-assert(~verLessThan('matlab', '8.4'), 'Requires MATLAB 2016b or later')
+% Check MATLAB 2017b is running
+assert(~verLessThan('matlab', '9.3'), 'Requires MATLAB 2017b or later')
 
 % Check essential toolboxes are installed (common to both master and
 % stimulus computers)
