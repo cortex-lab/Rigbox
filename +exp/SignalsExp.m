@@ -193,7 +193,6 @@ classdef SignalsExp < handle
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
-        lastTrialOver.into(obj.Events.expStop) %newTrial if more
         obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
