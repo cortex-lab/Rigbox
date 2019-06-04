@@ -1,41 +1,57 @@
-function expServer(useTimelineOverride, bgColour)
-%SRV.EXPSERVER Start the presentation server
-%   Principle function for running experiments.  ExpServer listens for
-%   commands via TCP/IP Web sockets to start, stop and pause stimulus
-%   presentation experiments.  
+function expServer(varargin)
+%SRV.EXPSERVER sets up and runs stimulus presentation on the stimulus server 
+%   This function sets up the stimulus server to receive communication from
+%   the master computer, via a tcp/ip java websocket. This function then 
+%   runs the experiment on the stimulus server. Optional name-value paired
+%   input arguments can be used (see examples below).
 %
-%   Inputs:
-%     useTimelineOverride (logical) - Flag indicating whether to start
-%       Timeline.  If empty the default is the UseTimeline flag in the
-%       hardware file.  Timeline may still be toggled by pressing the 't'
-%       key.
-%     bgColour (1-by-3 double) - The background colour of the stimulus
-%       window.  If not specified the background colour specified in the
-%       harware file is used.
 %
-%   Key bindings:
-%     t - Toggle Timeline on and off.  The default state is defined in the
-%       hardware file but may be overridden as the first input argument.
-%     w - Toggle reward on and off.  This switches the output of the first
-%       DAQ output channel between its 'high' and 'low' state.  The
-%       specific DAQ channel and its default state are set in the hardware
-%       file.
-%     space - Deliver default reward, specified by the DefaultCommand
-%       property in the hardware file.
-%     m - Perform water calibration. 
-%     b - Toggle the background colour between the default and white.
-%     g - Perform gamma correction
-%     
+% Inputs (optional):
+%   'bgColour': a 3-element array specifying the background colour of the
+%   screens presenting the visual stimuli. 8-bit precision (element values
+%   can range from 0-255). Default: [127 127 127] % gray 
+%   
+%   'runTimeline': a logical flag specifying whether or not to run
+%   hw.timeline during the experiment. Default: 1 % run timeline
 %
-% See also MC, io.WSJCommunicator, hw.devices, srv.prepareExp, hw.Timeline
+%   'hideCursor': a logical flag specifying whether or not to disable 
+%   MATLAB interaction during the experiment. Default: 1 % disable MATLAB
+%   interaction
 %
+% Key bindings:
+%   't' - Toggle Timeline on and off.  The default state is defined in the
+%     hardware file but may be overridden as the first input argument.
+%   'w' - Toggle reward on and off.  This switches the output of the first
+%     DAQ output channel between its 'high' and 'low' state.  The
+%     specific DAQ channel and its default state are set in the hardware
+%     file.
+%   'space' - Deliver default reward, specified by the DefaultCommand
+%     property in the hardware.mat file.
+%   'm' - Perform water calibration.
+%   'b' - Toggle the background color between the default and white.
+%   'g' - Perform gamma correction
+%
+% Examples:
+%   % Run expServer with default input arg values:
+%   srv.expServer;
+%
+%   % Run expServer with a black background, disabled timeline, and enabled
+%   % MATLAB interaction
+%   srv.expServer('bgColour', [255 255 255], 'runTimeline', 0, ...
+%   'hideCursor', 0);
+%
+% See also: io.WSJCommunicator, srv.prepareExp, hw.devices, hw.Timeline
+% 
 % Part of Rigbox
 
 % 2013-06 CB created
 
-%% Parameters
-global AGL GL GLU %#ok<NUSED>
-listenPort = io.WSJCommunicator.DefaultListenPort;
+%% Initialisation
+
+% initialise global vars for use by openGL in PTB
+global AGL GL GLU %#ok<NUSED> 
+
+% initialise keyboard hotkeys
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
 rewardPulseKey = KbName('space');
@@ -45,25 +61,31 @@ timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
 rewardId = 1;
 
-%% Initialisation
 % Pull latest changes from remote
-git.update();
+%git.update();
+
 % random seed random number generator
 rng('shuffle');
-% communicator for receiving commands from clients
+
+% set-up "communicator" for receiving commands from 'MC' via TCP/IP
+% listen port
+listenPort = io.WSJCommunicator.DefaultListenPort;
 communicator = io.WSJCommunicator.server(listenPort);
+
+% create a listener for "communicator" which runs 'handleMessage' when a
+% message is received from 'MC'.
 listener = event.listener(communicator, 'MessageReceived',...
   @(~,msg) handleMessage(msg.Id, msg.Data, msg.Sender));
 communicator.EventMode = false;
-communicator.open();
+communicator.open(); % open the connection
 
-experiment = []; % currently running experiment, if any
+% initialise "experiment" to hold the experiment that will be run
+experiment = [];
 
 % set PsychPortAudio verbosity to warning level
 oldPpaVerbosity = PsychPortAudio('Verbosity', 2);
 Priority(1); % increase thread priority level
 
-% OpenGL
 InitializeMatlabOpenGL;
 
 % listen to keyboard events
@@ -97,12 +119,45 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+%% Get/Set Input Args
 
-if nargin < 2
-  bgColour = 127*[1 1 1]; % mid gray by default
+% define default input args:
+argsStruct.bgColour = [127 127 127]; % gray 
+argsStruct.runTimeline = 1; % use timeline
+argsStruct.hideCursor = 1; % hide cursor
+
+% get input args, reshape into two rows (into name-value pairs): 
+% 1st row = arg names, 2nd row = arg values 
+pairedArgs = reshape(varargin,2,[]);
+
+% if the name-value pairs don't match up, throw error
+if ~all(cellfun(@ischar, (pairedArgs(1,:)))) ||... 
+    ~all(cellfun(@isnumeric, (pairedArgs(2,:)))) ||...
+    mod(length(varargin),2)
+  error(['If using input arguments, %s requires them to be constructed '... 
+    'in name-value pairs'], mfilename);
 end
-% open the stimulus window
+
+% for the specified input args, change default input args to new values 
+for pair = pairedArgs
+  argName = pair{1};
+  if any(strcmpi(argName, fieldnames(argsStruct)))
+    argsStruct.(argName) = pair{2};
+  end
+end
+
+if argsStruct.hideCursor % then disable MATLAB interaction
+  HideCursor();
+end
+
+if argsStruct.runTimeline % then run timeline
+  toggleTimeline(rig.timeline.UseTimeline);
+else % don't run timeline
+  toggleTimeline(useTimelineOverride);
+end
+
+% set screen(s) background colour
+bgColour = argsStruct.bgColour;
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
 
@@ -111,13 +166,6 @@ fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
   '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
 log('Started presentation server on port %i', listenPort);
-
-if nargin < 1 || isempty(useTimelineOverride)
-  % toggle use of timeline according to rig default setting
-  toggleTimeline(rig.timeline.UseTimeline);
-else
-  toggleTimeline(useTimelineOverride);
-end
 
 running = true;
 

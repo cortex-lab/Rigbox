@@ -1,26 +1,45 @@
 function parsStruct = inferParameters(expdef)
-%EXP.INFERPARAMETERS Infers the parameters required for experiment
-%   Detailed explanation goes here
+%EXP.INFERPARAMETERS Infers the parameters defined in an exp def
+%
+% Inputs:
+% 'expdef': the "experiment definition" .m file from which the parameters
+% are inferred. This argument can be set as a string or function handle
+%
+% Outputs:
+% 'parsStruct': the inferred parameters, returned as a MATLAB struct
+%
+% Example:
+%   parsStruct = exp.inferParameters([fileparts(which('addRigboxPaths'))...
+%     '\signals\doc\examples\expdefs\...']);
+%
+%  fh = @...
+%  parsStruct = exp.inferParameters(fh)
+%
+% See also:
+%
+% todo: update example
 
-% create some signals just to pass to the definition function and track
-% which parameter names are used
-
-if ischar(expdef) && file.exists(expdef)
-  expdeffun = fileFunction(expdef);
-else
-  expdeffun = expdef;
-  expdef = which(func2str(expdef));
+try
+  if ischar(expdef) && file.exists(expdef) % if 'expdef' is a string
+    expdeffun = fileFunction(expdef);
+  else % if 'expdef' is a function handle
+    expdeffun = expdef;
+    expdef = which(func2str(expdef));
+  end
+catch ex
+  error(['Input argument must be a string of the full filename,'... 
+    'or a function handle']);
 end
 
+% create some signals just to pass to the exp def and track which parameter
+% names are used
 e = sig.void;
 pars = sig.void(true);
 audio.Devices = @dummyDev;
 
+% try to call the exp def file to get the parameters defined in the file
 try
   expdeffun(e.t, e.events, pars, e.visual, e.inputs, e.outputs, audio);
-    
-  % paramNames will be the strings corresponding to the fields of pars
-  % that the user tried to reference in her expdeffun.
   parsStruct = pars.Subscripts;
   
   % Check for reserved fieldnames

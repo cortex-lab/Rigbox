@@ -36,7 +36,12 @@ disp('Updating code...')
 % Get the path to the Git exe
 gitexepath = getOr(dat.paths, 'gitExe');
 if isempty(gitexepath)
-  [~,gitexepath] = system('where git'); % todo: this doesn't always work
+  [status, gitexepath] = system('where git');
+  if status == 1
+    error(['Could not find the git .exe location. Please find and ',...
+      'add the location to the "dat.paths" file. For example, like so:',...
+      ' p.gitExe = ''C:\Program Files\Git\cmd\git.exe''']);
+  end
 end
 gitexepath = ['"', strtrim(gitexepath), '"'];
 

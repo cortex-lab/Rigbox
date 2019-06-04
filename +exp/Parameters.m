@@ -7,16 +7,18 @@ classdef Parameters < handle
   % 2012-11 CB created  
   
   properties (Dependent)
-    Struct %a struct representation of parameters and their info
+    Struct % a struct representation of parameters and their info
   end
-  
+   
   properties (Dependent, SetAccess = private)
-    Names %list of all parameter names
-    TrialSpecificNames %list of all trial conditional parameters
-    GlobalNames %list of all global parameters (i.e. not conditional)
+    Names % list of all parameter names
+    TrialSpecificNames % list of all trial conditional parameters
+    GlobalNames % list of all global parameters (i.e. not conditional)
   end
   
-  properties (Access = private)
+  % todo: why are these private, when 'get.' just returns them, instead of 
+  % just having them be 'SetAccess = private'?
+  properties (Access = private) 
     pStruct = struct
     pNames = {}
     IsTrialSpecific = struct
