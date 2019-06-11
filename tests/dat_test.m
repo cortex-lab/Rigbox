@@ -1,7 +1,7 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     matlab.unittest.fixtures.PathFixture('fixtures'),...
     matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'util'])})... 
-  dat_test < matlab.unittest.TestCase & matlab.mock.TestCase
+  dat_test < matlab.unittest.TestCase
 
   methods (TestClassSetup)
             
