@@ -150,8 +150,8 @@ classdef MControl < handle
                 end
                 obj.AlyxPanel.dispWaterReq(obj.NewExpSubject);
             case 'Disconnected' % user logged out of Alyx
-                obj.NewExpSubject.Option = dat.listSubjects;
-                obj.LogSubject.Option = dat.listSubjects;
+                obj.NewExpSubject.Option = unique([{'default'}; dat.listSubjects]);
+                obj.LogSubject.Option = unique([{'default'}; dat.listSubjects]);
         end
     end
     
@@ -691,7 +691,7 @@ classdef MControl < handle
       
       hbox = uiextras.HBox('Parent', logbox, 'Padding', 5); % container for 'Subject' text and dropdown box
       bui.label('Subject', hbox); % 'Subject' text next to dropdown box, Child of hbox
-      obj.LogSubject = bui.Selector(hbox, dat.listSubjects); % Subject dropdown box, Child of hbox
+      obj.LogSubject = bui.Selector(hbox, unique([{'default'}; dat.listSubjects])); % Subject dropdown box, Child of hbox
       hbox.Sizes = [50 100]; % resize label and dropdown to be 50px and 100px respectively
       obj.LogTabs = uiextras.TabPanel('Parent', logbox, 'Padding', 5); % Container for 'Entries' and 'Weights' tab in log
       obj.Log = eui.Log(obj.LogTabs); % Entries window, all delt with by +eui/Log.m
@@ -732,7 +732,7 @@ classdef MControl < handle
       topgrid = uiextras.Grid('Parent', leftSideBox); % grid for containing everything within the tab
       subjectLabel = bui.label('Subject', topgrid); % 'Subject' label
       bui.label('Type', topgrid); % 'Type' label
-      obj.NewExpSubject = bui.Selector(topgrid, dat.listSubjects); % Subject dropdown box
+      obj.NewExpSubject = bui.Selector(topgrid, unique([{'default'}; dat.listSubjects])); % Subject dropdown box
       set(subjectLabel, 'FontSize', 11); % Make 'Subject' label larger
       set(obj.NewExpSubject.UIControl, 'FontSize', 11); % Make dropdown box text larger
       obj.NewExpSubject.addlistener('SelectionChanged', @obj.expSubjectChanged); % Add listener for subject selection

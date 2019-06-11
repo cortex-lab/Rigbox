@@ -118,7 +118,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
       % Remove Alyx queue
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
-      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alx queue')
+      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alyx queue')
     end
   end
   
