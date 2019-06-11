@@ -763,12 +763,7 @@ classdef MControl < handle
       leftSideBox.Heights = [55 22];
       
       % Create the Alyx panel
-      
-      % check to see if there is a remote database url defined in
-      % `dat.paths`
-      url = char(getOr(dat.paths, 'databaseURL', ''));
-      % if so, activate AlyxPanel, if not, disable AlyxPanel
-      obj.AlyxPanel = eui.AlyxPanel(headerBox, ~isempty(url));
+      obj.AlyxPanel = eui.AlyxPanel(headerBox);
       addlistener(obj.NewExpSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       addlistener(obj.LogSubject, 'SelectionChanged', @(src, evt)obj.AlyxPanel.dispWaterReq(src, evt));
       
