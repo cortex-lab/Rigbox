@@ -115,7 +115,7 @@ classdef MockDialog < handle
           else
             key = obj.fromCount;
           end
-        case 'inputdlg'
+        case {'inputdlg', 'newid'}
           % Find key
           if ~strcmp(obj.Dialogs.KeyType, 'char')
             key = obj.fromCount;
@@ -152,7 +152,7 @@ classdef MockDialog < handle
   
   methods (Access = private)
     
-    function key = fromCount()
+    function key = fromCount(obj)
       if strcmp(obj.Dialogs.KeyType, 'char')
         key = [];
         return

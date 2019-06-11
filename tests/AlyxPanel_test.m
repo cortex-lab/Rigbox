@@ -134,7 +134,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
       testCase.resetQueue(alyxQ);
       % Close any figures opened during the test
-      if ~isempty(testCase.Figure); close(testCase.Figure); end
+      if ~isempty(testCase.Figure) && isvalid(testCase.Figure)
+        close(testCase.Figure)
+      end
+      % Close any open file ids
+      fclose('all');
       % Reset state of dialog mock
       testCase.Mock.reset;
     end
@@ -213,7 +217,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.UseDefaults = false;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'start_date', now);
+      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'date', now);
       
       % Add mock user response
       key = 'Would you like to create a new base session?';
@@ -415,7 +419,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveFutureWater(testCase)
-      testCase.Panel;
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
       
@@ -459,6 +462,54 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       toTrian = dat.loadParamProfiles('WeekendWater');
       testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
         'Failed to add training dates to saved params')
+    end
+    
+    function test_activeFlag(testCase)
+      % Ensure that the panel is active when the DatabaseURL is added and
+      % none empty
+      
+      % First ensure panel was set up as active
+      testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+        'Expected non-empty databaseURL field in paths')
+      str = iff(testCase.Panel.AlyxInstance.IsLoggedIn, 'Logout', 'Login');
+      button = findobj(testCase.Parent, 'String', str);
+      testCase.assertEqual(button.Enable, 'on', 'AlyxPanel not enabled')
+      
+      % Comment out the databaseURL field in the paths file
+      fid = fopen(which('dat.paths'));
+      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
+      fclose(fid);
+
+      data{startsWith(data,'p.databaseURL')} = ['%' data{startsWith(data,'p.databaseURL')}];
+      
+      fid = fopen(which('dat.paths'), 'w');
+      cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
+      fclose(fid);
+      
+      testCase.Figure = figure('Name', testCase.Subjects{end});
+      eui.AlyxPanel(testCase.Figure);
+      
+      testCase.assertEmpty(getOr(dat.paths, 'databaseURL'), ...
+        'Failed to remove databaseURL field in paths')
+      button = findobj(testCase.Figure, 'String', 'Login');
+      testCase.verifyEqual(button.Enable, 'off', ...
+        'AlyxPanel enabled while databaseURL undefined')
+
+      close(testCase.Figure)
+      % Restore paths
+      fid = fopen(which('dat.paths'));
+      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
+      fclose(fid);
+      
+      idx = startsWith(data,'%p.databaseURL');
+      if any(idx)
+        data{idx}(1) = [];
+        fid = fopen(which('dat.paths'), 'w');
+        cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
+        fclose(fid);
+        testCase.fatalAssertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+        'Failed to restore databaseURL field in paths')
+      end
     end
     
     function test_round(testCase)
