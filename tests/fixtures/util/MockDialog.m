@@ -144,7 +144,9 @@ classdef MockDialog < handle
       end
       
       % inputdlg always returns a cell
-      if strcmp(type, 'inputdlg'); answer = ensureCell(answer); end
+      if ismember(type, {'inputdlg','newid'})
+        answer = ensureCell(answer);
+      end
       obj.NumCalls = obj.NumCalls + 1; % Iterate number of calls
     end
       

@@ -32,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-      set(0,'DefaultFigureVisible','off');
+%       set(0,'DefaultFigureVisible','off');
     end
     
     function loadData(testCase)
@@ -54,6 +54,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       mainRepo = getOr(dat.paths, 'mainRepository');
       assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
+      
+      % Create local directory
+      localRepo = getOr(dat.paths, 'localRepository');
+      if exist(localRepo, 'dir') == 0; mkdir(localRepo); end
       
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
@@ -116,6 +120,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Remove subject directories
       dataRepo = getOr(dat.paths, 'mainRepository');
       assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
+      localRepo = getOr(dat.paths, 'localRepository');
+      if exist(localRepo,'dir') == 7
+        assert(rmdir(localRepo, 's'), 'Failed to remove local test data directory')
+      end
       % Remove Alyx queue
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
       assert(rmdir(alyxQ, 's'), 'Failed to remove test Alyx queue')
@@ -217,7 +225,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.UseDefaults = false;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'date', now);
+      todaySession = p.AlyxInstance.getSessions(...
+        'subject', testCase.SubjectUI.Selected, 'date', now);
       
       % Add mock user response
       key = 'Would you like to create a new base session?';
@@ -357,7 +366,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       
       % Check button resets
-      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); end
+      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
