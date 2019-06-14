@@ -10,7 +10,7 @@ function p = paths(rig)
 thishost = 'testRig';
 
 if nargin < 1 || isempty(rig)
-  rig = thishost;
+rig = thishost;
 end
 
 %% defaults

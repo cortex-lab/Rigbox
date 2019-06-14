@@ -5,16 +5,18 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
 
   methods (TestClassSetup)
             
-    function setup(~)
+    function setup(testCase)
       % Check paths file
       assert(endsWith(which('dat.paths'),...
         fullfile('tests', 'fixtures', '+dat', 'paths.m')));
       
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
-      mainRepo = getOr(dat.paths, 'mainRepository');
-      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+      mainRepo = dat.reposPath('main','master');
+      assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
+      
+      addTeardown(testCase, @clear, 'BurgboxCache')
     end
     
   end
@@ -22,14 +24,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestMethodTeardown)
     function methodTaredown(~)
       % Remove subject directories
-      dataRepo = getOr(dat.paths, 'mainRepository');
-      if exist(dataRepo,'dir') == 7
-        assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
-      end
-      localRepo = getOr(dat.paths, 'localRepository');
-      if exist(localRepo,'dir') == 7
-        assert(rmdir(localRepo, 's'), 'Failed to remove local test data directory')
-      end
+      rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), dat.reposPath('main'));
+
       % Remove config directories
       configRepo = getOr(dat.paths, 'globalConfig');
       if exist(configRepo,'dir') == 7
@@ -44,7 +41,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.assertEmpty(dat.listSubjects, 'Unexpected subjects list')
       % Make some subject folders
       subjects = strcat('subject_',strsplit(num2str(1:10)))';
-      repo = getOr(dat.paths, 'mainRepository');
+      repo = dat.reposPath('main','master');
       success = cellfun(@(d)mkdir(repo,d), subjects);
       testCase.assertTrue(all(success), 'Failed to create subject folders')
       
