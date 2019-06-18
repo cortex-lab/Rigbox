@@ -1,6 +1,12 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths
-%   p = DAT.PATHS([RIG])
+%   p = DAT.PATHS([RIG]) Returns a struct of paths that are used by Rigbox
+%   to determine the location of config and experiment files.  The rig
+%   input is used to generate rig specific paths, including custom paths.
+%   The default is the hostname of this computer.
+%
+%   The main and local repositories are essential for determining where to
+%   save experimental data.
 %   TODO:
 %    - Clean up expDefinitions directory
 % Part of Rigbox

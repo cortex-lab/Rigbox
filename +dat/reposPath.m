@@ -63,6 +63,12 @@ end
 switch lower(location)
   case {'master' 'm'}
     p = paths.([name 'Repository']);
+  case {'remote' 'r'}
+    fn = fieldnames(paths);
+    pattern = ['(' name '|alt)(\d*)Repository$'];
+    remoteRepos = fn(~emptyElems(regexp(fn, pattern)));
+    p = cellfun(@(n) paths.(n), remoteRepos, 'uni', false);
+    if numel(p) < 2; p = p{:}; end
   case {'local' 'l'}
     p = paths.localRepository;
   otherwise

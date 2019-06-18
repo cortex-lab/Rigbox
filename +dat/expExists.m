@@ -1,7 +1,9 @@
 function b = expExists(expRef)
 %DAT.EXPEXISTS Confirm existence of experiment(s) with reference
 %   b = DAT.EXPEXISTS(expRef) Returns true is expRef exists, where expRef
-%   is an experiment reference string or cell array thereof.
+%   is an experiment reference string or cell array thereof.  For an
+%   experiment to exist the correct folder structure must be present in the
+%   main repository's master location.
 %
 % See Also DAT.LISTEXPS, DAT.PATHS
 %

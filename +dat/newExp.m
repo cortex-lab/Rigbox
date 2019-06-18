@@ -34,7 +34,7 @@ end
 
 % check the subject exists in the database
 exists = any(strcmp(dat.listSubjects, subject));
-assert(exists, sprintf('"%" does not exist', subject));
+assert(exists, sprintf('"%s" does not exist', subject));
 
 % retrieve list of experiments for subject
 [~, dateList, seqList] = dat.listExps(subject);

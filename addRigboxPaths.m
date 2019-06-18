@@ -122,6 +122,13 @@ closeFile = onCleanup( @() fclose(fid) );
 javaclasspaths = first(textscan(fid,'%s', 'CommentStyle', '#', 'Delimiter',''));
 cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
 
+%%% Remind user to copy paths file %%%
+paths = which('dat.paths');
+if startsWith(paths, root)
+  warning('Rigbox:setup:copyPaths', ['Consider moving ''%s'' to your ',...
+    'MATLAB folder to avoid your changes being overwritten'], paths);
+end
+
 %%% Validate that paths saved correctly %%%
 if savePaths
   assert(savepath == 0, 'Failed to save changes to MATLAB path');
