@@ -7,8 +7,7 @@ function p = paths(rig)
 %
 %   The main and local repositories are essential for determining where to
 %   save experimental data.
-%   TODO:
-%    - Clean up expDefinitions directory
+%
 % Part of Rigbox
 
 % 2013-03 CB created
@@ -19,35 +18,38 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
-server1Name = '\\zubjects.cortexlab.net';
-server2Name = '\\zserver.cortexlab.net';
+server1Name = '\\zserver.cortexlab.net';
+server2Name = '\\zubjects.cortexlab.net';
 basketName = '\\basket.cortexlab.net'; % for working analyses
 lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 
-%% defaults
+%% essential paths
 % path containing rigbox config folders
-% p.rigbox = fullfile(server1Name, 'code', 'Rigging'); % Potential conflict with AddRigBoxPaths
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
 p.localRepository = 'C:\LocalExpData';
-p.localAlyxQueue = 'C:\localAlyxQueue';
-p.databaseURL = 'https://alyx.cortexlab.net'; % 'https://dev.alyx.internationalbrainlab.org/';
-p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
-% Day on which to update code (0 = Everyday, 1 = Sunday, etc.)
-p.updateSchedule = 0;
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
-p.mainRepository = fullfile(server1Name, 'Subjects');
+p.mainRepository = fullfile(server1Name, 'Data', 'Subjects');
+p.main2Repository = fullfile(server2Name, 'Subjects'); % alternate repo
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
-% p.globalConfig = fullfile(p.rigbox, 'config');
-p.globalConfig = fullfile(server2Name, 'Code', 'Rigging', 'config');
+p.globalConfig = fullfile(server1Name, 'Code', 'Rigging', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
-p.expDefinitions = fullfile(server2Name, 'Code', 'Rigging', 'ExpDefinitions');
+p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
+
+%% non-essential paths
+% database url and local queue for cached posts
+p.databaseURL = 'https://alyx.cortexlab.net';
+p.localAlyxQueue = 'C:\localAlyxQueue';
+% location of git for automatic updates
+p.gitExe = 'C:\Program Files\Git\cmd\git.exe'; 
+% day on which to update code (0 = Everyday, 1 = Sunday, etc.)
+p.updateSchedule = 0;
 
 % repository for working analyses that are not meant to be stored
 % permanently
@@ -59,15 +61,10 @@ p.tapeStagingRepository = fullfile(lugaroName, 'bigdrive', 'staging');
 % then they go here:
 p.tapeArchiveRepository = fullfile(lugaroName, 'bigdrive', 'toarchive');
 
-
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
 if file.exists(customPathsFile)
   customPaths = loadVar(customPathsFile, 'paths');
-  if isfield(customPaths, 'centralRepository')
-    % 'centralRepository' is deprecated, remove field, if any
-    customPaths = rmfield(customPaths, 'centralRepository');
-  end
   if isfield(customPaths, 'expInfoRepository')
     % 'expInfo' is deprecated, change to 'main'
     p.mainRepository = customPaths.expInfoRepository;

@@ -22,13 +22,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
         'Test experiment repo not empty.  Please set another path or manually empty folder');
       
-      addTeardown(testCase, @clear, 'BurgboxCache')
-      %       addTeardown(testCase, @git.reset, which('dat.paths'))
-      
-      % Remove test directories
-      testFolders = [dat.reposPath('main'); {[mainRepo '2']}; {getOr(dat.paths, 'globalConfig')}];
-      rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
-      addTeardown(testCase, @cellfun, rmFcn, testFolders)
+      addTeardown(testCase, @clearCBToolsCache)
+      % addTeardown(testCase, @git.reset, which('dat.paths'))
     end
     
   end
@@ -63,23 +58,16 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Create other folders
       assert(mkdir(getOr(dat.paths,'rigConfig')), 'Failed to create config directory')
+      
+      % Add teardown to remove folders
+      testFolders = [dat.reposPath('main');...
+        {[dat.reposPath('main', 'm') '2']};...
+        {getOr(dat.paths, 'globalConfig')}];
+      rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      addTeardown(testCase, @cellfun, rmFcn, testFolders)
     end
   end
-  
-  %   methods (TestMethodTeardown)
-  %     function methodTaredown(~)
-  %       % Remove subject directories
-  %       rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
-  %       cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), dat.reposPath('main'));
-  %
-  %       % Remove config directories
-  %       configRepo = getOr(dat.paths, 'globalConfig');
-  %       if exist(configRepo,'dir') == 7
-  %         assert(rmdir(configRepo, 's'), 'Failed to remove test config directory')
-  %       end
-  %     end
-  %   end
-  
+    
   methods (Test)
     function test_listSubjects(testCase)
       % Test listSubjects function
@@ -92,10 +80,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       repo = dat.reposPath('main', 'master');
       testCase.assertEqual(repo, dat.reposPath('main', 'r'), 'Unexpected paths')
       % Make new path
-      paths.main2Repository = [repo '2'];
-      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
-      testCase.assertEqual(getOr(dat.paths,'main2Repository'), [repo '2'], ...
-        'Unexpected paths returned')
+      altMain2Paths(testCase)
       % Test alternates
       result = dat.listSubjects;
       testCase.verifyTrue(issorted(result), 'Failed to return sorted list')
@@ -201,11 +186,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % [full, filename] = expFilePath(subject, date, seq, type, [reposlocation, ext])
       
       % Add a custom path
-      testCase.assertEmpty(dat.listExps(strcat('subject_',num2str(testCase.nSubs+1))))
-      paths.main2Repository = [dat.reposPath('main','m') '2'];
-      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
-      testCase.assertEqual(paths.main2Repository, getOr(dat.paths,'main2Repository'),...
-        'Failed to create custom paths file')
+      altMain2Paths(testCase)
       
       ref = dat.constructExpRef('subject_1', now, 1);
       [full, filename] = dat.expFilePath(ref, 'parameters');
@@ -220,7 +201,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       full = dat.expFilePath(ref, 'parameters', 'remote');
       testCase.verifyTrue(numel(full)==2, 'Unexpected path number')
       testCase.verifyTrue(startsWith(full{1}, [dat.reposPath('main','m') filesep]))
-      testCase.verifyTrue(startsWith(full{2},paths.main2Repository))
+      testCase.verifyTrue(startsWith(full{2}, [dat.reposPath('main','m') '2']))
       
       % Test ext input
       [full, filename] = dat.expFilePath(ref, 'parameters', 'm', 'json');
@@ -230,7 +211,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Test multiple inputs
       full = dat.expFilePath(ref, {'parameters';'block'}, 'm');
-      testCase.verifyTrue(endsWith(full{1}, 'parameters') && endsWith(full{2}, 'block'))
+      testCase.verifyTrue(endsWith(full{1}, 'parameters.mat') && endsWith(full{2}, 'Block.mat'))
       ref = dat.constructExpRef(strcat('subject_',num2cellstr(1:3)), now, 1); %FIXME most functions return Nx1 arrays, constructExpRef returns 1xN
       full = dat.expFilePath(ref', 'parameters', 'm');
       success = cellfun(@endsWith, full, strcat(ref,'_parameters.mat')');
@@ -268,12 +249,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual({expected;expected}, expSeq);
       
       % Add a custom path
-      testCase.assertEmpty(dat.listExps(strcat('subject_',num2str(testCase.nSubs+1))))
-      paths.main2Repository = [dat.reposPath('main','m') '2'];
-      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
-      testCase.assertEqual(paths.main2Repository, getOr(dat.paths,'main2Repository'),...
-        'Failed to create custom paths file')
-      
+      altMain2Paths(testCase)
       % Test query with alternate paths
       subjects = {subject;strcat('subject_',num2str(testCase.nSubs+1))};
       [expRef, expDate, expSeq] = dat.listExps(subjects);
@@ -285,5 +261,59 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(numel(expRef{2}), numel(expDate{2}), numel(expSeq{2}))
     end
     
+    function test_loadBlock(testCase)
+      % Should search all remote repos and give precedence to main
+      altMain2Paths(testCase)
+      % Create files on repos
+      subject = strcat('subject_',num2str(testCase.nSubs));
+      block = struct('block', struct('expType','one'));
+      full = cellflat(dat.expFilePath(subject, now, [1;2;4], 'block', 'r'));
+      full = full(file.exists(mapToCell(@fileparts,full)));
+      superSave(full(1:2),  block)
+      block.block.expType = 'two';
+      superSave(full(3:end),  block)
+      testCase.assertTrue(all(file.exists(full)), 'Failed to create test blocks')
+      % Test load precedence
+      block = catStructs(rmEmpty(dat.loadBlock(subject, now, [1;2;4])));
+      testCase.verifyEqual(strcmp({block.expType}, 'one'),[true true false], ...
+        'Failed to load with the correct precedence')
+      % Test expType filtering
+      block = catStructs(rmEmpty(dat.loadBlock(subject, now, [1;2;4], 'two')));
+      testCase.verifyTrue(all(strcmp({block.expType}, 'two')), ...
+        'Failed to filter blocks by experiment type')
+    end
+    
+    function test_expParams(testCase)
+      % Should search all remote repos and give precedence to main
+      altMain2Paths(testCase)
+      % Create files on repos
+      subject = strcat('subject_',num2str(testCase.nSubs));
+      refs = dat.constructExpRef(subject, now, [1;2;4]);
+      parameters = struct('parameters', struct('expType','one'));
+      full = cellflat(dat.expFilePath(refs, 'parameters', 'r'));
+      full = full(file.exists(mapToCell(@fileparts,full)));
+      superSave(full(1:2),  parameters)
+      parameters.parameters.expType = 'two';
+      superSave(full(3:end),  parameters)
+      testCase.assertTrue(all(file.exists(full)), 'Failed to create test parameters')
+      % Test load precedence
+      parameters = catStructs(rmEmpty(dat.expParams(refs)));
+      testCase.verifyEqual(strcmp({parameters.expType}, 'one'),[true true false], ...
+        'Failed to load with the correct precedence')
+    end
+    
+  end
+  
+  methods (Access = private)
+    function altMain2Paths(testCase)
+      % Add a secondary main repository as a custom path, pointing to the
+      % Subjects2 fixture 
+      testCase.assertEmpty(dat.listExps(strcat('subject_',num2str(testCase.nSubs+1))),...
+        'Secondary main repo already in path, expected otherwise')
+      paths.main2Repository = [dat.reposPath('main','m') '2'];
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      testCase.assertEqual(paths.main2Repository, getOr(dat.paths,'main2Repository'),...
+        'Failed to create custom paths file')
+    end
   end
 end
