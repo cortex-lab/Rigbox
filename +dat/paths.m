@@ -28,7 +28,7 @@ p.localAlyxQueue = 'C:\localAlyxQueue';
 p.databaseURL = 'https://alyx.cortexlab.net'; % 'https://dev.alyx.internationalbrainlab.org/';
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
 % Day on which to update code (0 = Everyday, 1 = Sunday, etc.)
-p.updateSchedule = 0;
+p.updateSchedule = 2;
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
