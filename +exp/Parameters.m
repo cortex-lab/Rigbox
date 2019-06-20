@@ -71,9 +71,9 @@ classdef Parameters < handle
       n = numel(obj.pNames);
       obj.IsTrialSpecific = struct;
       isTrialSpecificDefault = @(n) ...
-        strcmp(n, 'numRepeats') ||... % numRepeats always trail specific
-        (ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 1) > 1) ||... % Number of rows > 1 for chars
-        (~ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 2) > 1); % Number of columns > 1 for all others
+        ~strcmp(n, 'randomiseConditions') &&... % randomiseConditions always global
+        ((ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 1) > 1) ||... % Number of rows > 1 for chars
+        (~ischar(obj.pStruct.(n)) &&  size(obj.pStruct.(n), 2) > 1)); % Number of columns > 1 for all others
       for i = 1:n
         name = obj.pNames{i};
         obj.IsTrialSpecific.(name) = isTrialSpecificDefault(name);
@@ -81,6 +81,17 @@ classdef Parameters < handle
     end
     
     function str = title(obj, name)
+      % TITLE Turns param struct field name into title for UI label
+      %  Input name must be a fieldname in Struct or cell array thereof.
+      %  The returned str is the fieldname with a space inserted between
+      %  upper case letters, and the first letter capitalized.  If units
+      %  field is present, the unit is added to the string in brackets
+      %
+      %  Example:
+      %    obj.title('numRepeats') % returns 'Num repeats'
+      %    obj.title({'numRepeats', 'rewardVolume'}) 
+      %    % returns {'Num repeats', 'Reward volume (ul)'}
+      % See also INDIVTITLE
       if iscell(name)
         str = mapToCell(@obj.indivTitle, name);
       else
@@ -122,9 +133,11 @@ classdef Parameters < handle
     
     function makeTrialSpecific(obj, name)
       assert(~obj.isTrialSpecific(name), '''%s'' is already trial-specific', name);
-      currValue = obj.Struct.(name);
-      n = numTrialConditions(obj);
-      if isnumeric(currValue) || islogical(currValue)
+      currValue = obj.Struct.(name); % Current value of parameter
+      n = numTrialConditions(obj); % Number of trial conditions (table rows)
+      if n < 1; n = 2; end % If there are none, let's add two conditions
+      % Repeat value accross all trial conditions
+      if isnumeric(currValue) || islogical(currValue) || isstring(currValue)
         newValue = repmat(currValue, 1, n);
       else
         newValue = repmat({currValue}, 1, n);
@@ -165,7 +178,7 @@ classdef Parameters < handle
     end
     
     function [globalParams, trialParams] = assortForExperiment(obj)
-      % divide into global and trial-specific parameter structures
+      % Divide into global and trial-specific parameter structures
 
       %% group trial-specific parameters into a struct with length of parameters
       % the second dimension (number of columns) specifies parameters for
@@ -182,8 +195,8 @@ classdef Parameters < handle
         'UniformOutput', false);
       % concatenate trial parameter
       trialParamValues = cat(1, trialParamValues{:});
-      if isempty(trialParamValues)
-        trialParamValues = {1};
+      if isempty(trialParamValues) % Removed MW 30.01.19
+        trialParamValues = {};
       end
       trialParams = cell2struct(trialParamValues, trialParamNames, 1)';
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);
@@ -207,7 +220,9 @@ classdef Parameters < handle
         % We also remove the numRepeats parameter from the globalParams
         % since the trial elements are literally repeated now
         nreps = globalParams.numRepeats;
-        trialParams = repmat(trialParams, 1, nreps);
+        trialParams = iff(isempty(trialParams), ...
+          @()repelems(struct, nreps),...
+          @()repmat(trialParams, 1, nreps));
         globalParams = rmfield(globalParams, 'numRepeats');
       end
       if randomOrder
@@ -216,26 +231,6 @@ classdef Parameters < handle
       cs = exp.PresetConditionServer(globalParams, trialParams);
     end
 
-    function [ctrl, label] = ui(obj, name, parent)
-      ctrl = [];
-      label = [];
-      unitField = [name 'Units'];
-      if isfield(obj.Params, unitField)
-        value = obj.Params.(name);
-        units = obj.Params.(unitField);
-        words = lower(regexprep(name, '([a-z])([A-Z])', '$1 $2'));
-        words(1) = upper(words(1));
-        title = sprintf('%s (%s)', words, units);
-        description = obj.Params.([name 'Description']);
-        if any(strcmp(units, {'°', 's'}))
-          label = uicontrol('Parent', parent, 'Style', 'text', 'String', title);
-          ctrl = uicontrol('Parent', parent,...
-            'Style', 'edit',...
-            'String', num2str(value),...
-            'TooltipString', description);
-        end
-      end
-    end
   end
   
   methods (Access = protected)

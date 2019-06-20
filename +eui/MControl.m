@@ -247,10 +247,10 @@ classdef MControl < handle
     end
     
     function loadParamProfile(obj, profile)
+      set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
       if ~isempty(obj.ParamEditor)
-        %delete existing parameters control
-        delete(obj.ParamEditor);
-        set(obj.ParamProfileLabel, 'String', 'loading...', 'ForegroundColor', [1 0 0]); % Red 'Loading...' while new set loads
+        % Clear existing parameters control
+        clear(obj.ParamEditor)
       end
       
       factory = obj.NewExpFactory; % Find which 'world' we are in
@@ -305,16 +305,23 @@ classdef MControl < handle
         paramStruct = rmfield(paramStruct, 'services');
       end
       obj.Parameters.Struct = paramStruct;
-      if ~isempty(paramStruct) % Now parameters are loaded, pass to ParamEditor for display, etc.
+      if isempty(paramStruct); return; end
+      % Now parameters are loaded, pass to ParamEditor for display, etc.
+      if isempty(obj.ParamEditor)
         obj.ParamEditor = eui.ParamEditor(obj.Parameters, obj.ParamPanel); % Build parameter list in Global panel by calling eui.ParamEditor
-        obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
-        if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
-          set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
-        end
+      else
+        obj.ParamEditor.buildUI(obj.Parameters);
+      end
+      obj.ParamEditor.addlistener('Changed', @(src,~) obj.paramChanged);
+      if strcmp(obj.RemoteRigs.Selected.Status, 'idle')
+        set(obj.BeginExpButton, 'Enable', 'on') % Re-enable start button
       end
     end
     
     function paramChanged(obj)
+      % PARAMCHANGED Indicate to user that parameters have been updated
+      %  Changes the label above the ParamEditor indicating that the
+      %  parameters have been edited
       s = get(obj.ParamProfileLabel, 'String');
       if ~strEndsWith(s, '[EDITED]')
         set(obj.ParamProfileLabel, 'String', [s ' ' '[EDITED]'], 'ForegroundColor', [1 0 0]);

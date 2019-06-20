@@ -28,7 +28,7 @@ lastFetch = iff(exist(fetch_head,'file')==2, ... % If FETCH_HEAD file exists
 % than an hour ago.
 if (scheduled && (weekday(now) ~= scheduled) && now - lastFetch < 7) || ...
     (scheduled && (weekday(now) == scheduled) && now - lastFetch < 1) || ...
-        (~scheduled && now - lastFetch < 1/24)
+     (~scheduled && now - lastFetch < 1/24)
   return
 end
 disp('Updating code...')
