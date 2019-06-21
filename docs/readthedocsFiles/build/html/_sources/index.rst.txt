@@ -8,6 +8,7 @@ Rigbox is a a high-performance, open-source software toolbox for managing behavi
 
    Installing
    Setup
+   packages
 
 
 
