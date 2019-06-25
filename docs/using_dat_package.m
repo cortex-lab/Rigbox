@@ -1,3 +1,12 @@
+%% Setting up the paths
+% In order to use Rigbox, a paths file must be placed in a +dat folder
+% somewhere in the MATLAB paths.  You can copy docs/setup/paths_template.m
+% to +dat/paths.m, then customise the paths according to your setup.  The
+% paths used by the wider Rigbox code are found in the 'essential paths'
+% section.  These are required to run experiments.  Any number of custom
+% repositoried may be set, allowing them to be queried useing functions
+% such as DAT.REPOSPATH and DAT.EXPPATH (see below).
+
 %% Loading experiments
 % Listing all subjects
 subjects = dat.listSubjects;
@@ -10,7 +19,8 @@ savePaths = dat.reposPath('main'); % savePaths is a string cell array
 % To get the master location for the "main" repository:
 loadPath = dat.reposPath('main', 'master'); % loadPath is a string
 % If you have alternate repos (e.g. 'main2Respository', 'altRepository'),
-% use the remote flag to return all of them (used by the below functions):
+% use the remote flag to return all of them (used by the below functions).
+% NB: the 'altRepository' is returned for all named repos, not just 'main'
 loadPath = dat.reposPath('main', 'remote');
 % To return all paths ending in 'Repository':
 endInRepos = dat.reposPath('*');

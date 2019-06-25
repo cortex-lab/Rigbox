@@ -2,8 +2,6 @@ function addRigboxPaths(savePaths)
 %ADDRIGBOXPATHS Adds the required paths for using Rigbox
 %
 %   Part of the Rigging toolbox
-% TODO: 
-% - Consider renaming above folder to something more informative 
 %
 % 2014-01 CB
 % 2017-02 MW Updated to work with 2016b
@@ -123,10 +121,15 @@ javaclasspaths = first(textscan(fid,'%s', 'CommentStyle', '#', 'Delimiter',''));
 cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
 
 %%% Remind user to copy paths file %%%
-paths = which('dat.paths');
-if startsWith(paths, root)
-  warning('Rigbox:setup:copyPaths', ['Consider moving ''%s'' to your ',...
-    'MATLAB folder to avoid your changes being overwritten'], paths);
+if isempty(which('dat.paths'))
+  template_paths = fullfile(root, 'docs', 'setup', 'paths_template.m');
+  new_loc = fullfile(root, '+dat', 'paths.m');
+  copied = copyfile(template_paths, new_loc);
+  % Check that the file was copied
+  if ~copied
+    warning('Rigbox:setup:copyPaths', 'Please copy the file ''%s'' to ''%s''.',...
+      template_paths, new_loc);
+  end
 end
 
 %%% Validate that paths saved correctly %%%
