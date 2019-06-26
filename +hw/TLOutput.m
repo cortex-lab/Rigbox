@@ -28,13 +28,18 @@ classdef TLOutput < matlab.mixin.Heterogeneous & handle
   % 2018-01 NS created
   
   properties
-    Name % The name of the timeline output, for easy identification
-    Enable = true % Will not do anything with it unless this is true
-    Verbose = false % Flag to output status updates. Initialization message outputs regardless of verbose.
+    % The name of the timeline output, for easy identification
+    Name
+    % Will not do anything with it unless this is true
+    Enable matlab.lang.OnOffSwitchState = 'on'
+    % Flag to output status updates. Initialization message outputs
+    % regardless of verbose.
+    Verbose matlab.lang.OnOffSwitchState = 'off'
   end
   
   properties (Transient, Hidden, Access = protected)
-    Session % Holds an NI DAQ session object
+    % Holds an NI DAQ session object
+    Session
   end
   
   methods (Abstract)
