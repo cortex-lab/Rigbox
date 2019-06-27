@@ -72,20 +72,13 @@ end
 superSave(dat.expFilePath(expRef, 'parameters'), struct('parameters', expParams));
 
 if ~isempty(expParams)
-  try  % save a copy of parameters in json
-    % First, change all functions to strings
-    f_idx = structfun(@(s)isa(s, 'function_handle'), expParams);
-    fields = fieldnames(expParams);
-    paramCell = struct2cell(expParams);
-    paramCell(f_idx) = cellfun(@func2str, paramCell(f_idx),'UniformOutput', false);
-    expParams = cell2struct(paramCell, fields);
+  try
     % Generate JSON path and save
-    jsonPath = fullfile(fileparts(dat.expFilePath(expRef, 'parameters', 'master')),...
-      [expRef, '_parameters.json']);
-    savejson('parameters', expParams, jsonPath);
-    % Register our JSON parameter set to Alyx
+    jsonParams = obj2json(expParams);
+    jsonPath = dat.expFilePath(expRef, 'parameters', 'master', 'json');
+    fid = fopen(jsonPath, 'w'); fprintf(fid, '%s', jsonParams); fclose(fid);
   catch ex
-    warning(ex.identifier, 'Failed to save paramters as JSON: %s.', ex.message)
+    warning(ex.identifier, 'Failed to save paramters as JSON: %s', ex.message)
   end
 end
 end
