@@ -117,7 +117,7 @@ classdef MockDialog < handle
           end
         case {'inputdlg', 'newid'}
           % Find key
-          if ~strcmp(obj.Dialogs.KeyType, 'char')
+          if ~strcmp(obj.Dialogs.KeyType, 'char') && ~obj.UseDefaults
             key = obj.fromCount;
           elseif isempty(varargin)
             key = 'Input';
@@ -141,6 +141,10 @@ classdef MockDialog < handle
       if isa(answer, 'fun.CellSeq')
         answer = answer.first;
         obj.Dialogs(key) = obj.Dialogs(key).rest;
+      elseif isa(answer, 'fun.EmptySeq')
+        warning('MockDialog:NewCall:EmptySeq', ...
+          'End of input sequence, using default input instead')
+        answer = def;
       end
       
       % inputdlg always returns a cell
