@@ -239,6 +239,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       end
       
       testCase.verifyEqual(url, expected, 'Unexpected url')
+      
+      % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
     function test_launchSubjectURL(testCase)
