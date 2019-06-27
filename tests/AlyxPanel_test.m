@@ -254,7 +254,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_recordWeight(testCase)
-      testCase.Panel;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set subject on water restriction
