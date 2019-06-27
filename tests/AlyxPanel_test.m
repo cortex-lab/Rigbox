@@ -275,7 +275,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to update weight label color')
       
       % Post weight < 80 
-      weight = 25 + rand;
+      weight = 28 + rand;
       testCase.Panel.recordWeight(weight)
       expected = sprintf('Weight today: %.2f (< 80%%)', weight);
       testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
