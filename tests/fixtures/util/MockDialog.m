@@ -115,7 +115,7 @@ classdef MockDialog < handle
           else
             key = obj.fromCount;
           end
-        case 'inputdlg'
+        case {'inputdlg', 'newid'}
           % Find key
           if ~strcmp(obj.Dialogs.KeyType, 'char') && ~obj.UseDefaults
             key = obj.fromCount;
@@ -148,7 +148,9 @@ classdef MockDialog < handle
       end
       
       % inputdlg always returns a cell
-      if strcmp(type, 'inputdlg'); answer = ensureCell(answer); end
+      if ismember(type, {'inputdlg','newid'})
+        answer = ensureCell(answer);
+      end
       obj.NumCalls = obj.NumCalls + 1; % Iterate number of calls
     end
       
@@ -157,8 +159,13 @@ classdef MockDialog < handle
   methods (Access = private)
     
     function key = fromCount(obj)
-      assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
-        'No values saved in Dialogs property')
+      if strcmp(obj.Dialogs.KeyType, 'char')
+        key = [];
+        return
+      elseif ~obj.UseDefaults
+        assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
+          'No values saved in Dialogs property')
+      end
       key = obj.NumCalls;
       if key > obj.Dialogs.Count
         key = key - obj.Dialogs.Count*floor(key/uint32(obj.Dialogs.Count));

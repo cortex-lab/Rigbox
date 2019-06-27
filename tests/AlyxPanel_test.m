@@ -51,9 +51,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
-      mainRepo = getOr(dat.paths, 'mainRepository');
-      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+      mainRepo = dat.reposPath('main','master');
+      assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
+      
+      % Create local directory
+      localRepo = dat.reposPath('main','local');
+      if exist(localRepo, 'dir') == 0; mkdir(localRepo); end
       
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
@@ -114,11 +118,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         close(figHandles(idx))
       end
       % Remove subject directories
-      dataRepo = getOr(dat.paths, 'mainRepository');
-      assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
+      rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), dat.reposPath('main'));
       % Remove Alyx queue
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
-      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alx queue')
+      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alyx queue')
     end
   end
   
@@ -134,7 +138,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
       testCase.resetQueue(alyxQ);
       % Close any figures opened during the test
-      if ~isempty(testCase.Figure); close(testCase.Figure); end
+      if ~isempty(testCase.Figure) && isvalid(testCase.Figure)
+        close(testCase.Figure)
+      end
+      % Close any open file ids
+      fclose('all');
       % Reset state of dialog mock
       testCase.Mock.reset;
     end
@@ -213,7 +221,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.UseDefaults = false;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'start_date', now);
+      todaySession = p.AlyxInstance.getSessions(...
+        'subject', testCase.SubjectUI.Selected, 'date', now);
       
       % Add mock user response
       key = 'Would you like to create a new base session?';
@@ -245,7 +254,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_recordWeight(testCase)
-      testCase.Panel;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set subject on water restriction
@@ -353,7 +361,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       
       % Check button resets
-      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); end
+      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
@@ -415,7 +423,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveFutureWater(testCase)
-      testCase.Panel;
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
       
@@ -459,6 +466,54 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       toTrian = dat.loadParamProfiles('WeekendWater');
       testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
         'Failed to add training dates to saved params')
+    end
+    
+    function test_activeFlag(testCase)
+      % Ensure that the panel is active when the DatabaseURL is added and
+      % none empty
+      
+      % First ensure panel was set up as active
+      testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+        'Expected non-empty databaseURL field in paths')
+      str = iff(testCase.Panel.AlyxInstance.IsLoggedIn, 'Logout', 'Login');
+      button = findobj(testCase.Parent, 'String', str);
+      testCase.assertEqual(button.Enable, 'on', 'AlyxPanel not enabled')
+      
+      % Comment out the databaseURL field in the paths file
+      fid = fopen(which('dat.paths'));
+      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
+      fclose(fid);
+
+      data{startsWith(data,'p.databaseURL')} = ['%' data{startsWith(data,'p.databaseURL')}];
+      
+      fid = fopen(which('dat.paths'), 'w');
+      cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
+      fclose(fid);
+      
+      testCase.Figure = figure('Name', testCase.Subjects{end});
+      eui.AlyxPanel(testCase.Figure);
+      
+      testCase.assertEmpty(getOr(dat.paths, 'databaseURL'), ...
+        'Failed to remove databaseURL field in paths')
+      button = findobj(testCase.Figure, 'String', 'Login');
+      testCase.verifyEqual(button.Enable, 'off', ...
+        'AlyxPanel enabled while databaseURL undefined')
+
+      close(testCase.Figure)
+      % Restore paths
+      fid = fopen(which('dat.paths'));
+      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
+      fclose(fid);
+      
+      idx = startsWith(data,'%p.databaseURL');
+      if any(idx)
+        data{idx}(1) = [];
+        fid = fopen(which('dat.paths'), 'w');
+        cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
+        fclose(fid);
+        testCase.fatalAssertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+        'Failed to restore databaseURL field in paths')
+      end
     end
     
     function test_round(testCase)
