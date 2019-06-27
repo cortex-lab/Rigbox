@@ -1,11 +1,12 @@
 %% Setting up the paths
-% In order to use Rigbox, a paths file must be placed in a +dat folder
-% somewhere in the MATLAB paths.  You can copy docs/setup/paths_template.m
-% to +dat/paths.m, then customise the paths according to your setup.  The
+% In order to use Rigbox, a 'paths' file must be placed in a '+dat' folder
+% somewhere in the MATLAB path. You can copy 'docs/setup/paths_template.m'
+% to '+dat/paths.m', then customise the file according to your setup. The
 % paths used by the wider Rigbox code are found in the 'essential paths'
-% section.  These are required to run experiments.  Any number of custom
-% repositoried may be set, allowing them to be queried useing functions
-% such as DAT.REPOSPATH and DAT.EXPPATH (see below).
+% section of the 'paths_template.m' file. These paths are required to run 
+% experiments. Any number of custom repositories may be set, allowing them 
+% to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH 
+% (see below).
 
 %% Loading experiments
 % Listing all subjects
