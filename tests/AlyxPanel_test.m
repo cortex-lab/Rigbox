@@ -473,7 +473,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_activeFlag(testCase)
       % Ensure that the panel is active when the DatabaseURL is added and
-      % none empty
+      % not empty
       
       % First ensure panel was set up as active
       testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
