@@ -385,6 +385,28 @@ classdef Window < hw.Window
     end
 
     function [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
+    % Calls PTB's `DrawFormattedText` to display text to the PTB Window
+    %
+    % Inputs:
+    %   `text`: the text to be displaye
+    %   `x`: a number, in pixels, of the x-position of the left border of 
+    %   the text
+    %   `y`: a number, in pixels, of the y-position of the top border of 
+    %   the text, in pixels
+    %   `colour`: an [r g b] or [r g b a] numeric vector for the color of 
+    %   the text
+    %   `vSpacing`: a number for the spacing between lines of text
+    %   `wrapAt`: a number for the max number of characters in a line of text
+    %
+    % Outputs:
+    %   `nx`: 
+    %   `ny`:
+    %
+    % Examples:
+    % 
+    %
+    %
+    % See also: DrawFormattedText
       if nargin < 7
         wrapAt = [];
       end
