@@ -239,6 +239,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       end
       
       testCase.verifyEqual(url, expected, 'Unexpected url')
+      
+      % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
     function test_launchSubjectURL(testCase)
@@ -272,7 +274,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to update weight label color')
       
       % Post weight < 80 
-      weight = 25 + rand;
+      weight = 28 + rand;
       testCase.Panel.recordWeight(weight)
       expected = sprintf('Weight today: %.2f (< 80%%)', weight);
       testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
@@ -470,7 +472,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_activeFlag(testCase)
       % Ensure that the panel is active when the DatabaseURL is added and
-      % none empty
+      % not empty
       
       % First ensure panel was set up as active
       testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...

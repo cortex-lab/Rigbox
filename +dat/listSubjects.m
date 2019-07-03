@@ -11,7 +11,7 @@ function subjects = listSubjects()
 
 % The master 'main' repository is the reference for the existence of
 % experiments, as given by the folder structure
-mainPath = dat.reposPath('main', 'master');
+mainPath = dat.reposPath('main', 'remote');
 
-dirs = file.list(mainPath, 'dirs');
+dirs = unique(cellflat(rmEmpty(file.list(mainPath, 'dirs'))));
 subjects = dirs(~cellfun(@(d)startsWith(d, '@'), dirs)); % exclude misc directories
