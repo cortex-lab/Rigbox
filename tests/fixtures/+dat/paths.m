@@ -10,14 +10,14 @@ function p = paths(rig)
 thishost = 'testRig';
 
 if nargin < 1 || isempty(rig)
-  rig = thishost;
+rig = thishost;
 end
 
 %% defaults
 % path containing rigbox config folders
 p.rigbox = fileparts(which('addRigboxPaths'));
 % Repository for local copy of everything generated on this rig
-p.localRepository = 'C:\LocalExpData';
+p.localRepository = fullfile(p.rigbox, 'tests', 'fixtures', 'local');
 p.localAlyxQueue = fullfile(p.rigbox, 'tests', 'fixtures', 'alyxQ');
 p.databaseURL = 'https://test.alyx.internationalbrainlab.org';
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
@@ -28,7 +28,7 @@ p.mainRepository = fullfile(p.rigbox, 'tests', 'fixtures', 'Subjects');
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver
-p.globalConfig = fullfile(p.rigbox, 'tests', 'data', 'config');
+p.globalConfig = fullfile(p.rigbox, 'tests', 'fixtures', 'config');
 % directory for rig-specific configuration files
 p.rigConfig = fullfile(p.globalConfig, rig);
 % repository for all experiment definitions
@@ -48,18 +48,18 @@ p.tapeArchiveRepository = fullfile(p.rigbox, 'tests', 'toarchive');
 %% load rig-specific overrides from config file, if any  
 customPathsFile = fullfile(p.rigConfig, 'paths.mat');
 if file.exists(customPathsFile)
-  customPaths = loadVar(customPathsFile, 'paths');
-  if isfield(customPaths, 'centralRepository')
-    % 'centralRepository' is deprecated, remove field, if any
-    customPaths = rmfield(customPaths, 'centralRepository');
-  end
-  if isfield(customPaths, 'expInfoRepository')
-    % 'expInfo' is deprecated, change to 'main'
-    p.mainRepository = customPaths.expInfoRepository;
-    customPaths = rmfield(customPaths, 'expInfoRepository');
-  end
-  % merge paths structures, with precedence on the loaded custom paths
-  p = mergeStructs(customPaths, p);
+customPaths = loadVar(customPathsFile, 'paths');
+if isfield(customPaths, 'centralRepository')
+% 'centralRepository' is deprecated, remove field, if any
+customPaths = rmfield(customPaths, 'centralRepository');
+end
+if isfield(customPaths, 'expInfoRepository')
+% 'expInfo' is deprecated, change to 'main'
+p.mainRepository = customPaths.expInfoRepository;
+customPaths = rmfield(customPaths, 'expInfoRepository');
+end
+% merge paths structures, with precedence on the loaded custom paths
+p = mergeStructs(customPaths, p);
 end
 
 end
