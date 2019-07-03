@@ -11,7 +11,7 @@ function [fullpath, filename] = expFilePath(varargin)
 %
 %   [full, filename] = expFilePath(subject, date, seq, type, [reposlocation, ext])
 %
-%   Options for reposlocation are: 'local' or 'master'
+%   Options for reposlocation are: 'all' (default), 'local', 'master' and 'remote'
 %   Many options for type, e.g. 'block', '2p-raw', 'eyetracking', etc
 %   If ext is specified, the path returned has the extention ext, otherwise
 %   the default for that type is used.
