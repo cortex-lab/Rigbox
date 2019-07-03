@@ -63,6 +63,16 @@ end
 switch lower(location)
   case {'master' 'm'}
     p = paths.([name 'Repository']);
+  case {'remote' 'r'}
+    fn = fieldnames(paths); %FIXME The below code is verbose and ugly!
+    results = regexp(fn, ['(' name '|alt)(\d*)Repository$'], 'tokens');
+    remoteRepos = fn(~emptyElems(results));
+    matches = cellflat(rmEmpty(results));
+    matches(emptyElems(matches)) = {'1'};
+    [B,I] = sort(strcat(matches(1:2:end), matches(2:2:end)));
+    alt = startsWith(B,'alt');
+    p = mapToCell(@(n) paths.(n), [remoteRepos(I(~alt)); remoteRepos(I(alt))]);
+    if numel(p) < 2; p = p{:}; end
   case {'local' 'l'}
     p = paths.localRepository;
   otherwise

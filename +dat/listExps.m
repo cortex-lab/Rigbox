@@ -9,31 +9,34 @@ function [expRef, expDate, expSequence] = listExps(subjects)
 
 % The master 'main' repository is the reference for the existence of
 % experiments, as given by the folder structure
-mainPath = dat.reposPath('main', 'master');
+mainPath = ensureCell(dat.reposPath('main', 'remote'));
 
   function [expRef, expDate, expSeq] = subjectExps(subject)
     % finds experiments for individual subjects
     % experiment dates correpsond to date formated folders in subject's
     % folder
     subjectPath = fullfile(mainPath, subject);
-    subjectDirs = file.list(subjectPath, 'dirs');
+    subjectDirs = cellflat(rmEmpty(file.list(subjectPath, 'dirs')));
     dateRegExp = '^(?<year>\d\d\d\d)\-?(?<month>\d\d)\-?(?<day>\d\d)$';
     dateMatch = regexp(subjectDirs, dateRegExp, 'names');
-    dateStrs = subjectDirs(~emptyElems(dateMatch));
+    dateStrs = unique(subjectDirs(~emptyElems(dateMatch)));
     [expDate, expSeq] = mapToCell(@(d) expsForDate(subjectPath, d), dateStrs);
     expDate = cat(1, expDate{:});
     expSeq = cat(1, expSeq{:});
     expRef = dat.constructExpRef(repmat({subject}, size(expDate)), expDate, expSeq);
     %sort them by date first then sequence number
     [~,  isorted] = sort(cellsprintf('%.0d-%03i', expDate, expSeq));
+    %remove duplicates that may exist in alternate repos
+    [~,ia] = unique(expRef);
+    isorted = intersect(isorted,ia,'stable');
     expRef = expRef(isorted);
     expDate = expDate(isorted);
     expSeq = expSeq(isorted);
   end
 
   function [dates, seqs] = expsForDate(subjectPath, dateStr)
-    dateDirs = file.list(fullfile(subjectPath, dateStr), 'dirs');
-    seqMatch = cell2mat(regexp(dateDirs, '(?<seq>\d+)', 'names'));
+    dateDirs = rmEmpty(file.list(fullfile(subjectPath, dateStr), 'dirs'));
+    seqMatch = cell2mat(regexp(cellflat(dateDirs), '(?<seq>\d+)', 'names'));
     if numel(seqMatch) > 0
       seqs = str2double({seqMatch.seq}');
     else
