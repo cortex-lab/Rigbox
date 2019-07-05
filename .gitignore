@@ -1,4 +1,4 @@
 *.asv
 .DS_Store
 *.m~
-+dat.paths.m
++dat/paths.m
