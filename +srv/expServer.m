@@ -14,17 +14,18 @@ function expServer(useTimelineOverride, bgColour)
 %       harware file is used.
 %
 %   Key bindings:
-%     t - Toggle Timeline on and off.  The default state is defined in the
+%     't' - Toggle Timeline on and off.  The default state is defined in the
 %       hardware file but may be overridden as the first input argument.
-%     w - Toggle reward on and off.  This switches the output of the first
+%     'w' - Toggle reward on and off.  This switches the output of the first
 %       DAQ output channel between its 'high' and 'low' state.  The
 %       specific DAQ channel and its default state are set in the hardware
 %       file.
-%     space - Deliver default reward, specified by the DefaultCommand
+%     'space' - Deliver default reward, specified by the DefaultCommand
 %       property in the hardware file.
-%     m - Perform water calibration. 
-%     b - Toggle the background colour between the default and white.
-%     g - Perform gamma correction
+%     'm' - Perform water calibration. 
+%     'g' - Perform gamma correction
+%     'b' - Toggle the background colour between the default and white.
+%     'q' - Quit expServer.
 %     
 %
 % See also MC, io.WSJCommunicator, hw.devices, srv.prepareExp, hw.Timeline
@@ -359,8 +360,8 @@ ShowCursor();
   function calibrateGamma()
     stimWindow = rig.stimWindow;
     DaqDev = rig.daqController.DaqIds;
-    lightIn = 'ai1'; % defaults from hw.psy.Window
-    clockIn = 'ai0';
+    lightIn = 'ai0'; % defaults from hw.ptb.Window
+    clockIn = 'ai1';
     clockOut = 'port1/line0';
     clockOutHint = 'PFI4';
     log(['Please connect photodiode to %s, clockIn to %s and clockOut to '... 
@@ -371,7 +372,7 @@ ShowCursor();
     pause(1);
     saveGamma(stimWindow.Calibration);
     stimWindow.applyCalibration(stimWindow.Calibration);
-    clear('lightIn','clockIn','clockOut','cal');
+    clear('lightIn','clockIn','clockOut','clockOutHint');
     log('Gamma calibration complete');
   end
 
