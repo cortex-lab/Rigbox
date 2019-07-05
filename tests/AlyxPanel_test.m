@@ -288,7 +288,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
       
       % Test manual weight dialog
-      weight = 30 + rand;
+      weight = 32 + rand;
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
       testCase.assertTrue(~isempty(button), 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
