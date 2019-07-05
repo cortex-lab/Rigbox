@@ -373,7 +373,8 @@ ShowCursor();
     saveGamma(stimWindow.Calibration);
     stimWindow.applyCalibration(stimWindow.Calibration);
     clear('lightIn','clockIn','clockOut','clockOutHint');
-    log('Gamma calibration complete');
+    log('Gamma calibration complete. Quitting expServer');
+    running = false;
   end
 
   function saveGamma(cal)
