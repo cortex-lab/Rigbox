@@ -17,7 +17,7 @@ classdef Window < hw.Window
   properties
     ForegroundColour
     ScreenNum; %Psychtoolbox screen number
-    PxDepth = 32 %the pixel colour depth (bits)
+    PxDepth %the pixel colour depth (bits)
     OpenBounds %default screen region to open window onscreen - empty for full
     SyncBounds %position bounding rectangle of sync region
     %sync region [r g b], or luminance for each consecutive flip (row-wise).
@@ -25,6 +25,7 @@ classdef Window < hw.Window
     SyncColourCycle = [0; 255]
     MonitorId %an identifier for the monitor
     Calibration %Struct containing calibration data
+    PtbHandle = -1 %a handle to the PTB screen window
     PtbVerbosity = 2
     PtbSyncTests
   end
@@ -41,7 +42,6 @@ classdef Window < hw.Window
   end
   
   properties (SetAccess = protected, Transient)
-    PtbHandle = -1 %a handle to the PTB screen window
     RefreshInterval %refresh interval for updating the device
     NextSyncIdx %index into SyncColourCycle for next sync colour
     Invalid = false
@@ -197,9 +197,10 @@ classdef Window < hw.Window
       end
       Screen('Preference', 'SuppressAllWarnings', true);
       % setup screen window
+      %obj.PxDepth = 32;
       obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
         obj.OpenBounds, obj.PxDepth);
-      obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
+      %obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
       obj.Bounds = Screen('Rect', obj.PtbHandle);
 
       %first flip will be first sync colour in cycle

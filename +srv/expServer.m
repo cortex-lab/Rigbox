@@ -359,6 +359,11 @@ ShowCursor();
 
   function calibrateGamma()
     stimWindow = rig.stimWindow;
+    % move PTB window to background and bring MATLAB command window to front
+    Screen('Preference', 'WindowShieldingLevel', 0);
+    stimWindow.close();
+    stimWindow.open();
+    commandwindow;
     DaqDev = rig.daqController.DaqIds;
     lightIn = 'ai0'; % defaults from hw.ptb.Window
     clockIn = 'ai1';
@@ -374,7 +379,10 @@ ShowCursor();
     stimWindow.applyCalibration(stimWindow.Calibration);
     clear('lightIn','clockIn','clockOut','clockOutHint');
     log('Gamma calibration complete. Quitting expServer');
-    running = false;
+    % move PTB window to foreground
+    Screen(stimWindow, 'WindowShieldingLevel', 2000);
+    stimWindow.close();
+    stimWindow.open();
   end
 
   function saveGamma(cal)
