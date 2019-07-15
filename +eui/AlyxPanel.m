@@ -478,7 +478,7 @@ classdef AlyxPanel < handle
             % See also LAUNCHSESSIONURL
             ai = obj.AlyxInstance;
             s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
-            url = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
+            url = sprintf('%s/admin/subjects/subject/%s/change', ai.BaseURL, s.id);
             stat = web(url, '-browser');
         end
         
