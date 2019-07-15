@@ -29,6 +29,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     GraphData
   end
   
+  properties (ClassSetupParameter)
+    % Alyx base URL.  test is for the main branch, testDev is for the dev
+    % code
+    BaseURL = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+  end
+  
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
@@ -46,7 +52,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.GraphData = graphData;
     end
     
-    function setupPanel(testCase)
+    function setupPanel(testCase, BaseURL)
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
@@ -58,6 +64,16 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Create local directory
       localRepo = dat.reposPath('main','local');
       if exist(localRepo, 'dir') == 0; mkdir(localRepo); end
+      
+      % Create config directory
+      assert(mkdir(getOr(dat.paths,'rigConfig')), 'Failed to create config directory')
+      % Add teardown to remove folders
+      rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      addTeardown(testCase, rmFcn, getOr(dat.paths, 'globalConfig'))
+      
+      % Set the database url
+      paths.databaseURL = BaseURL;
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
       
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
@@ -87,11 +103,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % MControl using this as a panel.
       testCase.SubjectUI.addlistener('SelectionChanged', ...
         @(src, evt)testCase.Panel.dispWaterReq(src, evt));
-      
+            
       % Set Alyx Instance and log in
       testCase.Panel.login('test_user', 'TapetesBloc18');
       testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
         'Failed to log into Alyx');
+      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURL,...
+        'Failed to correctly set database url');
       
       % Verify subject folders created
       present = ismember([{'default'}; testCase.Subjects(1:end-1)], dat.listSubjects);
@@ -214,7 +232,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
     end
     
-    function test_launchSessionURL(testCase)
+    function test_launchSessionURL(testCase, BaseURL)
       % Test the launch of the session page in the admin Web interface
       p = testCase.Panel;
       testCase.Mock.InTest = true;
@@ -234,8 +252,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         expected = url;
       else
         uuid = todaySession.url(find(todaySession.url=='/', 1, 'last')+1:end);
-        expected = ['https://test.alyx.internationalbrainlab.org/admin/', ...
-          'actions/session/', uuid, '/change'];
+        expected = [BaseURL '/admin/actions/session/', uuid, '/change'];
       end
       
       testCase.verifyEqual(url, expected, 'Unexpected url')
@@ -243,15 +260,15 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
-    function test_launchSubjectURL(testCase)
+    function test_launchSubjectURL(testCase, BaseURL)
       % Test the launch of the subject page in the admin Web interface
       p = testCase.Panel;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
       [failed, url] = p.launchSubjectURL;
       testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
-      expected = ['https:\\test.alyx.internationalbrainlab.org\admin\'...
-        'subjects\subject\bcefd268-68c2-4ea8-9b60-588ee4e99ebb\change'];
+      expected = [BaseURL '/admin/subjects/subject/'...
+        'bcefd268-68c2-4ea8-9b60-588ee4e99ebb/change'];
       testCase.verifyEqual(url, expected, 'unexpected subject page url')
     end
     
@@ -481,16 +498,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       button = findobj(testCase.Parent, 'String', str);
       testCase.assertEqual(button.Enable, 'on', 'AlyxPanel not enabled')
       
-      % Comment out the databaseURL field in the paths file
-      fid = fopen(which('dat.paths'));
-      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
-      fclose(fid);
-
-      data{startsWith(data,'p.databaseURL')} = ['%' data{startsWith(data,'p.databaseURL')}];
-      
-      fid = fopen(which('dat.paths'), 'w');
-      cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
-      fclose(fid);
+      % Set invalid database URL
+      paths.databaseURL = '';
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      testCase.assertEqual(paths.databaseURL, getOr(dat.paths,'databaseURL'),...
+        'Failed to create custom paths file')
       
       testCase.Figure = figure('Name', testCase.Subjects{end});
       eui.AlyxPanel(testCase.Figure);
@@ -502,20 +514,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'AlyxPanel enabled while databaseURL undefined')
 
       close(testCase.Figure)
-      % Restore paths
-      fid = fopen(which('dat.paths'));
-      data = cellflat(textscan(fid, '%s', 'Delimiter', '\n', 'CollectOutput', true));
-      fclose(fid);
-      
-      idx = startsWith(data,'%p.databaseURL');
-      if any(idx)
-        data{idx}(1) = [];
-        fid = fopen(which('dat.paths'), 'w');
-        cellfun(@(ln)fprintf(fid, '%s\n', ln), data);
-        fclose(fid);
-        testCase.fatalAssertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
-        'Failed to restore databaseURL field in paths')
-      end
     end
     
     function test_round(testCase)
