@@ -487,7 +487,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to add training dates to saved params')
     end
     
-    function test_activeFlag(testCase)
+    function test_activeFlag(testCase, BaseURL)
       % Ensure that the panel is active when the DatabaseURL is added and
       % not empty
       
@@ -507,7 +507,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Figure = figure('Name', testCase.Subjects{end});
       eui.AlyxPanel(testCase.Figure);
       
-      testCase.assertEmpty(getOr(dat.paths, 'databaseURL'), ...
+      % Reset URL
+      paths.databaseURL = BaseURL;
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      testCase.fatalAssertEqual(getOr(dat.paths, 'databaseURL'), BaseURL, ...
         'Failed to remove databaseURL field in paths')
       button = findobj(testCase.Figure, 'String', 'Login');
       testCase.verifyEqual(button.Enable, 'off', ...
