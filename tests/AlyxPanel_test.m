@@ -510,6 +510,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Reset URL
       paths.databaseURL = BaseURL;
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      clearCBToolsCache % Ensure paths are reloaded
       testCase.fatalAssertEqual(getOr(dat.paths, 'databaseURL'), BaseURL, ...
         'Failed to remove databaseURL field in paths')
       button = findobj(testCase.Figure, 'String', 'Login');
