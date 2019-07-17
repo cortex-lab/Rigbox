@@ -32,9 +32,16 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   properties (ClassSetupParameter)
     % Alyx base URL.  test is for the main branch, testDev is for the dev
     % code
+    BaseURLTestSetup = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+  end
+  
+  properties (TestParameter)
+    % Alyx base URL.  test is for the main branch, testDev is for the dev
+    % code
     BaseURL = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
   end
   
+  %% methods (TestClassSetup)
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
@@ -52,7 +59,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.GraphData = graphData;
     end
     
-    function setupPanel(testCase, BaseURL)
+    function setupPanel(testCase, BaseURLTestSetup)
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
@@ -72,7 +79,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       addTeardown(testCase, rmFcn, getOr(dat.paths, 'globalConfig'))
       
       % Set the database url
-      paths.databaseURL = BaseURL;
+      paths.databaseURL = BaseURLTestSetup;
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
       
       % Create figure for panel
@@ -108,7 +115,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Panel.login('test_user', 'TapetesBloc18');
       testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
         'Failed to log into Alyx');
-      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURL,...
+      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURLTestSetup,...
         'Failed to correctly set database url');
       
       % Verify subject folders created
@@ -124,6 +131,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
   end
   
+  %% methods (TestClassTeardown)
   methods (TestClassTeardown)
     function restoreFigures(testCase)
       set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
@@ -165,7 +173,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.reset;
     end
   end
-      
+  
+  %% methods (Test)
   methods (Test)
     function test_viewSubjectHistory(testCase)
       % Post some weights for plotting
