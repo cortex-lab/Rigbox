@@ -32,16 +32,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   properties (ClassSetupParameter)
     % Alyx base URL.  test is for the main branch, testDev is for the dev
     % code
-    BaseURLTestSetup = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
-  end
-  
-  properties (TestParameter)
-    % Alyx base URL.  test is for the main branch, testDev is for the dev
-    % code
     BaseURL = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
   end
   
-  %% methods (TestClassSetup)
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
@@ -59,7 +52,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.GraphData = graphData;
     end
     
-    function setupPanel(testCase, BaseURLTestSetup)
+    function setupPanel(testCase, BaseURL)
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
@@ -79,7 +72,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       addTeardown(testCase, rmFcn, getOr(dat.paths, 'globalConfig'))
       
       % Set the database url
-      paths.databaseURL = BaseURLTestSetup;
+      paths.databaseURL = BaseURL;
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
       
       % Create figure for panel
@@ -115,7 +108,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Panel.login('test_user', 'TapetesBloc18');
       testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
         'Failed to log into Alyx');
-      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURLTestSetup,...
+      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURL,...
         'Failed to correctly set database url');
       
       % Verify subject folders created
@@ -131,7 +124,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
   end
   
-  %% methods (TestClassTeardown)
   methods (TestClassTeardown)
     function restoreFigures(testCase)
       set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
@@ -173,8 +165,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.Mock.reset;
     end
   end
-  
-  %% methods (Test)
+      
   methods (Test)
     function test_viewSubjectHistory(testCase)
       % Post some weights for plotting
@@ -496,7 +487,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to add training dates to saved params')
     end
     
-    function test_activeFlag(testCase, BaseURL)
+    function test_activeFlag(testCase)
       % Ensure that the panel is active when the DatabaseURL is added and
       % not empty
       
@@ -508,19 +499,20 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.assertEqual(button.Enable, 'on', 'AlyxPanel not enabled')
       
       % Set invalid database URL
+      baseURL = testCase.Panel.AlyxInstance.BaseURL;
       paths.databaseURL = '';
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
-      testCase.assertEqual(paths.databaseURL, getOr(dat.paths,'databaseURL'),...
+      testCase.assertEmpty(getOr(dat.paths,'databaseURL'),...
         'Failed to create custom paths file')
       
       testCase.Figure = figure('Name', testCase.Subjects{end});
       eui.AlyxPanel(testCase.Figure);
       
       % Reset URL
-      paths.databaseURL = BaseURL;
+      paths.databaseURL = baseURL;
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
       clearCBToolsCache % Ensure paths are reloaded
-      testCase.fatalAssertEqual(getOr(dat.paths, 'databaseURL'), BaseURL, ...
+      testCase.fatalAssertEqual(getOr(dat.paths, 'databaseURL'), baseURL, ...
         'Failed to remove databaseURL field in paths')
       button = findobj(testCase.Figure, 'String', 'Login');
       testCase.verifyEqual(button.Enable, 'off', ...
