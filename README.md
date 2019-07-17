@@ -1,6 +1,6 @@
 ----------
 # Rigbox
-
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
 [![Coverage 
 Status](https://coveralls.io/repos/github/cortex-lab/Rigbox/badge.svg?branch=master)](https://coveralls.io/github/cortex-lab/Rigbox?branch=master)
 
