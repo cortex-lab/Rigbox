@@ -3,7 +3,6 @@
 % TODO May become a function
 % TODO May add flags for levels of testing
 % TODO Method setup in dat_test may become global fixture
-% TODO Delete sinusoidLayer_test from this folder
 % TODO Deal with directory changes
 main_tests = testsuite;
 

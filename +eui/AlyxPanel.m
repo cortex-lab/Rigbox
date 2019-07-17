@@ -202,7 +202,7 @@ classdef AlyxPanel < handle
                 parent.Sizes = [50 150 150];
             else
                 % Use parent's logging display
-                obj.LoggingDisplay = findobj('Tag', 'Logging Display');
+                obj.LoggingDisplay = findobj(parent, 'Tag', 'Logging Display');
             end
         end
         
