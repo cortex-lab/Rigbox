@@ -56,6 +56,7 @@ classdef SignalsExp < handle
     %Holds the object for interating with the lick detector.  See also
     %HW.DAQEDGECOUNTER
     LickDetector
+    LickDetector2
     
     %Holds the object for interating with the DAQ outputs (reward valve,
     %etc.)  See also HW.DAQCONTROLLER
@@ -157,6 +158,7 @@ classdef SignalsExp < handle
       obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
         @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
+      obj.Inputs.lick = net.origin('lick2');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -227,6 +229,10 @@ classdef SignalsExp < handle
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
+      end
+      if isfield(rig, 'lickDetector2')
+        obj.LickDetector2 = rig.lickDetector2;
+        obj.LickDetector2.zero();
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
@@ -694,9 +700,17 @@ classdef SignalsExp < handle
           [nlicks, ~, licked] = readPosition(obj.LickDetector);
           if licked
             post(obj.Inputs.lick, nlicks);
-            fprintf('lick count now %i\n', nlicks);
           end
         end
+        
+        if ~isempty(obj.LickDetector2)
+          % read and log the current lick count
+          [nlicks, ~, licked] = readPosition(obj.LickDetector2);
+          if licked
+            post(obj.Inputs.lick2, nlicks);
+          end
+        end
+        
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         
