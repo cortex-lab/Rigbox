@@ -67,14 +67,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Create config directory
       assert(mkdir(getOr(dat.paths,'rigConfig')), 'Failed to create config directory')
-      % Add teardown to remove folders
-      rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
-      addTeardown(testCase, rmFcn, getOr(dat.paths, 'globalConfig'))
       
       % Set the database url
       paths.databaseURL = BaseURL;
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
-      
+      clearCBToolsCache
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
         'MenuBar', 'none',...
@@ -135,12 +132,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         idx = cellfun(@(n)any(strcmp(n, testCase.Subjects)),{figHandles.Name});
         close(figHandles(idx))
       end
-      % Remove subject directories
+      % Remove directories
+      repos = [{getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ'])};...
+          dat.reposPath('main'); {getOr(dat.paths, 'globalConfig')}];
       rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
-      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), dat.reposPath('main'));
-      % Remove Alyx queue
-      alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
-      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alyx queue')
+      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), repos);
     end
   end
   
@@ -234,6 +230,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_launchSessionURL(testCase, BaseURL)
       % Test the launch of the session page in the admin Web interface
+      % TODO Use DELETE to test both creating new session and viewing
+      % existing
       p = testCase.Panel;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
@@ -244,10 +242,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Add mock user response
       key = 'Would you like to create a new base session?';
-      testCase.Mock.Dialogs(key) = iff(isempty(todaySession), 'Yes', 'No');
+      noSub = isempty(todaySession)||~isempty(todaySession.number);
+      testCase.Mock.Dialogs(key) = iff(noSub, 'Yes', 'No');
       
-      [failed, url] = testCase.assertWarningFree(@()p.launchSessionURL);
-      testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
+      [status, url] = testCase.assertWarningFree(@()p.launchSessionURL);
+      testCase.verifyTrue(status > -1, 'Failed to launch subject page in browser')
       if isempty(todaySession)
         expected = url;
       else
