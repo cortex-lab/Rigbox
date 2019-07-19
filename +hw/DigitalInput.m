@@ -23,7 +23,7 @@ classdef DigitalInput < hw.DataLogging
     % DAQ's device ID, e.g. 'Dev1'
     DaqId = 'Dev1'
     % DAQ's ID for the digital channel. e.g. 'ctr0'
-    DaqChannelId = 'pfi2'
+    DaqChannelId = 'port0/line1'
   end
   
   
