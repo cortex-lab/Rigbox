@@ -66,6 +66,8 @@ classdef DigitalInput < hw.DataLogging
     function value = get.DaqChannelIdx(obj)
       inputs = find(strcmpi('input', io.daqSessionChannelDirections(obj.DaqSession)));
       value = inputs(obj.DaqInputChannelIdx);
+      
+      
     end
     
     function set.DaqChannelIdx(obj, value)

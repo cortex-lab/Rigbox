@@ -97,7 +97,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+% HideCursor();
 
 if nargin < 2
   bgColour = 127*[1 1 1]; % mid gray by default

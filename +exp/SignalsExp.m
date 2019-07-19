@@ -158,7 +158,7 @@ classdef SignalsExp < handle
       obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
         @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
-      obj.Inputs.lick = net.origin('lick2');
+      obj.Inputs.lick2 = net.origin('lick2');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -230,10 +230,7 @@ classdef SignalsExp < handle
         obj.LickDetector = rig.lickDetector;
         obj.LickDetector.zero();
       end
-      if isfield(rig, 'lickDetector2')
-        obj.LickDetector2 = rig.lickDetector2;
-        obj.LickDetector2.zero();
-      end
+
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
           for m = 1:length(outputNames)
