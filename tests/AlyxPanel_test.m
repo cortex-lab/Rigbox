@@ -233,6 +233,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % TODO Use DELETE to test both creating new session and viewing
       % existing
       p = testCase.Panel;
+      baseURL = p.AlyxInstance.BaseURL;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set new subject
@@ -251,7 +252,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         expected = url;
       else
         uuid = todaySession.url(find(todaySession.url=='/', 1, 'last')+1:end);
-        expected = [BaseURL '/admin/actions/session/', uuid, '/change'];
+        expected = [baseURL '/admin/actions/session/', uuid, '/change'];
       end
       
       testCase.verifyEqual(url, expected, 'Unexpected url')
@@ -262,11 +263,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_launchSubjectURL(testCase, BaseURL)
       % Test the launch of the subject page in the admin Web interface
       p = testCase.Panel;
+      baseURL = p.AlyxInstance.BaseURL;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
       [failed, url] = p.launchSubjectURL;
       testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
-      expected = [BaseURL '/admin/subjects/subject/'...
+      expected = [baseURL '/admin/subjects/subject/'...
         'bcefd268-68c2-4ea8-9b60-588ee4e99ebb/change'];
       testCase.verifyEqual(url, expected, 'unexpected subject page url')
     end
