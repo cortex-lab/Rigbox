@@ -228,7 +228,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
     end
     
-    function test_launchSessionURL(testCase)
+    function test_launchSessionURL(testCase, BaseURL)
       % Test the launch of the session page in the admin Web interface
       % TODO Use DELETE to test both creating new session and viewing
       % existing
@@ -260,7 +260,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
-    function test_launchSubjectURL(testCase)
+    function test_launchSubjectURL(testCase, BaseURL)
       % Test the launch of the subject page in the admin Web interface
       p = testCase.Panel;
       baseURL = p.AlyxInstance.BaseURL;
