@@ -228,9 +228,12 @@ classdef SignalsExp < handle
       obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
-        obj.LickDetector.zero();
+      end
+      if isfield(rig, 'lickDetector2')
+        obj.LickDetector2 = rig.lickDetector2;
       end
 
+      
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
           for m = 1:length(outputNames)
@@ -694,9 +697,9 @@ classdef SignalsExp < handle
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
           % read and log the current lick count
-          [nlicks, ~, licked] = readPosition(obj.LickDetector);
-          if licked
-            post(obj.Inputs.lick, nlicks);
+          [currVal, ~, changed] = readInput(obj.LickDetector);
+          if changed
+            post(obj.Inputs.lick, currVal);
           end
         end
         
