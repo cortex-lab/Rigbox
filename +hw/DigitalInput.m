@@ -1,5 +1,5 @@
 classdef DigitalInput < hw.DataLogging
-  %HW.DigitalInput class for accepting digital input
+  % HW.DigitalInput class for accepting digital input
   %
   % Part of Rigbox
 
@@ -66,6 +66,8 @@ classdef DigitalInput < hw.DataLogging
     function value = get.DaqChannelIdx(obj)
       inputs = find(strcmpi('input', io.daqSessionChannelDirections(obj.DaqSession)));
       value = inputs(obj.DaqInputChannelIdx);
+      
+      
     end
     
     function set.DaqChannelIdx(obj, value)
