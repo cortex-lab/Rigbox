@@ -1,8 +1,7 @@
 ----------
 # Rigbox
-
-[![Coverage 
-Status](https://coveralls.io/repos/github/cortex-lab/Rigbox/badge.svg?branch=master)](https://coveralls.io/github/cortex-lab/Rigbox?branch=master)
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
+![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fdev)
 
 Rigbox is a a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, implements a viewing model for visual stimuli, and creates an environment where experimental parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
 
@@ -57,7 +56,7 @@ On the stimulus computer, run:
 On the master computer, run:
 > mc
 
-This opens a GUI that will allow you to choose a subject, edit some of the experimental parameters and press 'Start' to begin the basic steering wheel task on the stimulus computer.
+This opens the MC GUI for selecting a subject, experiment, and the SC on which to run the experiment. The MC GUI also allows for editing some experimental parameters and logging into the Alyx database. To launch the experiment on the selected SC, press 'Start'.
 
 ## Code organization
 
