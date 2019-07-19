@@ -1,5 +1,5 @@
 classdef DigitalInput < hw.DataLogging
-  %HW.DigitalInput class for accepting digital input
+  % HW.DigitalInput class for accepting digital input
   %
   % Part of Rigbox
 

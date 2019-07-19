@@ -705,9 +705,9 @@ classdef SignalsExp < handle
         
         if ~isempty(obj.LickDetector2)
           % read and log the current lick count
-          [nlicks, ~, licked] = readPosition(obj.LickDetector2);
-          if licked
-            post(obj.Inputs.lick2, nlicks);
+          [currVal, ~, changed] = readInput(obj.LickDetector2);
+          if changed
+            post(obj.Inputs.lick2, currVal);
           end
         end
         
