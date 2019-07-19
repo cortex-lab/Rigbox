@@ -60,12 +60,14 @@ classdef AlyxPanel < handle
     
     methods
         function obj = AlyxPanel(parent, active)
-            % Constructor to build all the UI elements and set callbacks to the
-            % relevant functions.  If a handle to parant UI object is not
-            % specified, a seperate figure is created.  An optional handle to a
-            % logging display panal may be provided, otherwise one is created. If
-            % the active flag is set to false (default is true), the panel is
-            % inactive and the instance of Alyx will be set to headless.
+            % Constructor to build all the UI elements and set callbacks to
+            % the relevant functions.  If a handle to parant UI object is
+            % not specified, a seperate figure is created.  An optional
+            % handle to a logging display panal may be provided, otherwise
+            % one is created. If the active flag is set to false, the panel
+            % is inactive and the instance of Alyx will be set to headless.
+            % The panel defaults to active only if the databaseURL field is
+            % populated in the paths.
             %
             % See also Alyx
             
@@ -91,8 +93,12 @@ classdef AlyxPanel < handle
                 obj.NewExpSubject.addlistener('SelectionChanged', @(src, evt)obj.dispWaterReq(src, evt));
             end
             
-            % Default to active AlyxPanel
-            if nargin < 2; active = true; end
+            % Check to see if there is a remote database url defined in
+            % the paths, if so activate AlyxPanel
+            if nargin < 2
+              url = char(getOr(dat.paths, 'databaseURL', ''));
+              active = ~isempty(url);
+            end
             
             obj.RootContainer = uix.Panel('Parent', parent, 'Title', 'Alyx');
             alyxbox = uiextras.VBox('Parent', obj.RootContainer);
@@ -405,12 +411,12 @@ classdef AlyxPanel < handle
             ai = obj.AlyxInstance;
             % determine whether there is a session for this subj and date
             thisDate = ai.datestr(now);
-            sessions = ai.getData(['sessions?type=Base&subject=' obj.Subject]);
+            sessions = ai.getSessions('subject', obj.Subject, 'date', now);
             stat = -1; url = [];
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
-            if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), thisDate(1:10))
+            if isempty(sessions)
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
@@ -472,7 +478,7 @@ classdef AlyxPanel < handle
             % See also LAUNCHSESSIONURL
             ai = obj.AlyxInstance;
             s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
-            url = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
+            url = sprintf('%s/admin/subjects/subject/%s/change', ai.BaseURL, s.id);
             stat = web(url, '-browser');
         end
         
