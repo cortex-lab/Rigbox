@@ -112,6 +112,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       paths.main2Repository = [p.mainRepository '2'];
       paths.altRepository = [p.mainRepository '3'];
       save(fullfile(p.rigConfig, 'paths'), 'paths')
+      clearCBToolsCache
       
       p = dat.paths('testRig');
       testCase.verifyTrue(ismember('novelRepo', fieldnames(p)), ...
@@ -312,6 +313,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Secondary main repo already in path, expected otherwise')
       paths.main2Repository = [dat.reposPath('main','m') '2'];
       save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      clearCBToolsCache % Ensure paths are reloaded
       testCase.assertEqual(paths.main2Repository, getOr(dat.paths,'main2Repository'),...
         'Failed to create custom paths file')
     end

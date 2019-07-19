@@ -411,12 +411,12 @@ classdef AlyxPanel < handle
             ai = obj.AlyxInstance;
             % determine whether there is a session for this subj and date
             thisDate = ai.datestr(now);
-            sessions = ai.getData(['sessions?type=Base&subject=' obj.Subject]);
+            sessions = ai.getSessions('subject', obj.Subject, 'date', now);
             stat = -1; url = [];
             
             % If the date of this latest base session is not the same date
             % as today, then create a new one for today
-            if isempty(sessions) || ~strcmp(sessions(end).start_time(1:10), thisDate(1:10))
+            if isempty(sessions)
                 % Ask user whether he/she wants to create new session
                 % Construct a questdlg with three options
                 choice = questdlg('Would you like to create a new base session?', ...
@@ -478,7 +478,7 @@ classdef AlyxPanel < handle
             % See also LAUNCHSESSIONURL
             ai = obj.AlyxInstance;
             s = ai.getData(ai.makeEndpoint(['subjects/' obj.Subject]));
-            url = fullfile(ai.BaseURL, 'admin', 'subjects', 'subject', s.id, 'change'); % this is wrong - need uuid
+            url = sprintf('%s/admin/subjects/subject/%s/change', ai.BaseURL, s.id);
             stat = web(url, '-browser');
         end
         
