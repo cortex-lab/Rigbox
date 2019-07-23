@@ -6,12 +6,9 @@
 % TODO Deal with directory changes
 main_tests = testsuite;
 
-%% Gather signals tests
-root = getOr(dat.paths,'rigbox');
-signals_tests = testsuite(fullfile(root, 'signals', 'tests'));
-
-%% Gather alyx-matlab tests
-alyx_tests = testsuite(fullfile(root, 'alyx-matlab', 'tests'));
+%% Gather signals and alyx-matlab tests
+signals_tests = testsuite(fullfile('..\signals\tests'));
+alyx_tests = testsuite(fullfile('..\alyx-matlab\tests'));
 
 %% Filter & run
 % the suite is automatically sorted based on shared fixtures. However, if
