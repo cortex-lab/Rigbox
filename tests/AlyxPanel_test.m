@@ -412,9 +412,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
       [vals, record] = get_test_data;
       
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.2, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.2, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.2, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
       testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.2, 'Given water mismatch')
       
@@ -422,9 +422,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       button.Callback()
       [vals, record] = get_test_data;
             
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.2, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.2, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.2, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
       testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.2, 'Given water mismatch')
       
