@@ -1,9 +1,9 @@
 ----------
 # Rigbox
-![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fmaster)
-![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fmaster)
+![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fmaster)
+![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fmaster)
 
-Rigbox is a a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, implements a viewing model for visual stimuli, and creates an environment where experimental parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
+Rigbox is a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, implements a viewing model for visual stimuli, and creates a runtime environment in which an experiment's parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
 
 ## Getting Started
 
@@ -35,7 +35,6 @@ Additionally, Rigbox works with a number of extra submodules (included):
 0. It is highly recommended to install Rigbox via git. If not already downloaded and installed, install [git](https://git-scm.com/download/win) (and the included minGW software environment and Git Bash MinTTY terminal emulator). After installing, launch the Git Bash terminal. 
 1. To install Rigbox, run the following commands in the Git Bash terminal to clone the repository from GitHub to your local machine.  (* *Note*: It is *not* recommended to clone directly into the MATLAB folder)
 ```
-cd ~
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
 2. Open MATLAB, make sure Rigbox and all subdirectories are in your path, run: 
@@ -137,6 +136,8 @@ Additional information on the [alyx-matlab](https://github.com/cortex-lab/alyx-m
 
 Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/dev/CONTRIBUTING.md) for details on how to contribute code to this repository and our code of conduct.
 
-## Authors
+## Authors & Accreditation
 
 The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
+
+Rigbox is described in-depth in [this publication](https://www.biorxiv.org/content/10.1101/672204v1). Please cite this source appropriately in publications which use Rigbox to acquire data.
