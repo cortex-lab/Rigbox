@@ -416,7 +416,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
       testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.2, 'Given water mismatch')
       
       % Test give water callback
       button.Callback()
@@ -426,7 +426,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
       testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.2, 'Given water mismatch')
       
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
