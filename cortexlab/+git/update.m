@@ -88,14 +88,12 @@ cmdstrStashSubs = [gitexepath, ' submodule foreach "git stash push"'];
 cmdstrInit = [gitexepath, ' submodule update --init'];
 cmdstrPull = [gitexepath, ' pull --recurse-submodules --strategy-option=theirs'];
 
-% Stash any WIP, check submodules are initialized, pull
-[exitCode(1), cmdout] = system(cmdstrStash, '-echo'); %#ok<*ASGLU>
-[exitCode(2), cmdout] = system(cmdstrStashSubs, '-echo');
-[exitCode(3), cmdout] = system(cmdstrInit, '-echo');
-[exitCode(4), cmdout] = system(cmdstrPull, '-echo');
-
-if any(exitCode)
-  error('gitUpdate:pull:pullFailed', 'Failed to pull latest changes:, %s', cmdout)
+% test executing each command individually: we don't want to execute a
+% downstream command if an upstream command fails
+cmds = [cmdstrStash, cmdstrStashSubs, cmdstrInit, cmdstrPull];
+for i = 1:length(cmds)
+  [exitCode, cmdout] = system(cmds(i), '-echo');
+  if exitCode, error('Failed to update code:, %s', cmdout); end
 end
 
 end
