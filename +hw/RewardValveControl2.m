@@ -25,7 +25,7 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
     
     methods
         function obj = RewardValveControl2()
-            obj.DefaultValue = obj.ClosedValue;
+            obj.DefaultValue = obj.ClosedValue * ones(1,2);
         end
         
         function samples = waveform(obj, sampleRate, command)
