@@ -9,5 +9,5 @@ assert(wrapped, 'Failed to return correct status')
 %% Test 2: Pass in a cell array
 arr = {pi};
 [cellArr, wrapped] = ensureCell(arr);
-assert(iscell(flat) && isequal(arr, cellArr), 'Failed to deal with cell input')
+assert(isequal(arr, cellArr), 'Failed to deal with cell input')
 assert(~wrapped, 'Failed to return correct status')
