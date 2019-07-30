@@ -1,4 +1,4 @@
-function update(scheduled)
+function exitCode = update(scheduled)
 % GIT.UPDATE Pulls latest Rigbox code 
 %   `git.update` pulls the latest code from the remote Rigbox Github 
 %   repository if it is run on a specific day of the week (provided the 
@@ -19,6 +19,14 @@ function update(scheduled)
 %     over a week ago. If scheduled is 0, the function will pull changes 
 %     provided the last fetch was over an hour ago.
 %
+%   Outputs:
+%     `exitCode`: An integer in the interval [0,2]. 0 indicates a
+%     successful update of the code. 1 indicates an error running git
+%     commands. 2 indicates successfully returning from the function
+%     without updating the code if the last fetch was within an hour and
+%     `scheduled` == 0, or if the last fetch was within 24 hours and
+%     `scheduled` is an integer in the interval [1,7]).
+%
 %   Example: Pull remote code immediately, provided last code fetch was 
 %   over an hour ago:
 %     git.update(0);
@@ -31,21 +39,17 @@ function update(scheduled)
 %
 % TODO Find quicker way to check for changes
 
-% when this function terminates, return to the working directory
-origDir = pwd;
-cleanup = onCleanup(@() cd(origDir));
-
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
-if nargin < 1 || ~any(scheduled == [0:7])
+if nargin < 1 || ~any(scheduled == 0:7)
   scheduled = getOr(dat.paths, 'updateSchedule', 0);
 end
 root = fileparts(which('addRigboxPaths')); % Rigbox root directory
 % Attempt to find date of last fetch
 fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
-% If FETCH_HEAD file exists, retrieve datenum when modified, else return 0
-% (i.e. there was never a fetch) 
+% If FETCH_HEAD file exists, retrieve datenum for when last modified, else
+% return 0 (i.e. there was never a fetch) 
 lastFetch = iff(exist(fetch_head,'file')==2, ... 
   @()getOr(dir(fetch_head), 'datenum'), 0); 
 
@@ -61,39 +65,19 @@ fetchEverydayButAlreadyFetched = scheduled == 0 && now-lastFetch < 1/24;
 if notFetchDay... 
    || fetchDayButAlreadyFetched... 
    || fetchEverydayButAlreadyFetched
+  exitCode = 2;
   return
 end
 disp('Updating code...')
 
-% Search `dat.paths` for the path to the Git exe; if not found, perform a
-% system search; if still not found, throw an error.
-gitexepath = getOr(dat.paths, 'gitExe');
-if isempty(gitexepath)
-  [exitCode, gitexepath] = system('where git');
-  if exitCode
-    error(['Could not find the git executable on your system. Please '
-           'ensure that you have git installed, and assign it''s full path'...
-           '(as a char array) to `p.gitExe` in your `+dat/paths.m` file.']); 
-  end
-end
-
-% Convert to string for running system commands.
-gitexepath = ['"', strtrim(gitexepath), '"'];
-% Temporarily change directory into Rigbox to run git pull.
-cd(root)
 % Create Windows system commands for git stashing, initializing submodules,
 % and pulling
-cmdstrStash = [gitexepath, ' stash push -m "stash Rigbox working changes before scheduled git update"'];
-cmdstrStashSubs = [gitexepath, ' submodule foreach "git stash push"'];
-cmdstrInit = [gitexepath, ' submodule update --init'];
-cmdstrPull = [gitexepath, ' pull --recurse-submodules --strategy-option=theirs'];
-
-% test executing each command individually: we don't want to execute a
-% downstream command if an upstream command fails
-cmds = [cmdstrStash, cmdstrStashSubs, cmdstrInit, cmdstrPull];
-for i = 1:length(cmds)
-  [exitCode, cmdout] = system(cmds(i), '-echo');
-  if exitCode, error('Failed to update code:, %s', cmdout); end
-end
-
+cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+               'scheduled git update"'];
+cmdstrStashSubs = 'submodule foreach "git stash push"';
+cmdstrInit = 'submodule update --init';
+cmdstrPull = 'pull --recurse-submodules --strategy-option=theirs';
+cmds = {cmdstrStash, cmdstrStashSubs, cmdstrInit, cmdstrPull};
+% run commands in Rigbox root folder
+[exitCode, cmdOut] = git.runGitCmd(cmds, 'dir', root, 'echo', true);
 end
