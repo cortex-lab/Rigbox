@@ -2,45 +2,63 @@ classdef Update_test < matlab.unittest.TestCase
   %UPDATE_TEST contains unit tests for `git.update`
   
   properties
-    % A char array for a mock `FETCH_HEAD` file, so we don't manipulate the
-    % repo's actual `FETCH_HEAD`.
-    FetchHeadFake = fullfile(fileparts(which('addRigboxPaths')),...
-                     'tests/fixtures/git/FETCH_HEAD_FAKE')
-    % A char array for Rigbox's `.git` folder
+    % A char array mock `FETCH_HEAD` file, so we can fetch code without
+    % manipulating repo's actual `FETCH_HEAD`.
+    FetchHeadFake
+    % A char array for Rigbox's `.git` folder.
     GitDir = fullfile(fileparts(which('addRigboxPaths')), '/.git/');
     % A number in the interval [1,7] representing a day that is different
-    % from that returned `weekday(today)`
+    % from that returned `weekday(today)`.
     DiffDay
   end
   
-  properties (TestParameter)
-    % Different values for the input arg to `git.update`
-    Scheduled = {0, [], 'char', 'DiffDay'}
+  properties (MethodSetupParameter)
     % A boolean flag for whether or not to fetch the remote repo code.
     FetchFlag = {false, true}
   end
   
+  properties (TestParameter)
+    % Different values for the input arg to `git.update`.
+    Scheduled = {0, [], 'char', 'DiffDay'}
+  end
+  
   methods (TestClassSetup)
     function setDiffDay(testCase)
-      % Sets `DiffDay` to a number in the interval [1,7] based on `today`
+      % Sets `DiffDay` to a number in the interval [1,7] based on `today`.
+
+      % If a `FETCH_HEAD` file doesn't exist in `.git/` (e.g. on new
+      % install), create one.
+      if ~exist(fullfile(gitDir, 'FETCH_HEAD'), 'file')
+        system(['type nul > ', gitDir, 'FETCH_HEAD']);
+      end
+      
       curDay = weekday(today);
       testCase.DiffDay = iff(curDay == 7, 6, curDay + 1);
     end
   end
   
   methods (TestMethodSetup)
-    function getMockFiles(testCase)
-      % Gets `FetchHeadFake` file so we don't corrupt actual `FETCH_HEAD`
+    function getMockFiles(testCase, FetchFlag)
+      % Gets `FetchHeadFakeOld` file so we don't corrupt actual `FETCH_HEAD`
       
       gitDir = testCase.GitDir;
       fetchHead = fullfile(gitDir, 'FETCH_HEAD');
-      fetchHeadFake = testCase.FetchHeadFake;
-      % Copy `fetchHeadFake` to `.git/`.
-      system(['copy ', fetchHeadFake, ' ', gitDir]);
-      % Re-name `FETCH_HEAD` as `FETCH_HEAD_cp`, and copied file as
+      fetchHeadFake = fullfile(fileparts(which('addRigboxPaths')),...
+                               'tests/fixtures/git/FETCH_HEAD_FAKE');
+      
+      % If the current test will pull new code, copy `FETCH_HEAD_FAKE` from
+      % `tests/fixtures/git/` to `.git/`, else create new `FETCH_HEAD_FAKE`
+      % in `.git/`.
+      testCase.FetchHeadFake =... 
+        iff(FetchFlag,... 
+            system(['copy ', fetchHeadFake, ' ', gitDir]),...
+            system(['type nul > ',... 
+                    fullfile(gitDir, 'FETCH_HEAD_FAKE')]));
+                  
+      % Re-name `FETCH_HEAD` as `FETCH_HEAD_cp`, and `FETCH_HEAD_FAKE` as
       % `FETCH_HEAD`.
       system(['move ', fetchHead, ' ', gitDir, 'FETCH_HEAD_cp']);
-      system(['move ', gitDir, 'FETCH_HEAD_FAKE', ' ', fetchHead]);
+      system(['move ', testCase.FetchHeadFake, ' ', fetchHead]);
     end
   end
   
@@ -49,66 +67,59 @@ classdef Update_test < matlab.unittest.TestCase
       % Resets original `FETCH_HEAD`
       
       gitDir = testCase.GitDir;
+      fetchHeadFake = fullfile(gitDir, 'FETCH_HEAD');
+      fetchHead = fullfile(gitDir, 'FETCH_HEAD_cp');
       % Re-name `FETCH_HEAD_cp` as `FETCH_HEAD`.
-      system(['move ', gitDir, 'FETCH_HEAD_cp', ' ', fetchHead]);
+      system(['move ', fetchHead ' ', fetchHeadFake]);
+      % Delete `FETCH_HEAD_FAKE_NEW` if it exists
     end
   end
   
   methods (Test)    
-    function testInputs(testCase, Scheduled, FetchFlag) %#ok<INUSL>
+    function testInputs(testCase, Scheduled, FetchFlag)
       % Tests various input args for `git.update`
       
-      switch FetchFlag
-        % pull code
-        case true
-          
+      if FetchFlag % pull code       
           switch Scheduled
             % pull immediately, since we haven't fetched within an hour
             case 0
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == 0 and code should be pulled';
-              assert(isequal(exitCode, 1), msg);
+              msg = 'When input arg == 0, code should be pulled';
+              assert(isequal(exitCode, 0), msg);
             % sets the default input arg to 0, so pull
             case []
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == [] and code should be pulled';
-              assert(isequal(exitCode, 1), msg);
+              msg = 'When input arg == [], code should be pulled';
+              assert(isequal(exitCode, 0), msg);
             % sets the default input arg to 0, so pull
             case 'char'
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == ''char'' and code should be pulled';
-              assert(isequal(exitCode, 1), msg);
+              msg = 'When input arg == ''char'', code should be pulled';
+              assert(isequal(exitCode, 0), msg);
             % not `today`, but we haven't fetched in over a week, so pull
             case 'DiffDay'
-              exitCode = git.update(Scheduled);
-              msg = 'Error when input arg ~= `today` and code should be pulled';
-              assert(isequal(exitCode, 1), msg);
-          end
-          
-        % don't pull changes  
-        case false
-          
-          switch Scheduled
-            % pull immediately, since we haven't fetched within an hour
+              exitCode = git.update(testCase.DiffDay);
+              msg = 'When input arg ~= `today`, code should be pulled';
+              assert(isequal(exitCode, 0), msg);
+          end    
+      else % don't pull code    
+          switch Scheduled 
             case 0
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == 0 and code shouldn''t be pulled';
-              assert(isequal(exitCode, 0), msg);
-            % sets the default input arg to 0, so pull
+              msg = 'When input arg == 0, code shouldn''t be pulled';
+              assert(isequal(exitCode, 2), msg);
             case []
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == [] and code shouldn''t be pulled';
-              assert(isequal(exitCode, 0), msg);
-            % sets the default input arg to 0, so pull
+              msg = 'When input arg == [], code shouldn''t be pulled';
+              assert(isequal(exitCode, 2), msg);
             case 'char'
               exitCode = git.update(Scheduled);
-              msg = 'Error when input arg == ''char'' and code shouldn''t be pulled';
-              assert(isequal(exitCode, 0), msg);
-            % not `today`, but we haven't fetched in over a week, so pull
+              msg = 'When input arg == ''char'', code shouldn''t be pulled';
+              assert(isequal(exitCode, 2), msg);
             case 'DiffDay'
-              exitCode = git.update(Scheduled);
-              msg = 'Error when input arg ~= `today` and code shouldn''t be pulled';
-              assert(isequal(exitCode, 0), msg);
+              exitCode = git.update(testCase.DiffDay);
+              msg = 'When input arg ~= `today`, code shouldn''t be pulled';
+              assert(isequal(exitCode, 2), msg);
           end        
       end      
     end    
