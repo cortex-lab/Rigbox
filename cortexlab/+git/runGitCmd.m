@@ -26,6 +26,11 @@ function [exitCode, cmdOut] = runGitCmd(cmd, varargin)
 %                             'echo', false);
 
 %% set-up 
+% Make sure `cmd` is a cellstr
+if ~iscellstr(cmd) %#ok<ISCLSTR>
+  error('runGitCmd:invalidInputArg', ['%s requires the first input arg to '...
+        'be a cellstr']);
+end
 % When this function terminates, return to the working directory.
 origDir = pwd;
 cleanup = onCleanup(@() cd(origDir));
@@ -40,8 +45,8 @@ pairedArgs = reshape(varargin,2,[]);
 
 % If the name-value pairs don't match up, throw error.
 if ~all(cellfun(@ischar, (pairedArgs(1,:)))) || mod(length(varargin),2)
-  error(['%s requires optional input args to be constructed in name-value '
-         'pairs'], mfilename);
+  error('runGitCmd:nameValueArgs', ['%s requires optional input '... 
+         'args to be constructed in name-value pairs'], mfilename);
 end
 
 % For the specified input args, change default input args to new values. 
