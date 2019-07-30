@@ -19,7 +19,7 @@ classdef Update_test < matlab.unittest.TestCase
   
   properties (TestParameter)
     % Different values for the input arg to `git.update`.
-    Scheduled = {0, [], 'char', 'DiffDay'}
+    Scheduled = {0, '', 'char', 'DiffDay'}
   end
   
   methods (TestClassSetup)
@@ -28,8 +28,8 @@ classdef Update_test < matlab.unittest.TestCase
 
       % If a `FETCH_HEAD` file doesn't exist in `.git/` (e.g. on new
       % install), create one.
-      if ~exist(fullfile(gitDir, 'FETCH_HEAD'), 'file')
-        system(['type nul > ', gitDir, 'FETCH_HEAD']);
+      if ~exist(fullfile(testCase.GitDir, 'FETCH_HEAD'), 'file')
+        system(['type nul > ', testCase.GitDir, 'FETCH_HEAD']);
       end
       
       curDay = weekday(today);
@@ -49,16 +49,16 @@ classdef Update_test < matlab.unittest.TestCase
       % If the current test will pull new code, copy `FETCH_HEAD_FAKE` from
       % `tests/fixtures/git/` to `.git/`, else create new `FETCH_HEAD_FAKE`
       % in `.git/`.
-      testCase.FetchHeadFake =... 
-        iff(FetchFlag,... 
-            system(['copy ', fetchHeadFake, ' ', gitDir]),...
-            system(['type nul > ',... 
-                    fullfile(gitDir, 'FETCH_HEAD_FAKE')]));
+      if FetchFlag
+          system(['copy ', fetchHeadFake, ' ', gitDir]);
+      else
+          system(['type nul > ', fullfile(gitDir, 'FETCH_HEAD_FAKE')]);
+      end
                   
       % Re-name `FETCH_HEAD` as `FETCH_HEAD_cp`, and `FETCH_HEAD_FAKE` as
       % `FETCH_HEAD`.
       system(['move ', fetchHead, ' ', gitDir, 'FETCH_HEAD_cp']);
-      system(['move ', testCase.FetchHeadFake, ' ', fetchHead]);
+      system(['move ', gitDir, 'FETCH_HEAD_FAKE', ' ', fetchHead]);
     end
   end
   
@@ -71,7 +71,6 @@ classdef Update_test < matlab.unittest.TestCase
       fetchHead = fullfile(gitDir, 'FETCH_HEAD_cp');
       % Re-name `FETCH_HEAD_cp` as `FETCH_HEAD`.
       system(['move ', fetchHead ' ', fetchHeadFake]);
-      % Delete `FETCH_HEAD_FAKE_NEW` if it exists
     end
   end
   
@@ -87,7 +86,7 @@ classdef Update_test < matlab.unittest.TestCase
               msg = 'When input arg == 0, code should be pulled';
               assert(isequal(exitCode, 0), msg);
             % sets the default input arg to 0, so pull
-            case []
+            case ''
               exitCode = git.update(Scheduled);
               msg = 'When input arg == [], code should be pulled';
               assert(isequal(exitCode, 0), msg);
@@ -108,7 +107,7 @@ classdef Update_test < matlab.unittest.TestCase
               exitCode = git.update(Scheduled);
               msg = 'When input arg == 0, code shouldn''t be pulled';
               assert(isequal(exitCode, 2), msg);
-            case []
+            case ''
               exitCode = git.update(Scheduled);
               msg = 'When input arg == [], code shouldn''t be pulled';
               assert(isequal(exitCode, 2), msg);

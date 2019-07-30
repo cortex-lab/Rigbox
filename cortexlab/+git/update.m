@@ -42,7 +42,7 @@ function exitCode = update(scheduled)
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
-if nargin < 1 || ~any(scheduled == 0:7)
+if nargin < 1 || ~isnumeric(scheduled) || any(0:7 == scheduled)
   scheduled = getOr(dat.paths, 'updateSchedule', 0);
 end
 root = fileparts(which('addRigboxPaths')); % Rigbox root directory
