@@ -84,22 +84,22 @@ classdef Update_test < matlab.unittest.TestCase
             case 0
               exitCode = git.update(Scheduled);
               msg = 'When input arg == 0, code should be pulled';
-              assert(isequal(exitCode, 0), msg);
+              assert(~any(exitCode), msg);
             % sets the default input arg to 0, so pull
             case ''
               exitCode = git.update(Scheduled);
               msg = 'When input arg == [], code should be pulled';
-              assert(isequal(exitCode, 0), msg);
+              assert(~any(exitCode), msg);
             % sets the default input arg to 0, so pull
             case 'char'
               exitCode = git.update(Scheduled);
               msg = 'When input arg == ''char'', code should be pulled';
-              assert(isequal(exitCode, 0), msg);
+              assert(~any(exitCode), msg);
             % not `today`, but we haven't fetched in over a week, so pull
             case 'DiffDay'
               exitCode = git.update(testCase.DiffDay);
               msg = 'When input arg ~= `today`, code should be pulled';
-              assert(isequal(exitCode, 0), msg);
+              assert(~any(exitCode), msg);
           end    
       else % don't pull code    
           switch Scheduled 
