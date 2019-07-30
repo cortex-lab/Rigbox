@@ -54,8 +54,7 @@ classdef Update_test < matlab.unittest.TestCase
     end
   end
   
-  methods (Test)
-    
+  methods (Test)    
     function testInputs(testCase, Scheduled, FetchFlag) %#ok<INUSL>
       % Tests various input args for `git.update`
       
@@ -110,14 +109,8 @@ classdef Update_test < matlab.unittest.TestCase
               exitCode = git.update(Scheduled);
               msg = 'Error when input arg ~= `today` and code shouldn''t be pulled';
               assert(isequal(exitCode, 0), msg);
-          end
-          
-      end
-      
-    end
-    
+          end        
+      end      
+    end    
   end
-  
-  %% Test `runGitCmd`: git exe not found or a system command fails
-  
 end
