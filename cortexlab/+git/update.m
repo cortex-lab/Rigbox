@@ -48,8 +48,8 @@ end
 root = fileparts(which('addRigboxPaths')); % Rigbox root directory
 % Attempt to find date of last fetch
 fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
-% If FETCH_HEAD file exists, retrieve datenum for when last modified, else
-% return 0 (i.e. there was never a fetch) 
+% If `FETCH_HEAD` file exists, retrieve datenum for when last modified,
+% else return 0 (i.e. there was never a fetch) 
 lastFetch = iff(exist(fetch_head,'file')==2, ... 
   @()getOr(dir(fetch_head), 'datenum'), 0); 
 
@@ -63,8 +63,8 @@ notFetchDay = scheduled ~= weekday(now) && now-lastFetch < 7;
 fetchDayButAlreadyFetched = scheduled == weekday(now) && now-lastFetch < 1;
 fetchEverydayButAlreadyFetched = scheduled == 0 && now-lastFetch < 1/24;
 if notFetchDay... 
-   || fetchDayButAlreadyFetched... 
-   || fetchEverydayButAlreadyFetched
+  || fetchDayButAlreadyFetched... 
+  || fetchEverydayButAlreadyFetched
   exitCode = 2;
   return
 end
