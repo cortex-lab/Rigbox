@@ -19,14 +19,93 @@ Following the gitflow workflow, Rigbox and its main submodules (signals, alyx-ma
 
 ## Style Guidelines
 
-Although there aren't any strict guidelines, we suggest making your code as consistent with the rest of the repository as possible. Some examples:
-* For a particularly well-documented function, see ['sig.timeplot'](https://github.com/cortex-lab/signals/blob/259fbaf34316bc4e77a1089e8b972c60d5dab3a1/%2Bsig/timeplot.m). For a particularly well-documented class, see ['hw.Timeline'](https://github.com/cortex-lab/Rigbox/blob/dev/%2Bhw/Timeline.m) 
-* Variables and function names generally follow the MATLAB convention of 'Dromedary case' (e.g. `expRef`, `inferParameters`).
-* Class names and properties are in 'camel case' (e.g. `AlyxPanel`, `obj.Token`).
-* When defining commonly used variables, be consistent with the names across files. 
-* If assigning an output of a function, try to use the name defined in that functions' header (e.g. `[expRef, expDate, expSequence] = listExps(subjects)`).  
-* In general, clarity > brevity. Don't be afraid to spread things out over a number of lines and to add in-line comments. Long variable names are often much clearer (e.g. `inputSensorPosCount` vs `inpPosN`).
-* There are a number of utility functions in [cb-tools](https://github.com/cortex-lab/Rigbox/tree/master/cb-tools/burgbox) that we encourage the use of. Many of these are implementations of functional programming methods.
+[Richard Johnson](https://uk.mathworks.com/matlabcentral/profile/authors/22731-richard-johnson) writes, "Style guidelines are not commandments. Their goal is simply to help programmers write well." Well-written code implies code that is easy to read. Code that is easy to read is typically written in a consistent style, so we suggest making your code as consistent with the rest of the repository as possible. Some examples:
+* For a particularly well-documented function, see ['sig.timeplot'](https://github.com/cortex-lab/signals/blob/dev/%2Bsig/timeplot.m). For a particularly well-documented class, see ['hw.Timeline'](https://github.com/cortex-lab/Rigbox/blob/dev/%2Bhw/Timeline.m) 
+* File header documentation (aka a "docstring"), is written as follows (see the above files for examples):
+	- Functions have (in the following order): a one-line summary describing the action of the function, a longer description, details on their inputs and outputs, examples, and any additional notes.
+	- Classes have (in the following order): a one-line summary of the class as a metaphor, a longer description, examples, and any additional notes. 
+* Naming conventions:
+	- Variable and function names are in lower camelCase (e.g. `expRef`, `inferParameters`).
+	- Class and class property names are in upper CamelCase (e.g. `AlyxPanel`, `obj.Token`).
+* Variables should be documented where they are declared. e.g.
+  ```
+  % The Rigbox root directory
+  root = fileparts(which('addRigboxPaths'));
+  ```
+* A variable name commonly used across files should have a consistent meaning, and variables which share the same meaning across files should have the same name (e.g. `validationLag` is used in both `hw.Window` and its subclass `hw.ptb.Window` to denote the amount of time between drawing an image and flipping it to the screen) 
+* When assigning a function's output(s), use the name(s) defined in that function's header (e.g. `[expRef, expDate, expSequence] = listExps(subjects)`). 
+* Whitespace conventions:
+	- A tab/indent is set at two spaces.
+	- Whitespace between lines is used sparingly, but can be used to improve readability between blocks of code. e.g.
+	  ```
+	  % check conditions
+	  notFetchDay = scheduled ~= weekday(now) && now-lastFetch < 7;
+	  fetchDayButAlreadyFetched = scheduled == weekday(now) && now-lastFetch < 1;
+	  fetchEverydayButAlreadyFetched = scheduled == 0 && now-lastFetch < 1/24;
+	  if notFetchDay... 
+   	    || fetchDayButAlreadyFetched... 
+   	    || fetchEverydayButAlreadyFetched
+  	    exitCode = 2;
+        return
+	  end
+    
+	  % run commands
+	  cmds = {cmdstrStash, cmdstrStashSubs, cmdstrInit, cmdstrPull};
+	  [exitCode, cmdOut] = git.runGitCmd(cmds, 'dir', root, 'echo', true);
+	  ```
+	- Whitespace is used between blocks at the same indentation level, but not between blocks of different indentation levels e.g.
+	  ```
+	  methods
+	    function baz = foo(bar)
+		  ...
+	    end
+    
+	    function spam = ham(eggs)
+		  ...
+	    end
+	  end
+	  ```
+    NOT
+    ```
+    methods
+    
+	    function baz = foo(bar)
+		  ...
+	    end
+	    function spam = ham(eggs)
+		  ...
+	    end
+	 end
+   ```
+	- Whitespace should be used to align statements that span multiple lines via a hanging indent or single indent e.g.
+	```
+	cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+                   'scheduled git update"'];
+	```
+	OR
+	```
+	cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+      'scheduled git update"'];
+	```
+	OR
+	```
+	cmdstrStash =... 
+	  ['stash push -m "stash Rigbox working changes before scheduled git update"'];
+	```
+	NOT
+  
+	```
+	cmdstrStash = ['stash push -m "stash Rigbox working changes before '...
+			    scheduled git update"'];
+	```
+* Code referenced in comments is surrounded by `` ` `` `` ` `` e.g.
+```
+% `qevt` is derived by monitoring the `armed` field of state
+qevt = state.armed.skipRepeats().not().then(true);
+```
+* ["Scare quotes"](https://www.chicagomanualofstyle.org/qanda/data/faq/topics/Punctuation/faq0014.html) are generally to be avoided.
+* In general, clarity > brevity. Don't be afraid to spread things out over a number of lines and to add block and in-line comments. Long variable names are often much clearer (e.g. `inputSensorPosCount` instead of `inpPosN`).
+* There are a number of utility functions in [cb-tools](https://github.com/cortex-lab/Rigbox/tree/master/cb-tools/burgbox) that we encourage the use of. Many of these are implementations of commonly used functional programming functions.
 * Information on the physical organization of the repository can be found [here](https://github.com/cortex-lab/Rigbox/issues/123#issue-422187511).
 
 ## Project Maintainers
