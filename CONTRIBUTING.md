@@ -77,25 +77,25 @@ Following the gitflow workflow, Rigbox and its main submodules (signals, alyx-ma
 	    end
 	 end
    ```
-	- Whitespace should be used to align statements that span multiple lines via a hanging indent or single indent e.g.
+	- Each line contains no more than 75 characters. Whitespace should be used to align statements that span multiple lines via a hanging indent or single indent e.g.
 	```
-	cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+	cmdstrStash = ['stash push -m "stash working changes before '... 
                    'scheduled git update"'];
 	```
 	OR
 	```
-	cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+	cmdstrStash = ['stash push -m "stash working changes before '... 
       'scheduled git update"'];
 	```
 	OR
 	```
 	cmdstrStash =... 
-	  ['stash push -m "stash Rigbox working changes before scheduled git update"'];
+	  ['stash push -m "stash working changes before scheduled git update"'];
 	```
 	NOT
   
 	```
-	cmdstrStash = ['stash push -m "stash Rigbox working changes before '...
+	cmdstrStash = ['stash push -m "stash working changes before '...
 			    scheduled git update"'];
 	```
 * Code referenced in comments is surrounded by `` ` `` `` ` `` e.g.
