@@ -80,7 +80,7 @@ gitexepath = ['"', strtrim(gitexepath), '"'];
 % Run commands.
 exitCode = zeros(1, length(cmd));
 cmdOut = cell(1, length(cmd));
-if argS.echo % then use `'-echo' flag to output to MATLAB command window
+if argS.echo % then use `'-echo'` flag to output to MATLAB command window
   for i = 1:length(cmd)
     [exitCode(i), cmdOut{i}] = system([gitexepath, ' ', cmd{i}], '-echo');
   end
