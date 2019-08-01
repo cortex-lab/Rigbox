@@ -4,7 +4,6 @@ function tests = mapToCell_test
 %   2. Test for cell array inputs
 %   3. Test for output assignments
 %
-% TODO Add mapToCell_test to signals/tests
 tests = functiontests(localfunctions);
 end
 

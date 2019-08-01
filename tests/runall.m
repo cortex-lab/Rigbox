@@ -11,7 +11,6 @@ function [exitStatus, failures] = runall(ignoreTagged)
 %       some tests failed (1)
 %   `failures`: an array of the failed tests
 %
-% TODO Method setup in `dat_test` may become global fixture
 % TODO Deal with directory changes
 
 if nargin < 1; ignoreTagged = true; end

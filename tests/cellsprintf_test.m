@@ -1,5 +1,4 @@
 %cellsprintf test
-% TODO Add cellsprintf_test signals/tests
 % preconditions:
 formatSpec = '%3$s\\%2$03d\\%1$#+6.2f\\%4$to';
 
