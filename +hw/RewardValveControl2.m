@@ -17,7 +17,7 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
         WaterType = 'Water'
         % The type of water dispenced by the rig.  This is used to populate the
         % water_type field in Alyx sessions.
-        OpenValue = 1
+        OpenValue = 5
         ClosedValue = 0
         %A function of command that returns [duration, number of pulses, freq]
         ParamsFun
@@ -36,12 +36,15 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
             time1 = pulseDuration(obj, command(1), 1);
             time2 = pulseDuration(obj, command(2), 2);
             
-            nSamples1 = sampleRate*time1;
-            nSamples2 = sampleRate*time2;
+            nSamples1 = round(sampleRate*time1);
+            nSamples2 = round(sampleRate*time2);
             
-            samples(1,1:nSamples1) = obj.OpenValue;
-            samples(2,1:nSamples2) = obj.OpenValue;
-            samples(:,end) = obj.ClosedValue;
+            nSamplesAll = max(nSamples1, nSamples2) + 1;
+            samples = obj.ClosedValue*ones(nSamplesAll,2);
+            
+            samples(1:nSamples1, 1) = obj.OpenValue;
+            samples(1:nSamples2, 2) = obj.OpenValue;
+            
         end
         
         

@@ -241,14 +241,11 @@ classdef SignalsExp < handle
                   obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
               if id % if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command(outputNames{m}, v))
                     obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
-              elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
-                  obj.Listeners = [obj.Listeners
-                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
-                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
-                    ];   
+              else
+                  warning(['Output ', outputNames{m}, ' is requested by the expDef, but not specified in hardware.mat']);
               end
           end
       end

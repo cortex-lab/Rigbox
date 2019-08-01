@@ -1,7 +1,7 @@
 classdef DaqController2 < handle
        
     properties
-        OutputNames = {} % The name used to refer to each output in Signals
+        ChannelNames = {} % The name used to refer to each output in Signals
         %Signal generator for each output. Each should be an object of class
         %hw.ControlSignalGenerator, for generating command waveforms.
         SignalGenerators = hw.PulseSwitcher.empty
@@ -10,6 +10,7 @@ classdef DaqController2 < handle
         SampleRate = 1000 % output sample rate ("scans/sec") of the daq device
         % 1000 is also the default of the ni daq devices themselves, so if
         % you don't change this, it doesn't actually do anything.
+        OutputTypes % For now, outputs can be analog 'a' or digital 'd'. In the future, support could be added for counters
     end
     
     properties (Transient)
@@ -19,7 +20,6 @@ classdef DaqController2 < handle
     properties (Dependent)
         Value % The current voltage on each DAQ channel
         NumOutputs % Number of channels controlled
-        OutputTypes % For now, outputs can be analog 'a' or digital 'd'. In the future, support can be added for counters
     end
     
     properties (Access = private, Transient)
@@ -31,7 +31,7 @@ classdef DaqController2 < handle
             % Create session and channels for each output
             for output_i = 1:obj.NumOutputs
                 % Make a session for this output
-                obj.DaqSessions(output_i) = daq.createSession('ni');
+                obj.DaqSessions{output_i} = daq.createSession('ni');
                 
                 if iscell(obj.DaqIds)
                     daqid = obj.DaqIds{output_i};
@@ -41,15 +41,15 @@ classdef DaqController2 < handle
                 
                 switch obj.OutputTypes(output_i)
                     case 'a' % output is analog
-                        for channel_i = 1:length(obj.DaqChannelIds(output_i))
-                            obj.DaqSessions(output_i).Rate = obj.SampleRate;
-                            obj.DaqSessions(output_i).addAnalogOutputChannel(...
+                        for channel_i = 1:length(obj.DaqChannelIds{output_i})
+                            obj.DaqSessions{output_i}.Rate = obj.SampleRate;
+                            obj.DaqSessions{output_i}.addAnalogOutputChannel(...
                                 daqid, obj.DaqChannelIds{output_i}{channel_i}, 'Voltage');
                         end
                     case 'd' % output is digital
-                        for channel_i = 1:length(obj.DaqChannelIds(output_i))
-                            obj.DaqSessions(output_i).addDigitalChannel(...
-                                daqid, obj.DaqChannelIds{ii}, 'OutputOnly');
+                        for channel_i = 1:length(obj.DaqChannelIds{output_i})
+                            obj.DaqSessions{output_i}.addDigitalChannel(...
+                                daqid, obj.DaqChannelIds{output_i}{channel_i}, 'OutputOnly');
                         end
                     otherwise
                         warning('Unknown output type')
@@ -68,44 +68,44 @@ classdef DaqController2 < handle
             % receive 'values' as input, and must output something
             % appropriate for its channel type
             
-            output_num = find(outputName, obj.ChannelNames);
-            assert(size(output_num == 1) && output_num > 0, 'Unknown output -- check that the name in your expDef matches the name in the hardware file')
+            output_num = find(strcmp(obj.ChannelNames, outputName));
+            assert(numel(output_num) == 1 && output_num > 0, 'Unknown output -- check that the name in your expDef matches the name in the hardware file')
             
             gen = obj.SignalGenerators(output_num);
-            rate = obj.DaqSession.Rate;
+            rate = obj.DaqSessions{output_num}.Rate;
             output = gen.waveform(rate, values);
             
-            if obj.DaqSession.IsRunning
+            if obj.DaqSessions{output_num}.IsRunning
                 % if a daq operation is in progress, stop it, and set its output
                 % to the default value
                 reset(obj);
             end
             
-            switch obj.output_types(output_num)
+            switch obj.OutputTypes(output_num)
                 case 'a' % Analog output
-                    obj.DaqSessions(output_num).queueOutputData(output);
-                    startBackground(obj.DaqSession);
+                    obj.DaqSessions{output_num}.queueOutputData(output);
+                    startBackground(obj.DaqSessions{output_num});
                     readyWait(obj);
-                    obj.DaqSession.release;
+                    obj.DaqSessions{output_num}.release;
                     
                 case 'd' % Digital output
-                    obj.DaqSessions(output_num).outputSingleScan(ouptut);
+                    obj.DaqSessions{output_num}.outputSingleScan(output);
             end
             
         end
         
         function v = get.NumOutputs(obj)
-            v = numel(obj.OutputNames);
+            v = numel(obj.ChannelNames);
         end
              
         function reset(obj)
             for sess_i = 1:obj.NumOutputs
-                stop(obj.DaqSessions(sess_i));
+                stop(obj.DaqSessions{sess_i});
             end
             
             for output_i = 1:obj.NumOutputs
-                v = obj.SignalGenerators.DefaultValue;
-                obj.command(obj.OutputNames(output_i), v);
+                v = obj.SignalGenerators(output_i).DefaultValue;
+                obj.command(obj.ChannelNames{output_i}, v);
             end
             
         end
@@ -115,8 +115,8 @@ classdef DaqController2 < handle
         
         function readyWait(obj)
             for sess_i = 1:obj.NumOutputs
-                obj.DaqSessions(sess_i).IsRunning
-                obj.DaqSessions(sess_i).wait();
+                obj.DaqSessions{sess_i}.IsRunning
+                obj.DaqSessions{sess_i}.wait();
             end
         end
     end
