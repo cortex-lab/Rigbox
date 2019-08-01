@@ -226,6 +226,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       new = weight_text.String(2,:);
       
       testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
+      
+      % Test non-existent subject string
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{1}; % default
+      testCase.verifyEqual(weight_text.String, 'Subject default not on water restriction', ...
+        'Failed to update string for mice not on water restriction')
     end
     
     function test_launchSessionURL(testCase)
