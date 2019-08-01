@@ -51,7 +51,7 @@ try
 catch ex
   msg = ex.message;
 end
-assert(strcmp('Number of input and output variables do not match', msg))
+testCase.verifyMatches('Number of input and output variables do not match', msg)
 
   function grow(a)
     % Mini function for testing function mapping without output assignment
