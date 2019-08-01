@@ -7,8 +7,8 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
     % 2019-07 KJM modified to allow for a second reward valve
     
     properties
-        Calibrations1
-        Calibrations2
+        Calibrations1 = struct('measuredDeliveries', struct('durationSecs', [0.1, 0.2], 'volumeMicroLitres', [1, 2]))
+        Calibrations2 = struct('measuredDeliveries', struct('durationSecs', [0.1, 0.2], 'volumeMicroLitres', [1, 2]))
         % deliveries with measured volumes for calibration.
         % This should be a struct array with fields 'durationSecs' &
         % 'volumeMicroLitres' indicating the duration the valve was open, and the

@@ -233,19 +233,21 @@ classdef SignalsExp < handle
         obj.LickDetector2 = rig.lickDetector2;
       end
 
-      if ~isempty(obj.DaqController.DaqSession)
+      
+      if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
           for m = 1:length(outputNames)
-              
-              if find(strcmp(outputNames{m}, obj.DaqController.AnalogChannelNames)) % if the output is present, create callback 
+              id = find(strcmp(outputNames{m},...
+                  obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
+              if id % if the output is present, create callback 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.commandAnalog([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
+                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
                     obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
                     ];   
-              elseif strcmp(outputNames{m}, obj.DaqController.DigitalChannelName)
+              elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
                   obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.commandDigital([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
-                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
+                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
+                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
                     ];   
               end
           end

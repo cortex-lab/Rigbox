@@ -96,7 +96,7 @@ classdef DaqController < handle
                 end
                 % Create the channel
                 obj.DaqSession.addAnalogOutputChannel(...
-                    daqid, obj.DaqAnalogChannelIds{ii}, 'Voltage');
+                    daqid, obj.DaqAnalogChannelIds{channel_i}, 'Voltage');
             end
             % Set all analog channels to their default values
             v = [obj.AnalogSignalGenerators.DefaultValue];
@@ -108,7 +108,7 @@ classdef DaqController < handle
             daqid = obj.DigitalDaqId; % Digital channels must all be on one daq (for now)
             for channel_i = 1:n
                 obj.DigitalDaqSession.addDigitalChannel(...
-                    daqid, obj.DaqDigitalChannelIds{ii}, 'OutputOnly');
+                    daqid, obj.DaqDigitalChannelIds{channel_i}, 'OutputOnly');
             end
             % Set all digital channels to their default values
             v = obj.DigitalSignalGenerator.DefaultValue;
