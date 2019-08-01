@@ -56,6 +56,7 @@ classdef SignalsExp < handle
     %Holds the object for interating with the lick detector.  See also
     %HW.DAQEDGECOUNTER
     LickDetector
+    LickDetector2
     
     %Holds the object for interating with the DAQ outputs (reward valve,
     %etc.)  See also HW.DAQCONTROLLER
@@ -151,13 +152,13 @@ classdef SignalsExp < handle
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
-      obj.Events.expStop = net.origin('expStop');
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
       obj.Inputs.wheelDeg = obj.Inputs.wheel.map(...
         @(x)((x-obj.Wheel.ZeroOffset) / (obj.Wheel.EncoderResolution*4))*360).skipRepeats();
       obj.Inputs.lick = net.origin('lick');
+      obj.Inputs.lick2 = net.origin('lick2');
       obj.Inputs.keyboard = net.origin('keyboard');
       % get global parameters & conditional parameters structs
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -171,7 +172,6 @@ classdef SignalsExp < handle
         globalPars, allCondPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
-%       obj.Events.expStop = then(~hasNext, true);
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -182,15 +182,20 @@ classdef SignalsExp < handle
       end
       fprintf('takes %i args\n', nargout(expDefFun));
       expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
-        obj.Outputs, obj.Audio);
+          obj.Outputs, obj.Audio);
+      % if user defined 'expStop' in their exp def, allow 'expStop' to also
+      % take value at 'lastTrialOver', else just set to 'lastTrialOver'
+      if isfield(obj.Events, 'expStop')
+        obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
+      else
+        obj.Events.expStop = lastTrialOver;
+      end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
         obj.Events.endTrial.into(advanceTrial) %endTrial signals advance
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
-        lastTrialOver.into(obj.Events.expStop) %newTrial if more
-        onValue(obj.Events.expStop, @(~)quit(obj));];
-%         obj.Events.trialNum.onValue(fun.partial(@fprintf, 'trial %i started\n'))];
+        obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
       globalPars.post(rmfield(globalStruct, 'defFunction'));
       allCondPars.post(allCondStruct);
@@ -223,8 +228,12 @@ classdef SignalsExp < handle
       obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
-        obj.LickDetector.zero();
       end
+      if isfield(rig, 'lickDetector2')
+        obj.LickDetector2 = rig.lickDetector2;
+      end
+
+      
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
           for m = 1:length(outputNames)
@@ -406,7 +415,10 @@ classdef SignalsExp < handle
     end
     
     function quit(obj, immediately)
+      % if the experiment was stopped via 'mc' or 'q' key
       if isempty(obj.Events.expStop.Node.CurrValue)
+        % re-assign 'expStop' as an origin signal and post to it
+        obj.Events.expStop = obj.Net.origin('expStop');
         obj.Events.expStop.post(true);
       end
       %stop delay timers. todo: need to use a less global tag
@@ -685,12 +697,20 @@ classdef SignalsExp < handle
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
           % read and log the current lick count
-          [nlicks, ~, licked] = readPosition(obj.LickDetector);
-          if licked
-            post(obj.Inputs.lick, nlicks);
-            fprintf('lick count now %i\n', nlicks);
+          [currVal, ~, changed] = readInput(obj.LickDetector);
+          if changed
+            post(obj.Inputs.lick, currVal);
           end
         end
+        
+        if ~isempty(obj.LickDetector2)
+          % read and log the current lick count
+          [currVal, ~, changed] = readInput(obj.LickDetector2);
+          if changed
+            post(obj.Inputs.lick2, currVal);
+          end
+        end
+        
         post(obj.Time, now(obj.Clock));
         runSchedule(obj.Net);
         

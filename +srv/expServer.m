@@ -47,7 +47,7 @@ rewardId = 1;
 
 %% Initialisation
 % Pull latest changes from remote
-git.update();
+% git.update();
 % random seed random number generator
 rng('shuffle');
 % communicator for receiving commands from clients
@@ -97,7 +97,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
   }));
 
-HideCursor();
+% HideCursor();
 
 if nargin < 2
   bgColour = 127*[1 1 1]; % mid gray by default

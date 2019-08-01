@@ -217,8 +217,6 @@ classdef ParamEditor < handle
       %  and notifies listeners of the change via the Changed event.
       %
       % See also EUI.FIELDPANEL/ONEDIT, EUI.CONDITIONPANEL/ONEDIT
-      
-      
       if nargin < 4; row = 1; end
       currValue = obj.Parameters.Struct.(name)(:,row);
       if iscell(currValue)
@@ -227,10 +225,10 @@ classdef ParamEditor < handle
         obj.Parameters.Struct.(name){:,row} = newValue;
       else
         newValue = obj.controlValue2Param(currValue, value);
-        if isstr(newValue)
+        if ischar(newValue)
            obj.Parameters.Struct.(name) = newValue;
         else
-            obj.Parameters.Struct.(name)(:,row) = newValue;
+           obj.Parameters.Struct.(name)(:,row) = newValue;
         end
       end
       notify(obj, 'Changed');
@@ -347,13 +345,14 @@ classdef ParamEditor < handle
         case 'logical'
           data = data ~= 0; % If logical do nothing, basically.
         case 'string'
+          data = arrayfun(@(n) strjoin(data(:,n), ', '), 1:size(data,2));
           data = char(data); % Strings not allowed in condition table data
         otherwise
           if isnumeric(data)
             % format numeric types as string number list
             strlist = mapToCell(@num2str, data);
             data = strJoin(strlist, ', ');
-          elseif iscellstr(data)
+          elseif iscellstr(data) %#ok<ISCLSTR>
             data = strJoin(data, ', ');
           end
       end
@@ -374,7 +373,10 @@ classdef ParamEditor < handle
         case 'logical'
           data = data ~= 0;
         case 'char'
-          % do nothing - strings stay as strings
+          % do nothing - chars stay as they are
+        case 'string'
+          if ischar(data); data = strsplit(string(data), {', ' ','}); end
+          data = data(:);
         otherwise
           if isnumeric(currParam)
             % parse string as numeric vector

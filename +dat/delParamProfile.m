@@ -15,7 +15,7 @@ profiles = dat.loadParamProfiles(expType);
 %remove the params with the field named by profile
 profiles = rmfield(profiles, profileName);
 %wrap in a struct for saving
-set.(expType) = profiles; %#ok<STRNU>
+set.(expType) = profiles;
 
 %save the updated set of profiles to each repos
 %where files exist already, append

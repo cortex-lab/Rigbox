@@ -2,8 +2,6 @@ function addRigboxPaths(savePaths)
 %ADDRIGBOXPATHS Adds the required paths for using Rigbox
 %
 %   Part of the Rigging toolbox
-% TODO: 
-% - Consider renaming above folder to something more informative 
 %
 % 2014-01 CB
 % 2017-02 MW Updated to work with 2016b
@@ -23,8 +21,8 @@ assert(any(strcmpi('VCRuntime140.dll',{sys32.name})), 'Rigbox:setup:libraryRequi
    'Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.'],...
    'https://www.microsoft.com/en-us/download/details.aspx?id=48145')
 
-% Check MATLAB 2016b is running
-assert(~verLessThan('matlab', '8.4'), 'Requires MATLAB 2016b or later')
+% Check MATLAB 2017b is running
+assert(~verLessThan('matlab', '9.3'), 'Requires MATLAB 2017b or later')
 
 % Check essential toolboxes are installed (common to both master and
 % stimulus computers)
@@ -121,6 +119,18 @@ fseek(fid, 0, 'bof');
 closeFile = onCleanup( @() fclose(fid) );
 javaclasspaths = first(textscan(fid,'%s', 'CommentStyle', '#', 'Delimiter',''));
 cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
+
+%%% Remind user to copy paths file %%%
+if isempty(which('dat.paths'))
+  template_paths = fullfile(root, 'docs', 'setup', 'paths_template.m');
+  new_loc = fullfile(root, '+dat', 'paths.m');
+  copied = copyfile(template_paths, new_loc);
+  % Check that the file was copied
+  if ~copied
+    warning('Rigbox:setup:copyPaths', 'Please copy the file ''%s'' to ''%s''.',...
+      template_paths, new_loc);
+  end
+end
 
 %%% Validate that paths saved correctly %%%
 if savePaths

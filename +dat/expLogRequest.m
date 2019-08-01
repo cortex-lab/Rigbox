@@ -6,7 +6,7 @@ global RiggingCache
 
 if nargin < 2
   args = struct;
-elseif nargin == 2 && isstruct(varargin{1});  
+elseif nargin == 2 && isstruct(varargin{1})
 else
   args = varargin2struct(varargin{:});
 end

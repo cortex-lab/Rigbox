@@ -44,6 +44,7 @@ end
 %% Configure common devices, if present
 configure('mouseInput');
 configure('lickDetector');
+configure('lickDetector2');
 
 %% Set up controllers
 if init 

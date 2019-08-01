@@ -1,5 +1,6 @@
-classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
-[fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture 
+classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
+    matlab.unittest.fixtures.PathFixture('fixtures'),...
+    matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'util'])})... 
   ParamEditor_test < matlab.unittest.TestCase
   
   properties
@@ -156,8 +157,16 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       end
       
       % Test string data 
-      % TODO Outcome will change in near future
+      % Strings converted to char arrays due to Table limitations
       testCase.verifyEqual(PE.paramValue2Control("hello"), 'hello')
+      % Strings should be joined across rows
+      testCase.verifyEqual(PE.paramValue2Control(["hello";"hi"]), 'hello, hi')
+      % Verify conditional string parameters are parsed correctly
+      actual = PE.paramValue2Control(["hello","goodbye";"hi","bye"]);
+      testCase.verifyEqual(size(actual), [1 12 2])
+      % Check that string control values are converted correctly
+      actual = PE.controlValue2Param(["hello","hi"],actual(:,:,2));
+      testCase.verifyEqual(["goodbye";"bye"], actual)
 
       % Test numeric data
       testCase.verifyEqual(PE.paramValue2Control(pi), '3.1416')
@@ -251,11 +260,111 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
         [PE.Parameters.numTrialConditions, numel(PE.Parameters.TrialSpecificNames)])
     end
     
-    function test_setValues(testCase)
-      % TODO Add test for the set values button.  For now let's fail this
+    function test_setSelectedValues(testCase)
+      %   (1:10:100) % Sets selected rows to [1 11 21 31 41 51 61 71 81 91]
+      %   @(~)randi(100) % Assigned random integer to each selected row
+      %   @(a)a*50 % Multiplies each condition value by 50
+      %   false % Sets all selected rows to false
       testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
-%       PE = testCase.ParamEditor;
-      testCase.assertTrue(false, 'Test not implemented')
+      mock = MockDialog.instance('char');
+      mock.InTest = true;
+      mock.UseDefaults = false;
+      mock.Dialogs('Set values') = fun.CellSeq.create({'(1:10:100)', '@(~)randi(100)', '@(a)a*50'});
+
+      % Select some cells to set
+      event.Indices = [(1:5)' ones(5,1)*4];
+      selection_fn = testCase.Table.CellSelectionCallback;
+      selection_fn([],event)
+
+      % Retrieve function handle for set condition
+      callback_fn = pick(findobj(testCase.Figure,...
+        'String', 'Set values'), 'Callback');
+      callback_fn()
+
+      % Verify Changed event triggered
+      testCase.verifyTrue(testCase.Changed, ...
+        'Failed to notify listeners of parameter change')
+      
+      P = testCase.ParamEditor.Parameters;
+      % Verify values changed
+      expected = (1:10:100);
+      testCase.verifyEqual(P.Struct.numRepeats(1:5), expected(1:5), ...
+        'Failed to modify parameters')
+      
+      callback_fn()
+      values = P.Struct.numRepeats(1:5);
+      testCase.verifyTrue(all(values < 100), ...
+        'Failed to modify parameters')
+      
+      callback_fn()
+      testCase.verifyEqual(P.Struct.numRepeats(1:5)/50, values, ...
+        'Failed to modify parameters')
+    end
+    
+    function test_sortByColumn(testCase)
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
+      PE = testCase.ParamEditor;
+      callback_fn = pick(findobj(testCase.Figure,...
+        'Tag', 'sort by'), 'MenuSelectedFcn');
+
+      % Select a single row parameter column to sort
+      event.Indices = [1 find(strcmp(testCase.Table.ColumnName, 'Num repeats'),1)];
+      selection_fn = testCase.Table.CellSelectionCallback;
+      selection_fn([],event)
+      
+      % Sort ascending
+      callback_fn()
+      expected = [zeros(1,8) ones(1,4)*250];
+      testCase.verifyEqual(PE.Parameters.Struct.numRepeats, expected, ...
+        'Failed to sort ascending')
+      
+      % Verify params listeners not notified. NB: Behaviour may change in
+      % future as underlying params struct is changed
+      testCase.verifyTrue(~testCase.Changed, 'Changed flag incorrect')
+      
+      % Sort descending
+      callback_fn()
+      testCase.verifyEqual(PE.Parameters.Struct.numRepeats, fliplr(expected), ...
+        'Failed to sort descending')
+      
+      % Repeat test for multi-row parameter
+      event.Indices = [1 find(strcmp(testCase.Table.ColumnName, ...
+        'Feedback for response'),1)];
+      selection_fn([],event)
+      
+      % Sort ascending
+      callback_fn()
+      expected = [-ones(1,6) ones(1,6); ones(1,6) -ones(1,6); -ones(1,12)];
+      expected(3,[6 end]) = 1;
+      testCase.verifyEqual(PE.Parameters.Struct.feedbackForResponse, expected, ...
+        'Failed to sort multi-row parameter')
+    end
+    
+    function test_randomiseConditions(testCase)
+      testCase.assertTrue(~testCase.Changed, 'Changed flag incorrect')
+      PE = testCase.ParamEditor;
+      button = findobj(testCase.Figure, 'Tag', 'randomize button');
+      testCase.assertEqual(button.Checked, 'on', 'Conditions not randomized by default')
+      
+      % Deselect randomize
+      button.MenuSelectedFcn(button);
+      testCase.verifyEqual(testCase.Table.RowName, 'numbered', ...
+        'Condition indicies not shown in table')
+      testCase.assertTrue(ismember('randomiseConditions',PE.Parameters.GlobalNames),...
+        'randomiseConditions parameter not present')
+      testCase.verifyTrue(~PE.Parameters.Struct.randomiseConditions, ...
+        'randomiseConditions parameter not set correctly')
+      testCase.verifyEqual(button.Checked, 'off', 'Context menu failed to update')
+      % Verify that randomiseConditions parameter is hidden from table
+      testCase.verifyEmpty(findobj(testCase.Figure, 'String', 'Randomise conditions'),...
+        'Unexpected parameter label')
+      
+      % Reselect randomize
+      button.MenuSelectedFcn(button);
+      testCase.verifyEmpty(testCase.Table.RowName, 'Condition indicies shown in table')
+      testCase.verifyTrue(PE.Parameters.Struct.randomiseConditions, ...
+        'randomiseConditions parameter not set correctly')
+      testCase.verifyEqual(button.Checked, 'on', 'Context menu failed to update')
     end
     
     function test_globaliseParam(testCase)
