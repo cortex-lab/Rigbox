@@ -1,4 +1,3 @@
-% TODO Add iff_test to signals/tests
 %% Test 1: predicate evaluation
 % Test that iff returns the correct consequent
 x = 0;
