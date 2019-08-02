@@ -21,9 +21,7 @@ classdef DaqController2 < handle
         NumOutputs % Number of channels controlled
     end
     
-    properties (Access = private, Transient)
-        CurrValue = {};
-    end
+
     
     methods
         function createDaqChannels(obj)
