@@ -18,7 +18,6 @@ classdef DaqController2 < handle
     end
     
     properties (Dependent)
-        Value % The current voltage on each DAQ channel
         NumOutputs % Number of channels controlled
     end
     
