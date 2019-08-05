@@ -1,6 +1,9 @@
 function s = catStructs(cellOfStructs, missingValue)
 %catStructs Concatenates different structures into one structure array
 %   s = catStructs(cellOfStructs, [missingValue])
+%
+%   NB: missingValue will replace all empty values in the output struct,
+%   including ones present in the original input
 
 % 2013-11 CB created
 
@@ -28,4 +31,3 @@ else
 end
 
 end
-
