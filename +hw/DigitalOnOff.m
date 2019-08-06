@@ -18,6 +18,8 @@ classdef DigitalOnOff < hw.ControlSignalGenerator
     
     methods
         function obj = DigitalOnOff()
+            % DefaultValue is a property of the superclass
+            % ControlSignalGenerator. Assign it a value here. 
             obj.DefaultValue = obj.OffValue * ones(1,obj.NumBits);
         end
         

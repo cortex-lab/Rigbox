@@ -1,4 +1,4 @@
-classdef DaqController2 < handle
+classdef DaqControllerParallel < handle
        
     properties
         ChannelNames = {} % The name used to refer to each output in Signals
