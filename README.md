@@ -1,5 +1,5 @@
 ----------
-# Rigbox
+# Rigbox  
 ![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
 ![Custom badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fdev)
 
