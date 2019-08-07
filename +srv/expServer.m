@@ -73,6 +73,9 @@ KbQueueStart();
 % get rig hardware
 try
   rig = hw.devices;
+  if isempty(rig)
+      error('rigbox:expServer:nohardware', 'No hardware info found for this rig. Unable to launch expServer');
+  end
 catch ME
   fun.applyForce({
   @() communicator.close(),...
