@@ -12,7 +12,9 @@ function update(scheduled)
 % See also DAT.PATHS
 
 % Check that paths are set up
+% Check that paths are set up
 assert(~isempty(which('dat.paths')), ...
+    'signals:test:copyPaths',...
     'Error: dat.paths not found. Please ensure that a paths file exists for your setup. A template can be found at docs/setup/paths_template')
 
 % If not given as input argument, use 'updateSchedule' in 'dat.paths'. If
