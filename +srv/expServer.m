@@ -74,7 +74,10 @@ KbQueueStart();
 try
   rig = hw.devices;
   if isempty(rig)
-      error('rigbox:srv:expServer:noHardwareConfig', 'No hardware info found for this rig. Unable to launch expServer');
+      error('rigbox:srv:expServer:noHardwareConfig', ['No hardware config '...
+        'info found for this rig. Cannot find this rig''s ''hardware.mat'' '... 
+        'file, or hardware config set-up script. Unable to launch '... 
+        'expServer.']);
   end
 catch ME
   fun.applyForce({
