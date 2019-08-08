@@ -1,6 +1,6 @@
 # Changelog
 
-Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
+Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com).
 
 ## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) (these will be included in 2.2.2)
 
