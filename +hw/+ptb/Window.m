@@ -17,7 +17,7 @@ classdef Window < hw.Window
   properties
     ForegroundColour
     ScreenNum; %Psychtoolbox screen number
-    PxDepth = 32 %the pixel colour depth (bits)
+    PxDepth %the pixel colour depth (bits)
     OpenBounds %default screen region to open window onscreen - empty for full
     SyncBounds %position bounding rectangle of sync region
     %sync region [r g b], or luminance for each consecutive flip (row-wise).
@@ -25,6 +25,7 @@ classdef Window < hw.Window
     SyncColourCycle = [0; 255]
     MonitorId %an identifier for the monitor
     Calibration %Struct containing calibration data
+    PtbHandle = -1 %a handle to the PTB screen window
     PtbVerbosity = 2
     PtbSyncTests
   end
@@ -41,7 +42,6 @@ classdef Window < hw.Window
   end
   
   properties (SetAccess = protected, Transient)
-    PtbHandle = -1 %a handle to the PTB screen window
     RefreshInterval %refresh interval for updating the device
     NextSyncIdx %index into SyncColourCycle for next sync colour
     Invalid = false
@@ -197,9 +197,10 @@ classdef Window < hw.Window
       end
       Screen('Preference', 'SuppressAllWarnings', true);
       % setup screen window
+      %obj.PxDepth = 32;
       obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
         obj.OpenBounds, obj.PxDepth);
-      obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
+      %obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
       obj.Bounds = Screen('Rect', obj.PtbHandle);
 
       %first flip will be first sync colour in cycle
@@ -385,6 +386,28 @@ classdef Window < hw.Window
     end
 
     function [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
+    % Calls PTB's `DrawFormattedText` to display text to the PTB Window
+    %
+    % Inputs:
+    %   `text`: the text to be displaye
+    %   `x`: a number, in pixels, of the x-position of the left border of 
+    %   the text
+    %   `y`: a number, in pixels, of the y-position of the top border of 
+    %   the text, in pixels
+    %   `colour`: an [r g b] or [r g b a] numeric vector for the color of 
+    %   the text
+    %   `vSpacing`: a number for the spacing between lines of text
+    %   `wrapAt`: a number for the max number of characters in a line of text
+    %
+    % Outputs:
+    %   `nx`: 
+    %   `ny`:
+    %
+    % Examples:
+    % 
+    %
+    %
+    % See also: DrawFormattedText
       if nargin < 7
         wrapAt = [];
       end
@@ -479,6 +502,7 @@ classdef Window < hw.Window
       tt = (1:ns)/acqRate;
       
       figure; plot(tt,clock);
+      ylabel('clock signal'); title('Clock');
       
       upCrossings = find(diff( clock > 1 ) ==  1);
       dnCrossings = find(diff( clock > 1 ) == -1);
@@ -490,7 +514,7 @@ classdef Window < hw.Window
       end
       plot( tt, light ); hold on
       xlabel('Time (s)');
-      ylabel('Signal (Volts)');
+      ylabel('Photodiode Signal (Volts)');
       set(gca,'ylim',[0 1.1*max(light)]);
       title(sprintf('In this plot. digital has been delayed by %2.2f ms', delay));
       
