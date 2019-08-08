@@ -393,6 +393,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_giveWater(testCase)
       testCase.Panel;
+      tol = 0.2; % Tolerance for water verifications, required due to rounding
       % Set subject on water restriction
       testCase.SubjectUI.Selected = 'algernon';
       % Ensure there's a weight for today
@@ -417,21 +418,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
       [vals, record] = get_test_data;
       
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', tol, 'Given water mismatch')
       
       % Test give water callback
       button.Callback()
       [vals, record] = get_test_data;
             
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', tol, 'Given water mismatch')
       
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
@@ -450,6 +451,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_giveFutureWater(testCase)
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
+      tol = 0.1; % Tolerance for water verifications, required due to rounding
       
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
@@ -465,15 +467,15 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Check training day added
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', tol, ...
         'Failed to add training dates to saved params')
       
       % Check water posted to Alyx
       wr = testCase.Panel.AlyxInstance.getData(['subjects/', subject]);
       last = wr.water_administrations(end);
-      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', 0.01, ...
+      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', tol, ...
         'Date of post incorrect')
-      testCase.verifyEqual(last.water_administered, amount, 'RelTol', 0.1, ...
+      testCase.verifyEqual(last.water_administered, amount, 'RelTol', tol, ...
         'Incorrect amount posted to Alyx')
 
       % Check log
@@ -489,7 +491,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check training day removed
       button.Callback();
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', tol, ...
         'Failed to add training dates to saved params')
     end
     
