@@ -28,10 +28,10 @@ function v = pick(from, key, varargin)
 %           PICK(m, 'word')            % like m('word'), returns 'apple'
 %           PICK(m, {'word' 'number'}) % returns {'apple' [1]}
 %
-%   When picking from structs, objects and maps, you can also specify a 
-%   default value to be used when the specified key does not exist in your 
-%   data structure: pass in a pair of parameters, 'def' followed by the 
-%   default value (e.g. see (2) below).
+%   When picking from structs, objects and maps, you can
+%   also specify a default value to be used when the specified key does not
+%   exist in your data structure: pass in a pair of parameters, 'def'
+%   followed by the default value (e.g. see (2) below).
 %
 %   Finally, you can pass in the option 'cell', to return a cell array
 %   instead of a standard array (or scalar). This is useful e.g. if you are
@@ -74,7 +74,7 @@ else
   cellOut = any(strcmpi(varargin(stringArgs), 'cell'));
   if isa(from, 'containers.Map')
     %% Handle MATLAB maps with key meaning key!
-    v = from(key);
+    v = iff(withDefault && ~from.isKey(key), default, @() from(key));
   elseif ischar(key)
     %% Handle structures and class objects with key meaning field/property
     if ~iscell(from)
@@ -104,7 +104,9 @@ else
       end
     else
       if cellOut
-        v = mapToCell(@(e) pick(pick(e, key, varargin{:}), 1), from);
+        % The following line was changed 2019-08
+%         v = mapToCell(@(e) pick(pick(e, key, varargin{:}), 1), from);
+        v = mapToCell(@(e) pick(e, key, varargin{:}), from);
       else
         v = cellfun(@(e) pick(e, key, varargin{:}), from);
       end
@@ -114,7 +116,7 @@ else
     if cellOut
       v = from(key);
     else
-      v = from{key};
+      v = [from{key}];
     end
   else
     v = from(key);

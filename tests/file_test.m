@@ -54,9 +54,15 @@ result = file.list(string(pCell));
 assert(iscell(result) && numel(result) == 2 && isequal(result{1},{pList.name}'), ...
   'Failed with cellstr input')
 
-% Test listing non-existent path (shouldn't thrown an error)
+% Test listing non-existent path (shouldn't throw an error)
 assert(isempty(file.list(fullfile(p,'fakeDir'))), ...
   'Failed to handle non-existent path')
+try
+  ex = [];
+  file.list(p,'fake')
+catch ex
+  assert(contains(ex.message, 'not a recognised type'))
+end
 
 %% Test 3: file.modDate
 % Test modified date on single path
