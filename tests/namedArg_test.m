@@ -7,7 +7,7 @@ args = {'positional', 'nameA', 'valA', 'nameB', 'valB'};
 [present, value, idx] = namedArg(args, 'nameB');
 assert(present, 'Failed to find named argument')
 assert(strcmp(value, 'valB'), 'Failed to return named value')
-assert(idx == 3, 'Failed to return named argument index')
+assert(idx == 4, 'Failed to return named argument index')
 
 %% Test 2: Arg doesn't exist
 [present, value, idx] = namedArg(args, 'nameC');
