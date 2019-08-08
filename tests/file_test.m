@@ -58,11 +58,11 @@ assert(iscell(result) && numel(result) == 2 && isequal(result{1},{pList.name}'),
 assert(isempty(file.list(fullfile(p,'fakeDir'))), ...
   'Failed to handle non-existent path')
 try
-  ex = [];
+  ex.message = '';
   file.list(p,'fake')
 catch ex
-  assert(contains(ex.message, 'not a recognised type'))
 end
+assert(contains(ex.message, 'not a recognised type'))
 
 %% Test 3: file.modDate
 % Test modified date on single path

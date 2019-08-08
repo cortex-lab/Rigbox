@@ -46,12 +46,11 @@ mess = onCleanup(@()clearFiles(fullpath)); % Ensure our mess is cleared
 fullpath = [fullpath(1) '\\fakepath\bad' fullpath(2)]; % Insert bad path
 
 % Checks
-err = [];
 try
   superSave(fullpath, var) % Run
-catch err
+  assert(false, 'Failed to throw error')
+catch
 end
-assert(~isempty(err), 'Failed to throw error')
 fullpath(2) = []; % Remove fake path for speed reasons
 assert(all(file.exists(fullpath) == [true, false]), ...
   'Unexpected save behaviour using bad paths')
