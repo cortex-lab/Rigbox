@@ -12,10 +12,11 @@ function update(scheduled)
 % See also DAT.PATHS
 
 % Check that paths are set up
-% Check that paths are set up
 assert(~isempty(which('dat.paths')), ...
     'rigbox:git:update:copyPaths',...
-    'Error: dat.paths not found. Please ensure that a paths file exists for your setup. A template can be found at docs/setup/paths_template')
+    ['Error: ''dat.paths'' file not found. Please ensure that a '... 
+    '''dat.paths'' file exists for your setup. A template can be found at '...
+    '''docs/setup/paths_template''.'])
 
 % If not given as input argument, use 'updateSchedule' in 'dat.paths'. If
 % not found, set 'scheduled' to 0.
