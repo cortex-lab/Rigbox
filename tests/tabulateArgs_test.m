@@ -13,11 +13,12 @@ assert(isequal(cellfun(@class,argout,'uni',0), ...
 
 % Test inputs with different shapes
 try
+  ex.message = '';
   [argout{:}] = tabulateArgs(45, 'char array', 1:n, str');
 catch ex
-  assert(strcmp(ex.message,'All non-array arguments must be the same shape.'), ...
-  'Failed to throw expected input shape error')
 end
+assert(strcmp(ex.message,'All non-array arguments must be the same shape.'), ...
+  'Failed to throw expected input shape error')
 
 % Test tabulation when all inputs single args
 [argout{:}] = tabulateArgs(45, 'char array', "string", struct);
