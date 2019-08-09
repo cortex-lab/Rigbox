@@ -23,8 +23,8 @@ assert(isequal(fun.apply({f1,f2,f3},i), expected), 'Failed on cell array')
 
 %% Test 2: fun.applyForce
 % Test no args in, no errors
+count = m.Count - 1; % Key should have been removed
 [ex, exElems] = fun.applyForce({f4});
-count = count - 1; % Key should have been removed
 assert(isempty(ex) && isempty(exElems), 'Unexpected output')
 assert(m.Count == count, 'Failed to call input function with no args')
 
@@ -59,25 +59,25 @@ assert(isequal(repmat({i},size(A1)), out{:}), 'Failed to assign multiple outputs
 in = {f4, f4, f4};
 f = fun.run(in{:});
 assert(isa(f, 'function_handle'), 'Unexpected output')
-count = count - numel(in); % Expected key count after running f
+count = m.Count - numel(in); % Expected key count after running f
 f(in{:}); % Inputs should be ignored
 assert(m.Count == count, 'Failed to execute function handles')
 
 % Test running immediately
 f = fun.run(true, in{:}, @nop);
 assert(isempty(f), 'Unexpected output')
-assert(m.Count == count-3, 'Failed to execute function handles')
+assert(m.Count == count-numel(in), 'Failed to execute function handles')
 
 %% Test 5: fun.memoize
+count = m.Count - 1;
 % Test caching of f4 and containers map
 f = fun.memoize(f4);
 assert(isa(f, 'function_handle'), 'Unexpected output')
 
 % Executing handle should remove key from map and return said map
-result = f(); count = count -1;
+result = f();
 assert(isa(result, 'containers.Map'),  'Unexpected output')
-assert(result.Count == count && m.Count == count, ...
-  'Failed to execute function handle')
+assert(m.Count == count, 'Failed to execute function handle')
 
 % Re-run with no inputs should not execute f4, but instead return cached
 % map
@@ -87,7 +87,7 @@ assert(result.Count == count && m.Count == count, ...
 
 % Evaluate f once more with different inputs should execute f4 and
 % decrement key count in m
-result = f(10);  count = count -1;
+result = f(10);  count = count - 1;
 assert(result.Count == count && m.Count == count, ...
   'Failed to execute function handle')
 
