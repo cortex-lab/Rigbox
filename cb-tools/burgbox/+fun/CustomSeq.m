@@ -1,6 +1,6 @@
 classdef CustomSeq < fun.Seq
   %FUN.CUSTOMSEQ Summary of this class goes here
-  %   Detailed explanation goes here
+  %   TODO Detailed explanation goes here
   
   properties (Access = private)
     FirstFun

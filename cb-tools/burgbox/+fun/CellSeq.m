@@ -1,6 +1,6 @@
 classdef CellSeq < fun.Seq
   %FUN.CELLSEQ Sequence wrapper for cell arrays
-  %   Detailed explanation goes here
+  %   TODO Detailed explanation goes here
   
   properties (Access = private)
     Arr = {}

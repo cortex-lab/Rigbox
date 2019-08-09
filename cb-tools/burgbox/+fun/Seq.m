@@ -1,6 +1,6 @@
 classdef Seq
   %FUN.SEQ Interface for iterating sequences
-  %   Detailed explanation goes here
+  %   TODO Detailed explanation goes here
   %
   % Part of Burgbox
   
