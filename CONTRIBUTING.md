@@ -1,10 +1,8 @@
-When contributing to this repository, please first discuss the change you wish to make via creation of a [github issue](https://github.com/cortex-lab/Rigbox/issues) (preferred), or email with the [project maintainers](#project-maintainers). 
+When contributing to this repository, please first discuss the change you wish to make via creation of a [github issue](https://github.com/cortex-lab/Rigbox/issues) (preferred), or email with the [project maintainers](#project-maintainers). The purpose of this document is NOT meant to overwhelm potential contributors; rather, it is to establish a protcol for the project maintainers to follow when they are reviewing new code. Contributors should not feel like they must adhere to every point in this document without feedback or advice before submitting a pull request: contributors should feel at ease submitting pull requests and using this document as a reference, and it is the project maintainers' roles to work with contributors to ensure new code adheres to the guidelines defined in this document, including the [Code of Conduct](#code-of-conduct).
 
-Please adhere to our [Code of Conduct](#code-of-conduct).
+For contributing new code to this repository, we roughly follow a [gitflow workflow](https://nvie.com/posts/a-successful-git-branching-model). We also support [forking workflows](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow) for contributors who wish to fork this repository and maintain their own local versions. 
 
-We roughly follow a [gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) without using 'git-flow' extensions. We also support [forking workflows](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow) for contributors who wish to fork this repository and maintain their own local versions. 
-
-If you are unfamiliar with repositories with submodules, please first read this helpful [blog post.](https://github.blog/2016-02-01-working-with-submodules/)
+Rigbox relies on the [signals](https://github.com/cortex-lab/signals) and [alyx-matlab](https://github.com/cortex-lab/alyx-matlab) repositories as submodules for designing and running behavioral tasks, and communicating with an [Alyx](https://github.com/cortex-lab/alyx) database, respectively. For contributors who are unfamiliar with repositories with submodules, please read this helpful [blog post.](https://github.blog/2016-02-01-working-with-submodules/)
 
 ## Contributing - Our Pull Request Process
 
