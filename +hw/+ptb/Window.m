@@ -1,13 +1,19 @@
 classdef Window < hw.Window
-  %HW.PTB.WINDOW A Psychtoolbox Screen implementation of Window
-  %   Detailed explanation goes here
-  %
-  % Part of Rigbox
-
-  % 2012-10 CB created
+%HW.PTB.WINDOW A Psychtoolbox `Screen` implementation of `hw.Window`
+%
+% A `hw.ptb.Window` object subclasses `hw.Window` to create a window that
+% interfaces nicely with Psychtoolbox (PTB) functions.
+%
+% See also: `hw.Window`, `Screen`
+%
+% Part of Rigbox
+%
+% 2012-10 CB created
   
   properties (Dependent)
+    % A numeric array [R G B] of the background colour of the window
     BackgroundColour
+    
     DaqVendor
     DaqDev
     DaqSyncEchoPort
@@ -15,15 +21,22 @@ classdef Window < hw.Window
   end
   
   properties
+    % A numeric array [R G B] of the default colour to use for drawing
     ForegroundColour
-    ScreenNum; %Psychtoolbox screen number
-    PxDepth %the pixel colour depth (bits)
-    OpenBounds %default screen region to open window onscreen - empty for full
-    SyncBounds %position bounding rectangle of sync region
+    % Screen number as set by PTB's `Screen`
+    ScreenNum
+    % A numeric value of the number of bits for the pixel colour depth
+    PxDepth
+    % A numeric array [left top right bottom] in pixels for the default
+    % bounding rectangle of the window on-screen (empty for full-screen)
+    OpenBounds 
+    % A numeric array [left top right bottom] in pixels for the default
+    % bounding rectangle of the sync region of the window
+    SyncBounds
     %sync region [r g b], or luminance for each consecutive flip (row-wise).
     %Wil repeat in a cycle. Default is white->black->....
     SyncColourCycle = [0; 255]
-    MonitorId %an identifier for the monitor
+    MonitorId % an identifier for the monitor
     Calibration %Struct containing calibration data
     PtbHandle = -1 %a handle to the PTB screen window
     PtbVerbosity = 2
