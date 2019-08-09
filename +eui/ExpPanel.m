@@ -62,6 +62,8 @@ classdef ExpPanel < handle
       params = exp.Parameters(paramsStruct); % Get parameters
       % Can define your own experiment panel
       if isfield(params.Struct, 'expPanelFun')&&~isempty(params.Struct.expPanelFun)
+        % FIXME This should be done with fileFunction and this use of which
+        % may not work on newer versions of MATLAB
         if isempty(which(params.Struct.expPanelFun)); addpath(fileparts(params.Struct.defFunction)); end
         p = feval(params.Struct.expPanelFun, parent, ref, params, logEntry);
       else % otherwise use the default
