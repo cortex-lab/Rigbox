@@ -1,11 +1,12 @@
 % fileFunction test
 % TODO Adapt fileFunction test for signals submodule
+% FIXME issue with shared fixtures in runAllTests
 % Test executing a file function that is not in MATLAB's paths
 p = fullfile('fixtures', 'util', 'MockDialog.m');
 [~,funName] = fileparts(p);
 % Check file exists and not on path
 assert(file.exists(p), 'Test file %s not found', p)
-assert(isempty(which(funName)), 'Remove %s from path and re-run', fileparts(p))
+assert(~exist(funName,'file'), 'Remove %s from path and re-run', fileparts(p))
 
 % Test creating executable function handle for test file function
 try
@@ -18,7 +19,7 @@ catch ex
     rethrow(ex)
   end
 end
-assert(isempty(which(funName)), 'Failed to remove file function from path')
+assert(~exist(funName,'file'), 'Failed to remove file function from path')
 
 % Test using separate inputs
 f = fileFunction(fileparts(p), funName);
@@ -31,7 +32,7 @@ try
   assert(false, 'Failed to throw error')
 catch ex
   if strcmp(ex.identifier, 'MATLAB:TooManyInputs')
-    assert(isempty(which(funName)), 'Failed to remove file function from path')
+    assert(~exist(funName,'file'), 'Failed to remove file function from path')
   else
     rethrow(ex)
   end
