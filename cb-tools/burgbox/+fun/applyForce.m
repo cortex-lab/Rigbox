@@ -1,6 +1,6 @@
 function [ex, exElems] = applyForce(funs, varargin)
 %FUN.APPLYFORCE Calls function on each element continuing on exceptions
-%   TODO
+%   TODO Document
 %
 % Part of Burgbox
 
