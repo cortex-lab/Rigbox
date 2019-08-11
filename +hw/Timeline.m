@@ -363,15 +363,15 @@ classdef Timeline < handle
                 outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
                 if strcmp(name, 'chrono') % Chrono wiring info
                     idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);
+                    idO = find(cellfun(@(s2)strcmp('hw.TLOutputChrono',s2), outputClasses),1);
                     fprintf('Bridge terminals %s and %s\n',...
-                        obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
-                elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
-                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Outputs.name});
+                        obj.Outputs(idO).DaqChannelID, obj.Inputs(idI).daqChannelID)
+                elseif any(strcmpi(name, {obj.Outputs.name})) % Output wiring info
+                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Outputs.name});
                     fprintf('Connect device to terminal %s of the DAQ\n',...
-                        obj.Outputs(idx).daqChannelID)
-                elseif any(strcmp(name, {obj.Inputs.name})) % Input wiring info
-                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Inputs.name});
+                        obj.Outputs(idx).DaqChannelID)
+                elseif any(strcmpi(name, {obj.Inputs.name})) % Input wiring info
+                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Inputs.name});
                     fprintf('Connect device to terminal %s of the DAQ\n',...
                         obj.Inputs(idx).daqChannelID)
                 else
