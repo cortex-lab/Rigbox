@@ -8,6 +8,8 @@ function out = apply(f, varargin)
 %     fun.apply({@(a)a*2, @(a)a+1}, 1, 2, 3) % {[2 4 6], [2 3 4]}
 %     fun.apply(4, 2, 1) % 4
 %
+% See also FUN.APPLYFORCE
+%
 % Part of Burgbox
 
 
