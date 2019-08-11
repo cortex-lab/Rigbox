@@ -8,6 +8,8 @@ function elem = first(coll)
 %   element of a standard array or cell with the same syntax, instead of
 %   (1) or {1}).
 %
+% See also SEQUENCE, REST
+%
 % Part of Burgbox
 
 % 2013-02 CB created
