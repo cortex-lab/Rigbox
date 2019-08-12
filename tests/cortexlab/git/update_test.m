@@ -85,12 +85,14 @@ classdef update_test < matlab.unittest.TestCase
               exitCode = git.update(Scheduled);
               msg = 'When input arg == 0, code should be pulled';
               assert(~any(exitCode), msg);
-            % sets the default input arg to 0, so pull
+            % sets the default input arg to `updateSchedule` in `dat.paths`,
+            % or to 0 if `updateSchedule` does not exist.
             case ''
               exitCode = git.update(Scheduled);
               msg = 'When input arg == [], code should be pulled';
               assert(~any(exitCode), msg);
-            % sets the default input arg to 0, so pull
+            % sets the default input arg to `updateSchedule` in `dat.paths`,
+            % or to 0 if `updateSchedule` does not exist.
             case 'char'
               exitCode = git.update(Scheduled);
               msg = 'When input arg == ''char'', code should be pulled';
