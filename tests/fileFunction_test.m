@@ -1,6 +1,5 @@
 % fileFunction test
 % TODO Adapt fileFunction test for signals submodule
-% FIXME issue with shared fixtures in runAllTests
 % Test executing a file function that is not in MATLAB's paths
 p = fullfile('fixtures', 'util', 'MockDialog.m');
 [~,funName] = fileparts(p);
