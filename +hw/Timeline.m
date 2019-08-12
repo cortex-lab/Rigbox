@@ -373,23 +373,23 @@ methods
     else
       % Special case for 'chrono' channel: get the matching channel
       % name in both tl's inputs and outputs
-      % @todo: `'chrono'` shouldn't be hard-coded below
-      if strcmp(name, 'chrono') % Chrono wiring info
-        InNameIdx = cellfun(@(s2) strcmp('chrono', s2),...
+      if strcmpi(name, 'chrono') % Chrono wiring info
+        inputIdx = cellfun(@(s2) strcmpi('chrono', s2),...
           {obj.Inputs.name});
-        OutNameIdx = cellfun(@(s2) strcmp('chrono', s2),...
-          {obj.Outputs.name});
+        outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
+        outputIdx = find(cellfun(@(s2) strcmpi('hw.TLOutputChrono',s2),... 
+                                 outputClasses), 1);
         fprintf('Bridge terminals %s and %s\n',...
-          obj.Outputs(OutNameIdx).daqChannelID,...
-          obj.Inputs(InNameIdx).daqChannelID)
+          obj.Outputs(outputIdx).DaqChannelID,...
+          obj.Inputs(inputIdx).daqChannelID)
         % See if `name` matches one of tl's outputs
-      elseif any(strcmp(name, {obj.Outputs.name}))
-        idx = cellfun(@(s2)strcmp(name,s2), {obj.Outputs.name});
+      elseif any(strcmpi(name, {obj.Outputs.Name}))
+        idx = cellfun(@(s2)strcmpi(name,s2), {obj.Outputs.name});
         fprintf('Connect device to terminal %s of the DAQ\n',...
           obj.Outputs(idx).daqChannelID)
         % See if `name` matches one of tl's inputs
-      elseif any(strcmp(name, {obj.Inputs.name}))
-        idx = cellfun(@(s2)strcmp(name,s2), {obj.Inputs.name});
+      elseif any(strcmpi(name, {obj.Inputs.name}))
+        idx = cellfun(@(s2)strcmpi(name,s2), {obj.Inputs.name});
         fprintf('Connect device to terminal %s of the DAQ\n',...
           obj.Inputs(idx).daqChannelID)
       else
@@ -456,9 +456,9 @@ methods
       obj.SamplingInterval*(0:obj.Data.rawDAQSampleCount - 1);
     
     % replicate old tl data struct for legacy code
-    idx = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
+    idx = cellfun(@(s2)strcmpi('chrono',s2), {obj.Inputs.name});
     arrayChronoColumn = obj.Inputs(idx).arrayColumn;
-    inputsIdx = cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs);
+    inputsIdx = cellfun(@(x)find(strcmpi({obj.Inputs.name}, x),1), obj.UseInputs);
     
     % this block finds the daqChannelID for chrono and acqLive if
     % they exist, plus some clock parameters - all for legacy
@@ -466,18 +466,18 @@ methods
     outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
     chronoChan = []; nextChrono = []; acqLiveChan = []; useClock = false; clockF = []; clockD = [];
     LastClockSentSysTime = []; CurrSysTimeTimelineOffset = [];
-    chronoOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputChrono'),1);
+    chronoOutputIdx = find(strcmpi(outputClasses, 'hw.TLOutputChrono'),1);
     if ~isempty(chronoOutputIdx)
       chronoChan = obj.Outputs(chronoOutputIdx).DaqChannelID;
       nextChrono = obj.Outputs(chronoOutputIdx).NextChronoSign;
       LastClockSentSysTime = obj.Outputs(chronoOutputIdx).LastClockSentSysTime;
       CurrSysTimeTimelineOffset = obj.Outputs(chronoOutputIdx).CurrSysTimeTimelineOffset;
     end
-    acqLiveOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputAcqLive'),1);
+    acqLiveOutputIdx = find(strcmpi(outputClasses, 'hw.TLOutputAcqLive'),1);
     if ~isempty(acqLiveOutputIdx)
       acqLiveChan = obj.Outputs(acqLiveOutputIdx).DaqChannelID;
     end
-    clockOutputIdx = find(strcmp(outputClasses, 'hw.TLOutputClock'),1);
+    clockOutputIdx = find(strcmpi(outputClasses, 'hw.TLOutputClock'),1);
     if ~isempty(clockOutputIdx)
       useClock = true;
       clockF = obj.Outputs(clockOutputIdx).Frequency;
@@ -526,7 +526,7 @@ methods
     %Register ALF components and hardware structures to Alyx
     %database. TODO: Make this process more robust.
     subject = dat.parseExpRef(obj.Data.expRef);
-    if ~isempty(obj.AlyxInstance) && obj.AlyxInstance.IsLoggedIn && ~strcmp(subject,'default')
+    if ~isempty(obj.AlyxInstance) && obj.AlyxInstance.IsLoggedIn && ~strcmpi(subject,'default')
       try
         files = dir(fileparts(obj.Data.savePaths{2}));
         files = fullfile(files(1).folder, {files(endsWith({files.name},...
@@ -573,7 +573,7 @@ methods (Access = private)
     inputSession.NotifyWhenDataAvailableExceeds = obj.DaqSamplesPerNotify; % when to process data
     obj.Sessions('main') = inputSession;
     for i = 1:length(use)
-      in = obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i)));
+      in = obj.Inputs(strcmpi({obj.Inputs.name}, obj.UseInputs(i)));
       fprintf(1, 'adding channel %s on %s\n', in.name, in.daqChannelID);
       
       switch in.measurement
@@ -589,7 +589,7 @@ methods (Access = private)
           % we assume quadrature encoding (X4) for position measurement
           ch.EncoderType = 'X4';
       end
-      obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
+      obj.Inputs(strcmpi({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
     end
     
     %Initialize outputs
@@ -669,7 +669,7 @@ methods (Access = private)
     
     % get the names of the inputs being recorded (in the correct
     % order)
-    names = pick({obj.Inputs.name}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
+    names = pick({obj.Inputs.name}, cellfun(@(x)find(strcmpi({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
     nSamps = size(data,1); % Get the number of samples in this chunck
     nChans = size(data,2); % Get the number of channels
     traceSep = 7; % unit is Volts - for most channels the max is 5V so this is a good separation
@@ -679,7 +679,7 @@ methods (Access = private)
     % (multiplicative) and can be set manually in the config. A
     % nicer future version would put a scroll wheel callback on the
     % figure and scale by scrolling the one that's hovered over
-    scales = pick([obj.Inputs.axesScale], cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs));
+    scales = pick([obj.Inputs.axesScale], cellfun(@(x)find(strcmpi({obj.Inputs.name}, x),1), obj.UseInputs));
     
     traces = get(obj.Axes, 'Children');
     if isempty(traces)
@@ -692,10 +692,10 @@ methods (Access = private)
     
     % get the measurement type of each channel, since Position-type
     % inputs are plotted differently.
-    meas = pick({obj.Inputs.measurement}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
+    meas = pick({obj.Inputs.measurement}, cellfun(@(x)find(strcmpi({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
     
     for t = 1:length(traces)
-      if strcmp(meas{t}, 'Position')
+      if strcmpi(meas{t}, 'Position')
         % if a position sensor (i.e. rotary encoder) scale
         % by the first point and allow negative values
         if any(data(:,t)>2^31); data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; end
@@ -704,7 +704,7 @@ methods (Access = private)
       yy = get(traces(end-t+1), 'YData'); % get current data for trace
       yy(1:end-nSamps) = yy(nSamps+1:end); % add the new chuck for channel
       % scale and offset the traces
-      if strcmp(meas{t}, 'Position')
+      if strcmpi(meas{t}, 'Position')
         % for position-type inputs, plot velocity (take the
         % diff, and smooth) rather than absolute. this is
         % necessary to prevent the value from wandering way off
