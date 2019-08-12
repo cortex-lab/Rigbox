@@ -42,7 +42,7 @@ function exitCode = update(scheduled)
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
-if nargin < 1 || ~isnumeric(scheduled) || any(0:7 == scheduled)
+if nargin < 1 || ~isnumeric(scheduled) || ~any(0:7 == scheduled)
   scheduled = getOr(dat.paths, 'updateSchedule', 0);
 end
 root = fileparts(which('addRigboxPaths')); % Rigbox root directory
@@ -51,7 +51,7 @@ fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
 % If `FETCH_HEAD` file exists, retrieve datenum for when last modified,
 % else return 0 (i.e. there was never a fetch) 
 lastFetch = iff(exist(fetch_head,'file')==2, ... 
-  @()getOr(dir(fetch_head), 'datenum'), 0); 
+  file.modDate(fetch_head), 0); 
 
 % Don't pull changes if the following conditions are met:
 % 1. The updates are scheduled for a different day and the last fetch was
@@ -59,7 +59,7 @@ lastFetch = iff(exist(fetch_head,'file')==2, ...
 % 2. The updates are scheduled for today and the last fetch was today.
 % 3. The updates are scheduled for every day and the last fetch was less
 % than an hour ago.
-notFetchDay = scheduled ~= weekday(now) && now-lastFetch < 7;
+notFetchDay = scheduled && scheduled ~= weekday(now) && now-lastFetch < 7;
 fetchDayButAlreadyFetched = scheduled == weekday(now) && now-lastFetch < 1;
 fetchEverydayButAlreadyFetched = scheduled == 0 && now-lastFetch < 1/24;
 if notFetchDay... 
@@ -72,12 +72,12 @@ disp('Updating code...')
 
 % Create Windows system commands for git stashing, initializing submodules,
 % and pulling
-cmdstrStash = ['stash push -m "stash Rigbox working changes before '... 
+stash = ['stash push -m "stash Rigbox working changes before '... 
                'scheduled git update"'];
-cmdstrStashSubs = 'submodule foreach "git stash push"';
-cmdstrInit = 'submodule update --init';
-cmdstrPull = 'pull --recurse-submodules --strategy-option=theirs';
-cmds = {cmdstrStash, cmdstrStashSubs, cmdstrInit, cmdstrPull};
+stashSubs = 'submodule foreach "git stash push"';
+init = 'submodule update --init';
+pull = 'pull --recurse-submodules --strategy-option=theirs';
+cmds = {stash, stashSubs, init, pull};
 % run commands in Rigbox root folder
-[exitCode, cmdOut] = git.runGitCmd(cmds, 'dir', root, 'echo', true);
+[exitCode, ~] = git.runGitCmd(cmds, 'dir', root, 'echo', true);
 end

@@ -1,5 +1,5 @@
-function [exitCode, cmdOut] = runGitCmd(cmd, varargin)
-%GIT.RUNGITCMD runs git commands in MATLAB.
+function [exitCode, cmdOut] = runCmd(cmd, varargin)
+%GIT.RUNCMD runs git commands in MATLAB.
 %
 % Inputs:
 %   `cmd`: A str or cellstr array of git command(s) to run.
@@ -26,9 +26,9 @@ function [exitCode, cmdOut] = runGitCmd(cmd, varargin)
 %                             'echo', false);
 
 %% set-up 
-% Make sure `cmd` is a cellstr
-
-
+% If `cmd` is a char or str array, turn it into a cellstr
+if isstring(cmd)||ischar(cmd), cmd=cellstr(cmd); end
+% Ensure `cmd` is a cellstr
 if ~iscellstr(cmd) %#ok<ISCLSTR>
   error('Rigbox:git:runCmd:invalidInputArg', ['%s requires the first input '...
         'arg to be a str or cellstr array'], mfilename);
@@ -63,7 +63,6 @@ end
 cd(argS.dir);
 
 %% run commands
-
 % Search `dat.paths` for the path to the Git exe; if not found, perform a
 % system search; if still not found, throw an error.
 gitexepath = getOr(dat.paths, 'gitExe');
