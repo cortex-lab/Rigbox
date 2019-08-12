@@ -1,4 +1,4 @@
-classdef Update_test < matlab.unittest.TestCase
+classdef update_test < matlab.unittest.TestCase
   %UPDATE_TEST contains unit tests for `git.update`
   
   properties
@@ -8,7 +8,7 @@ classdef Update_test < matlab.unittest.TestCase
     % A char array for Rigbox's `.git` folder.
     GitDir = fullfile(fileparts(which('addRigboxPaths')), '/.git/');
     % A number in the interval [1,7] representing a day that is different
-    % from that returned `weekday(today)`.
+    % from that returned by `weekday(today)`.
     DiffDay
   end
   
@@ -39,7 +39,7 @@ classdef Update_test < matlab.unittest.TestCase
   
   methods (TestMethodSetup)
     function getMockFiles(testCase, FetchFlag)
-      % Gets `FetchHeadFakeOld` file so we don't corrupt actual `FETCH_HEAD`
+      % Creates a `FETCH_HEAD_FAKE` file so we don't corrupt actual `FETCH_HEAD`
       
       gitDir = testCase.GitDir;
       fetchHead = fullfile(gitDir, 'FETCH_HEAD');
