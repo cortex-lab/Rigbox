@@ -40,7 +40,7 @@ p = dat.expPath(ref);
 bool = dat.expExists(ref);
 
 % Return specific file path
-[fullpath, filename] = dat.expFilePath(ref, 'block');
+[fullpath, filename] = dat.expFilePath(ref, 'block'); %#ok<*ASGLU>
 [fullpath, filename] = dat.expFilePath(ref, 'block', 'master', 'json');
 [fullpath, filename] = dat.expFilePath(subject, now, 1, 'timeline');
 

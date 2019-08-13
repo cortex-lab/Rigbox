@@ -29,6 +29,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     GraphData
   end
   
+  properties (ClassSetupParameter)
+    % Alyx base URL.  test is for the main branch, testDev is for the dev
+    % code
+    BaseURL = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+  end
+  
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
@@ -46,15 +52,26 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.GraphData = graphData;
     end
     
-    function setupPanel(testCase)
+    function setupPanel(testCase, BaseURL)
       % Check paths file
       assert(endsWith(which('dat.paths'), fullfile('fixtures','+dat','paths.m')));
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
-      mainRepo = getOr(dat.paths, 'mainRepository');
-      assert(~exist(mainRepo, 'dir') || isempty(setdiff(getOr(dir(mainRepo),'name'),{'.','..'})),...
+      mainRepo = dat.reposPath('main','master');
+      assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
         'Test experiment repo not empty.  Please set another path or manual empty folder');
       
+      % Create local directory
+      localRepo = dat.reposPath('main','local');
+      if exist(localRepo, 'dir') == 0; mkdir(localRepo); end
+      
+      % Create config directory
+      assert(mkdir(getOr(dat.paths,'rigConfig')), 'Failed to create config directory')
+      
+      % Set the database url
+      paths.databaseURL = BaseURL;
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      clearCBToolsCache
       % Create figure for panel
       testCase.hPanel = figure('Name', 'alyx GUI',...
         'MenuBar', 'none',...
@@ -83,11 +100,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % MControl using this as a panel.
       testCase.SubjectUI.addlistener('SelectionChanged', ...
         @(src, evt)testCase.Panel.dispWaterReq(src, evt));
-      
+            
       % Set Alyx Instance and log in
       testCase.Panel.login('test_user', 'TapetesBloc18');
       testCase.fatalAssertTrue(testCase.Panel.AlyxInstance.IsLoggedIn,...
         'Failed to log into Alyx');
+      testCase.fatalAssertEqual(testCase.Panel.AlyxInstance.BaseURL, BaseURL,...
+        'Failed to correctly set database url');
       
       % Verify subject folders created
       present = ismember([{'default'}; testCase.Subjects(1:end-1)], dat.listSubjects);
@@ -113,12 +132,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         idx = cellfun(@(n)any(strcmp(n, testCase.Subjects)),{figHandles.Name});
         close(figHandles(idx))
       end
-      % Remove subject directories
-      dataRepo = getOr(dat.paths, 'mainRepository');
-      assert(rmdir(dataRepo, 's'), 'Failed to remove test data directory')
-      % Remove Alyx queue
-      alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
-      assert(rmdir(alyxQ, 's'), 'Failed to remove test Alx queue')
+      % Remove directories
+      repos = [{getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ'])};...
+          dat.reposPath('main'); {getOr(dat.paths, 'globalConfig')}];
+      rm = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
+      cellfun(@(repo)iff(exist(repo,'dir') == 7, @()rm(repo), @()nop), repos);
     end
   end
   
@@ -134,7 +152,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       alyxQ = getOr(dat.paths,'localAlyxQueue', ['fixtures' filesep 'alyxQ']);
       testCase.resetQueue(alyxQ);
       % Close any figures opened during the test
-      if ~isempty(testCase.Figure); close(testCase.Figure); end
+      if ~isempty(testCase.Figure) && isvalid(testCase.Figure)
+        close(testCase.Figure)
+      end
+      % Close any open file ids
+      fclose('all');
       % Reset state of dialog mock
       testCase.Mock.reset;
     end
@@ -206,46 +228,52 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
     end
     
-    function test_launchSessionURL(testCase)
+    function test_launchSessionURL(testCase, BaseURL)
       % Test the launch of the session page in the admin Web interface
+      % TODO Use DELETE to test both creating new session and viewing
+      % existing
       p = testCase.Panel;
+      baseURL = p.AlyxInstance.BaseURL;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
-      todaySession = p.AlyxInstance.getSessions(testCase.SubjectUI.Selected, 'start_date', now);
+      todaySession = p.AlyxInstance.getSessions(...
+        'subject', testCase.SubjectUI.Selected, 'date', now);
       
       % Add mock user response
       key = 'Would you like to create a new base session?';
-      testCase.Mock.Dialogs(key) = iff(isempty(todaySession), 'Yes', 'No');
+      noSub = isempty(todaySession)||~isempty(todaySession.number);
+      testCase.Mock.Dialogs(key) = iff(noSub, 'Yes', 'No');
       
-      [failed, url] = testCase.assertWarningFree(@()p.launchSessionURL);
-      testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
+      [status, url] = testCase.assertWarningFree(@()p.launchSessionURL);
+      testCase.verifyTrue(status > -1, 'Failed to launch subject page in browser')
       if isempty(todaySession)
         expected = url;
       else
         uuid = todaySession.url(find(todaySession.url=='/', 1, 'last')+1:end);
-        expected = ['https://test.alyx.internationalbrainlab.org/admin/', ...
-          'actions/session/', uuid, '/change'];
+        expected = [baseURL '/admin/actions/session/', uuid, '/change'];
       end
       
       testCase.verifyEqual(url, expected, 'Unexpected url')
+      
+      % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
-    function test_launchSubjectURL(testCase)
+    function test_launchSubjectURL(testCase, BaseURL)
       % Test the launch of the subject page in the admin Web interface
       p = testCase.Panel;
+      baseURL = p.AlyxInstance.BaseURL;
       % Set new subject
       testCase.SubjectUI.Selected = testCase.SubjectUI.Option{2};
       [failed, url] = p.launchSubjectURL;
       testCase.verifyTrue(~failed, 'Failed to launch subject page in browser')
-      expected = ['https:\\test.alyx.internationalbrainlab.org\admin\'...
-        'subjects\subject\bcefd268-68c2-4ea8-9b60-588ee4e99ebb\change'];
+      expected = [baseURL '/admin/subjects/subject/'...
+        'bcefd268-68c2-4ea8-9b60-588ee4e99ebb/change'];
       testCase.verifyEqual(url, expected, 'unexpected subject page url')
     end
     
     function test_recordWeight(testCase)
-      testCase.Panel;
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
       % Set subject on water restriction
@@ -264,7 +292,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to update weight label color')
       
       % Post weight < 80 
-      weight = 25 + rand;
+      weight = 16 + rand;
       testCase.Panel.recordWeight(weight)
       expected = sprintf('Weight today: %.2f (< 80%%)', weight);
       testCase.verifyTrue(startsWith(strip(weight_text.String(2,:)), expected),...
@@ -278,7 +306,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(endsWith(logPanel.String{end}, expected))
       
       % Test manual weight dialog
-      weight = 30 + rand;
+      weight = 32 + rand;
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
       testCase.assertTrue(~isempty(button), 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
@@ -353,12 +381,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       
       % Check button resets
-      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); end
+      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
     
     function test_giveWater(testCase)
+      tol = 0.2; % Tolerance for water verifications, required due to rounding
       testCase.Panel;
       % Set subject on water restriction
       testCase.SubjectUI.Selected = 'algernon';
@@ -384,21 +413,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
       [vals, record] = get_test_data;
       
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', tol, 'Given water mismatch')
       
       % Test give water callback
       button.Callback()
       [vals, record] = get_test_data;
             
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
       rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', tol, 'Given water mismatch')
       
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
@@ -415,7 +444,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveFutureWater(testCase)
-      testCase.Panel;
+      tol = 0.1; % Tolerance for water verifications, required due to rounding
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
       
@@ -433,15 +462,15 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Check training day added
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', tol, ...
         'Failed to add training dates to saved params')
       
       % Check water posted to Alyx
       wr = testCase.Panel.AlyxInstance.getData(['subjects/', subject]);
       last = wr.water_administrations(end);
-      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', 0.01, ...
+      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', tol, ...
         'Date of post incorrect')
-      testCase.verifyEqual(last.water_administered, amount, 'RelTol', 0.1, ...
+      testCase.verifyEqual(last.water_administered, amount, 'RelTol', tol, ...
         'Incorrect amount posted to Alyx')
 
       % Check log
@@ -457,8 +486,42 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check training day removed
       button.Callback();
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', tol, ...
         'Failed to add training dates to saved params')
+    end
+    
+    function test_activeFlag(testCase)
+      % Ensure that the panel is active when the DatabaseURL is added and
+      % not empty
+      
+      % First ensure panel was set up as active
+      testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+        'Expected non-empty databaseURL field in paths')
+      str = iff(testCase.Panel.AlyxInstance.IsLoggedIn, 'Logout', 'Login');
+      button = findobj(testCase.Parent, 'String', str);
+      testCase.assertEqual(button.Enable, 'on', 'AlyxPanel not enabled')
+      
+      % Set invalid database URL
+      baseURL = testCase.Panel.AlyxInstance.BaseURL;
+      paths.databaseURL = '';
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      testCase.assertEmpty(getOr(dat.paths,'databaseURL'),...
+        'Failed to create custom paths file')
+      
+      testCase.Figure = figure('Name', testCase.Subjects{end});
+      eui.AlyxPanel(testCase.Figure);
+      
+      % Reset URL
+      paths.databaseURL = baseURL;
+      save(fullfile(getOr(dat.paths,'rigConfig'), 'paths'), 'paths')
+      clearCBToolsCache % Ensure paths are reloaded
+      testCase.fatalAssertEqual(getOr(dat.paths, 'databaseURL'), baseURL, ...
+        'Failed to remove databaseURL field in paths')
+      button = findobj(testCase.Figure, 'String', 'Login');
+      testCase.verifyEqual(button.Enable, 'off', ...
+        'AlyxPanel enabled while databaseURL undefined')
+
+      close(testCase.Figure)
     end
     
     function test_round(testCase)
