@@ -15,6 +15,7 @@ function [exitStatus, failures] = runall(ignoreTagged)
 
 if nargin < 1; ignoreTagged = true; end
 import matlab.unittest.selectors.HasTag
+
 %% Gather tests
 rigbox_tests = testsuite;
 signals_tests = testsuite(fullfile('..\signals\tests'));
@@ -33,3 +34,4 @@ results = run(tests);
 %% Diagnostics
 exitStatus = any([results.Failed]);
 failures = tests([results.Failed]);
+

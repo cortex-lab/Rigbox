@@ -392,6 +392,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveWater(testCase)
+      tol = 0.2; % Tolerance for water verifications, required due to rounding
       testCase.Panel;
       tol = 0.2; % Tolerance for water verifications, required due to rounding
       % Set subject on water restriction
@@ -449,6 +450,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveFutureWater(testCase)
+      tol = 0.1; % Tolerance for water verifications, required due to rounding
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
       tol = 0.1; % Tolerance for water verifications, required due to rounding
