@@ -15,9 +15,9 @@ subjects = dat.listSubjects;
 % The subjects list is generated from the folder names in the main
 % repository path
 mainRepo = getOr(dat.paths, 'mainRepository');
-% To get all paths you should save to for the "main" repository:
+% To get all paths you should save to for the 'main' repository:
 savePaths = dat.reposPath('main'); % savePaths is a string cell array
-% To get the master location for the "main" repository:
+% To get the master location for the 'main' repository:
 loadPath = dat.reposPath('main', 'master'); % loadPath is a string
 % If you have alternate repos (e.g. 'main2Respository', 'altRepository'),
 % use the remote flag to return all of them (used by the below functions).
@@ -33,7 +33,7 @@ endInRepos = dat.reposPath('*');
 % These functions can take the input as both a ref or three inputs
 % (subject, date and sequence).  The input may also be a cell array of
 % these.
-p = dat.expPath(ref); %#ok<*NASGU>
+p = dat.expPath(ref); 
 [p, ref] = dat.expPath(subject, now, 1, 'main');
 
 % Check a given experiment exists
@@ -58,18 +58,42 @@ ref = dat.constructExpRef('subject', now, 2);
 [subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
 
 %% Loading other things
-expType = 'custom';
+expType = 'custom'; % signals experiments have the type 'custom'
 p = dat.loadParamProfiles(expType);
 dat.saveParamProfile(expType, profileName, params);
 dat.delParamProfile(expType, profileName);
 
-%% Using the log
-% FIXME Remove dat.expLogRequest
-% @body expLogRequest clearly an old attempt at logging meta data to a
-% server via JSON.  This is now Alyx.
-[result, info] = expLogRequest(instruction, varargin); 
+% More info on how parameters work can be found in USING_PARAMETERS:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_parameters.m'))
 
+%% Using the log
+% The log object, is primarily dealt with through MC, however you can also
+% use it from the command line:
 e = dat.addLogEntry(subject, timestamp, type, value, comments, AlyxInstance);
 p = dat.logPath(subject, 'all');
 e = dat.logEntries(subject);
 e = dat.updateLogEntry(subject, id, newEntry);
+
+%% Setting custom paths
+% Some people keep the paths file in a shared remote location that all rigs
+% can access.  This reduces the number of files to change when a repository
+% path needs updating to one.  In this case, rig-specific paths may be set
+% using a custom paths file that overrides any paths set in DAT.PATHS:
+opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
+  'docs', 'setup', 'paths_template.m'), 78, 1)
+
+% The paths file, 'paths.mat', must contain a variable `paths` that is a
+% struct of custom paths.  The file should be located in the location set
+% by 'rigConfig'.  For obvious reasons do not overrive 'rigConfig' in you
+% custom paths without making the appropriate changes to DAT.PATHS.
+
+% Let's create a custom paths file for rig 'ZREDONE' containing a new
+% location for the 'expDefinitions' path:
+clear paths
+paths.expDefinitions = 'C:\ExpDefinitions';
+customPathsFile = fullfile(getOr(dat.paths('ZREDONE'), 'rigConfig'), 'paths');
+save(customPathsFile, 'paths', '-mat')
+
+%% Etc.
+%#ok<*NASGU>
+%#ok<*ASGLU>
