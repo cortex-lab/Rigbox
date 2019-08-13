@@ -7,7 +7,7 @@ C = struct('e', 1);
 
 % First test merge of unique fields
 s = mergeStructs(B,C);
-assert(isequal(fieldnames(s), sort([fieldnames(B); fieldnames(C)])), ...
+assert(isequal(fieldnames(s), unique([fieldnames(B); fieldnames(C)])), ...
   'Not all fields were merged') % Check fields
 % FETCH returns the value of field f, looking first in struct x and if not
 % there then struct y

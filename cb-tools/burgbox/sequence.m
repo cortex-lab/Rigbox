@@ -15,7 +15,7 @@ function s = sequence(varargin)
 %   delaying costly operations until they're actually needed, or avoiding 
 %   altogether (e.g. if searching for something, you can stop loading more
 %   data when you find it), whilst still using the same algorithms as
-%   on normal sequences.
+%   on normal sequences. Note: Currently matrix arrays are not supported.
 %
 % See also FUN.SEQ, FIRST, REST
 %
