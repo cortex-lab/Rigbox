@@ -19,10 +19,36 @@ stimWindow = hw.ptb.Window;
 % screen
 
 %% Saving the hardware configurations
-% The location of the configuration file is set in dat.paths.  If running
+% The location of the configuration file is set in DAT.PATHS.  If running
 % this on the stimulus computer you can use the following syntax:
 p = getOr(dat.paths, 'rigConfig');
-% save(fullfile(p, 'hardware.mat'), 'stimWindow', '--append')
+save(fullfile(p, 'hardware.mat'), 'stimWindow', '-append')
+
+%% Adding hardware inputs
+% In this example we will add two inputs, a DAQ rotatary encoder and a beam
+% lick detector.  NB: Currently these object variable names must be exactly
+% as below in order to work in Signals.
+
+% Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER
+% class:
+doc hw.DaqRotaryEncoder % More details for this class
+mouseInput = hw.DaqRotaryEncoder;
+
+% To deteremine what devices you have installed and their IDs:
+device = daq.getDevices
+% DAQ's device ID, e.g. 'Dev1'
+mouseInput.DaqId = 'Dev1'
+% DAQ's ID for the counter channel. e.g. 'ctr0'
+% Size of DAQ counter range for detecting over- and underflows (e.g. if
+% the DAQ's counter is 32-bit, this should be 2^32)
+mouseInput.DaqChannelId = 'ctr0'
+mouseInput.DaqCounterPeriod = 2^32
+    % Number of pulses per revolution.  Found at the end of the KÜBLER
+    % product number, e.g. 05.2400.1122.0100 has a resolution of 100
+    EncoderResolution = 1024
+    % Diameter of the wheel in mm
+    WheelDiameter = 62
+
 
 %% Timeline
 %Open your hardware.mat file and instantiate a new Timeline object
@@ -38,8 +64,22 @@ timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
 timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
 %We want use camera frame acquisition trigger by default
 timeline.UseOutputs{end+1} = 'clock';
+
 %Save your hardware.mat file
 % save('hardware.mat', 'timeline', '-append')
 
+%% Adding a weigh scale
+
+
 %% Loading your hardware file
+% To load your rig hardware objects for testing at a rig, you can use
+% HW.DEVICES:
 rig = hw.devices;
+
+% To load the hardware file or a different rig, you can input the rig name.
+% Note HW.DEVICES initializes some of the hardware by default, including
+% creating DAQ sessions and adding any required channels.  To load without
+% initializing:
+rigName = 'ZREDONE';
+initialize = false;
+rig = hw.devices(rigName, initialize);
