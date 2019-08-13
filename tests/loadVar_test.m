@@ -1,6 +1,6 @@
 % loadVar test
 % Test for loadVar function and also clearBurgboxCache
-root = fileparts(which('addRigboxPaths'));
+root = getOr(dat.paths,'rigbox');
 filePath = fullfile(root, 'tests', 'fixtures', 'testData.mat');
 
 % Test the caching of files and clearing of cache
