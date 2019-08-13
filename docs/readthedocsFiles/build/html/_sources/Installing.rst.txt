@@ -1,3 +1,4 @@
+.. _installing:
 Installing Rigbox
 =================
 The following is a detailed description of how to install Rigbox on your experimental rig. 

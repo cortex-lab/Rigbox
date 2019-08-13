@@ -1,49 +1,526 @@
 
-<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>Rigbox packages &#8212; Rigbox 2.2 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Rigbox packages &mdash; Rigbox 2.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Installing Rigbox" href="Installing.html" />
+    <link rel="prev" title="Setting up Rigbox" href="Setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
    
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
-  </head><body>
-  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
           
 
-          <div class="body" role="main">
+          
+            <a href="index.html" class="icon icon-home"> Rigbox
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing Rigbox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Setup.html">Setting up Rigbox</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Rigbox packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-hardware-package-hw">The Hardware Package <em>+hw</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-+dat">The Data Package <em>+dat</em></a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Rigbox</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Rigbox packages</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/packages.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="rigbox-packages">
 <h1>Rigbox packages<a class="headerlink" href="#rigbox-packages" title="Permalink to this headline">¶</a></h1>
 <p>Below is a list of Rigbox’s subdirectories and an overview of their respective contents</p>
 <div class="section" id="the-hardware-package-hw">
 <h2>The Hardware Package <em>+hw</em><a class="headerlink" href="#the-hardware-package-hw" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+hw</span></code> package is for configuring, and interfacing with, hardware (such as screens, DAQ devices, weighing scales and lick detectors). Within this is the “+ptb” package which contains classes for interacting with PsychToolbox.</p>
+<p>The <code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+hw</span></code> package is for configuring, and interfacing with, hardware (such as screens, DAQ devices, weighing scales and lick detectors). Within this is the <code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+ptb</span></code> package which contains classes for interacting with PsychToolbox.</p>
 <p>‘devices.m’ loads and initializes all the hardware for a specific experimental rig. There are also classes for unifying system and hardware clocks.</p>
 </div>
 <div class="section" id="module-+dat">
 <span id="the-data-package-dat"></span><h2>The Data Package <em>+dat</em><a class="headerlink" href="#module-+dat" title="Permalink to this headline">¶</a></h2>
+<dl class="script">
+<dt id="+dat.Contents">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">Contents</code><a class="headerlink" href="#+dat.Contents" title="Permalink to this definition">¶</a></dt>
+<dd><p>+DAT</p>
+<dl class="simple">
+<dt>Files</dt><dd><p>addLogEntry       - DAT.ADDLOGENTRY Adds a new entry to the experiment log
+constructExpRef   - DAT.CONSTRUCTEXPREF Constructs an experiment reference string
+delParamProfile   - DAT.DELPARAMPROFILE Deletes the named parameter sets for experiment type
+expExists         - DAT.EXPEXISTS Confirm existence of experiment(s) with reference
+expFilePath       - DAT.EXPFILEPATH Full path for file pertaining to designated experiment
+expLogRequest     - DAT.EXPLOGREQUEST Submits a request to the experiment log
+expParams         - DAT.EXPPARAMS Loads the parameters struct for given experiment(s)
+expPath           - DAT.EXPPATH Folder paths for files pertaining to designated experiment
+expRefRegExp      - DAT.EXPREFREGEXP Regular expression for parsing Rigging experiment refs
+listExps          - DAT.LISTEXPS Lists experiments for given subject(s)
+listSubjects      - DAT.LISTSUBJECTS Lists recorded subjects
+loadBlock         - DAT.LOADBLOCK Load the designated experiment block(s)
+loadParamProfiles - DAT.LOADPARAMPROFILES Loads the parameter sets for given experiment type
+logEntries        - DAT.LOGENTRIES Retrieve all log entries for specified subject
+logPath           - DAT.LOGPATH Get the path a subjects log file
+newExp            - DAT.NEWEXP Create a new unique experiment in the database
+parseAlyxInstance - DAT.PARSEALYXINSTANCE Converts input to string for UDP message and back
+parseExpRef       - DAT.PARSEEXPREF Extracts subject, date and seq from an experiment ref
+paths             - DAT.PATHS Returns struct containing important paths
+reposPath         - DAT.REPOSPATH Get the path to a named data repository
+saveParamProfile  - DAT.SAVEPARAMPROFILE Stores the named parameters for experiment type
+subjectExists     - DAT.SUBJECTEXISTS Check whether subject(s) exist(s)
+updateLogEntry    - DAT.UPDATELOGENTRY Updates an existing experiment log entry</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.addLogEntry">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">addLogEntry</code><span class="sig-paren">(</span><em class="sig-param">subject</em>, <em class="sig-param">timestamp</em>, <em class="sig-param">type</em>, <em class="sig-param">value</em>, <em class="sig-param">comments</em>, <em class="sig-param">AlyxInstance</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.addLogEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.ADDLOGENTRY Adds a new entry to the experiment log</dt><dd><p>e = DAT.ADDLOGENTRY(subject, timestamp, type, value, comments) files a
+new log entry for ‘subject’ with the corresponding info.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.constructExpRef">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">constructExpRef</code><span class="sig-paren">(</span><em class="sig-param">subjectRef</em>, <em class="sig-param">expDate</em>, <em class="sig-param">expSequence</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.constructExpRef" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.CONSTRUCTEXPREF Constructs an experiment reference string</dt><dd><p>ref = DAT.CONSTRUCTEXPREF(subject, dat, seq) constructs and returns a
+standard format string reference, for the experiment using the ‘subject’,
+the ‘date’ of the experiment (a MATLAB datenum), and the daily sequence
+number of the experiment, ‘seq’ (must be an integer).</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.delParamProfile">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">delParamProfile</code><span class="sig-paren">(</span><em class="sig-param">expType</em>, <em class="sig-param">profileName</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.delParamProfile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.DELPARAMPROFILE Deletes the named parameter sets for experiment type</dt><dd><dl class="simple">
+<dt>TODO</dt><dd><ul class="simple">
+<li><p>Figure out how to save struct without for-loop in 2016b!</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expExists">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expExists</code><span class="sig-paren">(</span><em class="sig-param">expRef</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expExists" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.EXPEXISTS Confirm existence of experiment(s) with reference</dt><dd><p>b = DAT.EXPEXISTS(expRef) Returns true is expRef exists, where expRef
+is an experiment reference string or cell array thereof.</p>
+</dd>
+</dl>
+<p>See Also DAT.LISTEXPS, DAT.PATHS</p>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expFilePath">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expFilePath</code><span class="sig-paren">(</span><em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expFilePath" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.EXPFILEPATH Full path for file pertaining to designated experiment</dt><dd><p>Returns the path(s) that a particular type of experiment file should be
+located at for a specific experiment. i.e. if you want to know where a
+file should be saved to, or where to load it from, use this function.</p>
+<p>e.g. to get the paths for an experiments 2 photon TIFF movie:
+DAT.EXPFILEPATH(‘mouse1’, datenum(2013, 01, 01), 1, ‘2p-raw’);</p>
+<p>[full, filename] = expFilePath(ref, type, [reposlocation, ext])</p>
+<p>[full, filename] = expFilePath(subject, date, seq, type, [reposlocation, ext])</p>
+<p>Options for reposlocation are: ‘local’ or ‘master’
+Many options for type, e.g. ‘block’, ‘2p-raw’, ‘eyetracking’, etc
+If ext is specified, the path returned has the extention ext, otherwise
+the default for that type is used.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expLogRequest">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expLogRequest</code><span class="sig-paren">(</span><em class="sig-param">instruction</em>, <em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expLogRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>DAT.EXPLOGREQUEST Submits a request to the experiment log
+Detailed explanation goes here</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expParams">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expParams</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expParams" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.EXPPARAMS Loads the parameters struct for given experiment(s)</dt><dd><p>p = DAT.EXPPARAMS(ref) returns the parameters variable saved for each
+experiment by its reference. ‘ref’ can be a single string (in which 
+case we return a single result), or a cell array of strings, in which
+case a cell array of parameter variables is returned corresponding to
+each experiment. Any experiments without saved parameters will return
+empty, [].</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expPath">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expPath</code><span class="sig-paren">(</span><em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expPath" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.EXPPATH Folder paths for files pertaining to designated experiment</dt><dd><p>[P, REF] = DAT.EXPPATH(ref, reposname, [reposlocation]) returns paths
+for the experiment ‘ref’ at a particular repository ‘reposname’.
+Optionally specify ‘reposlocation’ to specify a specific repository’s
+location.</p>
+<p>[P, REF] = DAT.EXPPATH(subject, date, seq, reposname, [reposlocation])
+sames as the above, but returns paths for an experiment with a
+specified ‘subject’, on a particular ‘date’, and numbered ‘seq’.</p>
+</dd>
+</dl>
+<p>e.g. to get the paths for the ‘main’ repository, for the first
+experiment of the day for ‘SUBJECTA’:</p>
+<p>paths = DAT.EXPPATH(‘SUBJECTA’, now, 1, ‘main’);</p>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.expRefRegExp">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">expRefRegExp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#+dat.expRefRegExp" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.EXPREFREGEXP Regular expression for parsing Rigging experiment refs</dt><dd><p>s = expRefRegExp() returns a regular expression string for parsing
+Rigging experiment refs into tokens for date fields, sequence number
+and subject.</p>
+<p>The pattern for ‘ref’ should be ‘{date}_{seq#}_{subject}’.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.listExps">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">listExps</code><span class="sig-paren">(</span><em class="sig-param">subjects</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.listExps" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.LISTEXPS Lists experiments for given subject(s)</dt><dd><p>[ref, date, seq] = DAT.LISTEXPS(subject) Lists experiment for given
+subject(s) in date, then sequence number order.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.listSubjects">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">listSubjects</code><span class="sig-paren">(</span><em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.listSubjects" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.LISTSUBJECTS Lists recorded subjects</dt><dd><p>subjects = DAT.LISTSUBJECTS([alyxInstance]) Lists the experimental subjects present
+in experiment info repository (‘main’).</p>
+</dd>
+</dl>
+<p>Optional input argument of an alyx instance will enable generating this
+list from alyx rather than from the directory structure on zserver</p>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.loadBlock">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">loadBlock</code><span class="sig-paren">(</span><em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.loadBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>DAT.LOADBLOCK Load the designated experiment block(s)
+BLOCK = loadBlock(EXPREF, [EXPTYPE])</p>
+<p>BLOCK = loadBlock(SUBJECTREF, EXPDATE, EXPSEQ, [EXPTYPE])</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.loadParamProfiles">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">loadParamProfiles</code><span class="sig-paren">(</span><em class="sig-param">expType</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.loadParamProfiles" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.LOADPARAMPROFILES Loads the parameter sets for given experiment type</dt><dd><p>TODO</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.logEntries">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">logEntries</code><span class="sig-paren">(</span><em class="sig-param">subject</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.logEntries" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.LOGENTRIES Retrieve all log entries for specified subject</dt><dd><p>e = DAT.LOGENTRIES(SUBJECT) Detailed explanation goes here</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.logPath">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">logPath</code><span class="sig-paren">(</span><em class="sig-param">subject</em>, <em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.logPath" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.LOGPATH Get the path a subjects log file</dt><dd><p>p = DAT.LOGPATH(subject, [location]) returns path(s) to the subject’s
+log file. Copies can be held in multiple locations, although the one at
+the ‘master’ location is deemed to be the definitive one.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.newExp">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">newExp</code><span class="sig-paren">(</span><em class="sig-param">subject</em>, <em class="sig-param">expDate</em>, <em class="sig-param">expParams</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.newExp" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.NEWEXP Create a new unique experiment in the database</dt><dd><p>[ref, seq] = DAT.NEWEXP(subject, expDate, expParams)
+Create a new experiment by creating the relevant folder tree in the
+local and main data repositories in the following format:</p>
+<dl class="simple">
+<dt>subject/</dt><dd><dl class="simple">
+<dt><a href="#id1"><span class="problematic" id="id2">|</span></a>_ YYYY-MM-DD/</dt><dd><p><a href="#id3"><span class="problematic" id="id4">|</span></a>_ expSeq/</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>If experiment parameters are passed into the function, they are saved
+here.</p>
+<p>See also DAT.PATHS</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.parseAlyxInstance">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">parseAlyxInstance</code><span class="sig-paren">(</span><em class="sig-param">varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.parseAlyxInstance" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.PARSEALYXINSTANCE Converts input to string for UDP message and back</dt><dd><p>[UDP_string] = DATA.PARSEALYXINSTANCE(ref, AlyxInstance)
+[ref, AlyxInstance] = DATA.PARSEALYXINSTANCE(UDP_string)</p>
+<p>The pattern for ‘ref’ should be ‘{date}_{seq#}_{subject}’, with two
+date formats accepted, either ‘yyyy-mm-dd’ or ‘yyyymmdd’.</p>
+<p>AlyxInstance should be a struct with the following fields, all
+containing strings: ‘baseURL’, ‘token’, ‘username’[, ‘subsessionURL’].</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.parseExpRef">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">parseExpRef</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.parseExpRef" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.PARSEEXPREF Extracts subject, date and seq from an experiment ref</dt><dd><p>[subject, date, seq] = DATA.PARSEEXPREF(ref)</p>
+<p>The pattern for ‘ref’ should be ‘{date}_{seq#}_{subject}’, with two
+date formats accepted, either ‘yyyy-mm-dd’ or ‘yyyymmdd’.</p>
+<p>Experiment refs with the former format can be constructed with from
+subject, date and sequence number with data.constructExpRef.</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="+dat.paths">
-<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#+dat.paths" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">paths</code><span class="sig-paren">(</span><em class="sig-param">rig</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.paths" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.PATHS Returns struct containing important paths</dt><dd><p>p = DAT.PATHS([RIG])
+TODO:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Clean up expDefinitions directory</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.reposPath">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">reposPath</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">location</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.reposPath" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.REPOSPATH Get the path to a named data repository</dt><dd><p>p = DAT.REPOSPATH(name, [location]) returns paths to the named
+repository specified by ‘name’.</p>
+<p>Each repository can have multiple locations with one location being the
+‘master’ copy and others considered backups or archives (e.g. copies on
+local machines). Users of this function wanting to <em>save</em> data should
+do so in all locations (i.e. master and local). To <em>load</em> data, the
+remote locations (i.e. master and archives) should be used (i.e.
+because local copies will only be on specific machines). The optional
+‘location’ parameter specifies one or more locations, with ‘all’ being
+the default that returns the master and local locations for that
+repository, ‘master’ will return the path to the master location, and
+‘remote’ will return the master and archive/alternate paths (in that
+order).</p>
+<p>e.g. to get all paths you should save to for the ‘main’ repository:
+savePaths = DAT.REPOSPATH(‘main’) % savePaths is a cell string</p>
+<p>To get the master location for the ‘main’ repository:
+loadPath = DAT.REPOSPATH(‘main’, ‘master’) % loadPath is a string</p>
+<p>When data are spread across multiple remote locations such as archives:
+loadPath = DAT.REPOSPATH(‘main’, ‘remote’) % loadPath is a cell string</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.saveParamProfile">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">saveParamProfile</code><span class="sig-paren">(</span><em class="sig-param">expType</em>, <em class="sig-param">profileName</em>, <em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.saveParamProfile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.SAVEPARAMPROFILE Stores the named parameters for experiment type</dt><dd><dl class="simple">
+<dt>TODO</dt><dd><ul class="simple">
+<li><p>Figure out how to save struct without for-loop in 2016b!</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.subjectExists">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">subjectExists</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.subjectExists" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>DAT.SUBJECTEXISTS Check whether subject(s) exist(s)</dt><dd><p>b = DAT.SUBJECTEXISTS(ref) returns logical values indicating whether
+each subject in ‘ref’ exists (which can be either a single string
+reference or a cell array of string references).</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="+dat.updateLogEntry">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">updateLogEntry</code><span class="sig-paren">(</span><em class="sig-param">subject</em>, <em class="sig-param">id</em>, <em class="sig-param">newEntry</em><span class="sig-paren">)</span><a class="headerlink" href="#+dat.updateLogEntry" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.UPDATELOGENTRY Updates an existing experiment log entry</dt><dd><p>DAT.UPDATELOGENTRY(subject, id, newEntry) The server copy of the log is
+loaded and the relevant record overwritten.  If an AlyxInstance is set,
+any session comments are saved in the session narrative in Alyx.</p>
+<p>See also DAT.ADDLOGENTRY</p>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><dl>
 <dt>DAT.PATHS Returns struct containing important paths</dt><dd><p>p = DAT.PATHS([RIG])
 TODO:</p>
@@ -61,68 +538,50 @@ TODO:</p>
 </div>
 
 
+           </div>
+           
           </div>
-          
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="Setup.html" class="btn btn-neutral float-left" title="Setting up Rigbox" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Jai Bhagat, Miles Wells, Chris Burgess
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Rigbox</a></h1>
+
+    </section>
+
+  </div>
+  
 
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
 
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing Rigbox</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Rigbox packages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-hardware-package-hw">The Hardware Package <em>+hw</em></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-+dat">The Data Package <em>+dat</em></a></li>
-</ul>
-</li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="Installing.html" title="previous chapter">Installing Rigbox</a></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2019, Jai Bhagat, Miles Wells, Chris Burgess.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
-      
-      |
-      <a href="_sources/packages.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
+  
+  
     
+   
 
-    
-  </body>
+</body>
 </html>

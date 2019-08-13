@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Setting up Rigbox &mdash; Rigbox 2.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Rigbox packages" href="packages.html" />
+    <link rel="prev" title="Installing Rigbox" href="Installing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Rigbox
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing Rigbox</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setting up Rigbox</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-paths">Configuring Paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-the-hardware">Configuring the hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="packages.html">Rigbox packages</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Rigbox</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Setting up Rigbox</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Setup.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="setting-up-rigbox">
+<h1>Setting up Rigbox<a class="headerlink" href="#setting-up-rigbox" title="Permalink to this headline">¶</a></h1>
+<p>Below is a walk-through for setting up your experiment rig after <a class="reference external" href="Installing.html">installing</a>.</p>
+<div class="section" id="configuring-paths">
+<h2>Configuring Paths<a class="headerlink" href="#configuring-paths" title="Permalink to this headline">¶</a></h2>
+<p>The first thing to set up are the paths.  Rigbox uses the <a class="reference internal" href="packages.html#module-+dat" title="+dat"><code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+dat</span></code></a> package for determining where to things such as experiment data and configuration files are located.  The paths are set by <a class="reference internal" href="packages.html#+dat.paths" title="+dat.paths"><code class="xref mat mat-func docutils literal notranslate"><span class="pre">+dat.paths()</span></code></a>.  A template of this file can be found in <code class="docutils literal notranslate"><span class="pre">docs\setup\paths_template.m</span></code>.  Running <code class="xref mat mat-func docutils literal notranslate"><span class="pre">addRigboxPaths()</span></code> should automatically copy this template to the <a class="reference internal" href="packages.html#module-+dat" title="+dat"><code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+dat</span></code></a> folder, otherwise copy it manually.</p>
+<dl class="function">
+<dt id="+dat.paths">
+<code class="sig-prename descclassname">+dat.</code><code class="sig-name descname">paths</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#+dat.paths" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>DAT.PATHS Returns struct containing important paths</dt><dd><p>p = DAT.PATHS([RIG])
+TODO:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Clean up expDefinitions directory</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<p>Part of Rigbox</p>
+</dd></dl>
+
+<p>For more information on using the <a class="reference internal" href="packages.html#module-+dat" title="+dat"><code class="xref mat mat-mod docutils literal notranslate"><span class="pre">+dat</span></code></a> package, see <code class="xref mat mat-scpt docutils literal notranslate"><span class="pre">using_dat_package</span></code> (found in <code class="docutils literal notranslate"><span class="pre">docs</span></code>).</p>
+</div>
+<div class="section" id="configuring-the-hardware">
+<h2>Configuring the hardware<a class="headerlink" href="#configuring-the-hardware" title="Permalink to this headline">¶</a></h2>
+<p>The next step is to create a hardware file, which contains all rig specific hardware settings (device IDs, PsychToolbox parameteres, etc.)  A step-by-step guide can be found in <code class="docutils literal notranslate"><span class="pre">docs\setup\</span></code><code class="xref mat mat-scpt docutils literal notranslate"><span class="pre">hardware_config</span></code></p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="packages.html" class="btn btn-neutral float-right" title="Rigbox packages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Installing.html" class="btn btn-neutral float-left" title="Installing Rigbox" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Jai Bhagat, Miles Wells, Chris Burgess
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
