@@ -3,6 +3,10 @@
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
   'docs', 'setup', 'hardware_config.m'), 58)
 
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
+
 % Let's set up a timeline object:
 timeline = hw.Timeline;
 

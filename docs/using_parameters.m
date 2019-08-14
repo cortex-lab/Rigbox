@@ -1,4 +1,8 @@
 %% Introduction
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
+
 % Parameters are structures that contain experiment and session specific
 % variables that may be set via a GUI and stored for each session.
 % Parameters are stored as structures saved MAT files and may also be saved

@@ -357,7 +357,7 @@ ShowCursor();
   end
 
   function whiteScreen()
-    rig.stimWindow.BackgroundColour = 255;
+    rig.stimWindow.BackgroundColour = rig.stimWindow.White;
     rig.stimWindow.flip();
     rig.stimWindow.BackgroundColour = bgColour;
   end
@@ -365,7 +365,7 @@ ShowCursor();
   function calibrateGamma()
     stimWindow = rig.stimWindow;
     DaqDev = rig.daqController.DaqIds;
-    lightIn = 'ai0'; % defaults from hw.psy.Window
+    lightIn = 'ai0'; % defaults from hw.ptb.Window
     clockIn = 'ai1';
     clockOut = 'port1/line0 (PFI4)';
     log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
