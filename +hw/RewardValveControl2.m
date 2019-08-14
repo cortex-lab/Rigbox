@@ -29,8 +29,14 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
         end
         
         function samples = waveform(obj, sampleRate, command)
-            assert(numel(command) == 2, ...
-                ['Command to RewardValveControl2 must consist of two numbers: '...
+            
+            % If there is only one number in the command, only open the
+            % first valve
+            if numel(command) == 1
+               command = [command, 0]; 
+            end
+            assert(numel(command) == 2 || numel(command) == 1, ...
+                ['Command to RewardValveControl2 must consist of one or numbers: '...
                 'the number of microliters to deliver from each valve']);
             
             time1 = pulseDuration(obj, command(1), 1);
