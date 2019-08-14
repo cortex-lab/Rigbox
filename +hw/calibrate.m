@@ -9,6 +9,11 @@ function calibration = calibrate(channel, rewardController, scales, tMin, tMax)
 
 % 2013-01 CB created
 
+
+% Check that the scale is initialized
+if isempty(scales.Port) || isempty(scales.readGrams)
+    error('Rigbox:hw:calibrate:noscales', 'Unable to communicate with scale. Scales object is not properly initialized')
+end
 % tMin = 30/1000;
 % tMax = 80/1000;
 interval = 0.1;
@@ -34,34 +39,41 @@ approxTime = sum(approxTime(:));
 
 origParamsFun = signalGen.ParamsFun;
 
-%deliver some just to get the scales to a new reading
+% deliver some just to check scales are registering changes
+fprintf('Checking the scale...\n');
+
 signalGen.ParamsFun = @(sz) deal(sz(1), sz(3), 1/sum(sz(1:2)));
 
+prevWeight = scales.readGrams;
+rewardController.command([tMax; interval; 50], 'foreground');
+pause(settleWait);
+newWeight = scales.readGrams;
+assert(newWeight > prevWeight + 0.02, ...
+    'Rigbox:hw:calibrate:deadscale',...
+    'Error: Scale is not registering changes in weight. Confirm scale is properly connected and that water is landing into the dish')
+
+prevWeight = newWeight;
+fprintf('Initial scale reading is %.2fg\n', prevWeight);
+
+startTime = GetSecs;
+fprintf('Deliveries will take approximately %.0f minute(s)\n', ceil(approxTime/60));
+
 try
-  % rewardController.deliverMultiple(tMax, interval, 50, true);
-  rewardController.command([tMax; interval; 50], 'foreground');
-  pause(settleWait);
-  prevWeight = scales.readGrams; %now take initial reading
-  fprintf('Initial scale reading is %.2fg\n', prevWeight);
-
-  startTime = GetSecs;
-  fprintf('Deliveries will take approximately %.0f minute(s)\n', ceil(approxTime/60));
-
-  for j = 1:size(t,2)
-    for i = 1:size(t,1)
-      rewardController.command([t(i,j); interval; n(i,j)], 'foreground');
-      % wait just a moment for drops to settle
-      pause(settleWait);
-      newWeight = scales.readGrams;
-      dw(i,j) = newWeight - prevWeight;
-      prevWeight = newWeight;
-      ml = dw(i,j)/n(i,j);
-      fprintf('Weight delta = %.2fg. Delivered %ful per %fms\n', dw(i,j), 1000*ml, 1000*t(i,j));
+    for j = 1:size(t,2)
+        for i = 1:size(t,1)
+            rewardController.command([t(i,j); interval; n(i,j)], 'foreground');
+            % wait just a moment for drops to settle
+            pause(settleWait);
+            newWeight = scales.readGrams;
+            dw(i,j) = newWeight - prevWeight;
+            prevWeight = newWeight;
+            ml = dw(i,j)/n(i,j);
+            fprintf('Weight delta = %.2fg. Delivered %ful per %fms\n', dw(i,j), 1000*ml, 1000*t(i,j));
+        end
     end
-  end
 catch ex
-  signalGen.ParamsFun = origParamsFun;
-  rethrow(ex)
+    signalGen.ParamsFun = origParamsFun;
+    rethrow(ex)
 end
 signalGen.ParamsFun = origParamsFun;
 
@@ -74,8 +86,8 @@ fprintf('Deliveries took %.2f minute(s)\n', (endTime - startTime)/60);
 %from the data, make a measuredDelivery structure
 ul = 1000*mean(dw./n, 1);
 calibration = struct(...
-  'durationSecs', num2cell(t(1,:)),...
-  'volumeMicroLitres', num2cell(ul));
+    'durationSecs', num2cell(t(1,:)),...
+    'volumeMicroLitres', num2cell(ul));
 signalGen.Calibrations(end + 1).dateTime = now;
 signalGen.Calibrations(end).measuredDeliveries = calibration;
 
