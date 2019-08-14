@@ -21,8 +21,8 @@ stimWindow = hw.ptb.Window;
 %% Saving the hardware configurations
 % The location of the configuration file is set in DAT.PATHS.  If running
 % this on the stimulus computer you can use the following syntax:
-p = getOr(dat.paths, 'rigConfig');
-save(fullfile(p, 'hardware.mat'), 'stimWindow', '-append')
+hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
+save(hardware, 'stimWindow', '-append')
 
 %% Adding hardware inputs
 % In this example we will add two inputs, a DAQ rotatary encoder and a beam
@@ -51,30 +51,64 @@ mouseInput.DaqCounterPeriod = 2^32
 
 
 %% Timeline
-%Open your hardware.mat file and instantiate a new Timeline object
-timeline = hw.Timeline;
-%Set tl to be started by default
+% Timeline unifies various hardware and software times using a DAQ device.
+doc hw.Timeline
+
+% Let's create a new object and configure some channels
+timeline = hw.Timeline
+% Setting UseTimeline to true allows timeline to be started by default at
+% the start of each experiment.  Otherwise it can be toggled on and off by
+% pressing the 't' key while running SRV.EXPSERVER.
 timeline.UseTimeline = true;
-%To set up chrono a wire must bridge the terminals defined in
-% timeline.Outputs(1).DaqChannelID and timeline.Inputs(1).daqChannelID
+% To set up chrono a wire must bridge the terminals defined in
+%  timeline.Outputs(1).DaqChannelID and timeline.Inputs(1).daqChannelID
 timeline.wiringInfo('chrono');
-%Add the rotary encoder
+% Add the rotary encoder
 timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
-%For a lick detector
+% For a lick detector
 timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
-%We want use camera frame acquisition trigger by default
+% We want use camera frame acquisition trigger by default
 timeline.UseOutputs{end+1} = 'clock';
 
 %Save your hardware.mat file
-% save('hardware.mat', 'timeline', '-append')
+save(hardware, 'timeline', '-append')
+
+% For more information on using Timeline, see USING_TIMELINE:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_timeline.m'))
 
 %% Adding a weigh scale
+% MC allows you to log weights through the GUI by interfacing with a
+% digital scale connected via a COM port. This is the only object of use in
+% the MC computer's hardware file.
+scale = hw.WeighingScale 
 
+% The Name field should be set to the name or product code of the scale you
+% connect.
+scale.Name = 'SPX222';
+% The COM port should be set to whichever port the scale is connected to.
+% You can find out which ports are availiable in Windows by opening the
+% Device Manager (Win + X, then M).  Under Universal Serial Bus, you can
+% see all current USB and serial ports.  If you right-click and select
+% 'Properties' you can view the port number and even reassign them (under
+% Advanced)
+scaleComPort = 'COM4'; % Set to a different port
+% The TareCommand and FormatSpec fields should be set based on your scale's
+% input and output configurations.  Check the manual.
+TareCommand = 84; % 'T'
+% For SPX222 the weight is transmitted directly, without any units.
+% Other scales such as the ES-300HA transmit the weight along with the sign
+% and units, e.g. '+ 24.01 g'.
+FormatSpec = '%f'
+
+%Save your hardware.mat file
+save(hardware, 'scale', '-append')
+
+% NewReading event
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
 % HW.DEVICES:
-rig = hw.devices;
+rig = hw.devices; 
 
 % To load the hardware file or a different rig, you can input the rig name.
 % Note HW.DEVICES initializes some of the hardware by default, including
@@ -83,3 +117,7 @@ rig = hw.devices;
 rigName = 'ZREDONE';
 initialize = false;
 rig = hw.devices(rigName, initialize);
+
+%% Etc.
+%#ok<*NOPTS>
+%#ok<*NASGU>
