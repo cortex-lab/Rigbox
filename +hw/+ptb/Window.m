@@ -7,59 +7,96 @@ classdef Window < hw.Window
   % 2012-10 CB created
   
   properties (Dependent)
+    % Background colour of the stimulus window.  Can be a scalar luminance
+    % value or an RGB vector.
     BackgroundColour
+    % Name of DAQ vendor of device used for the sync pulse echo.  E.g. 'ni'
     DaqVendor
+    % The device ID of device to output sync echo pulse on
     DaqDev
+    % Channel to output sync echo on e.g. 'port0/line0'. Leave empty for
+    % don't use the DAQ
     DaqSyncEchoPort
+    % Flag indicating whether PsychToolbox window is open.  See 'Screen
+    % OpenWindow?'
     IsOpen
   end
   
   properties
     ForegroundColour
-    ScreenNum; %Psychtoolbox screen number
-    PxDepth = 32 %the pixel colour depth (bits)
-    OpenBounds %default screen region to open window onscreen - empty for full
-    SyncBounds %position bounding rectangle of sync region
-    %sync region [r g b], or luminance for each consecutive flip (row-wise).
-    %Wil repeat in a cycle. Default is white->black->....
+    % Screen number to open window in. Screen 0 is always the full Windows
+    % desktop.  Screens 1 to n are corresponding to windows display monitors
+    % 1 to n.  See 'Screen Screens?'
+    ScreenNum
+    % The pixel colour depth (bits) - also known as bpp or bits per pixel,
+    % not to spatial size of the pixel.  See 'Screen PixelSize?'
+    PxDepth = 32
+    % Default screen region to open window onscreen - empty for full.
+    % [topLeftX topLeftY bottomRightX bottomRightY]
+    OpenBounds
+    % Position bounding rectangle of sync region - empty for none;
+    % [topLeftX topLeftY bottomRightX bottomRightY]. See positionSyncRegion
+    SyncBounds
+    % Sync region [r g b], or luminance for each consecutive flip
+    % (row-wise). Will repeat in a cycle. Default is white->black->....
     SyncColourCycle = [0; 255]
-    MonitorId %an identifier for the monitor
-    Calibration %Struct containing calibration data
+    % An identifier for the monitor
+    MonitorId
+    % Struct containing calibration data.  See calibration
+    Calibration
+    % Set the verbosity level.  0-5 where 5 is most verbose.
     PtbVerbosity = 2
+    % When true test synchronization to retrace upon open. Defaults to
+    % global preference (usually true).  See 'Screen SkipSyncTests?'
     PtbSyncTests
   end
 
   properties (SetAccess = protected)
+    % Intensity value to produce white at the current screen depth
     White
+    % Gray level based values set in White and Black
     Gray
+    % Intensity value to produce black at the current screen depth
     Black
+    % Red level based values set in White and Black
     Red
+    % Green level based values set in White and Black
     Green
+    % Blue level based values set in White and Black
     Blue
+    % Colour range based on current pixel depth
     ColourRange
+    % Actual bounds of the stimulus window, if open
     Bounds
   end
   
   properties (SetAccess = protected, Transient)
-    PtbHandle = -1 %a handle to the PTB screen window
-    RefreshInterval %refresh interval for updating the device
-    NextSyncIdx %index into SyncColourCycle for next sync colour
+    % A handle to the PTB screen window.  -1 when closed.
+    PtbHandle = -1
+    % Refresh interval for updating the device.  See 'Screen
+    % GetFlipInterval?'
+    RefreshInterval
+    % Index into SyncColourCycle for next sync colour
+    NextSyncIdx
+    % When true stimulus frame should be re-drawn at next opportunity
     Invalid = false
     TimeInvalidated  = -1
     AsyncFlipping = false
     AsyncFlipTimeInvalidated = -1
-    DaqData %for storing during DAQ acquisition, eg for calibration
+    % For storing during DAQ acquisition, e.g. for calibration
+    DaqData
   end
   
   properties (Access = protected)
-    TexList %list of textures currently on the graphics device
+    % List of textures currently on the graphics device
+    TexList
     pBackgroundColour
     OldPtbVerbosity
     OldPtbSyncTests
     DaqSession
     pDaqVendor = 'ni'
     pDaqDev = 'Dev1'
-    pDaqSyncEchoPort % e.g. 'port0/line0'. empty for don't use the DAQ
+    pDaqSyncEchoPort
   end
   
   methods
@@ -69,12 +106,37 @@ classdef Window < hw.Window
     end
     
     function positionSyncRegion(obj, refCorner, width, height, xOffset, yOffset)
-      if nargin < 5
-        xOffset = 0;
+      % POSITIONSYNCREGION Set position of the photodiode sync square
+      %  Set the SyncBounds property with respect to any corner of the
+      %  stimulus window.  If the Bounds property isn't set, they are
+      %  determined from the OpenBounds property and current resolution.
+      %
+      %  Inputs:
+      %    refCorner (char) - Compass coordinates of the of the sync
+      %      square, e.g. northeast(/ne), southwest(/sw), etc.
+      %    width (double) - Width of the sync square in pixels
+      %    height (double) - Height of the sync square in pixels
+      %    xOffset (double) - X-offset in pixels of sync square reletive to
+      %      refCorner (default 0)
+      %    yOffset (double) - Y-offset in pixels of sync square reletive to
+      %      refCorner (default 0)
+      %
+      %  Example:
+      %    % Set a 100 px sync square in the top left of the screen 
+      %    obj.positionSyncRegion('NorthEast', 100, 100)
+      %
+      % See also FLIP
+      
+      narginchk(2,6)
+      if nargin < 5; xOffset = 0; end
+      if nargin < 6; yOffset = 0; end
+      
+      % If the bounds aren't set, infer them
+      if isempty(obj.Bounds)
+        win = iff(obj.IsOpen, obj.PtbHandle, obj.ScreenNum);
+        obj.Bounds = getOr(obj, 'OpenBounds', Screen('Rect',win));
       end
-      if nargin < 6
-        yOffset = 0;
-      end
+
       switch lower(refCorner)
         case {'northeast' 'ne'}
           refx = obj.Bounds(3);
@@ -181,6 +243,13 @@ classdef Window < hw.Window
     end
 
     function open(obj)
+      % OPEN Open the PsychToolbox window
+      %  Calls Screen('OpenWindow') to open a new window using the obj
+      %  properties.  Also initializes the a DAQ Session if the
+      %  DaqSyncEchoPort property is set.
+      %
+      % See also CLOSE, FLIP
+      
       % close a previously open screen window if any
       close(obj);
       % configure a DAQ session if required
@@ -195,7 +264,12 @@ classdef Window < hw.Window
       if ~isempty(obj.PtbSyncTests)
         obj.OldPtbSyncTests = Screen('Preference', 'SkipSyncTests', double(~obj.PtbSyncTests));
       end
-      Screen('Preference', 'SuppressAllWarnings', true);
+      Screen('Preference', 'SuppressAllWarnings', true); % @fixme Warnings supressed despite verbosity
+      % @body The entry here suggests that this flag is equivalent to
+      % setting verbosity to 0: 
+      % https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/FAQ:-Control-Verbosity-and-Debugging
+      % Perhaps this shouldn't be set after setting 'Verbosity'?
+      
       % setup screen window
       obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
         obj.OpenBounds, obj.PxDepth);
@@ -294,7 +368,7 @@ classdef Window < hw.Window
 
       if isfinite(obj.AsyncFlipTimeInvalidated)
         validationLag = time - obj.AsyncFlipTimeInvalidated;
-        % if the lag to validate the Window was two fullrefreshes or more,
+        % if the lag to validate the Window was two full refreshes or more,
         % we have missed one or more frames:
         % This is because we can potentially invalidate at the start of one
         % frame, then need another full frame to refresh again.
