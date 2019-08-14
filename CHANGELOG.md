@@ -13,7 +13,8 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - fix for large json hardware arrays (issue #168) `058001` 
 - fix for checking functions on path in newer versions `c4022d` 2019-08-09
 - fix for chrono wiringInfo in Timeline `fdfe72` 2019-08-11
-- fixes to burgbox utils `cf3c384`, `bb5c3f7`, `9be079`, `de0dc92`, 
+- fixes to burgbox utils `cf3c384`, `bb5c3f7`, `9be079`, `de0dc92`
 - added utility for checking test coverage `efa7414` 2019-08-08
+- added walkthroughs for parameters and timeline 2019-08-14
 
 ## [2.2.1](https://github.com/cortex-lab/Rigbox/releases/tag/v2.2.1) (Most Recent Stable Version)

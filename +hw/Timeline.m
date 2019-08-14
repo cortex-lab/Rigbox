@@ -366,14 +366,14 @@ classdef Timeline < handle
                     idO = find(cellfun(@(s2)strcmp('hw.TLOutputChrono',s2), outputClasses),1);
                     fprintf('Bridge terminals %s and %s\n',...
                         obj.Outputs(idO).DaqChannelID, obj.Inputs(idI).daqChannelID)
-                elseif any(strcmpi(name, {obj.Outputs.name})) % Output wiring info
-                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Outputs.name});
-                    fprintf('Connect device to terminal %s of the DAQ\n',...
-                        obj.Outputs(idx).DaqChannelID)
+                elseif any(strcmpi(name, {obj.Outputs.Name})) % Output wiring info
+                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Outputs.Name});
+                    fprintf('Connect %s to terminal %s of the DAQ\n',...
+                        obj.Outputs(idx).Name, obj.Outputs(idx).DaqChannelID)
                 elseif any(strcmpi(name, {obj.Inputs.name})) % Input wiring info
                     idx = cellfun(@(s2)strcmpi(name,s2), {obj.Inputs.name});
-                    fprintf('Connect device to terminal %s of the DAQ\n',...
-                        obj.Inputs(idx).daqChannelID)
+                    fprintf('Connect %s to terminal %s of the DAQ\n',...
+                        obj.Inputs(idx).name, obj.Inputs(idx).daqChannelID)
                 else
                     fprintf('No inputs or outputs of that name were found\n')
                 end
