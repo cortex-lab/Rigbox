@@ -1,4 +1,4 @@
-classdef DaqController2 < handle
+classdef DaqControllerParallel < handle
        
     properties
         ChannelNames = {} % The name used to refer to each output in Signals
@@ -21,9 +21,7 @@ classdef DaqController2 < handle
         NumOutputs % Number of channels controlled
     end
     
-    properties (Access = private, Transient)
-        CurrValue = {};
-    end
+
     
     methods
         function createDaqChannels(obj)
