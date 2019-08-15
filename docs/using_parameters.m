@@ -23,7 +23,7 @@ open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_dat_package.m'))
 % In signals a set of parameters may be extracted using EXP.INFERPARAMETERS
 % (see note 1).
 %
-% `defFunction` should be either an experiment definition function handle,
+% |defFunction| should be either an experiment definition function handle,
 % or if the function isn't on MATLAB's search path, a char of the full path
 % to such a definition function.
 defFunction = fullfile(getOr(dat.paths,'rigbox'), 'tests', ...
@@ -61,47 +61,47 @@ paramStruct.expPanelFun % (1,27)
 % There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS
 % and EUI.PARAMEDITOR that should not be set in your experiment definition:
 
-%%% numRepeats %%%
+%%% numRepeats
 % The number of times each condition shall be repeated.  By default there
 % are 1000 'trials', split evenly across each condition (parameter column).
 % When trial number > sun(numRepeats), the experiment will automatically
 % end.  If numRepeats is a global parameter (i.e. a scalar value) each
 % condition will be repeated the same number of times. 
 
-%%% randomiseConditions %%%
+%%% randomiseConditions
 % When true (default) the conditional trial parameters are shuffled at the
 % start of the experiment and thus occur in a random order.
 
-%%% defFunction %%%
+%%% defFunction
 % For signals experiments this parameter is the file path of the experiment
 % definition.  This is required for the stimulus computer to load the
 % correct experiment.  It does not appear as a parameter during the
 % experiment.
 
-%%% expPanelFun %%%
+%%% expPanelFun
 % A char or function handle of the experiment panel class to use for
 % visualization during the experiment in MC.  This allows users to display
 % custom plots, etc. for monitoring different experiments.  See
 % EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.
 
-%%% type %%%
+%%% type
 % A legacy parameter that defines what experiment class to use. Options
 % include 'ChoiceWorld' and 'custom', where the latter indicates a signals
 % experiment.  For these two options the experiment classes are
 % EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2). 
 
-%%% services %%%
+%%% services
 % A cellstr array of service names to be activaed during experiment setup.
 % These are external systems that can be triggered via websockets and UDPs.
 % (See note 3)
 
-%%% waterType %%%
+%%% waterType
 % The type of water reward to administer during the experiment.  This could
 % allow one to switch between different DAQ outputs and will change the
 % water_type field when posting to Alyx.  This feature is not yet fully
 % implemented.
 
-%%% isPassive %%%
+%%% isPassive
 % When true the experiment is a re-play of a previous one.  This feature is
 % not yet fully implemented.
 
@@ -116,7 +116,7 @@ paramStruct.visWheelGainUnits = '°/mm';
 % There is one special parameter default that may be set in the definition
 % function: repeatIncorrect
 
-%%% repeatIncorrect %%%
+%%% repeatIncorrect
 % This is the only special parameter that may have a default set in the
 % definition function.  This parameter must be a boolian and in signals,
 % when both the repeatIncorrect parameter and the endTrial signal evaluate
@@ -235,7 +235,7 @@ PE = eui.ParamEditor(parameters)
 % parameters and on the right is the trial conditions table, containing the
 % conditional parameters.  
 
-%%% Global panel %%%
+%%% Global panel
 % The global panel is pretty simple.  Each parameter is represented by the
 % parameter name (formatted as a title, see above section) and an input
 % field.  When a field is modified the title turns red.  For numrical and
@@ -248,7 +248,7 @@ PE = eui.ParamEditor(parameters)
 % title and select 'Make conditional'.  The parameter will now appear in
 % the conditions table to the right.
 
-%%% Conditions panel %%%
+%%% Conditions panel
 % Here each parameter is represented as a table column, and its conditions
 % (i.e. the columns of the parameter) as table rows.  The rows may be
 % re-ordered by dragging the field name of the column you with to move.
@@ -380,11 +380,11 @@ dat.saveParamProfile('custom', 'variant_2', PE.Parameters.Struct)
 % 5 | 3 | 3 | 4 |
 %   +---+---+---+
 
-%%% Using Set values %%%
+%%% Using Set values
 % For more involved stimulus sets, we can use Set Values to conveniently
 % set the values of multiple cells at once. This is particularly useful for
 % experiments with many conditions.
-% 
+
 % Example 4: Say you want to present each condition twice in a row, and the
 % entire set two times, e.g.
 % 
@@ -523,6 +523,8 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 %   +---+---+---+
 % (Note the blocks of repeated conditions are shuffled)
 
+% Author: Miles Wells
+% v1.0.0
 %#ok<*NOPTS>
 %#ok<*ASGLU>
 %#ok<*NASGU>

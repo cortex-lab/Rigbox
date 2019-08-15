@@ -1,20 +1,32 @@
 %% Setting up the paths
-% In order to use Rigbox, a 'paths' file must be placed in a '+dat' folder
-% somewhere in the MATLAB path. You can copy 'docs/setup/paths_template.m'
-% to '+dat/paths.m', then customise the file according to your setup. The
+% In order to use Rigbox, a 'paths' file must be placed in a |+dat| folder
+% somewhere in the MATLAB path. You can copy |docs/setup/paths_template.m|
+% to |+dat/paths.m|, then customise the file according to your setup. The
 % paths used by the wider Rigbox code are found in the 'essential paths'
-% section of the 'paths_template.m' file. These paths are required to run 
-% experiments. Any number of custom repositories may be set, allowing them 
-% to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH 
-% (see below).
+% section of the |paths_template.m| file. These paths are required to run
+% experiments. Any number of custom repositories may be set, allowing them
+% to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see
+% below).
+
+%% Using expRefs
+% Experiment reference strings are human-readable labels constructed from
+% the subject name, date and sequence (i.e. session number).  Many of the
+% following functions take one or experiment references as inputs and an
+% experiment reference is constructed each time your create an experiment.
+
+ref = dat.constructExpRef('subject', now, 2); % subject's 2nd session today
+[subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
 
 %% Loading experiments
+% Below are some common ways to query data and paths. 
+
 % Listing all subjects
 subjects = dat.listSubjects;
 
 % The subjects list is generated from the folder names in the main
 % repository path
 mainRepo = getOr(dat.paths, 'mainRepository');
+
 % To get all paths you should save to for the 'main' repository:
 savePaths = dat.reposPath('main'); % savePaths is a string cell array
 % To get the master location for the 'main' repository:
@@ -40,7 +52,7 @@ p = dat.expPath(ref);
 bool = dat.expExists(ref);
 
 % Return specific file path
-[fullpath, filename] = dat.expFilePath(ref, 'block'); %#ok<*ASGLU>
+[fullpath, filename] = dat.expFilePath(ref, 'block');
 [fullpath, filename] = dat.expFilePath(ref, 'block', 'master', 'json');
 [fullpath, filename] = dat.expFilePath(subject, now, 1, 'timeline');
 
@@ -52,10 +64,6 @@ clearCBToolsCache % Clear the cached block file
 % The expParams variable will be saved to 'localRepository' and master
 % 'mainRepository' paths
 [expRef, expSeq] = dat.newExp(subject, expDate, expParams);
-
-%% Using expRefs
-ref = dat.constructExpRef('subject', now, 2);
-[subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
 
 %% Loading other things
 expType = 'custom'; % signals experiments have the type 'custom'
@@ -95,5 +103,9 @@ customPathsFile = fullfile(getOr(dat.paths('ZREDONE'), 'rigConfig'), 'paths');
 save(customPathsFile, 'paths', '-mat')
 
 %% Etc.
+% Author: Miles Wells
+% v1.0.0
+
 %#ok<*NASGU>
+%#ok<*ASGLU>
 %#ok<*ASGLU>

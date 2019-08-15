@@ -112,7 +112,7 @@ timeline.Outputs(1).Enable = false;
 timeline.Outputs(1).Verbose = true;
 
 
-%%% Acquire Live %%%
+%%% Acquire Live
 
 % Let's add another output:
 timeline.Outputs(2) = hw.TLOutputAcqLive;
@@ -140,7 +140,7 @@ timeline.Outputs(2).toStr
 % ^ start()                  ^ stop()
 
 
-%%% Output Clock %%%
+%%% Output Clock
 timeline.Outputs(end+1) = hw.TLOutputClock;
 
 % The output clock object will produce a regular pulse troughout the
@@ -239,4 +239,7 @@ clock.zero()
 clock.now()
 
 %% Etc.
+% Author: Miles Wells
+% v1.0.0
+
 %#ok<*NOPTS>
