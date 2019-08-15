@@ -304,6 +304,7 @@ classdef Window < hw.Window
     end
 
     function close(obj)
+      % CLOSE Close any window and release DAQ session
       % close screen resources
       openWins = Screen('Windows');
       if any(openWins == obj.PtbHandle)
@@ -426,10 +427,41 @@ classdef Window < hw.Window
     end
 
     function clear(obj)
+      % CLEAR Clear any textures on screen
+      %  Redraw background over any textures
       Screen('FillRect', obj.PtbHandle, obj.BackgroundColour);
     end
 
     function drawTexture(obj, tex, srcRect, destRect, angle, globalAlpha)
+      % DRAWTEXTURE Draw one or more textures to the screen
+      %  drawTexture(obj, tex, [srcRect, destRect, angle, globalAlpha])
+      %  Draw one or more OpenGL textures to the screen.  
+      %
+      %  Inputs:
+      %    tex - A texture specified via MAKETEXTURE method
+      %    srcRect - Specifies a rectangular subpart of the texture to be 
+      %      drawn in px (Defaults to full texture).  A 4-element numerical
+      %      array
+      %    destRect - A 4-element numerical array defining the rectangular
+      %      subpart of the window in px where the texture should be drawn.
+      %      This defaults to centered on the screen
+      %    angle - Specifies a rotation angle in degree for rotated drawing
+      %      of the texture (Defaults to 0 deg. = upright)
+      %    globalAlpha - A global alpha transparency value to apply to the
+      %      whole texture for blending. Range is 0 = fully transparent
+      %      to 1 = fully opaque, defaults to one. If both, an
+      %      alpha-channel and globalAlpha are provided, then the final
+      %      alpha is the product of both values
+      %
+      %  Example:
+      %    % Draw an image to the screen
+      %    obj.open()
+      %    tex = obj.makeTexture(imread('cell.tif'));
+      %    obj.drawTexture(tex)
+      %    obj.flip()
+      %
+      % See also MAKETEXTURE, SCREEN DRAWTEXTURE?
+      %
       if nargin < 6
         globalAlpha = [];
       end
@@ -446,6 +478,28 @@ classdef Window < hw.Window
     end
 
     function fillRect(obj, colour, rect)
+      % FILLRECT Draw rectangle(s) with a given colour
+      %  Fill one or more rectangles with a given colour.  
+      %  Inputs:
+      %    colour - a CLUT index for rect.  May be a scalar luminance
+      %      value, RGB or RGBA vector.  To specify a different colour for
+      %      each rectangle, pass in a matrix.  Each column specifies a
+      %      colour for a given rectangle.  colour and rect should have the
+      %      same number of columns.
+      %    rect - an 4xn matrix of pixel coordinates where n is the number
+      %      of rectangles to draw.  [topLeftX topLeftY bottomRightX
+      %      bottomRightY].  If left empty, whole screen is filled with
+      %      colour
+      %
+      %  Example:
+      %    % Draw two rectangles, one green, one red:
+      %    obj.open()
+      %    colour = [[0; 255; 0], [255; 0; 0]];
+      %    rect = [[0; 0; 100; 100], [100; 100; 200; 200]];
+      %    obj.fillRect(colour, rect)
+      %    obj.flip()
+      %
+      % See also FLIP, POSITIONSYNCREGION, SCREEN FILLRECT?
       if nargin < 3
         rect = [];
       end
@@ -453,12 +507,66 @@ classdef Window < hw.Window
     end
 
     function tex = makeTexture(obj, image)
+      % MAKETEXTURE Make OpenGL texture
+      %  Convert a 2D or 3D matrix into an OpenGL texture and return an
+      %  index which may be passed to DRAWTEXTURE to specify the texture.
+      %  The texture is preloaded into graphics memory.
+      %
+      %  Input:
+      %    image - May be a single monochrome plane or 3D matrix where the
+      %      3rd dimention consists of RGB or RGBA values.  Values should
+      %      typically be between 0-255.
+      %
+      %  Output: 
+      %    tex - An OpenGL texture pointer.
+      %
+      %  Example:
+      %    % Draw an image to the screen
+      %    obj.open()
+      %    tex = obj.makeTexture(imread('cell.tif'));
+      %    obj.drawTexture(tex)
+      %    obj.flip()
+      %
+      % See also FLIP, DRAWTEXTURE, SCREEN MAKETEXTURE?, PRELOADTEXTURE?
+
       tex = Screen('MakeTexture', obj.PtbHandle, image);
       obj.TexList = [obj.TexList tex];
       Screen('PreloadTextures', obj.PtbHandle, tex);
     end
 
     function [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
+      % DRAWTEXT Draw some text to the screen
+      %  The outputs may be used as the new start positions to draw further
+      %  text to the screen.
+      %  
+      %  Inputs:
+      %    text (char) - The text to be written to screen.  May contain
+      %      newline characters '\n'.
+      %    x (numerical|char) - The top-left x coordinate of the text in
+      %      px.  If empty the left-most area part of the screen is used.
+      %      May also be one of the following string options: 'center',
+      %      'right', 'wrapat', 'justifytomax', 'centerblock'.
+      %    y (numerical|char) - The baseline (first line) coordinate of the
+      %      text in px.  Defaults to roughly the top of the screen.  If
+      %      'center', the text is roughly vertically centered.
+      %    color - The CLUT index for the text (scalar, RGB or RGBA vector)
+      %      If color is left out, the current text color from previous
+      %      text drawing commands is used.
+      %    vSpacing - The spacing between the lines in px. Defaults to 1.
+      %    wrapAt (char) - automatically break text longer than this string 
+      %      into newline separated strings of roughly the same length
+      %
+      %  Outputs:
+      %    nx - The approximate x-coordinate of the 'cursor position' in px
+      %    ny - The approximate y-coordinate of the 'cursor position' in px
+      %
+      %  Example:
+      %    % Draw 'Hello world' in red to screen
+      %    obj.open()
+      %    obj.drawText('Hello World', 'center', 'center', obj.Red);
+      %    obj.flip()
+      %
+      % See also DRAWFORMATTEDTEXT, DRAWTEXTURE, WRAPSTRING
       if nargin < 7
         wrapAt = [];
       end
@@ -625,7 +733,7 @@ classdef Window < hw.Window
       % is 24 (excluding alpha channel) which makes this all not work.
       % However it's been assumed already in the lines right above this
       % that pixel depth is 8 bits, so here we carry on with that
-      % assumption. The value is the hardware.mat file is not used by PTB
+      % assumption. The value in the hardware.mat file is not used by PTB
       % anyway (see line 202).
 %       pxDepthPerChannel = obj.PxDepth/4;
       pxDepthPerChannel = 8; 

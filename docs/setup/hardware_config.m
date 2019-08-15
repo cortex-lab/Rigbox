@@ -197,38 +197,152 @@ help BlackIndex
 
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
-%% Adding a viewing model
+%% Using the Window object
+% Let's check the Window object is set up correctly and explore some of the
+% methods:
+stimWindow.open() % Open the window
+stimWindow.BackgroundColour = stimWindow.Green; % Change the background
+stimWindow.flip(); % Whoa!
+
+% Make a texture and draw it to the screen with MAKETEXTURE and DRAWTEXTURE
+% Let's make a Gabor patch as an example:
+sz = 1000; % size of texture matrix
+[xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
+phi = 2*pi*rand; % randomised cosine phase
+sigma = 100; % size of Gaussian window
+thetaCos = 90; % grating orientation
+lambda = 100; % spatial frequency
+targetImg = vis.gabor(xx, yy, sigma, sigma, lambda, 0, thetaCos, phi);
+blankImg = repmat(stimWindow.Gray, [size(targetImg), 1]);
+targetImg = repmat(targetImg, [1 1 3]); % replicate three colour channels
+targetImg = round(blankImg.*(1 + targetImg));
+targetImg = min(max(targetImg, 0), 255); % Rescale values to 0-255
+
+% Convert the Gabor image to an OpenGL texture and load into buffer.
+% For more info: Screen MakeTexture?, Screen PreloadTextures?
+tex = stimWindow.makeTexture(round(targetImg));
+% Draw the texture into window (More info: Screen DrawTexture?)
+stimWindow.drawTexture(tex)
+% Flip the buffer:
+stimWindow.flip;
+
+% To clear the window, the use CLEAR method:
+stimWindow.clear % Re-draw background colour
+stimWindow.flip; % Flip to screen
+
+% Drawing text to the screen can be done with the DRAWTEXT method:
+[x, y] = deal('center'); % Render the text to the center
+[nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
+stimWindow.flip;
+
+% The nx and ny outputs may be used again as inputs to add to the text:
+[nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
+stimWindow.drawText('! What''s up?', nx, ny, stimWindow.Red);
+stimWindow.flip;
+
+% Finally lets clear and close the window:
+stimWindow.clear
+stimWindow.close
+
+%% Viewing models
 % The following classes [...] how the stimuli are [...]
 % hw.BasicScreenViewingModel
 % hw.PseudoCircularScreenViewingModel
 % screen
 
+%% Generating the screen variable in Signals
+screenDimsCm = [19.6 14.7]; %[width_cm heigh_cm]
+pxW = 1280;
+pxH = 1024;
+[l,r] = deal(9.5);
+c = 10;
+screens(1) = vis.screen([0 0 l], -90, screenDimsCm, [0 0 pxW pxH]);        % left screen
+screens(2) = vis.screen([0 0 c],  0 , screenDimsCm, [pxW 0 2*pxW pxH]);    % ahead screen
+screens(3) = vis.screen([0 0 r],  90, screenDimsCm, [2*pxW  0 3*pxW pxH]); % right screen
+
+save(hardware, 'screens', '-append');
 
 %% Adding hardware inputs
 % In this example we will add two inputs, a DAQ rotatary encoder and a beam
-% lick detector.  NB: Currently these object variable names must be exactly
-% as below in order to work in Signals.
+% lick detector.
 
+%%% hw.DaqRotaryEncoder %%%
 % Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER
 % class:
 doc hw.DaqRotaryEncoder % More details for this class
 mouseInput = hw.DaqRotaryEncoder;
 
 % To deteremine what devices you have installed and their IDs:
-device = daq.getDevices
-% DAQ's device ID, e.g. 'Dev1'
-mouseInput.DaqId = 'Dev1'
-% DAQ's ID for the counter channel. e.g. 'ctr0'
-% Size of DAQ counter range for detecting over- and underflows (e.g. if
-% the DAQ's counter is 32-bit, this should be 2^32)
-mouseInput.DaqChannelId = 'ctr0'
-mouseInput.DaqCounterPeriod = 2^32
-    % Number of pulses per revolution.  Found at the end of the KÜBLER
-    % product number, e.g. 05.2400.1122.0100 has a resolution of 100
-    EncoderResolution = 1024
-    % Diameter of the wheel in mm
-    WheelDiameter = 62
+daq.getDevices
+mouseInput.DaqId = 'Dev1'; % NI DAQ devices are named Dev# by default
 
+% The counter channel which the rotary encoder is connected to:
+mouseInput.DaqChannelId = 'ctr0';
+
+% Size of DAQ counter range for detecting over- and underflows (e.g. if
+% the DAQ's counter is 32-bit, this should be 2^32).
+mouseInput.DaqCounterPeriod = 2^32;
+
+% Setting the encoder resolution and wheel diameter allows us to express
+% related experiment parameters in mm and degrees.  These two properties
+% are used to calculate the MillimetresFactor property.
+
+% Number of pulses per revolution.  Found at the end of the KÜBLER product
+% number, e.g. 05.2400.1122.0100 has a resolution of 100
+mouseInput.EncoderResolution = 1024
+% Diameter of the wheel in mm
+mouseInput.WheelDiameter = 62
+
+%%% hw.DaqEdgeCounter %%%
+% A beam lick detector may be configured to work with an edge counter
+% channel.  We can use the HW.DAQEDGECOUNTER class for this:
+lickDetector = hw.DaqEdgeCounter;
+
+% This is actually a subclass of the HW.DAQROTARYENCODER class, and
+% therefore has a few irrelevant properties such as WheelDiameter.  These
+% can be ignored.
+
+% To deteremine what devices you have installed and their IDs:
+lickDetector.DaqId = 'Dev1'; % NI DAQ devices are named Dev# by default
+
+% The counter channel which the rotary encoder is connected to:
+lickDetector.DaqChannelId = 'ctr1';
+
+% Save these two into our hardware file
+save(hardware, 'stimWindow', 'lickDetector', '-append')
+
+%% Hardware outputs
+% HW.DAQCONTROLLER
+doc hw.DaqController
+daqController = hw.DaqController;
+
+% This class deals with creating DAQ sessions, assigning output
+% channels and generating the relevant waveforms to output to each
+% channel.
+ 
+% Example: Setting up water valve interface for a Signals behavour task In
+% the romote rig's hardware.mat, instantiate a hw.DaqController object to
+% interface with an NI DAQ
+
+% Set the DAQ id (can be found with daq.getDevices)
+daqController.DaqIds = 'Dev1';
+% Add a new channel
+daqController.ChannelNames = {'rewardValve'};
+% Define the channel ID to output on
+daqController.DaqChannelIds = {'ai0'};
+% As it is an analogue output, set the AnalogueChannelsIdx to true
+daqController.AnalogueChannelIdx(1) = true;
+% Add a signal generator that will return the correct samples for
+% delivering a reward of a specified volume
+daqController.SignalGenerators(1) = hw.RewardValveControl;
+% Set some of the required fields (see HW.REWARDVALVECONTROL for more info)
+daqController.SignalGenerators(1).OpenValue = 5;
+daqController.SignalGenerators(1).Calibrations = ...
+valveDeliveryCalibration(openTimeRange, scalesPort, openValue,...
+  closedValue, daqChannel, daqDevice);
+
+% Save your hardware file
+save(hardware, 'daqController', '-append');
 
 %% Timeline
 % Timeline unifies various hardware and software times using a DAQ device.
@@ -351,3 +465,4 @@ stimWindow.SyncColourCycle = scc;
 %% Etc.
 %#ok<*NOPTS>
 %#ok<*NASGU>
+%#ok<*ASGLU>
