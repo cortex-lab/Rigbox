@@ -26,10 +26,12 @@
 % daqController - NI DAQ output settings for use during an experiment
 % scale - A weighing scale device for use by the MC computer
 % screens - Parameters for the Signals viewing model
+% audioDevices - Struct of parameters for each audio device
 
 % Many of these classes for are found in the HW package:
 doc hw
 
+%% - Retrieving hardware file path
 % The location of the configuration file is set in DAT.PATHS.  If running
 % this on the stimulus computer you can use the following syntax:
 hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
@@ -125,21 +127,6 @@ daq.getDevices % Query availiable devices and their IDs
 DaqSyncEchoPort = 'port1/line0'; % Output fulse on first digital output chan
 
 
-%%% Calibration %%%
-% This stores the gamma correction tables (See Below) The simplist way to
-% to run the calibration is through SRV.EXPSEERVER once the rest of the
-% hardware is configures, however it can also be done via the command
-% window, assuming you have an NI DAQ installed:
-lightIn = 'ai0'; % The input channel of the photodiode used to measure screen
-clockIn = 'ai1'; % The clocking pulse input channel
-clockOut = 'port1/line0 (PFI4)'; % The clocking pulse output channel
-% Connect the photodiode to `lightIn` and user a jumper to bridge a
-% connection between `clockIn` and `clockOut`.
-
-% Make sure the photodiode is placed against the screen before running
-stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-
-
 %%% BackgroundColour %%%
 % The clut index (scalar, [r g b] triplet or [r g b a] quadruple) defining
 % background colour of the stimulus window during legacy experiments.
@@ -195,15 +182,34 @@ stimWindow.PtbVerbosity = 2;
 help WhiteIndex
 help BlackIndex
 
+%% - Performing gamma calibration from command window
+%%% Calibration %%%
+% This stores the gamma correction tables (See Below) The simplist way to
+% to run the calibration is through SRV.EXPSEERVER once the rest of the
+% hardware is configures, however it can also be done via the command
+% window, assuming you have an NI DAQ installed:
+lightIn = 'ai0'; % The input channel of the photodiode used to measure screen
+clockIn = 'ai1'; % The clocking pulse input channel
+clockOut = 'port1/line0 (PFI4)'; % The clocking pulse output channel
+% Connect the photodiode to `lightIn` and user a jumper to bridge a
+% connection between `clockIn` and `clockOut`.
+
+% Make sure the photodiode is placed against the screen before running
+stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+
+
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
 %% Using the Window object
 % Let's check the Window object is set up correctly and explore some of the
-% methods:
+% methods...
+
+%% - Setting the background colour
 stimWindow.open() % Open the window
 stimWindow.BackgroundColour = stimWindow.Green; % Change the background
 stimWindow.flip(); % Whoa!
 
+%% - Displaying a Gabor patch
 % Make a texture and draw it to the screen with MAKETEXTURE and DRAWTEXTURE
 % Let's make a Gabor patch as an example:
 sz = 1000; % size of texture matrix
@@ -226,10 +232,12 @@ stimWindow.drawTexture(tex)
 % Flip the buffer:
 stimWindow.flip;
 
+%% - Clearing the window
 % To clear the window, the use CLEAR method:
 stimWindow.clear % Re-draw background colour
 stimWindow.flip; % Flip to screen
 
+%% - Drawing text to the screen
 % Drawing text to the screen can be done with the DRAWTEXT method:
 [x, y] = deal('center'); % Render the text to the center
 [nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
@@ -240,33 +248,124 @@ stimWindow.flip;
 stimWindow.drawText('! What''s up?', nx, ny, stimWindow.Red);
 stimWindow.flip;
 
+%% - Closing a window
 % Finally lets clear and close the window:
 stimWindow.clear
 stimWindow.close
 
 %% Viewing models
-% The following classes [...] how the stimuli are [...]
-% hw.BasicScreenViewingModel
-% hw.PseudoCircularScreenViewingModel
-% screen
+% The viewing model classes allow one to configure the relationship between
+% physical dimentions and pixel space.  The viewing model classes contain
+% methods for converting between visual degrees, pixels and physical
+% dimentions.  Note: The viewing model classes are currently only
+% implemented in legacy experiments such as ChoiceWorld.  See below section
+% for configuring the viewing model in Signals.  
+%
+% There are currently two viewing model classes to choose from...
 
-%% Generating the screen variable in Signals
-screenDimsCm = [19.6 14.7]; %[width_cm heigh_cm]
-pxW = 1280;
-pxH = 1024;
-[l,r] = deal(9.5);
-c = 10;
-screens(1) = vis.screen([0 0 l], -90, screenDimsCm, [0 0 pxW pxH]);        % left screen
-screens(2) = vis.screen([0 0 c],  0 , screenDimsCm, [pxW 0 2*pxW pxH]);    % ahead screen
-screens(3) = vis.screen([0 0 r],  90, screenDimsCm, [2*pxW  0 3*pxW pxH]); % right screen
+%% - Basic screen viewing model
+% The basic viewing model class deals with single screens positioned
+% straight in front of an observer (^): _____
+%                                         ^  
+doc hw.BasicScreenViewingModel
+
+% Let's set this up:
+stimViewingModel = hw.BasicScreenViewingModel;
+% There are three parameters to set:
+% A position vector [x,y,z] of the subject in metres, with respect to
+% the (centre of the) top left pixel of the screen. x and y are aligned
+% with the standard graphics axes (i.e. x to the right, y going down),
+% while z extends out from the screen perpendicular to the plane of the
+% display).
+stimViewingModel.SubjectPos = [0, 0, 0.5]; % Observer centered at 50cm from screen
+
+% Number of pixels across the screen. Also see the function
+% USEGRAPHICSPIXELWIDTH to deduce this directly from the graphics hardware:
+stimViewingModel.useGraphicsPixelWidth(stimWindow.ScreenNum)
+stimViewingModel.ScreenWidthPixels % e.g. 1900 px
+
+% The physical width of the screen, in metres. Pixels are assumed to have a
+% 1:1 aspect ratio.
+stimViewingModel.ScreenWidthMetres = 0.4750; 
+
+save(hardware, 'stimViewingModel', '-append')
+
+%% -- Using the model
+% The object contains useful methods for converting between visual and
+% graphics space:
+
+% Visual field coordinates of a specified pixel.  The presumed
+% 'straight-ahead' view pixel should map to the centre of the visual field
+% (zero polar and visual angles)
+x = 0; y = 100; % Convert this pixel coordinate to visual angle
+[polarAngle, visualAngle] = stimViewingModel.viewAtPixel(x, y)
+% Polar angle is just the angle from central fixation pixel to specified
+% (and increases anticlockwise from horizon->right).
+
+% We can get the screen pixel of a given visual field locus. This may be
+% useful e.g. for placing stimuli at a certain point in the subject's visual
+% field. Let's convert
+% back to pixel space:
+[x, y] = stimViewingModel.pixelAtView(polarAngle, visualAngle) % ~[0, 100]
+
+% Visual angle between two pixel points.  This is useful if you want to
+% measure graphics dimensions in visual angles:
+[x2, y2] = deal(0); % Compare above to centre pixel
+rad = stimViewingModel.visualAngleBetweenPixels(x, y, x2, y2)
+% Radians to degrees:
+deg = rad2deg(rad)
+
+% Return the 'visual' pixel density (px per rad) at a point.  This is
+% useful for choosing spatial frequency of stimuli at a certain point on
+% the screen:
+pxPerRad = stimViewingModel.visualPixelDensity(x, y)
+% Screen distance in pixels, d, as a function of visual angle, t:
+% d(t) = zPx*tan(t)
+% Derivative w.r.t. t yields pixel density at a given visual angle:
+% d'(t) = zPx*sec(t)^2
+
+
+%% - Pseudo-Circular screen viewing model
+doc hw.PseudoCircularScreenViewingModel
+
+stimViewingModel = hw.PseudoCircularScreenViewingModel
+
+%% - Signals viewing model
+% Signals currently only supports a single viewing odel.  For now the
+% function VIS.SCREEN is used to configure this.  Below is an example of
+% configuring the viewing model for the Burgess wheel task, where there are
+% three small screens located at right-angles to one another:
+% Below is a schematic of the screen configuration (top-down view).  ^
+% represents the observer: _____
+%                         |     |
+%                         |  ^  | 
+%
+help vis.screen
+
+% First define some physical dimentions in cm:
+screenDimsCm = [19.6 14.7]; %[width_cm heigh_cm], each screen is the same
+centerPt = [0, 0, 9.5] % [x, y, z], observer position in cm. z = dist from screen
+centerPt(2,:) = [0, 0, 10]% Middle screen, observer slightly further back
+centerPt(3,:) = centerPt; % Observer equidistant from left and right motitors 
+angle = [-90; 0; 90]; % The angle of the screen relative to the observer
+
+% Define the pixel dimentions for the monitors
+r = Screen('Resolution', stimWindow.ScreenNum) % Returns the current resolution
+pxW = r.width; % e.g. 1280
+pxH = r.height; % e.g. 1024
+
+% Plug these values into the screens function:
+screens(1) = vis.screen(centerPt(1,:), angle(1), screenDimsCm, [0 0 pxW pxH]);        % left screen
+screens(2) = vis.screen(centerPt(2,:), angle(2), screenDimsCm, [pxW 0 2*pxW pxH]);    % ahead screen
+screens(3) = vis.screen(centerPt(3,:), angle(3), screenDimsCm, [2*pxW  0 3*pxW pxH]); % right screen
 
 save(hardware, 'screens', '-append');
 
-%% Adding hardware inputs
+%% Hardware inputs
 % In this example we will add two inputs, a DAQ rotatary encoder and a beam
 % lick detector.
 
-%%% hw.DaqRotaryEncoder %%%
+%% - DAQ rotary encoder
 % Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER
 % class:
 doc hw.DaqRotaryEncoder % More details for this class
@@ -293,7 +392,7 @@ mouseInput.EncoderResolution = 1024
 % Diameter of the wheel in mm
 mouseInput.WheelDiameter = 62
 
-%%% hw.DaqEdgeCounter %%%
+%% - Lick detector
 % A beam lick detector may be configured to work with an edge counter
 % channel.  We can use the HW.DAQEDGECOUNTER class for this:
 lickDetector = hw.DaqEdgeCounter;
@@ -336,7 +435,7 @@ daqController.AnalogueChannelIdx(1) = true;
 % delivering a reward of a specified volume
 daqController.SignalGenerators(1) = hw.RewardValveControl;
 % Set some of the required fields (see HW.REWARDVALVECONTROL for more info)
-daqController.SignalGenerators(1).OpenValue = 5;
+daqController.SignalGenerators(1).OpenValue = 5; % Volts
 daqController.SignalGenerators(1).Calibrations = ...
 valveDeliveryCalibration(openTimeRange, scalesPort, openValue,...
   closedValue, daqChannel, daqDevice);
@@ -392,7 +491,7 @@ save(hardware, 'timeline', '-append')
 % USING_TIMELINE:
 open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_timeline.m'))
 
-%% Adding a weigh scale
+%% Weigh scale
 % MC allows you to log weights through the GUI by interfacing with a
 % digital scale connected via a COM port. This is the only object of use in
 % the MC computer's hardware file.
@@ -419,7 +518,35 @@ FormatSpec = '%f'
 %Save your hardware.mat file
 save(hardware, 'scale', '-append')
 
-% NewReading event
+%% - Using the scale
+% The methods are rather self-explanatory.  To use the scale the port must
+% first be opened using the INIT method:
+scale.init() 
+
+% To tare (zero) the scale, use the TARE method:
+scale.tare()
+
+% To return the last measured weight, use READGRAMS:
+g = scale.readGrams()
+
+% Finally the NewReading event allows one to add a listener for weight
+% change events.  Let's print the readings to the command window:
+callback = @(src,~) fprintf('New reading of %.2fg\n', src.readGrams);
+lh = event.listener(scale, 'NewReading', callback);
+
+% To clean up you can simply clear the object from the workspace:
+clear scale lh
+
+%% Audio devices
+InitializePsychSound
+devs = PsychPortAudio('GetDevices')
+% Sanitize the names
+names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
+names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
+for i = 1:length(names); devs(i).DeviceName = names{i}; end
+audioDevices = devs;
+
+save(hardware, 'audioDevices', '-append')
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
@@ -435,7 +562,7 @@ initialize = false;
 rig = hw.devices(rigName, initialize);
 
 %% FAQ
-%%% I tried loading an old hardware file but the variables are not objects.
+%% - I tried loading an old hardware file but the variables are not objects.
 % This was probably accompanied with an error such as:
 
 % Warning: Variable 'rewardController' originally saved as a
@@ -452,12 +579,57 @@ datestr(file.modDate(hwPath)) % Find the time file was last modified
 % Once you have the previous parameters, create a new object with the
 % current code version, assign the parameters and resave.  
 
-%%% I'm missing the time of the first flip only, why?
+%% - I'm missing the time of the first flip only, why?
 % Perhaps the first flip is always too dark a colour.  Try reversing the
 % order stimWindow.SyncColourCycle:
 scc = stimWindow.SyncColourCycle;
 scc = iff(size(scc,1) > size(scc,2), @() flipud(scc), @() fliplr(scc));
 stimWindow.SyncColourCycle = scc;
+
+%% - The PsychToolbox window covers the wrong monitors when I run the experiment server
+% Make sure Mosaic is still running (sometimes if the computer loses a
+% monitor input the graphics card disables Mosaic). One indication of this
+% is that the task bar should stretch across all three of the stimulus
+% screens. Also check that the stimWindow.ScreenNum is correct in the
+% hardware.mat file. When set to 0, PsychToolbox uses all screens available
+% to Windows; 1 means Windows’ primary screen (see the Display Settings); 2
+% means Windows’ secondary screen, etc.
+
+%% - I get a ‘PTB synchronization error’ when I run the experiment server.
+% This happens from time-to-time. When a PsychToolbox window is opened it
+% runs some synchronization to retrace tests, checking whether buffer flips
+% are properly synchronized to the vertical retrace signal of your display.
+% Synchronization failiures indicate that there tareing or flickering may
+% occur during stimulus presentation.  More info on this may be found here:
+web('http://psychtoolbox.org/docs/SyncTrouble')
+% The problem may be exacerbated if you're running other programs that
+% interfere with the graphics, such as remote window viewers (VNC, Remote
+% Desktpo, etc.), or if you are running multiple monitors that do not have
+% the same make.  Sometimes simply re-running expServer works.  
+% If you know what you're doing and are confident that things are working,
+% you can skip the tests by setting the following property:
+stimWindow.PtbSyncTests = false;
+
+%% - Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143) 
+% NI Error -88709 ?or Error using hw.DaqRotaryEncoder/createDaqChannel
+% (line 81): The requested subsystem 'CounterInput' does not exist on this
+% device.
+
+% This happens from time to time, particularly after the computer has gone
+% to sleep. Unplugging the DAQ USB cable and plugging it back in helps.
+% Restart MATLAB. If the error persists, restart the computer with the DAQ
+% unplugged.
+
+%% - The experiment server is unable to open my DAQ on ‘Dev1’
+% If you have multiple NI devices on this computer, set the DaqIds
+% properties to the correct id in your hardware.mat file, i.e.
+% daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId
+d = daq.getDevices % Availiable devices and their info
+
+%% - My rotary encoder has a different resolution, how do I change the hardware config?
+% Change the mouseInput.EncoderResolution peroperty to the value found at
+% the end of your rotary encoder’s product number: e.g. 05.2400.1122.1024
+% means EncoderResolution = 1024.
 
 %% Notes
 % (1) https://doi.org/10.1016/j.celrep.2017.08.047
