@@ -16,5 +16,6 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - fixes to burgbox utils `cf3c384`, `bb5c3f7`, `9be079`, `de0dc92`
 - added utility for checking test coverage `efa7414` 2019-08-08
 - added walkthroughs for parameters and timeline 2019-08-14
+- improvements to water expServer calibration function `dd0adb7` 2019-08-14
 
 ## [2.2.1](https://github.com/cortex-lab/Rigbox/releases/tag/v2.2.1) (Most Recent Stable Version)
