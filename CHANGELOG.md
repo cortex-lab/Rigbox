@@ -7,5 +7,6 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - Patch in alyx-matlab submodule 2019-07-25
 - updated Signals performance test `993d906` 2019-07-19
 - fixes to tests for the Alyx Panel `eb5e9b9` 2019-07-19
+- improvements to water expServer calibration function `dd0adb7` 2019-08-14
 
 ## [2.2.1](https://github.com/cortex-lab/Rigbox/releases/tag/v2.2.1) (Most Recent Stable Version)
