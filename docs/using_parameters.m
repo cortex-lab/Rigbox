@@ -525,6 +525,5 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
 % Author: Miles Wells
 % v1.0.0
-%#ok<*NOPTS>
-%#ok<*ASGLU>
-%#ok<*NASGU>
+
+%#ok<*NOPTS,*ASGLU,*NASGU>

@@ -1,4 +1,20 @@
 %% Introduction
+% Timeline manages the acquisition and generation of experimental timing
+% data using a NI-DAQ. The main timing signal, 'chrono', is a digital
+% square wave that flips each time a new chunk of data is available from
+% the DAQ. A callback function to this flip event collects the DAQ
+% timestamp of the scan where each flip occured. The difference between
+% this timestamp and the system time recorded when the flip command was
+% given is recorded as the offset time and can be used to unify all
+% timestamps across computers during an experiment. Thus, all event
+% timestamps across all computers for a given experiment are recorded in
+% times relative to the DAQ's clock.  These timestamps can be interchanged
+% with MATLAB and system times during an experiment.  Timeline can acquire
+% any number of hardware events and record their values with respect to
+% this offset; for example, Timeline can use a photodiode to record the
+% times at which the screen updates.
+
+%% Using Timeline
 % For more details on setting up Timeline, see HARDWARE_CONFIG:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
   'docs', 'setup', 'hardware_config.m'), 58)

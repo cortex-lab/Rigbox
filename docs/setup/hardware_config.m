@@ -1,12 +1,12 @@
 %% Configuring hardware devices 
-% When running <../../../+srv/expServer.m SRV.EXPSERVER> the hardware settings are loaded from a MAT
-% file and initialized before an experiment.  The MC computer may also have
-% a hardware file, though this isn't essential.  The below script is a
-% guide for setting up a new hardware file, with examples mostly pertaining
-% to replicating the Burgess steering wheel task(1).  Not all uncommented
-% lines will run without error, particularly when a specific hardware
-% configuration is required.  Always read the preceeding text before
-% running each line.
+% When running <../../../+srv/expServer.m SRV.EXPSERVER> the hardware
+% settings are loaded from a MAT file and initialized before an experiment.
+% The MC computer may also have a hardware file, though this isn't
+% essential.  The below script is a guide for setting up a new hardware
+% file, with examples mostly pertaining to replicating the Burgess steering
+% wheel task(1).  Not all uncommented lines will run without error,
+% particularly when a specific hardware configuration is required.  Always
+% read the preceeding text before running each line.
 %
 % It is recommended that you copy this file and keep it as a way of
 % versioning your hardware configurations.  In this way the script can
@@ -641,6 +641,4 @@ d = daq.getDevices % Availiable devices and their info
 % Author: Miles Wells
 % v1.1.0
 
-%#ok<*NOPTS>
-%#ok<*NASGU>
-%#ok<*ASGLU>
+%#ok<*NOPTS,*NASGU,*ASGLU>
