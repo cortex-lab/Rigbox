@@ -1,3 +1,11 @@
+%% Introduction
+% The 'data' package contains code pertaining to the organization and
+% logging of data. It contains functions that generate and parse unique
+% experiment reference ids, and return file paths where subject data and
+% rig configuration information is stored. Other functions include those
+% that manage experimental log entries and parameter profiles. A nice
+% metaphor for this package is a lab notebook.
+
 %% Setting up the paths
 % In order to use Rigbox, a 'paths' file must be placed in a |+dat| folder
 % somewhere in the MATLAB path. You can copy |docs/setup/paths_template.m|
@@ -106,6 +114,4 @@ save(customPathsFile, 'paths', '-mat')
 % Author: Miles Wells
 % v1.0.0
 
-%#ok<*NASGU>
-%#ok<*ASGLU>
-%#ok<*ASGLU>
+%#ok<*NASGU,*ASGLU,*ASGLU>
