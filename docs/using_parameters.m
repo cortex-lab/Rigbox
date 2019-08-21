@@ -1,15 +1,19 @@
 %% Introduction
+% This document contains information on how experiment parameters work in
+% Rigbox.  How to create them, edit them and save them.
+%
 % NB: Not all uncommented lines will run without error, particularly when a
 % specific hardware configuration is required.  Always read the preceeding
 % text before running each line.
 
+%% Parameters
 % Parameters are structures that contain experiment and session specific
 % variables that may be set via a GUI and stored for each session.
 % Parameters are stored as structures saved MAT files and may also be saved
 % as JSON.  They typically end in '_parameters' and are saved when creating
 % a new experiment using the dat.newExp function or Alyx/newExp method.
 % You can generate and retrieve paths for experiment parameter files using
-% the dat package:
+% the <./using_dat_package.html dat package>:
 expRef = dat.constructExpRef('fake', now, 1); % Example experiment reference
 paramPath = dat.expFilePath(expRef, 'parameters') % Generate path for saving
 
@@ -131,8 +135,8 @@ paramStruct.visWheelGainUnits = '°/mm';
 % subject are loaded by default in MC.  
 %
 % Suppose however that you want to save and load a parameter set for a
-% given experiment, independent of the subject? For this we use the dat
-% package...
+% given experiment, independent of the subject? For this we use the
+% <./using_dat_package.html dat package>...
 %
 % To save a new parameter set simply call DAT.SAVEPARAMPROFILE:
 paramStruct.rewardSize = 5; % We want to save our modified params
@@ -524,6 +528,7 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 % (Note the blocks of repeated conditions are shuffled)
 
 % Author: Miles Wells
+%
 % v1.0.0
 
 %#ok<*NOPTS,*ASGLU,*NASGU>

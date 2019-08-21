@@ -1,12 +1,12 @@
-%% Configuring hardware devices 
-% When running <../../../+srv/expServer.m SRV.EXPSERVER> the hardware
-% settings are loaded from a MAT file and initialized before an experiment.
-% The MC computer may also have a hardware file, though this isn't
-% essential.  The below script is a guide for setting up a new hardware
-% file, with examples mostly pertaining to replicating the Burgess steering
-% wheel task(1).  Not all uncommented lines will run without error,
-% particularly when a specific hardware configuration is required.  Always
-% read the preceeding text before running each line.
+%% Introduction 
+% When running |srv.expServer| the hardware settings are loaded from a MAT
+% file and initialized before an experiment. The MC computer may also have
+% a hardware file, though this isn't essential.  The below script is a
+% guide for setting up a new hardware file, with examples mostly pertaining
+% to replicating the Burgess steering wheel task(1).  Not all uncommented
+% lines will run without error, particularly when a specific hardware
+% configuration is required.  Always read the preceeding text before
+% running each line.
 %
 % It is recommended that you copy this file and keep it as a way of
 % versioning your hardware configurations.  In this way the script can
@@ -27,13 +27,21 @@
 % * |scale| - A weighing scale device for use by the MC computer
 % * |screens| - Parameters for the Signals viewing model
 % * |audioDevices| - Struct of parameters for each audio device
+%
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
 
-% Many of these classes for are found in the HW package:
+%% The +hw packages
+% Many of these classes for are found in the HW package.  This package
+% contains all of the code that interfaces with lower-level hardware code
+% (e.g. PsychToolbox's OpenGL functions, the NI +daq package):
 doc hw
 
 %% Retrieving hardware file path
-% The location of the configuration file is set in DAT.PATHS.  If running
-% this on the stimulus computer you can use the following syntax:
+% The location of the configuration file is set in
+% <./using_dat_package.html DAT.PATHS>.  If running this on the stimulus
+% computer you can use the following syntax:
 hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
 
 % For more info on setting the paths and using the DAT package:
@@ -46,7 +54,7 @@ open(fullfile(rigbox, 'docs', 'using_dat_package.m'))
 % stimulus window.  It contains the attributes and methods for interacting
 % with the lower level functions that interact with the graphics drivers.
 % Currently the only concrete implementation is support for the
-% Psychophysics Toolbox, the HW.PTB.WINDOW class.
+% Psychophysics Toolbox, the |hw.ptb.Window| class.
 
 doc hw.ptb.Window
 stimWindow = hw.ptb.Window;
@@ -266,7 +274,7 @@ stimWindow.close
 %
 % There are currently two viewing model classes to choose from...
 
-%% - Basic screen viewing model
+%%% Basic screen viewing model
 % The basic viewing model class deals with single screens positioned
 % straight in front of an observer (^):| _____
 % |                                        ^  
@@ -293,7 +301,7 @@ stimViewingModel.ScreenWidthMetres = 0.4750;
 
 save(hardware, 'stimViewingModel', '-append')
 
-%% -- Using the model
+%%% Using the model
 % The object contains useful methods for converting between visual and
 % graphics space:
 
@@ -328,12 +336,12 @@ pxPerRad = stimViewingModel.visualPixelDensity(x, y)
 % d'(t) = zPx*sec(t)^2
 
 
-%% - Pseudo-Circular screen viewing model
+%%% Pseudo-Circular screen viewing model
 doc hw.PseudoCircularScreenViewingModel
 
 stimViewingModel = hw.PseudoCircularScreenViewingModel
 
-%% - Signals viewing model
+%%% Signals viewing model
 % Signals currently only supports a single viewing odel.  For now the
 % function VIS.SCREEN is used to configure this.  Below is an example of
 % configuring the viewing model for the Burgess wheel task, where there are
@@ -368,7 +376,7 @@ save(hardware, 'screens', '-append');
 % In this example we will add two inputs, a DAQ rotatary encoder and a beam
 % lick detector.
 
-%% - DAQ rotary encoder
+%%% DAQ rotary encoder
 % Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER
 % class:
 doc hw.DaqRotaryEncoder % More details for this class
@@ -395,7 +403,7 @@ mouseInput.EncoderResolution = 1024
 % Diameter of the wheel in mm
 mouseInput.WheelDiameter = 62
 
-%% - Lick detector
+%%% Lick detector
 % A beam lick detector may be configured to work with an edge counter
 % channel.  We can use the HW.DAQEDGECOUNTER class for this:
 lickDetector = hw.DaqEdgeCounter;
@@ -448,6 +456,7 @@ save(hardware, 'daqController', '-append');
 
 %% Timeline
 % Timeline unifies various hardware and software times using a DAQ device.
+% There is a separate guide for Timeline <./using_timeline.html here>.
 doc hw.Timeline
 
 % Let's create a new object and configure some channels
@@ -470,7 +479,7 @@ timeline.wiringInfo('chrono');
 timeline.Outputs(1).DaqChannelID = 'port1/line1';
 timeline.wiringInfo('chrono'); % New port # displayed
 
-% INPUTS
+%%% Inputs
 % Add the rotary encoder
 timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
 % For a lick detector
@@ -478,7 +487,7 @@ timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
 % For a photodiode (see 'Configuring the visual stimuli' above)
 timeline.addInput('photoDiode', 'ai2', 'Voltage', 'SingleEnded');
 
-% OUTPUTS
+%%% Outputs
 % Say we wanted to trigger camera aquisition at a given frame rate:
 clockOut = hw.TLOutputClock;
 clockOut.DaqChannelID = 'ctr2'; % Set channal
@@ -521,7 +530,7 @@ FormatSpec = '%f'
 %Save your hardware.mat file
 save(hardware, 'scale', '-append')
 
-%% - Using the scale
+%%% Using the scale
 % The methods are rather self-explanatory.  To use the scale the port must
 % first be opened using the INIT method:
 scale.init() 
@@ -553,7 +562,7 @@ save(hardware, 'audioDevices', '-append')
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
-% HW.DEVICES:
+% |hw.devices|:
 rig = hw.devices; 
 
 % To load the hardware file or a different rig, you can input the rig name.
@@ -639,6 +648,7 @@ d = daq.getDevices % Availiable devices and their info
 
 %% Etc.
 % Author: Miles Wells
+%
 % v1.1.0
 
 %#ok<*NOPTS,*NASGU,*ASGLU>

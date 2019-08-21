@@ -1,0 +1,544 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="websocket_config.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>Once the hardware files are set up for <tt>srv.expServer</tt> and <tt>mc</tt>, it is necessary to configure the websockets so that the two computers can connect to one another.  This connection serves a few purposes:</p><div><ol><li>To start and stop experiments via the MC GUI (currently the only way to do so).</li><li>To monitor the experiment, e.g. the current parameters, trial number, reward total, etc.</li><li>To send an <a href="./AlyxMatlabPrimer.html">Alyx instance</a> so that the stimulus computer can register its files to the database.</li></ol></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Configuring WebSockets</a></li><li><a href="#2">Ports</a></li><li><a href="#3">Experiment delays</a></li><li><a href="#4">Saving &amp; loading</a></li><li><a href="#5">Using Websockets</a></li><li><a href="#6">- Server</a></li><li><a href="#7">- Client</a></li><li><a href="#8">- Close connections</a></li><li><a href="#9">Stimulus Controller</a></li><li><a href="#10">expServer messages</a></li><li><a href="#11">- signals</a></li><li><a href="#12">- status</a></li><li><a href="#13">- AlyxRequest</a></li><li><a href="#14">Schematic</a></li><li><a href="#15">UDP communication &amp; Services</a></li><li><a href="#16">Debugging</a></li><li><a href="#17">- Stimulus server</a></li><li><a href="#18">- MC computer</a></li><li><a href="#19">- Clean up</a></li><li><a href="#20">Etc.</a></li></ul></div><h2 id="1">Configuring WebSockets</h2><p>In order for the two computers to communicate...</p><pre class="codeinput"><span class="comment">% The stimulus controllers are loaded from a MAT file with the name</span>
+<span class="comment">% 'remote' in the globalConfig directory, defined in dat.paths:</span>
+p = fullfile(getOr(dat.paths, <span class="string">'globalConfig'</span>), <span class="string">'remote.mat'</span>);
+
+<span class="comment">% Let's create a new stimulus controller</span>
+name = ipaddress(hostname);
+stimulusControllers = srv.StimulusControl.create(name);
+
+<span class="comment">% A note on adding new computers.  Do not simply copy objects, instead use</span>
+<span class="comment">% the following method:</span>
+uri = <span class="string">'ws://192.168.0.1:5000'</span>;
+stimulusControllers(end+1) = srv.StimulusControl.create(<span class="string">'rig2'</span>, uri);
+</pre><h2 id="2">Ports</h2><pre class="codeinput"><span class="comment">% Note that the DefaultPort property is only used when the uri provided</span>
+<span class="comment">% doesn't already have a port (':5000' in the example above):</span>
+stimulusControllers(end+1) = srv.StimulusControl.create(<span class="string">'ZSCOPE'</span>);
+stimulusControllers(end).Uri <span class="comment">% 'ws://ZSCOPE:2014'</span>
+
+stimulusControllers(end).DefaultPort = 4820;
+stimulusControllers(end).Uri <span class="comment">% 'ws://ZSCOPE:4820'</span>
+
+<span class="comment">% However as we set the uri for 'rig2' above including a port, the</span>
+<span class="comment">% DefaultPort property isn't used:</span>
+rig2 = strcmp(<span class="string">'rig2'</span>, {stimulusControllers.Name});
+stimulusControllers(rig2).DefaultPort <span class="comment">% *2014</span>
+stimulusControllers(rig2).Uri <span class="comment">% 'ws://192.168.0.1:5000'</span>
+</pre><h2 id="3">Experiment delays</h2><p>Setting default delays is sometimes useful.  These can also be changed in the 'rig options' dialog in MC.  The ExpPreDelay property is the time in seconds to wait between starting the services and initializing the experiment object, and actually beginning the experiment (for a Signals experiment this means updating the 'events.expStart' signal).  Hence if the pre-delay is 5 seconds then the inputs, parameters and time signals are updated in the main loop for 5 seconds before the first trial officially begins.  This can be useful when an auxiliary recording device takes some time to initialize, or if you want to record some sort of baseline activity before the first stimulus appears.  It also ensures that everything is running smoothly before the first trial (sometimes there are suspect timings on the first propogation through the network).</p><pre class="codeinput">stimulusControllers(end).ExpPreDelay = 10; <span class="comment">% Initialize then wait 10s</span>
+
+<span class="comment">% Likewise the ExpPostDelay is the time in seconds between the experiment</span>
+<span class="comment">% ending (i.e. the events.expStop signal updating), and the stop command</span>
+<span class="comment">% being sent to the services.  The main loop still runs during this time</span>
+<span class="comment">% and values continue to be posted to the input and timing signals, however</span>
+<span class="comment">% no trial signals will update.  This may be useful if you wish to record</span>
+<span class="comment">% some baseline after the stimulus presentation has ended for example.</span>
+<span class="comment">%</span>
+<span class="comment">% Trigger ExperimentEnded event, wait 30s then trigger the</span>
+<span class="comment">% ExperimentCleanup event:</span>
+stimulusControllers(end).ExpPostDelay = 30;
+</pre><h2 id="4">Saving &amp; loading</h2><pre class="codeinput"><span class="comment">% Save your new configuration.  Note the variable name must be as below:</span>
+save(p, <span class="string">'stimulusControllers'</span>)
+
+<span class="comment">% The stimulus controllers can be loaded using the srv.stimulusControllers</span>
+<span class="comment">% function.  If no remote file exists, a default StimulusControl object is</span>
+<span class="comment">% returned.</span>
+sc = srv.stimulusControllers;
+</pre><h2 id="5">Using Websockets</h2><p>The stimulusControllers list will appear in the 'rig' drop-down list in <tt>MC</tt>, allowing you to choose which one to connect to and where to start an experiment.  In this way you can manage multiple experiments from one computer.</p><p>The Websockets are set up automatically when you run <tt>MC</tt> and <tt>srv.expServer</tt>, however you can use these for your own code if you wish. Below is some information on using the Websockets and the <tt>+io</tt> package.</p><p>The <tt>srv.StimulusControl</tt> object builds on the <tt>io.WSJCommunicator</tt> object by adding extra events and useful properties such as the Status property.  Let's look at the lower level classes first:</p><p>One computer should be running as a server and another as a client.  The relationship is many-to-one in that a client may connect to only one server at a time, while a server may broadcast to any number of clients. Hence an number of <tt>MC</tt> computers (clients) can listen for experiment updates from a particular rig (server).</p><p>You can test this class by running the two on the same computer.  Thi must be done in two different instances of MATLAB.</p><h2 id="6">- Server</h2><pre class="codeinput">server = io.WSJCommunicator.server()
+
+server.open() <span class="comment">% Start listening on default port 2014</span>
+server.wtf <span class="comment">% Get status of socker, e.g. OPEN</span>
+server.WebSocket.isOpen <span class="comment">% Similar status but as a bool</span>
+
+<span class="comment">% When EventMode is set to false (default), the message is kept in the</span>
+<span class="comment">% buffer.  Checking for messages can be done by looking at the</span>
+<span class="comment">% IsMessageAvailable property:</span>
+server.IsMessageAvailable
+<span class="comment">% If a message is availiable it may be accessed with the receive method:</span>
+[msgId, data, host] = server.receive;
+
+<span class="comment">% When EventMode is set to true, new messages notify any MessageReceived</span>
+<span class="comment">% listeners.  This will the callbacks are evaluated with the source</span>
+<span class="comment">% variable being the io.WSJCommunicator object and the event variable being</span>
+<span class="comment">% a structure with the fields Id, Data and Sender.</span>
+server.EventMode = true; <span class="comment">% Allows us to create callback listeners</span>
+callback = @(~,evt) sprintf(<span class="keyword">...</span>
+  <span class="string">'Message with id %s from %s with the following data %s'</span>, <span class="keyword">...</span>
+  evt.Id, evt.Sender, toStr(evt.Data));
+el = event.listener(server, <span class="string">'MessageReceived'</span>, callback); <span class="comment">% Display message ids</span>
+</pre><h2 id="7">- Client</h2><pre class="codeinput">ip = ipaddress; <span class="comment">% This computer's IP</span>
+client = io.WSJCommunicator.client(ip)
+
+client.open() <span class="comment">% Open the connection</span>
+client.wtf <span class="comment">% OPEN</span>
+client.WebSocket.isOpen <span class="comment">% Similar status but as a bool</span>
+client.send(<span class="string">'test message'</span>, randi(100,1,5))
+<span class="comment">% Sending uses the function hlp_serialize</span>
+</pre><h2 id="8">- Close connections</h2><pre class="codeinput">client.close()
+server.close()
+</pre><h2 id="9">Stimulus Controller</h2><p>The <tt>srv.StimulusControl</tt> class methods are pretty self explanatory...</p><div><ul><li>create - As seen above this is the constructor</li><li>connect - Bind web socket.  Calls io.WSJCommunicator/open()</li><li>disconnect - Unbind.  Sends 'goodbye' message then calls io.WSJCommunicator/close()</li><li>startExperiment - Called with an expRef and, optionally, an Alyx instance.  Sends both to the remote host with the message id 'run'</li><li>quitExperiment - Called with a flag to indicate an abort or not.  If true the experiment 'aborts', otherwise it's end status is set to 'end'. Currently the behaviours of these two are identical.  It may be that in the future this flag will determine whether expServer waits for the trial to end before quitting.  Sends 'quit' message id</li></ul></div><h2 id="10">expServer messages</h2><p>When a new messages arrives it is expected to be one of the IDs mentioned below.  These usually leads to listeners to one of the events being notfied.  The listener callbacks are called with an event object of the class <tt>srv.ExpEvent</tt>, which are like regular event objects but have three properties: Name, Ref and Data, which may be used by the callback functions.</p><p>The following IDs are expected:</p><h2 id="11">- signals</h2><p>This id means an experiment update from a currently running signals object (<tt>exp.SignalsExp</tt>) has arrived.  Listeners to the ExpUpdate event are notified with a 'signals' ExpEvent.  In <tt>MC</tt> the listeners to this are obejects of the <tt>eui.ExpPanel</tt> class, e.g. <tt>eui.squeakExpPanel</tt>. These panel objects plot and display the update data.</p><h2 id="12">- status</h2><p>Messages with this id are usually sent before and after an experiment or in the case of 'update' messages, they indicate a new phase of the experiment (in legacy experiments such as <tt>exp.ChoiceWorld</tt> only.  The data object is expected to be a cell array with at least two elements. The first is the status, which may be one of the following:</p><div><ol><li>starting - Indicates that expServer received the message and is able to begin the experiment.  data{2} contains the expRef of the experiment. Listeners of the ExpStarting event are notified with a 'starting' ExpEvent.</li><li>completed - Indicates that the experiment stopped without any exceptions.  data{2} contains the expRef of the experiment.  Listeners of the ExpStopped event are notified with a 'completed' ExpEvent.</li><li>expException - Indicates that the experiment stopped because of an uncaught error.  data{2} contains the expRef of the experiment; data{3} contains the error message from the MException object.  Listeners of the ExpStopped event are notfied with an 'exception' ExpEvent.  The event object's Data field contains the error message.</li><li>update - Indicates a new phase of the experiment.  data{2} contains the expRef of the experiment; data{3} contains a cell array.  This may be the name of the new phase (e.g. 'feedback', 'interactive'), in which case listeners of the ExpUpdate event are notified with an 'update' ExpEvent. One special case is when data{3} contains the string 'event', iindicating that the experiment has finished initializing and has now officially started (sent after the experiment pre-delay has ended).  In this case the ExpUpdate event listeners are notified with a 'started' ExpEvent.</li></ol></div><h2 id="13">- AlyxRequest</h2><p>expServer requested the AlyxInstance.  Data = an experiment reference string.  The object will return whatever is in the AlyxInstance property at that time and notify listeners of the AlyxRequest event.</p><h2 id="14">Schematic</h2><p>Below is a schematic of the messages between <tt>MC</tt> and <tt>srv.expServer</tt>. The words within the dashed lines are the message ids.  The works in brackets to the right of the '&lt;&lt;' arrows are the messages / data that are sent alongside the message id.  The words on the left in brackets are the actions that cause, or are a response to, a message.</p><pre class="codeinput"><span class="comment">%       MC                                           srv.expServer</span>
+<span class="comment">% -------------------------------------------------------------------------</span>
+<span class="comment">% [rig selected]-------------status------&gt; +    [check if exp running]</span>
+<span class="comment">%                                          |               | &lt;false&gt;</span>
+<span class="comment">%       + &lt;--status------------------------+ &lt;&lt;         [idle]</span>
+<span class="comment">%       |</span>
+<span class="comment">%    [begin]-------------------------run--&gt;+    [check idle; params valid]</span>
+<span class="comment">%                                          |        &lt;true&gt; | &lt;false&gt;</span>
+<span class="comment">%       + &lt;--status------------------------+ &lt;&lt;    [starting / fail]</span>
+<span class="comment">%       |                                  |               |</span>
+<span class="comment">% [create panel]                           |    [exp init; start services]</span>
+<span class="comment">%                                          |               |</span>
+<span class="comment">%       + &lt;--event-------------------------+ &lt;&lt;     [experimentInit]</span>
+<span class="comment">%       |                                  |</span>
+<span class="comment">% [notify user]                            |</span>
+<span class="comment">%                                          |</span>
+<span class="comment">%       + &lt;--signals-----------------------+      [signals events updated]</span>
+<span class="comment">%       |                                  |</span>
+<span class="comment">% [update plots] &lt;--signals----------------+      [signals events updated]</span>
+<span class="comment">%</span>
+<span class="comment">% [rig selected]-------------status------&gt; +      [check if exp running]</span>
+<span class="comment">%                                          |        &lt;true&gt; | &lt;false&gt;</span>
+<span class="comment">%       + &lt;--status------------------------+ &lt;&lt;     [running / idle]</span>
+<span class="comment">%       |</span>
+<span class="comment">%  [notify user]</span>
+<span class="comment">%</span>
+<span class="comment">%  [end / abort]-------------------quit--&gt; +           [run quit]</span>
+<span class="comment">%                                                          |</span>
+<span class="comment">%                                                 [check alyx token valid]</span>
+<span class="comment">%                                                   &lt;true&gt; | &lt;false&gt;</span>
+<span class="comment">%       + &lt;--AlyxRequest-------------------+ &lt;&lt;    [&lt;do nothing&gt; / expRef]</span>
+<span class="comment">%       |</span>
+<span class="comment">% [send new token]---updateAlyxInstance--&gt; +        [register files]</span>
+<span class="comment">%</span>
+<span class="comment">%       + &lt;--status------------------------+ &lt;&lt;       [completed]</span>
+<span class="comment">%       |</span>
+<span class="comment">% [notify user]</span>
+<span class="comment">%</span>
+<span class="comment">%   [quit mc]-------------------goodbye--&gt; +       [log: disconnected]</span>
+</pre><h2 id="15">UDP communication &amp; Services</h2><p>You can also add a list of auxiliary service ids to the Services property of your StimulusControl objects.  This list will show up in the 'rig options' dialog in <tt>MC</tt>, allowing you to select which services to activate for a given experiment.  For information on controlling auxiliary software devices during an experiment see <a href="./using_services.html">using_services</a></p><h2 id="16">Debugging</h2><p>University networks are often quite complicated and operating within various firewalls and workgroups or within an intranet can cause problems.  These Websockets just use a basic TCP/IP protocol and therefore you (or your IT administrator) should be able to diagnose any issues with the below information.</p><p>If you can get your computers to show up in each other's Windows network list then there's a very good chance the Websockets will work.  Sometimes Windows fails to resolve a given hostname (i.e. computer name) so trying the IP address first is more reliable.  You can find your computer's IP address by searching 'what is my IP' online.</p><p>Sometimes the defualt port of 2014 is in use by another program, in which case you may see the following error:</p><pre>Error using io.WSJCommunicator/startClient (line 194)
+Could not connect to 'ws://128.40.198.177:2014'</pre><p>Try setting a different port (anthing between 1024-49151 should be safe). This is done by either adding/changing the port to the end of the Uri property, after a colon, or by setting the DefaultPort property.  The latter is only used in the Uri doesn't already have a port.</p><p>Sometimes when you can't connect to a remote computer it's because the remote computer failed to start the connection.  When this happens the following may be printed to the command window:</p><pre>onError: java.net.BindException: Address already in use: bind</pre><p>This usually means that the previous time you opened a socket it was not closed properly.  Restarting MATLAB and/or clearing java may resolve the issue.</p><h2 id="17">- Stimulus server</h2><pre class="codeinput">clear <span class="string">all</span>; clear <span class="string">java</span> <span class="comment">% Make sure everything is cleared</span>
+system(<span class="string">'netstat -nao | find ":2014"'</span>); <span class="comment">% Should return nothing</span>
+com = io.WSJCommunicator.server; <span class="comment">% Create server object</span>
+com.EventMode = true; <span class="comment">% Allows us to create callback listeners</span>
+com.open() <span class="comment">% Start listening on default port 2014</span>
+el = addlistener(com, <span class="string">'MessageReceived'</span>, @(~,msg)disp(msg.Id)); <span class="comment">% Display message ids</span>
+
+system(<span class="string">'netstat -nao | find ":2014"'</span>);
+<span class="comment">% Example:</span>
+<span class="comment">%  TCP    0.0.0.0:2014           0.0.0.0:0              LISTENING       26756</span>
+<span class="comment">%  TCP    [::]:2014              [::]:0                 LISTENING       26756</span>
+</pre><h2 id="18">- MC computer</h2><pre class="codeinput">clear <span class="string">all</span>; clear <span class="string">java</span> <span class="comment">% Make sure everything is cleared</span>
+system(<span class="string">'netstat -nao | find ":2014"'</span>); <span class="comment">% Should return nothing</span>
+<span class="comment">% Check this matches exactly to computer name in</span>
+<span class="comment">% Control Panel --&gt; All Control Panel Items --&gt; System</span>
+com = io.WSJCommunicator.client(<span class="string">'CSSD901341'</span>) ;
+open(com) <span class="comment">% Establish commection with CSSD901341</span>
+
+system(<span class="string">'netstat -nao | find ":2014"'</span>);
+<span class="comment">% Example:</span>
+<span class="comment">%  TCP    128.40.198.140:2014    128.40.198.162:49458   ESTABLISHED     6640</span>
+
+com.send(<span class="string">'hello'</span>, []) <span class="comment">% Should display 'hello' on stimulus computer</span>
+</pre><h2 id="19">- Clean up</h2><pre class="codeinput">close(com); delete(com); clear <span class="string">all</span>; clear <span class="string">java</span>
+</pre><h2 id="20">Etc.</h2><p>Author: Miles Wells v1.0.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU,*CLJAVA,*CLALL&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% Once the hardware files are set up for |srv.expServer| and |mc|, it is
+% necessary to configure the websockets so that the two computers can
+% connect to one another.  This connection serves a few purposes:
+% 
+% # To start and stop experiments via the MC GUI (currently the only way to
+% do so).
+% # To monitor the experiment, e.g. the current parameters, trial number,
+% reward total, etc.
+% # To send an <./AlyxMatlabPrimer.html Alyx instance> so that the stimulus
+% computer can register its files to the database.
+% 
+
+%% Configuring WebSockets
+% In order for the two computers to communicate...
+
+% The stimulus controllers are loaded from a MAT file with the name
+% 'remote' in the globalConfig directory, defined in dat.paths:
+p = fullfile(getOr(dat.paths, 'globalConfig'), 'remote.mat');
+
+% Let's create a new stimulus controller
+name = ipaddress(hostname);
+stimulusControllers = srv.StimulusControl.create(name);
+
+% A note on adding new computers.  Do not simply copy objects, instead use
+% the following method:
+uri = 'ws://192.168.0.1:5000';
+stimulusControllers(end+1) = srv.StimulusControl.create('rig2', uri);
+
+%%% Ports
+
+% Note that the DefaultPort property is only used when the uri provided
+% doesn't already have a port (':5000' in the example above):
+stimulusControllers(end+1) = srv.StimulusControl.create('ZSCOPE');
+stimulusControllers(end).Uri % 'ws://ZSCOPE:2014'
+
+stimulusControllers(end).DefaultPort = 4820;
+stimulusControllers(end).Uri % 'ws://ZSCOPE:4820'
+
+% However as we set the uri for 'rig2' above including a port, the
+% DefaultPort property isn't used:
+rig2 = strcmp('rig2', {stimulusControllers.Name});
+stimulusControllers(rig2).DefaultPort % *2014
+stimulusControllers(rig2).Uri % 'ws://192.168.0.1:5000'
+
+%%% Experiment delays
+% Setting default delays is sometimes useful.  These can also be changed in
+% the 'rig options' dialog in MC.  The ExpPreDelay property is the time in
+% seconds to wait between starting the services and initializing the
+% experiment object, and actually beginning the experiment (for a Signals
+% experiment this means updating the 'events.expStart' signal).  Hence if
+% the pre-delay is 5 seconds then the inputs, parameters and time signals
+% are updated in the main loop for 5 seconds before the first trial
+% officially begins.  This can be useful when an auxiliary recording device
+% takes some time to initialize, or if you want to record some sort of
+% baseline activity before the first stimulus appears.  It also ensures
+% that everything is running smoothly before the first trial (sometimes
+% there are suspect timings on the first propogation through the network).
+stimulusControllers(end).ExpPreDelay = 10; % Initialize then wait 10s
+
+% Likewise the ExpPostDelay is the time in seconds between the experiment
+% ending (i.e. the events.expStop signal updating), and the stop command
+% being sent to the services.  The main loop still runs during this time
+% and values continue to be posted to the input and timing signals, however
+% no trial signals will update.  This may be useful if you wish to record
+% some baseline after the stimulus presentation has ended for example.
+%
+% Trigger ExperimentEnded event, wait 30s then trigger the
+% ExperimentCleanup event:
+stimulusControllers(end).ExpPostDelay = 30; 
+
+%%% Saving & loading
+
+% Save your new configuration.  Note the variable name must be as below:
+save(p, 'stimulusControllers')
+
+% The stimulus controllers can be loaded using the srv.stimulusControllers
+% function.  If no remote file exists, a default StimulusControl object is
+% returned.
+sc = srv.stimulusControllers;
+
+%% Using Websockets
+% The stimulusControllers list will appear in the 'rig' drop-down list in
+% |MC|, allowing you to choose which one to connect to and where to start
+% an experiment.  In this way you can manage multiple experiments from one
+% computer.
+%
+% The Websockets are set up automatically when you run |MC| and
+% |srv.expServer|, however you can use these for your own code if you wish.
+% Below is some information on using the Websockets and the |+io| package.
+%
+% The |srv.StimulusControl| object builds on the |io.WSJCommunicator|
+% object by adding extra events and useful properties such as the Status
+% property.  Let's look at the lower level classes first:
+%
+% One computer should be running as a server and another as a client.  The
+% relationship is many-to-one in that a client may connect to only one
+% server at a time, while a server may broadcast to any number of clients.
+% Hence an number of |MC| computers (clients) can listen for experiment
+% updates from a particular rig (server).  
+%
+% You can test this class by running the two on the same computer.  Thi
+% must be done in two different instances of MATLAB.
+
+%%% - Server
+server = io.WSJCommunicator.server()
+
+server.open() % Start listening on default port 2014
+server.wtf % Get status of socker, e.g. OPEN
+server.WebSocket.isOpen % Similar status but as a bool
+
+% When EventMode is set to false (default), the message is kept in the
+% buffer.  Checking for messages can be done by looking at the
+% IsMessageAvailable property:
+server.IsMessageAvailable
+% If a message is availiable it may be accessed with the receive method:
+[msgId, data, host] = server.receive;
+
+% When EventMode is set to true, new messages notify any MessageReceived
+% listeners.  This will the callbacks are evaluated with the source
+% variable being the io.WSJCommunicator object and the event variable being
+% a structure with the fields Id, Data and Sender.
+server.EventMode = true; % Allows us to create callback listeners
+callback = @(~,evt) sprintf(...
+  'Message with id %s from %s with the following data %s', ...
+  evt.Id, evt.Sender, toStr(evt.Data));
+el = event.listener(server, 'MessageReceived', callback); % Display message ids
+
+%%% - Client
+ip = ipaddress; % This computer's IP
+client = io.WSJCommunicator.client(ip)
+
+client.open() % Open the connection
+client.wtf % OPEN
+client.WebSocket.isOpen % Similar status but as a bool
+client.send('test message', randi(100,1,5))
+% Sending uses the function hlp_serialize
+
+%%% - Close connections
+client.close()
+server.close()
+
+%%% Stimulus Controller
+% The |srv.StimulusControl| class methods are pretty self explanatory...
+%
+% * create - As seen above this is the constructor
+% * connect - Bind web socket.  Calls io.WSJCommunicator/open()
+% * disconnect - Unbind.  Sends 'goodbye' message then calls
+% io.WSJCommunicator/close()
+% * startExperiment - Called with an expRef and, optionally, an Alyx
+% instance.  Sends both to the remote host with the message id 'run'
+% * quitExperiment - Called with a flag to indicate an abort or not.  If
+% true the experiment 'aborts', otherwise it's end status is set to 'end'.
+% Currently the behaviours of these two are identical.  It may be that in
+% the future this flag will determine whether expServer waits for the trial to end
+% before quitting.  Sends 'quit' message id
+
+%% expServer messages
+% When a new messages arrives it is expected to be one of the IDs mentioned
+% below.  These usually leads to listeners to one of the events being
+% notfied.  The listener callbacks are called with an event object of the
+% class |srv.ExpEvent|, which are like regular event objects but have three
+% properties: Name, Ref and Data, which may be used by the callback
+% functions.
+%
+% The following IDs are expected:
+%%% - signals
+% This id means an experiment update from a currently running signals
+% object (|exp.SignalsExp|) has arrived.  Listeners to the ExpUpdate event
+% are notified with a 'signals' ExpEvent.  In |MC| the listeners to this
+% are obejects of the |eui.ExpPanel| class, e.g. |eui.squeakExpPanel|.
+% These panel objects plot and display the update data.
+
+%%% - status
+% Messages with this id are usually sent before and after an experiment or
+% in the case of 'update' messages, they indicate a new phase of the
+% experiment (in legacy experiments such as |exp.ChoiceWorld| only.  The
+% data object is expected to be a cell array with at least two elements.
+% The first is the status, which may be one of the following:
+%
+% # starting - Indicates that expServer received the message and is able to
+% begin the experiment.  data{2} contains the expRef of the experiment.
+% Listeners of the ExpStarting event are notified with a 'starting'
+% ExpEvent.
+% # completed - Indicates that the experiment stopped without any
+% exceptions.  data{2} contains the expRef of the experiment.  Listeners of
+% the ExpStopped event are notified with a 'completed' ExpEvent.
+% # expException - Indicates that the experiment stopped because of an
+% uncaught error.  data{2} contains the expRef of the experiment; data{3}
+% contains the error message from the MException object.  Listeners of the
+% ExpStopped event are notfied with an 'exception' ExpEvent.  The event
+% object's Data field contains the error message.
+% # update - Indicates a new phase of the experiment.  data{2} contains the
+% expRef of the experiment; data{3} contains a cell array.  This may be the
+% name of the new phase (e.g. 'feedback', 'interactive'), in which case
+% listeners of the ExpUpdate event are notified with an 'update' ExpEvent.
+% One special case is when data{3} contains the string 'event', iindicating
+% that the experiment has finished initializing and has now officially
+% started (sent after the experiment pre-delay has ended).  In this case
+% the ExpUpdate event listeners are notified with a 'started' ExpEvent.
+
+%%% - AlyxRequest
+% expServer requested the AlyxInstance.  Data = an experiment
+% reference string.  The object will return whatever is in the
+% AlyxInstance property at that time and notify listeners of
+% the AlyxRequest event.
+
+%% Schematic
+% Below is a schematic of the messages between |MC| and |srv.expServer|.
+% The words within the dashed lines are the message ids.  The works in
+% brackets to the right of the '<<' arrows are the messages / data that are
+% sent alongside the message id.  The words on the left in brackets are the
+% actions that cause, or are a response to, a message.
+
+%       MC                                           srv.expServer
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+% [rig selected]REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-statusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> +    [check if exp running]
+%                                          |               | <false>
+%       + <REPLACE_WITH_DASH_DASHstatusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+ <<         [idle]
+%       |
+%    [begin]REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-runREPLACE_WITH_DASH_DASH>+    [check idle; params valid]
+%                                          |        <true> | <false>
+%       + <REPLACE_WITH_DASH_DASHstatusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+ <<    [starting / fail]
+%       |                                  |               |
+% [create panel]                           |    [exp init; start services]
+%                                          |               |
+%       + <REPLACE_WITH_DASH_DASHeventREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+ <<     [experimentInit]
+%       |                                  |
+% [notify user]                            |
+%                                          |
+%       + <REPLACE_WITH_DASH_DASHsignalsREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+      [signals events updated]
+%       |                                  |
+% [update plots] <REPLACE_WITH_DASH_DASHsignalsREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+      [signals events updated]
+%                                                            
+% [rig selected]REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-statusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> +      [check if exp running]
+%                                          |        <true> | <false>
+%       + <REPLACE_WITH_DASH_DASHstatusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+ <<     [running / idle]
+%       |
+%  [notify user]
+%
+%  [end / abort]REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-quitREPLACE_WITH_DASH_DASH> +           [run quit]
+%                                                          |
+%                                                 [check alyx token valid]
+%                                                   <true> | <false>
+%       + <REPLACE_WITH_DASH_DASHAlyxRequestREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+ <<    [<do nothing> / expRef]
+%       |
+% [send new token]REPLACE_WITH_DASH_DASH-updateAlyxInstanceREPLACE_WITH_DASH_DASH> +        [register files]
+%
+%       + <REPLACE_WITH_DASH_DASHstatusREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+ <<       [completed]
+%       |
+% [notify user]
+%
+%   [quit mc]REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-goodbyeREPLACE_WITH_DASH_DASH> +       [log: disconnected]
+
+%% UDP communication & Services
+% You can also add a list of auxiliary service ids to the Services property
+% of your StimulusControl objects.  This list will show up in the 'rig
+% options' dialog in |MC|, allowing you to select which services to
+% activate for a given experiment.  For information on controlling
+% auxiliary software devices during an experiment see
+% <./using_services.html using_services>
+
+%% Debugging
+% University networks are often quite complicated and operating within
+% various firewalls and workgroups or within an intranet can cause
+% problems.  These Websockets just use a basic TCP/IP protocol and
+% therefore you (or your IT administrator) should be able to diagnose any
+% issues with the below information.
+%
+% If you can get your computers to show up in each other's Windows network
+% list then there's a very good chance the Websockets will work.  Sometimes
+% Windows fails to resolve a given hostname (i.e. computer name) so trying
+% the IP address first is more reliable.  You can find your computer's IP
+% address by searching 'what is my IP' online.
+%
+% Sometimes the defualt port of 2014 is in use by another program, in which
+% case you may see the following error:
+%
+%  Error using io.WSJCommunicator/startClient (line 194)
+%  Could not connect to 'ws://128.40.198.177:2014'
+%
+% Try setting a different port (anthing between 1024-49151 should be safe).
+% This is done by either adding/changing the port to the end of the Uri
+% property, after a colon, or by setting the DefaultPort property.  The
+% latter is only used in the Uri doesn't already have a port.
+%
+% Sometimes when you can't connect to a remote computer it's because the
+% remote computer failed to start the connection.  When this happens the
+% following may be printed to the command window:
+%
+%  onError: java.net.BindException: Address already in use: bind
+% 
+% This usually means that the previous time you opened a socket it was not
+% closed properly.  Restarting MATLAB and/or clearing java may resolve the
+% issue.
+
+%%% - Stimulus server
+clear all; clear java % Make sure everything is cleared
+system('netstat -nao | find ":2014"'); % Should return nothing
+com = io.WSJCommunicator.server; % Create server object
+com.EventMode = true; % Allows us to create callback listeners
+com.open() % Start listening on default port 2014
+el = addlistener(com, 'MessageReceived', @(~,msg)disp(msg.Id)); % Display message ids
+
+system('netstat -nao | find ":2014"'); 
+% Example:
+%  TCP    0.0.0.0:2014           0.0.0.0:0              LISTENING       26756 
+%  TCP    [::]:2014              [::]:0                 LISTENING       26756 
+
+%%% - MC computer
+clear all; clear java % Make sure everything is cleared
+system('netstat -nao | find ":2014"'); % Should return nothing
+% Check this matches exactly to computer name in 
+% Control Panel REPLACE_WITH_DASH_DASH> All Control Panel Items REPLACE_WITH_DASH_DASH> System
+com = io.WSJCommunicator.client('CSSD901341') ;
+open(com) % Establish commection with CSSD901341
+
+system('netstat -nao | find ":2014"'); 
+% Example:
+%  TCP    128.40.198.140:2014    128.40.198.162:49458   ESTABLISHED     6640 
+
+com.send('hello', []) % Should display 'hello' on stimulus computer
+
+%%% - Clean up
+close(com); delete(com); clear all; clear java
+
+%% Etc.
+% Author: Miles Wells
+% v1.0.0
+
+%#ok<*NOPTS,*ASGLU,*NASGU,*CLJAVA,*CLALL>
+##### SOURCE END #####
+--></body></html>
