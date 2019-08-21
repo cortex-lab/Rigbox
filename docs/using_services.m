@@ -211,11 +211,27 @@ sc(1).Services = {'neural-imaging', 'eye-tracking', 'timeline'};
 % can also set the default state by changing the SelectedServices property:
 sc(1).SelectedServices = [false, false, true]; % Only timeline on by default
 
+% Setting default delays is sometimes useful.  These can also be changed in
+% the 'rig options' dialog in MC.  The ExpPreDelay property is the time in
+% seconds to wait between starting the services and actually beginning the
+% experiment (for a Signals experiment this means updating the
+% 'events.expStart' signal).  This can be useful when a service takes some
+% time to initialize, or if you want to record some sort of baseline
+% activity before the first stimulus appears.  
+sc(1).ExpPreDelay = 10; % Send the start message to services then wait 10s
+
+% Likewise the ExpPostDelay is the time in seconds between the experiment
+% ending (i.e. the events.expStop signal updating), and the stop command
+% being sent to the services.  This may be useful if you wish to record
+% some baseline after the stimulus presentation has ended for example.
+sc(1).ExpPostDelay = 30; % Wait 30s then send the stop message to services
+
 % Save your objects:
 stimulusControllers = sc; % Variable must be saved as stimulusControllers
 save(fullfile(p.globalConfig, 'remote.mat'), 'stimulusControllers')
 
-% More information can be found in the websocket_config script:
+% More information can be found in the <./websocket_config.html
+% websocket_config> script:
 open(fullfile(getOr(dat.paths,'rigbox'), ...
   'docs', 'setup', 'websocket_config.m'))
 

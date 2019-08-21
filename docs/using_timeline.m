@@ -13,9 +13,14 @@
 % any number of hardware events and record their values with respect to
 % this offset; for example, Timeline can use a photodiode to record the
 % times at which the screen updates.
+%
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
 
 %% Using Timeline
-% For more details on setting up Timeline, see HARDWARE_CONFIG:
+% For more details on setting up Timeline, see <./hardware_config.html
+% hardware_config>:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
   'docs', 'setup', 'hardware_config.m'), 58)
 
@@ -80,8 +85,9 @@ timeline.UseInputs{end+1} = 'lick detecter';
 % (those with a small current source) are corrupted by neighbouring
 % channels. A solution to this is to isolate the channel of interest by
 % adding one dummy channel either side of it. This is a page on NI website
-% explaining how to avoid ghosting: 
-% https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE
+% explaining how to avoid ghosting:
+% <https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE
+% https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE>
 %
 % For instance consider that we want to acquire the p.d. of a passive
 % piezo:
@@ -184,7 +190,7 @@ timeline.Outputs(end).InitialDelay = 3;
 %% Acquisitions
 % Timeline may be run automatically on the stimulus computer, or on a
 % separate computer that's triggred by the stimulus computer via UDPs (for
-% more info see USING_SERVICES:
+% more info see <./using_services.html using_services>:
 open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_services.m'))
 
 % You can also start Timeline manually from the command prompt with
@@ -256,6 +262,7 @@ clock.now()
 
 %% Etc.
 % Author: Miles Wells
+%
 % v1.0.0
 
 %#ok<*NOPTS>
