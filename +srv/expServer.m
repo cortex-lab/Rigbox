@@ -37,8 +37,10 @@ function expServer(useTimelineOverride, bgColour)
 global AGL GL GLU %#ok<NUSED>
 listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
-rewardToggleKey = KbName('w');
-rewardPulseKey = KbName('space');
+rewardToggleKey1 = KbName('z');
+rewardToggleKey2 = KbName('c');
+rewardPulseKey1 = KbName('a');
+rewardPulseKey2 = KbName('d');
 rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
@@ -107,8 +109,8 @@ rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
 
 fprintf('\n<q> quit, <w> toggle reward, <t> toggle timeline\n');
-fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
-  '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
+fprintf(['<%s> reward pulse left, <%s> reward pulse right, <%s> perform reward calibration\n' ...
+  '<%s> perform gamma calibration\n'], KbName(rewardPulseKey1), KbName(rewardPulseKey2),...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
 log('Started presentation server on port %i', listenPort);
 
@@ -143,7 +145,7 @@ while running
   end
   
   % check for reward toggle
-  if firstPress(rewardToggleKey) > 0
+  if firstPress(rewardToggleKey1) > 0
     log('Toggling reward valve');
     curr = rig.daqController.Value(rewardId);
     sig = rig.daqController.SignalGenerators(rewardId);
@@ -155,10 +157,13 @@ while running
   end
   
   % check for reward pulse
-  if firstPress(rewardPulseKey) > 0
+  if firstPress(rewardPulseKey1) > 0
     log('Delivering default reward');
-    def = [rig.daqController.SignalGenerators(rewardId).DefaultCommand];
-    rig.daqController.command(def);
+    rig.daqController.command('reward', [1,0]);
+  end
+  if firstPress(rewardPulseKey2) > 0
+    log('Delivering default reward');
+    rig.daqController.command('reward', [0,1]);
   end
   
   % check for reward calibration
