@@ -15,13 +15,12 @@ classdef DaqControllerParallel < handle
     
     properties (Transient)
         DaqSessions
+        Values
     end
     
     properties (Dependent)
         NumOutputs % Number of channels controlled
     end
-    
-
     
     methods
         function createDaqChannels(obj)
@@ -57,7 +56,6 @@ classdef DaqControllerParallel < handle
             obj.reset
         end
         
-        
         function command(obj, outputName, values)
             
             % sends output to the daq channels controlled by the output
@@ -89,6 +87,35 @@ classdef DaqControllerParallel < handle
                     obj.DaqSessions{output_num}.outputSingleScan(output);
             end
             
+            obj.Values{output_num} = output(end,:);
+        end
+        
+        function set_ports(obj, outputName, output)
+            
+            % bypasses the signalgenerator, and sends output directly to 
+            % the ports associated with outputName. 
+            
+            output_num = find(strcmp(obj.ChannelNames, outputName));
+            assert(numel(output_num) == 1 && output_num > 0, 'Unknown output -- check that the name in your expDef matches the name in the hardware file')
+            
+            if obj.DaqSessions{output_num}.IsRunning
+                % if a daq operation is in progress, stop it, and set its output
+                % to the default value
+                reset(obj);
+            end
+            
+            switch obj.OutputTypes(output_num)
+                case 'a' % Analog output
+                    obj.DaqSessions{output_num}.queueOutputData(output);
+                    startBackground(obj.DaqSessions{output_num});
+                    readyWait(obj);
+                    obj.DaqSessions{output_num}.release;
+                    
+                case 'd' % Digital output
+                    obj.DaqSessions{output_num}.outputSingleScan(output);
+            end
+            
+            obj.Values{output_num} = output(end,:);
         end
         
         function v = get.NumOutputs(obj)

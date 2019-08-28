@@ -75,6 +75,7 @@ KbQueueStart();
 % get rig hardware
 try
   rig = hw.devices;
+  rewardId = find(strcmp(rig.daqController.ChannelNames, 'reward'));
 catch ME
   fun.applyForce({
   @() communicator.close(),...
@@ -146,15 +147,27 @@ while running
   
   % check for reward toggle
   if firstPress(rewardToggleKey1) > 0
-    log('Toggling reward valve');
-    curr = rig.daqController.Value(rewardId);
+    log('Toggling left reward valve');
+    curr = rig.daqController.Values;
+    curr = curr{rewardId};
     sig = rig.daqController.SignalGenerators(rewardId);
-    if curr == sig.OpenValue
-      rig.daqController.Value(rewardId) = sig.ClosedValue;
+    if curr(1) == sig.OpenValue
+      rig.daqController.set_ports('reward', [sig.ClosedValue, curr(2)]);
     else
-      rig.daqController.Value(rewardId) = sig.OpenValue;
+      rig.daqController.set_ports('reward', [sig.OpenValue, curr(2)]);
     end
   end
+   if firstPress(rewardToggleKey2) > 0
+    log('Toggling right reward valve');
+    curr = rig.daqController.Values;
+    curr = curr{rewardId};
+    sig = rig.daqController.SignalGenerators(rewardId);
+    if curr(2) == sig.OpenValue
+      rig.daqController.set_ports('reward', [curr(1), sig.ClosedValue]);
+    else
+      rig.daqController.set_ports('reward', [curr(1), sig.OpenValue]);
+    end
+   end
   
   % check for reward pulse
   if firstPress(rewardPulseKey1) > 0
