@@ -77,6 +77,7 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
                     ul);
             end
             dt = interp1(volumes, durations, ul, 'pchip');
+            dt = max(dt, 0); % Don't let dt fall below zero
         end
         
         
