@@ -1,6 +1,6 @@
 function m = put(m, name, value)
 %PUT Does the same as MATLAB's setfield but more concisely named
-%   TODO
+%   TODO Document `put` function
 
 if isempty(name)
   m = value;

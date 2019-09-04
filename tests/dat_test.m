@@ -303,6 +303,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Failed to load with the correct precedence')
     end
     
+    function test_expExists(testCase)
+      % Should search all remote repos and give precedence to main
+      altMain2Paths(testCase)
+      % Create some experiments to test the existence of
+      refs = {dat.constructExpRef('subject_1', now, testCase.nSeq-1); % Exists on master
+        dat.constructExpRef('subject_1', now+1, testCase.nSeq+1); % Doesn't exist
+        dat.constructExpRef(['subject_',num2str(testCase.nSubs)], now, testCase.nSeq); % Exists on remote
+        dat.constructExpRef(['subject_',num2str(testCase.nSubs+1)], now, 1)}; % Exists on alt only
+      
+      testCase.verifyEqual(dat.expExists(refs),[true; false; true; false], ...
+        'Failed to load with the correct precedence')
+      % Test behaviour with char input
+      testCase.verifyTrue(dat.expExists(refs{1}))
+    end
+    
   end
   
   methods (Access = private)

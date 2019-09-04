@@ -9,10 +9,10 @@ classdef TLOutputAcqLive < hw.TLOutput
   %
   %   Example:
   %     tl = hw.Timeline;
-  %     tl.Outputs(1) = hw.TLOutputAcqLive('Instra-Triggar', 'Dev1', 'PFI4');
+  %     tl.Outputs(1) = hw.TLOutputAcqLive();
   %     tl.start('2018-01-01_1_mouse2', alyxInstance);
-  %     >> initializing Instra-Triggar
-  %     >> start Instra-Triggar
+  %     >> initializing Acquire Live
+  %     >> start Acquire Live
   %     >> Timeline started successfully
   %     tl.stop;
   %

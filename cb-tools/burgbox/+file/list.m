@@ -9,6 +9,7 @@ function listing = list(path, type)
 % 2013-07 CB created
 % 2019-06 MW added cellstr compatibility
 
+narginchk(1,2)
 path = convertStringsToChars(path);
 if nargin < 2
   type = 'all';
@@ -29,11 +30,10 @@ switch lower(type)
   case {'files' 'f'}
     listing = listing(~[listing.isdir]);
   otherwise
-    error('''%s'' is not a recognised type to list');
+    error('''%s'' is not a recognised type to list', type);
 end
 
 %remove the . (current directory) and .. (parent directory) entries
 listing = setdiff({listing.name}', {'.' '..'});
 
 end
-

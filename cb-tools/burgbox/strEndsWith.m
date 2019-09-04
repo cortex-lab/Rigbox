@@ -1,6 +1,9 @@
 function b = strEndsWith(s, endings)
-%STRENDSWITH Summary of this function goes here
-%   Detailed explanation goes here
+%STRENDSWITH True if text ends with pattern 
+%   Returns true is one or more of `endings` are found in `s`.  Both inputs
+%   may be a single char array or cellstr.
+%
+%   Note that MATLAB implemented a similar function, ENDSWITH, in R2016b.
 
 if iscell(endings) % multiple possible endings to check
   rexp = regexptranslate('escape', endings);

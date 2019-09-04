@@ -1,13 +1,18 @@
 function d = modDate(p)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%FILE.MODDATE Returns date modified of files and folders
+%  Returns datenums of files and folders contained in input path(s), p
+%  Input:
+%    p (char or cellstr) - One or more paths to a file or folder
+%  Output:
+%    d (array or cell) - 1xn array or cellarray of datenums
+%
 
 if iscell(p)
-  listing = cellfun(@dir, p);
+  d = mapToCell(@file.modDate, p);
 else
   listing = dir(p);
+  d = [listing.datenum];
 end
-d = [listing.datenum];
 
 end
 
