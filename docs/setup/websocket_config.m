@@ -106,8 +106,7 @@ sc = srv.stimulusControllers;
 server = io.WSJCommunicator.server()
 
 server.open() % Start listening on default port 2014
-server.wtf % Get status of socker, e.g. OPEN
-server.WebSocket.isOpen % Similar status but as a bool
+server.wtf % Get status of socket, e.g. OPEN
 
 % When EventMode is set to false (default), the message is kept in the
 % buffer.  Checking for messages can be done by looking at the
