@@ -550,8 +550,16 @@ lh = event.listener(scale, 'NewReading', callback);
 clear scale lh
 
 %% Audio devices
+% On MS-Windows you'll have the choice between up to 5 different audio
+% subsystems: WASAPI (on Windows-Vista and later), or WDMKS (on
+% Windows-2000/XP) should provide ok latency. DirectSound is the next worst
+% choice if you have hardware with DirectSound support. If everything else
+% fails, you'll be left with MME, a completely unusable API for precise or
+% low latency timing. 
+
 InitializePsychSound
 devs = PsychPortAudio('GetDevices')
+
 % Sanitize the names
 names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
 names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);

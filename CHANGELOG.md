@@ -17,5 +17,6 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - added utility for checking test coverage `efa7414` 2019-08-08
 - added walkthroughs for parameters and timeline 2019-08-14
 - improvements to water expServer calibration function `dd0adb7` 2019-08-14
+- updates to signals submodule `f760e5e` 2019-09-03
 
 ## [2.2.1](https://github.com/cortex-lab/Rigbox/releases/tag/v2.2.1) (Most Recent Stable Version)
