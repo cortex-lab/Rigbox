@@ -7,5 +7,5 @@ function cstr = num2cellstr(A)
 
 % 2013-02 CB created
 
-cstr = reshape(regexp(sprintf('%g#', A),'[0-9\-\.e]*', 'match'), size(A));
+cstr = reshape(regexp(sprintf('%g#', A),'[0-9\(-|+)\.e]*', 'match'), size(A));
 end

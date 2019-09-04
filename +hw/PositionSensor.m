@@ -12,7 +12,7 @@ classdef PositionSensor < hw.DataLogging
     MillimetresFactor %Factor to convert position to millimetre units
   end
 
-  properties (Dependent = true)
+  properties (Dependent, Transient)
     Positions %All recorded positions
     PositionTimes %Times for each recorded position
     LastPosition %Most recent position read

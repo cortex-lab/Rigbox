@@ -121,7 +121,7 @@ javaclasspaths = first(textscan(fid,'%s', 'CommentStyle', '#', 'Delimiter',''));
 cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
 
 %%% Remind user to copy paths file %%%
-if isempty(which('dat.paths'))
+if ~exist('+dat/paths','file')
   template_paths = fullfile(root, 'docs', 'setup', 'paths_template.m');
   new_loc = fullfile(root, '+dat', 'paths.m');
   copied = copyfile(template_paths, new_loc);
