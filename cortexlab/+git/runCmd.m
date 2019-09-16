@@ -71,8 +71,8 @@ cmd = strcat(gitexepath, " ", cmd);
 
 for i = 1:length(cmd)
   if args.echo
-    [exitCode(i), cmdOut{i}] = system(cmd, '-echo');
+    [exitCode(i), cmdOut{i}] = system(cmd{i}, '-echo');
   else
-    [exitCode(i), cmdOut{i}] = system(cmd);
+    [exitCode(i), cmdOut{i}] = system(cmd{i});
   end
 end
