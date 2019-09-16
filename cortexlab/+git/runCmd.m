@@ -17,50 +17,37 @@ function [exitCode, cmdOut] = runCmd(cmd, varargin)
 % Example: Get the status and log for the git repository in the working 
 % folder, display the commands' outputs in MATLAB, and save the command
 % outputs in the `cmdOut` cellstr:
-%   [exitCode, cmdOut] = git.runGitCmd({'status', 'log -n 1'});
+%   [exitCode, cmdOut] = git.runCmd({'status', 'log -n 1'});
 %
 % Example: Stash the working changes in the Rigbox repository without
 % displaying the command's output:
 %   rigboxPath = which('addRigboxPaths');
-%   exitCode = git.runGitCmd({'stash push -m "WIP..."'}, 'dir', rigboxPath,... 
+%   exitCode = git.runCmd({'stash push -m "WIP..."'}, 'dir', rigboxPath,... 
 %                             'echo', false);
 
 %% set-up 
-% If `cmd` is a char or str array, turn it into a cellstr
-if isstring(cmd)||ischar(cmd), cmd=cellstr(cmd); end
-% Ensure `cmd` is a cellstr
-if ~iscellstr(cmd) %#ok<ISCLSTR>
-  error('Rigbox:git:runCmd:invalidInputArg', ['%s requires the first input '...
-        'arg to be a str or cellstr array'], mfilename);
-end
+% If `cmd` is a char or cellstr, turn it into a string
+cmd = string(cmd); % Convert to string array
+
 % When this function terminates, return to the working directory.
 origDir = pwd;
 cleanup = onCleanup(@() cd(origDir));
 
 % Define default input args in a struct.
-argS.dir = pwd; 
-argS.echo = true;
-
-% Get input args and reshape into two rows (into name-value pairs):
-% 1st row = arg names, 2nd row = arg values. 
-pairedArgs = reshape(varargin,2,[]);
-
-% If the name-value pairs don't match up, throw error.
-if ~all(cellfun(@ischar, (pairedArgs(1,:)))) || mod(length(varargin),2)
-  error('Rigbox:git:runCmd:nameValueArgs', ['%s requires optional input '... 
-         'args to be constructed in name-value pairs'], mfilename);
-end
-
-% For the specified input args, change default input args to new values. 
-for pair = pairedArgs
-  argName = pair{1};
-  if any(strcmpi(argName, fieldnames(argS)))
-    argS.(argName) = pair{2};
-  end
+defaults.dir = pwd;
+defaults.echo = true;
+try
+  % Parse Name-Value pairs
+  inputs = cell2struct(varargin(2:2:end)', varargin(1:2:end)');
+  args = mergeStructs(inputs, defaults);
+catch
+  % If the name-value pairs don't match up, throw error.
+  error('Rigbox:git:runCmd:nameValueArgs', ['%s requires optional input '...
+    'args to be constructed in name-value pairs'], mfilename);
 end
 
 % Change into the specified directory.
-cd(argS.dir);
+cd(args.dir);
 
 %% run commands
 % Search `dat.paths` for the path to the Git exe; if not found, perform a
@@ -69,10 +56,9 @@ gitexepath = getOr(dat.paths, 'gitExe');
 if isempty(gitexepath)
   [exitCode, gitexepath] = system('where git');
   if exitCode
-    error(['Rigbox:git:runCmd:gitNotFound', 'Could not find the git '...
+    error('Rigbox:git:runCmd:gitNotFound', ['Could not find the git '...
            'executable on your system. Please ensure that you have git '...
-           'installed, and assign it''s full path (as a char array) to '...
-           '`p.gitExe` in your `+dat/paths.m` file.']); 
+           'installed, and set it''s full path in `+dat/paths.m`.']); 
   end
 end
 % Convert to string for running system commands.
@@ -81,13 +67,12 @@ gitexepath = ['"', strtrim(gitexepath), '"'];
 % Run commands.
 exitCode = zeros(1, length(cmd));
 cmdOut = cell(1, length(cmd));
-if argS.echo % then use `'-echo'` flag to output to MATLAB command window
-  for i = 1:length(cmd)
-    [exitCode(i), cmdOut{i}] = system([gitexepath, ' ', cmd{i}], '-echo');
+cmd = strcat(gitexepath, " ", cmd);
+
+for i = 1:length(cmd)
+  if args.echo
+    [exitCode(i), cmdOut{i}] = system(cmd, '-echo');
+  else
+    [exitCode(i), cmdOut{i}] = system(cmd);
   end
-else
-  for i = 1:length(cmd)
-    [exitCode(i), cmdOut{i}] = system([gitexepath, ' ', cmd{i}]);
-  end
-end
 end

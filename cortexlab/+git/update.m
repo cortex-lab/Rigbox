@@ -42,10 +42,13 @@ function exitCode = update(scheduled)
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
-if nargin < 1 || ~isnumeric(scheduled) || ~any(0:7 == scheduled)
+if nargin < 1
   scheduled = getOr(dat.paths, 'updateSchedule', 0);
+elseif ~isnumeric(scheduled) || ~any(0:7 == scheduled)
+    error('Rigbox:git:update:valueError', ...
+        'Input must be integer between 0 and 7')
 end
-root = fileparts(which('addRigboxPaths')); % Rigbox root directory
+root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
 % Attempt to find date of last fetch
 fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
 % If `FETCH_HEAD` file exists, retrieve datenum for when last modified,
@@ -53,18 +56,14 @@ fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
 lastFetch = iff(exist(fetch_head,'file')==2, ... 
   file.modDate(fetch_head), 0); 
 
-% Don't pull changes if the following conditions are met:
-% 1. The updates are scheduled for a different day and the last fetch was
-% less than a week ago.
-% 2. The updates are scheduled for today and the last fetch was today.
-% 3. The updates are scheduled for every day and the last fetch was less
-% than an hour ago.
-notFetchDay = scheduled && scheduled ~= weekday(now) && now-lastFetch < 7;
-fetchDayButAlreadyFetched = scheduled == weekday(now) && now-lastFetch < 1;
-fetchEverydayButAlreadyFetched = scheduled == 0 && now-lastFetch < 1/24;
-if notFetchDay... 
-  || fetchDayButAlreadyFetched... 
-  || fetchEverydayButAlreadyFetched
+% Pull changes if the following conditions are met:
+% 1. The last fetch was over a week ago.
+% 2. The updates are scheduled for today and not yet fetched today.
+% 3. The updates are daily and the last fetch was over an hour ago.
+fetchDay = scheduled == weekday(now) || scheduled == false;
+minTime = iff(scheduled, iff(fetchDay, 1, 7), 1/24);
+fetched = now-lastFetch < minTime;
+if fetched || ~fetchDay
   exitCode = 2;
   return
 end
@@ -79,5 +78,4 @@ init = 'submodule update --init';
 pull = 'pull --recurse-submodules --strategy-option=theirs';
 cmds = {stash, stashSubs, init, pull};
 % run commands in Rigbox root folder
-[exitCode, ~] = git.runGitCmd(cmds, 'dir', root, 'echo', true);
-end
+exitCode = any(git.runCmd(cmds, 'dir', root, 'echo', true));
