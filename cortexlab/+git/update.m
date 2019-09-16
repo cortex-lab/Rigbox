@@ -11,6 +11,13 @@ function update(scheduled)
 % TODO Find quicker way to check for changes
 % See also DAT.PATHS
 
+% Check that paths are set up
+assert(~isempty(which('dat.paths')), ...
+    'rigbox:git:update:copyPaths',...
+    ['Error: ''dat.paths'' file not found. Please ensure that a '... 
+    '''dat.paths'' file exists for your setup. A template can be found at '...
+    '''docs/setup/paths_template''.'])
+
 % If not given as input argument, use 'updateSchedule' in 'dat.paths'. If
 % not found, set 'scheduled' to 0.
 if nargin < 1; scheduled = getOr(dat.paths, 'updateSchedule', 0); end

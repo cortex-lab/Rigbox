@@ -7,7 +7,7 @@ classdef DaqRotaryEncoder < hw.PositionSensor
   %
   %   e.g. use:
   %     session = daq.createSession('ni')
-  %     enc = RotaryEncoder  % I think this line should say: enc = hw.DaqRotaryEncoder % NS 2014-10-28
+  %     enc = hw.DaqRotaryEncoder
   %     enc.DaqSession = session
   %     enc.DaqId = 'Dev1'
   %     enc.createDaqChannel

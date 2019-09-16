@@ -7,4 +7,3 @@ function strarr = cellsprintf(formatSpec, varargin)
 strarr = mapToCell(@(varargin) sprintf(formatSpec, varargin{:}), varargin{:});
 
 end
-

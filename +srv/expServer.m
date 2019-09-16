@@ -73,6 +73,12 @@ KbQueueStart();
 % get rig hardware
 try
   rig = hw.devices;
+  if isempty(rig)
+      error('rigbox:srv:expServer:noHardwareConfig', ['No hardware config '...
+        'info found for this rig. Cannot find this rig''s ''hardware.mat'' '... 
+        'file, or hardware config set-up script. Unable to launch '... 
+        'expServer.']);
+  end
 catch ME
   fun.applyForce({
   @() communicator.close(),...
@@ -351,7 +357,7 @@ ShowCursor();
   end
 
   function whiteScreen()
-    rig.stimWindow.BackgroundColour = 255;
+    rig.stimWindow.BackgroundColour = rig.stimWindow.White;
     rig.stimWindow.flip();
     rig.stimWindow.BackgroundColour = bgColour;
   end
@@ -359,7 +365,7 @@ ShowCursor();
   function calibrateGamma()
     stimWindow = rig.stimWindow;
     DaqDev = rig.daqController.DaqIds;
-    lightIn = 'ai0'; % defaults from hw.psy.Window
+    lightIn = 'ai0'; % defaults from hw.ptb.Window
     clockIn = 'ai1';
     clockOut = 'port1/line0 (PFI4)';
     log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
