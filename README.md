@@ -7,7 +7,7 @@ Rigbox is a high-performance, open-source software toolbox for managing behavior
 
 ## Getting Started
 
-The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [ReadTheDocs](https://rigbox.readthedocs.io/en/latest/). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
+The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [documentation](https://github.com/cortex-lab/Rigbox/tree/master/docs). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
 
 ### Prerequisites
 
@@ -37,9 +37,7 @@ Additionally, Rigbox works with a number of extra submodules (included):
 ```
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
-2. Open MATLAB, make sure Rigbox and all subdirectories are in your path, run: 
-> addRigboxPaths 
-and restart MATLAB.
+2. Open MATLAB and run `addRigboxPaths.m` then restart the program.  *Note*: Do __not__ add all Rigbox folders and subfolders to the paths! 
 3. Set the correct paths on both computers by following the instructions in the '/docs/setup/paths_config' file.
 4. On the stimulus computer, set the hardware configuration by following the instructions in the '/docs/setup/hardware_config' file.
 5. To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
