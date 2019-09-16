@@ -6,17 +6,12 @@ ex.identifier = '';
 root = getOr(dat.paths, 'rigbox');
 
 %% Test 1: Inputs not specified correctly fail
-% First input arg is not a cellstr.
-try git.runCmd(1), catch ex, end 
-msg = 'Illegaly accepts a non-cellstr first input arg';
-assert(strcmp(ex.identifier, 'Rigbox:git:runCmd:invalidInputArg'), msg)
-
 % Name-value args are not specified correctly.
-try git.runCmd('status', pi, true), catch ex, end
+try git.runCmd('status', pi, true); catch ex, end
 msg = 'Illegaly accepts a name-value paired arg where name is not a char';
 assert(strcmp(ex.identifier, 'Rigbox:git:runCmd:nameValueArgs'), msg) 
 
-try git.runCmd('status', 'echo'), catch ex, end
+try git.runCmd('status', 'echo'); catch ex, end
 msg = ['Illegaly accepts a name-value paired arg where a name has no '... 
   'matching value'];
 assert(strcmp(ex.identifier, 'Rigbox:git:runCmd:nameValueArgs'), msg)
@@ -28,7 +23,7 @@ msg = '`onCleanup` did not run correctly';
 assert(strcmp(pwd, dir), msg)
 
 %% Test 3 : Illegal system command fails
-git.runCmd('not a valid command');
+exitCode = git.runCmd('not a valid command');
 msg = 'Runs an illegal command with exiting with appropriate exit code';
 assert(exitCode == 1, msg)
 
