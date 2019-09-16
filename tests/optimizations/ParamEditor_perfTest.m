@@ -1,5 +1,5 @@
 classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
-[fileparts(mfilename('fullpath')) '\fixtures'])})... % add 'fixtures' folder as test fixture
+fullfile(getOr(dat.paths,'rigbox'), 'tests', 'fixtures'))})... % add 'fixtures' folder as test fixture
 ParamEditor_perfTest < matlab.perftest.TestCase
   
   properties

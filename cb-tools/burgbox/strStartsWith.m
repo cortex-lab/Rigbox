@@ -1,6 +1,9 @@
 function b = strStartsWith(s, beginnings)
-%STRSTARTSWITH Summary of this function goes here
-%   Detailed explanation goes here
+%STRSTARTSWITH True if text starts with pattern
+%   Returns true is one or more of `beginnings` are found in `s`.  Both
+%   inputs may be a single char array or cellstr.
+%
+%   Note that MATLAB implemented a similar function, STARTSWITH, in R2016b.
 
 if iscell(beginnings) % multiple beginnings endings to check
   rexp = regexptranslate('escape', beginnings);

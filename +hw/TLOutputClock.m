@@ -4,11 +4,11 @@ classdef TLOutputClock < hw.TLOutput
   %
   %   Example:
   %     tl = hw.Timeline;
-  %     tl.Outputs(end+1) = hw.TLOutputClock('Cam-Triggar', 'Dev1', 'PFI4');
+  %     tl.Outputs(end+1) = hw.TLOutputClock();
   %     tl.Outputs(end).InitialDelay = 5 % Add initial delay before start
   %     tl.start('2018-01-01_1_mouse2', alyxInstance);
-  %     >> initializing Cam-Triggar
-  %     >> start Cam-Triggar
+  %     >> initializing Clock
+  %     >> start Clock
   %     >> Timeline started successfully
   %     tl.stop;
   %

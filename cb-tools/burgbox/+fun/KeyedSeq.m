@@ -1,6 +1,14 @@
 classdef KeyedSeq < fun.Seq
-  %FUN.KEYEDSEQ Summary of this class goes here
-  %   Detailed explanation goes here
+  %FUN.KEYEDSEQ Creates a sequence whose values are mapped on retrieval
+  %   Typically instantiated via the function SEQUENCE.  
+  %   
+  %   Examples:
+  %    s = SEQUENCE({'huge1.mat' 'huge2.mat' 'huge3.mat'}, @load)
+  %    s.first(s.filter(@file.exists)) % load first in sequence that exists
+  %
+  % See also SEQUENCE, FUN.SEQ, FUN.CUSTOMSEQ
+  % 
+  % Part of Burgbox
   
   properties (Access = private)
     Keys = {}

@@ -1,5 +1,5 @@
 %inferParams test
-expDefPath = fullfile(fileparts(which('addRigboxPaths')), 'tests', 'fixtures', 'expDefinitions');
+expDefPath = fullfile(getOr(dat.paths,'rigbox'), 'tests', 'fixtures', 'expDefinitions');
 
 % preconditions
 parameters = exp.inferParameters(@nop);
@@ -54,7 +54,7 @@ end
 assert(strcmp(id, 'exp:InferParameters:ReservedParameters'), ...
   'Failed to throw reserved parameter name error')
 
-
+%% Helper functions
 function singleCharParam(~, ~, p, varargin)
 % Helper function to test an expDef where there is a single parameter which
 % is a charecter array

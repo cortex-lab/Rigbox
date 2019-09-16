@@ -14,7 +14,7 @@ classdef PseudoCircularScreenViewingModel < hw.ViewingModel
 
   % 2012-11 - created by Chris Burgess
   % 2013-01 - modefied by Daisuke Shimaoka (spelling Daisuke?)
-  % 2013-09 - ffxed by Chris Burgess/Bilal Haider
+  % 2013-09 - fixed by Chris Burgess/Bilal Haider
   properties
     %A position vector [y,z] of the subject in metres, with respect to
     %the (centre of the) top left pixel of the screen. y is aligned
