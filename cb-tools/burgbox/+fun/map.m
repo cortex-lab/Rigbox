@@ -1,5 +1,5 @@
 function [varargout] = map(f, varargin)
-%fun.map Like cellfun and arrayfun, but always returns a cell array
+%FUN.MAP Like cellfun and arrayfun, but always returns a cell array
 %   [C1, ...] = fun.map(FUN, A1, ...) applies the function FUN to
 %   each element of the variable number of arrays A1, A2, etc, passed in. The
 %   outputs of FUN are used to build up cell arrays for each output.

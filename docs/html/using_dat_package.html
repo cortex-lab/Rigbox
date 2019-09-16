@@ -1,0 +1,260 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_dat_package.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>The 'data' package contains code pertaining to the organization and logging of data. It contains functions that generate and parse unique experiment reference ids, and return file paths where subject data and rig configuration information is stored. Other functions include those that manage experimental log entries and parameter profiles. A nice metaphor for this package is a lab notebook.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setting up the paths</a></li><li><a href="#2">Using expRefs</a></li><li><a href="#3">Loading experiments</a></li><li><a href="#4">Manually creating experiments</a></li><li><a href="#5">Loading parameters</a></li><li><a href="#6">Using the log</a></li><li><a href="#7">Setting custom paths</a></li><li><a href="#8">Etc.</a></li></ul></div><h2 id="1">Setting up the paths</h2><p>In order to use Rigbox, a 'paths' file must be placed in a <tt>+dat</tt> folder somewhere in the MATLAB path. You can copy <tt>docs/setup/paths_template.m</tt> to <tt>+dat/paths.m</tt>, then customise the file according to your setup. The paths used by the wider Rigbox code are found in the 'essential paths' section of the <tt>paths_template.m</tt> file. These paths are required to run experiments. Any number of custom repositories may be set, allowing them to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see below).</p><h2 id="2">Using expRefs</h2><p>Experiment reference strings are human-readable labels constructed from the subject name, date and sequence (i.e. session number).  Many of the following functions take one or experiment references as inputs and an experiment reference is constructed each time your create an experiment.</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'subject'</span>, now, 2); <span class="comment">% subject's 2nd session today</span>
+[subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
+</pre><h2 id="3">Loading experiments</h2><p>Below are some common ways to query data and paths.</p><pre class="codeinput"><span class="comment">% Listing all subjects</span>
+subjects = dat.listSubjects;
+
+<span class="comment">% The subjects list is generated from the folder names in the main</span>
+<span class="comment">% repository path</span>
+mainRepo = getOr(dat.paths, <span class="string">'mainRepository'</span>);
+
+<span class="comment">% To get all paths you should save to for the 'main' repository:</span>
+savePaths = dat.reposPath(<span class="string">'main'</span>); <span class="comment">% savePaths is a string cell array</span>
+<span class="comment">% To get the master location for the 'main' repository:</span>
+loadPath = dat.reposPath(<span class="string">'main'</span>, <span class="string">'master'</span>); <span class="comment">% loadPath is a string</span>
+<span class="comment">% If you have alternate repos (e.g. 'main2Respository', 'altRepository'),</span>
+<span class="comment">% use the remote flag to return all of them (used by the below functions).</span>
+<span class="comment">% NB: the 'altRepository' is returned for all named repos, not just 'main'</span>
+loadPath = dat.reposPath(<span class="string">'main'</span>, <span class="string">'remote'</span>);
+<span class="comment">% To return all paths ending in 'Repository':</span>
+endInRepos = dat.reposPath(<span class="string">'*'</span>);
+
+<span class="comment">% List experiments for a given subject</span>
+[ref, date, seq] = dat.listExps(subject);
+
+<span class="comment">% Return experiment path</span>
+<span class="comment">% These functions can take the input as both a ref or three inputs</span>
+<span class="comment">% (subject, date and sequence).  The input may also be a cell array of</span>
+<span class="comment">% these.</span>
+p = dat.expPath(ref);
+[p, ref] = dat.expPath(subject, now, 1, <span class="string">'main'</span>);
+
+<span class="comment">% Check a given experiment exists</span>
+bool = dat.expExists(ref);
+
+<span class="comment">% Return specific file path</span>
+[fullpath, filename] = dat.expFilePath(ref, <span class="string">'block'</span>);
+[fullpath, filename] = dat.expFilePath(ref, <span class="string">'block'</span>, <span class="string">'master'</span>, <span class="string">'json'</span>);
+[fullpath, filename] = dat.expFilePath(subject, now, 1, <span class="string">'timeline'</span>);
+
+parameters = dat.expParams(ref);
+block = dat.loadBlock(ref, expType);
+clearCBToolsCache <span class="comment">% Clear the cached block file</span>
+</pre><h2 id="4">Manually creating experiments</h2><p>The expParams variable will be saved to 'localRepository' and master 'mainRepository' paths</p><pre class="codeinput">[expRef, expSeq] = dat.newExp(subject, expDate, expParams);
+</pre><h2 id="5">Loading parameters</h2><p>The dat package allows you to load both session specific and experiment specific <a href="./using_parameters.html">parameters</a> .</p><pre class="codeinput">expType = <span class="string">'custom'</span>; <span class="comment">% signals experiments have the type 'custom'</span>
+p = dat.loadParamProfiles(expType);
+dat.saveParamProfile(expType, profileName, params);
+dat.delParamProfile(expType, profileName);
+
+<span class="comment">% More info on how parameters work can be found in USING_PARAMETERS:</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_parameters.m'</span>))
+</pre><h2 id="6">Using the log</h2><p>The log object, is primarily dealt with through MC, however you can also use it from the command line:</p><pre class="codeinput">e = dat.addLogEntry(subject, timestamp, type, value, comments, AlyxInstance);
+p = dat.logPath(subject, <span class="string">'all'</span>);
+e = dat.logEntries(subject);
+e = dat.updateLogEntry(subject, id, newEntry);
+</pre><h2 id="7">Setting custom paths</h2><p>Some people keep the paths file in a shared remote location that all rigs can access.  This reduces the number of files to change when a repository path needs updating to one.  In this case, rig-specific paths may be set using a custom paths file that overrides any paths set in DAT.PATHS:</p><pre class="codeinput">opentoline(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
+  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'paths_template.m'</span>), 78, 1)
+
+<span class="comment">% The paths file, 'paths.mat', must contain a variable `paths` that is a</span>
+<span class="comment">% struct of custom paths.  The file should be located in the location set</span>
+<span class="comment">% by 'rigConfig'.  For obvious reasons do not overrive 'rigConfig' in you</span>
+<span class="comment">% custom paths without making the appropriate changes to DAT.PATHS.</span>
+
+<span class="comment">% Let's create a custom paths file for rig 'ZREDONE' containing a new</span>
+<span class="comment">% location for the 'expDefinitions' path:</span>
+clear <span class="string">paths</span>
+paths.expDefinitions = <span class="string">'C:\ExpDefinitions'</span>;
+customPathsFile = fullfile(getOr(dat.paths(<span class="string">'ZREDONE'</span>), <span class="string">'rigConfig'</span>), <span class="string">'paths'</span>);
+save(customPathsFile, <span class="string">'paths'</span>, <span class="string">'-mat'</span>)
+</pre><h2 id="8">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*ASGLU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% The 'data' package contains code pertaining to the organization and
+% logging of data. It contains functions that generate and parse unique
+% experiment reference ids, and return file paths where subject data and
+% rig configuration information is stored. Other functions include those
+% that manage experimental log entries and parameter profiles. A nice
+% metaphor for this package is a lab notebook.
+
+%% Setting up the paths
+% In order to use Rigbox, a 'paths' file must be placed in a |+dat| folder
+% somewhere in the MATLAB path. You can copy |docs/setup/paths_template.m|
+% to |+dat/paths.m|, then customise the file according to your setup. The
+% paths used by the wider Rigbox code are found in the 'essential paths'
+% section of the |paths_template.m| file. These paths are required to run
+% experiments. Any number of custom repositories may be set, allowing them
+% to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see
+% below).
+
+%% Using expRefs
+% Experiment reference strings are human-readable labels constructed from
+% the subject name, date and sequence (i.e. session number).  Many of the
+% following functions take one or experiment references as inputs and an
+% experiment reference is constructed each time your create an experiment.
+
+ref = dat.constructExpRef('subject', now, 2); % subject's 2nd session today
+[subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
+
+%% Loading experiments
+% Below are some common ways to query data and paths. 
+
+% Listing all subjects
+subjects = dat.listSubjects;
+
+% The subjects list is generated from the folder names in the main
+% repository path
+mainRepo = getOr(dat.paths, 'mainRepository');
+
+% To get all paths you should save to for the 'main' repository:
+savePaths = dat.reposPath('main'); % savePaths is a string cell array
+% To get the master location for the 'main' repository:
+loadPath = dat.reposPath('main', 'master'); % loadPath is a string
+% If you have alternate repos (e.g. 'main2Respository', 'altRepository'),
+% use the remote flag to return all of them (used by the below functions).
+% NB: the 'altRepository' is returned for all named repos, not just 'main'
+loadPath = dat.reposPath('main', 'remote');
+% To return all paths ending in 'Repository':
+endInRepos = dat.reposPath('*');
+
+% List experiments for a given subject
+[ref, date, seq] = dat.listExps(subject);
+
+% Return experiment path
+% These functions can take the input as both a ref or three inputs
+% (subject, date and sequence).  The input may also be a cell array of
+% these.
+p = dat.expPath(ref); 
+[p, ref] = dat.expPath(subject, now, 1, 'main');
+
+% Check a given experiment exists
+bool = dat.expExists(ref);
+
+% Return specific file path
+[fullpath, filename] = dat.expFilePath(ref, 'block');
+[fullpath, filename] = dat.expFilePath(ref, 'block', 'master', 'json');
+[fullpath, filename] = dat.expFilePath(subject, now, 1, 'timeline');
+
+parameters = dat.expParams(ref);
+block = dat.loadBlock(ref, expType);
+clearCBToolsCache % Clear the cached block file
+
+%% Manually creating experiments
+% The expParams variable will be saved to 'localRepository' and master
+% 'mainRepository' paths
+[expRef, expSeq] = dat.newExp(subject, expDate, expParams);
+
+%% Loading parameters
+% The dat package allows you to load both session specific and experiment
+% specific <./using_parameters.html parameters> .
+expType = 'custom'; % signals experiments have the type 'custom'
+p = dat.loadParamProfiles(expType);
+dat.saveParamProfile(expType, profileName, params);
+dat.delParamProfile(expType, profileName);
+
+% More info on how parameters work can be found in USING_PARAMETERS:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_parameters.m'))
+
+%% Using the log
+% The log object, is primarily dealt with through MC, however you can also
+% use it from the command line:
+e = dat.addLogEntry(subject, timestamp, type, value, comments, AlyxInstance);
+p = dat.logPath(subject, 'all');
+e = dat.logEntries(subject);
+e = dat.updateLogEntry(subject, id, newEntry);
+
+%% Setting custom paths
+% Some people keep the paths file in a shared remote location that all rigs
+% can access.  This reduces the number of files to change when a repository
+% path needs updating to one.  In this case, rig-specific paths may be set
+% using a custom paths file that overrides any paths set in DAT.PATHS:
+opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
+  'docs', 'setup', 'paths_template.m'), 78, 1)
+
+% The paths file, 'paths.mat', must contain a variable `paths` that is a
+% struct of custom paths.  The file should be located in the location set
+% by 'rigConfig'.  For obvious reasons do not overrive 'rigConfig' in you
+% custom paths without making the appropriate changes to DAT.PATHS.
+
+% Let's create a custom paths file for rig 'ZREDONE' containing a new
+% location for the 'expDefinitions' path:
+clear paths
+paths.expDefinitions = 'C:\ExpDefinitions';
+customPathsFile = fullfile(getOr(dat.paths('ZREDONE'), 'rigConfig'), 'paths');
+save(customPathsFile, 'paths', '-mat')
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.0.0
+
+%#ok<*NASGU,*ASGLU,*ASGLU>
+##### SOURCE END #####
+--></body></html>

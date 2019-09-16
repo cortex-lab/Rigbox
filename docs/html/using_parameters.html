@@ -1,0 +1,1002 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_parameters.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>This document contains information on how experiment parameters work in Rigbox.  How to create them, edit them and save them.</p><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Parameters</a></li><li><a href="#2">Parameter structures</a></li><li><a href="#3">Special parameters</a></li><li><a href="#4">numRepeats</a></li><li><a href="#5">randomiseConditions</a></li><li><a href="#6">defFunction</a></li><li><a href="#7">expPanelFun</a></li><li><a href="#8">type</a></li><li><a href="#9">services</a></li><li><a href="#10">waterType</a></li><li><a href="#11">isPassive</a></li><li><a href="#12">repeatIncorrect</a></li><li><a href="#13">Saving parameter sets</a></li><li><a href="#14">The Parameters object</a></li><li><a href="#15">The ParamEditor GUI</a></li><li><a href="#16">Global panel</a></li><li><a href="#17">Conditions panel</a></li><li><a href="#18">Advanced trial conditions</a></li><li><a href="#19">Using Set values</a></li><li><a href="#20">Notes and warning suppressions</a></li></ul></div><h2 id="1">Parameters</h2><p>Parameters are structures that contain experiment and session specific variables that may be set via a GUI and stored for each session. Parameters are stored as structures saved MAT files and may also be saved as JSON.  They typically end in '_parameters' and are saved when creating a new experiment using the dat.newExp function or Alyx/newExp method. You can generate and retrieve paths for experiment parameter files using the <a href="./using_dat_package.html">dat package</a>:</p><pre class="codeinput">expRef = dat.constructExpRef(<span class="string">'fake'</span>, now, 1); <span class="comment">% Example experiment reference</span>
+paramPath = dat.expFilePath(expRef, <span class="string">'parameters'</span>) <span class="comment">% Generate path for saving</span>
+
+<span class="comment">% Parameters can be loaded using an experiment reference via DAT.EXPPARAMS:</span>
+paramStruct = dat.expParams(expRef); <span class="comment">% Returns empty if params don't exist</span>
+
+<span class="comment">% More info on generating paths can be found in USING_DAT_PACKAGE:</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_dat_package.m'</span>))
+</pre><h2 id="2">Parameter structures</h2><p>In signals a set of parameters may be extracted using EXP.INFERPARAMETERS (see note 1).</p><p><tt>defFunction</tt> should be either an experiment definition function handle, or if the function isn't on MATLAB's search path, a char of the full path to such a definition function.</p><pre class="codeinput">defFunction = fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'tests'</span>, <span class="keyword">...</span>
+  <span class="string">'fixtures'</span>, <span class="string">'expDefinitions'</span>, <span class="string">'advancedChoiceWorld.m'</span>);
+paramStruct = exp.inferParameters(defFunction);
+
+<span class="comment">% Parameter structures are scalar structs where each field is a parameter</span>
+<span class="comment">% name written in CamelCase/pascalCase (written this way the parameters</span>
+<span class="comment">% will be displayed as seperate words in GUIs such as the ParamEditor)</span>
+<span class="comment">%</span>
+<span class="comment">% There are two kinds of parameters: global and conditional.  Global</span>
+<span class="comment">% parameter values are independent of trial number, whereas conditional</span>
+<span class="comment">% parameters represent a range of possible values which vary across</span>
+<span class="comment">% trials.  Conditional parameters are those that have more than one column.</span>
+<span class="comment">% Note that for this reason, all conditional parameters much have the same</span>
+<span class="comment">% number of columns.</span>
+<span class="comment">%</span>
+<span class="comment">% Examples:</span>
+<span class="comment">%</span>
+<span class="comment">% A global parameter whose value is a charecter</span>
+paramStruct.rewardKey <span class="comment">% (1,1)</span>
+<span class="comment">% A global parameter whose value is a column vector</span>
+paramStruct.preStimulusDelay <span class="comment">% (3,1)</span>
+<span class="comment">% A conditional parameter whose values are column (2,1) column vectors.</span>
+<span class="comment">% There are 11 different possible trial conditions</span>
+paramStruct.stimulusContrast <span class="comment">% (2,11)</span>
+<span class="comment">% Note that for char arrays, this convention is reversed.  Thus the folling</span>
+<span class="comment">% is treated as a global parameter, despite having more that 1 columns</span>
+paramStruct.expPanelFun <span class="comment">% (1,27)</span>
+
+<span class="comment">% Parameters may take a number of different value types, including</span>
+<span class="comment">% numerical, string and char arrays.</span>
+</pre><h2 id="3">Special parameters</h2><p>There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS and EUI.PARAMEDITOR that should not be set in your experiment definition:</p><h2 id="4">numRepeats</h2><p>The number of times each condition shall be repeated.  By default there are 1000 'trials', split evenly across each condition (parameter column). When trial number &gt; sun(numRepeats), the experiment will automatically end.  If numRepeats is a global parameter (i.e. a scalar value) each condition will be repeated the same number of times.</p><h2 id="5">randomiseConditions</h2><p>When true (default) the conditional trial parameters are shuffled at the start of the experiment and thus occur in a random order.</p><h2 id="6">defFunction</h2><p>For signals experiments this parameter is the file path of the experiment definition.  This is required for the stimulus computer to load the correct experiment.  It does not appear as a parameter during the experiment.</p><h2 id="7">expPanelFun</h2><p>A char or function handle of the experiment panel class to use for visualization during the experiment in MC.  This allows users to display custom plots, etc. for monitoring different experiments.  See EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.</p><h2 id="8">type</h2><p>A legacy parameter that defines what experiment class to use. Options include 'ChoiceWorld' and 'custom', where the latter indicates a signals experiment.  For these two options the experiment classes are EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2).</p><h2 id="9">services</h2><p>A cellstr array of service names to be activaed during experiment setup. These are external systems that can be triggered via websockets and UDPs. (See note 3)</p><h2 id="10">waterType</h2><p>The type of water reward to administer during the experiment.  This could allow one to switch between different DAQ outputs and will change the water_type field when posting to Alyx.  This feature is not yet fully implemented.</p><h2 id="11">isPassive</h2><p>When true the experiment is a re-play of a previous one.  This feature is not yet fully implemented.</p><pre class="codeinput"><span class="comment">% In addition to these, parameters can be attributed descriptions and units</span>
+<span class="comment">% by setting fields with the same name the end in 'Description' and 'Units'</span>
+<span class="comment">% respectively. These are displayed in the ParamEditor GUI.  See below.</span>
+paramStruct.wheelGain <span class="comment">% An example parameter that needs a description</span>
+paramStruct.wheelGainDescription = [<span class="string">'Visual stimulus translation per '</span>,<span class="keyword">...</span>
+  <span class="string">'movement at wheel surface (for stimuli ahead)'</span>];
+paramStruct.visWheelGainUnits = <span class="string">'&deg;/mm'</span>;
+
+<span class="comment">% There is one special parameter default that may be set in the definition</span>
+<span class="comment">% function: repeatIncorrect</span>
+</pre><h2 id="12">repeatIncorrect</h2><p>This is the only special parameter that may have a default set in the definition function.  This parameter must be a boolian and in signals, when both the repeatIncorrect parameter and the endTrial signal evaluate as true, the current conditional parameters will be repeated on the following trial.  See note 4.</p><h2 id="13">Saving parameter sets</h2><p>EXP.INFERPARAMETERS is useful for loading an experiment's default parameters (set in the definition function itself).  Also, each time you run an experiment a copy of the modified parameter set is saved in the experiment folder.  The last used parameters for a given experiment and subject are loaded by default in MC.</p><p>Suppose however that you want to save and load a parameter set for a given experiment, independent of the subject? For this we use the <a href="./using_dat_package.html">dat package</a>...</p><p>To save a new parameter set simply call DAT.SAVEPARAMPROFILE:</p><pre class="codeinput">paramStruct.rewardSize = 5; <span class="comment">% We want to save our modified params</span>
+paramSetName = <span class="string">'highReward'</span>; <span class="comment">% Give our saved set a name</span>
+dat.saveParamProfile(<span class="string">'custom'</span>, paramSetName, paramStruct)
+
+<span class="comment">% The saved parameter sets are usually found in the main repository:</span>
+fullfile(dat.reposPath(<span class="string">'main'</span>, <span class="string">'master'</span>), <span class="string">'parameterProfiles.mat'</span>)
+
+<span class="comment">% This file contains a stuct for each experiment type, e.g. a variable</span>
+<span class="comment">% called 'custom' for saved signals parameter sets.  This contains multiple</span>
+<span class="comment">% fields corresponding to the given name of the parameter set.</span>
+savedSets = dat.loadParamProfiles(<span class="string">'custom'</span>) <span class="comment">% Returns all saved parameters for signals</span>
+
+<span class="comment">% Finally parameters profiles may be deleted using DAT.DELPARAMPROFILE:</span>
+dat.delParamProfile(<span class="string">'custom'</span>, paramSetName);
+
+<span class="comment">% These parameter sets can also be loaded and saved in MC using the</span>
+<span class="comment">% drop-down menu above the ParamEditor.</span>
+</pre><h2 id="14">The Parameters object</h2><p>Modifying sturctures directly is error-prone and time consuming for certain tasks.  To manipulate parameters more easily we use the EXP.PARAMETERS class.</p><pre class="codeinput">parameters = exp.Parameters(paramStruct) <span class="comment">% a new Parameters object</span>
+
+<span class="comment">% The Parameters object contains fields indicating which parameters are</span>
+<span class="comment">% conditional and which are global.  The underlying structure is stored in</span>
+<span class="comment">% the `Struct` property and it is this that should be saved, not the object</span>
+<span class="comment">% itself.</span>
+
+<span class="comment">% A parameter may be created or modified using the SET method:</span>
+<span class="comment">% parameters.set(name, value, description, units)</span>
+parameters.set(<span class="string">'incorrectTimeout'</span>, 2, <span class="string">'Timeout on incorrect trials'</span>, <span class="string">'s'</span>)
+<span class="comment">% You can retrieve the description for one or more parameters with the</span>
+<span class="comment">% DESCRIPTION method:</span>
+parameters.description({<span class="string">'incorrectTimeout'</span>, <span class="string">'wheelGain'</span>})
+<span class="comment">% The TITLE method returns the parameter name formatted for titles:</span>
+parameters.title(<span class="string">'onsetToneFrequency'</span>) <span class="comment">% 'Onset tone frequency'</span>
+
+<span class="comment">% To remove a parameter, simply remove it from the Struct property:</span>
+parameters.Struct = rmfield(parameters.Struct, <span class="string">'incorrectTimeout'</span>);
+
+<span class="comment">% Parameters may moved between global and condition using the</span>
+<span class="comment">% MAKETRIALSPECIFIC and MAKEGLOBAL methods:</span>
+parameters.isTrialSpecific(<span class="string">'wheelGain'</span>) <span class="comment">% false; parameter is global</span>
+parameters.makeTrialSpecific(<span class="string">'wheelGain'</span>) <span class="comment">% Make trial conditional</span>
+parameters.isTrialSpecific(<span class="string">'wheelGain'</span>) <span class="comment">% true</span>
+
+<span class="comment">% Note the values are now repeated:</span>
+numTrialConditions(parameters) <span class="comment">% There are 11 trial conditions</span>
+parameters.Struct.wheelGain <span class="comment">% (1,11)</span>
+
+<span class="comment">% Let's make global again.  Note you can set the new value at the same</span>
+<span class="comment">% time.  If no `newValue` arg is given, the value of the first trial</span>
+<span class="comment">% conditon is used.</span>
+parameters.makeGlobal(<span class="string">'wheelGain'</span>, 3)
+parameters.isTrialSpecific(<span class="string">'wheelGain'</span>) <span class="comment">% false</span>
+
+<span class="comment">% Conditions may be removed using the REMOVECONDITIONS parameter.  This</span>
+<span class="comment">% removes the given column indices in all conditional parameters</span>
+numTrialConditions(parameters) <span class="comment">% There are 11 trial conditions</span>
+parameters.removeConditions([2, 8]) <span class="comment">% Remove conditions 2 and 8</span>
+numTrialConditions(parameters) <span class="comment">% There are 9 trial conditions</span>
+
+<span class="comment">% Finally, parameters may be assorted for an experiment using the following</span>
+<span class="comment">% two methods...</span>
+
+<span class="comment">% ASSORTFOREXPERIMENT returns the global parameters and trial condition</span>
+<span class="comment">% parameters as separate structures.  The `globalParams` structure is a</span>
+<span class="comment">% scalar struct of all global parameters, while `trialParams` is a</span>
+<span class="comment">% non-scalar struct of all trial conditions.  This can be useful for</span>
+<span class="comment">% looking over the parameters without using a GUI.</span>
+[globalParams, trialParams] = parameters.assortForExperiment;
+trialParams <span class="comment">% (1,9) struct</span>
+
+<span class="comment">% TOCONDITIONSERVER replicates the trial conditions be however many times</span>
+<span class="comment">% are specified by the 'numRepeats' parameter and if the `randomOrder`</span>
+<span class="comment">% input arg is true, these are shuffled into a random order.  This method</span>
+<span class="comment">% is used by the experiment class during setup.  In addition to returning</span>
+<span class="comment">% the assorted global and conditional parameters, a Condition Server</span>
+<span class="comment">% object, `cs` is also returned (see note 5)</span>
+[cs, globalParams, trialParams] = parameters.toConditionServer(true);
+sum(parameters.Struct.numRepeats) <span class="comment">% Total number of trials</span>
+trialParams <span class="comment">% (1,810) struct</span>
+
+<span class="comment">% c.f. [~, ~, trialParams] = parameters.toConditionServer(false)</span>
+<span class="comment">% See section below for more details on randomizing.</span>
+</pre><h2 id="15">The ParamEditor GUI</h2><p>The easiest way to modify parameters is via the ParamEditor GUI, managed by the EUI.PARAMEDITOR class.  A ParamEditor object is embedded into MC and can also be instantiated via the Experiment Panels.</p><pre class="codeinput"><span class="comment">% To instantiate a standalone editor, call EUI.PARAMEDITOR with a</span>
+<span class="comment">% Parameters object.  Additionally a parent figure handle may be provided.</span>
+PE = eui.ParamEditor(parameters)
+
+<span class="comment">% There are two panels that make up the editor.  On the left are the global</span>
+<span class="comment">% parameters and on the right is the trial conditions table, containing the</span>
+<span class="comment">% conditional parameters.</span>
+</pre><h2 id="16">Global panel</h2><p>The global panel is pretty simple.  Each parameter is represented by the parameter name (formatted as a title, see above section) and an input field.  When a field is modified the title turns red.  For numrical and string parameters, vectors may be added by inputting values separated by commas.  For instance typing '1, 3, 5' (without quotes) would set the value of that parameter to [1; 3; 5].  For numrical parameters spaces alone will suffice, e.g. '1 3 5'.</p><pre class="codeinput"><span class="comment">% To make a parameter conditional, right-clicking on the input field or</span>
+<span class="comment">% title and select 'Make conditional'.  The parameter will now appear in</span>
+<span class="comment">% the conditions table to the right.</span>
+</pre><h2 id="17">Conditions panel</h2><p>Here each parameter is represented as a table column, and its conditions (i.e. the columns of the parameter) as table rows.  The rows may be re-ordered by dragging the field name of the column you with to move.</p><pre class="codeinput"><span class="comment">% New blank conditions (i.e. rows) can be added by clicking the 'New</span>
+<span class="comment">% condition' button at the bottom of the table.</span>
+
+<span class="comment">% Individual cells can be selected and edited as expected.  To select</span>
+<span class="comment">% multiple cells, hold down the ctrl key while clicking.  To select</span>
+<span class="comment">% multiple conditions in a row, hold the shift key.  Once you've selected a</span>
+<span class="comment">% cell in at least one column, the other buttons become available:</span>
+
+<span class="comment">% 'Delete condition' allows you to delete the table rows of the selected</span>
+<span class="comment">% cells (i.e. the selected trial conditions).</span>
+
+<span class="comment">% 'Globalise parameter' makes the columns of the selected cells global</span>
+<span class="comment">% parameters, whereby they are moved to the left panel.  The value in the</span>
+<span class="comment">% last selected cell for that parameter is used as the new parameter value.</span>
+<span class="comment">% This may also be done via the context menu.</span>
+
+<span class="comment">% 'Set values' allows you can set multiple cells are once.  One clicked a</span>
+<span class="comment">% small dialog appears with am input field for each selected column.  The</span>
+<span class="comment">% number of selected cells for each column is shown in brackets.  Entering</span>
+<span class="comment">% a single value will set each cell to that value.  Entering a</span>
+<span class="comment">% semicolon-separated list will assign each cell one value going from top</span>
+<span class="comment">% to bottom.  For example by selecting three cells in a column and typing</span>
+<span class="comment">% '4; 5; 6' (without quotes) the top most cell will take the value '4' and</span>
+<span class="comment">% so forth.</span>
+<span class="comment">%</span>
+<span class="comment">% This is particularly useful for more involved stimulus sets with many</span>
+<span class="comment">% conditions.</span>
+
+<span class="comment">% By right-clicking anywhere in the condition table you get two extra</span>
+<span class="comment">% options:</span>
+<span class="comment">%</span>
+<span class="comment">% 'Sort by selected column' will sort the columns by whichever column the</span>
+<span class="comment">% selected cell is in.  Currently only sorting by one column is supported.</span>
+<span class="comment">%</span>
+<span class="comment">% 'Randomise conditions' is a checkbox that sets the underlying hidden</span>
+<span class="comment">% parameter of the same name.  By default this is checked.  When unchecked,</span>
+<span class="comment">% the rows of the table are given an index, indicating the set order trial</span>
+<span class="comment">% conditions.</span>
+
+<span class="comment">% Once your parameters have been modified via the GUI they can be saved by</span>
+<span class="comment">% extracting the underlying parameter stuct and saving to a file:</span>
+dat.saveParamProfile(<span class="string">'custom'</span>, <span class="string">'variant_2'</span>, PE.Parameters.Struct)
+</pre><h2 id="18">Advanced trial conditions</h2><p>Let's look at some ways you can set trial condition parameters for different sorts of experiments. In the below examples imagine you have a signals experiment definition with three conditional parameters, A, B and C (see note 6).</p><pre class="codeinput"><span class="comment">% By default all conditions are presented in a random order n times, where</span>
+<span class="comment">% n is defined by the numRepeats parameter. If numRepeats is made a global</span>
+<span class="comment">% parameter, then all conditions are presented the same number of times.</span>
+
+<span class="comment">% Example 1: An illustration of how the trial order may turn out when</span>
+<span class="comment">% 'randomiseConditions' is false and 'numRepeats' is a conditional parameter:</span>
+
+<span class="comment">% +---+---+---+-------------+</span>
+<span class="comment">% | A | B | C | Num Repeats |</span>
+<span class="comment">% +---+---+---+-------------+</span>
+<span class="comment">% | 1 | 4 | 2 |           2 |</span>
+<span class="comment">% | 2 | 5 | 1 |           1 |</span>
+<span class="comment">% | 3 | 3 | 4 |           2 |</span>
+<span class="comment">% +---+---+---+-------------+</span>
+<span class="comment">%</span>
+<span class="comment">% [~, ~, trialParams] = parameters.toConditionServer;</span>
+<span class="comment">% trialParams =</span>
+<span class="comment">%</span>
+<span class="comment">% # | A | B | C |</span>
+<span class="comment">%   +---+---+---+</span>
+<span class="comment">% 1 | 3 | 3 | 4 |</span>
+<span class="comment">% 2 | 2 | 5 | 1 |</span>
+<span class="comment">% 3 | 3 | 3 | 4 |</span>
+<span class="comment">% 4 | 1 | 4 | 2 |</span>
+<span class="comment">% 5 | 1 | 4 | 2 |</span>
+<span class="comment">%   +---+---+---+</span>
+
+
+<span class="comment">% Example 2: What happens when we globalize 'numRepeats' and give it the</span>
+<span class="comment">% value of 2?</span>
+
+<span class="comment">% +---+---+---+</span>
+<span class="comment">% | A | B | C |</span>
+<span class="comment">% +---+---+---+</span>
+<span class="comment">% | 1 | 4 | 2 |</span>
+<span class="comment">% | 2 | 5 | 1 |</span>
+<span class="comment">% | 3 | 3 | 4 |</span>
+<span class="comment">% +---+---+---+</span>
+<span class="comment">%</span>
+<span class="comment">% [~, ~, trialParams] = parameters.toConditionServer;</span>
+<span class="comment">% trialParams =</span>
+<span class="comment">%</span>
+<span class="comment">% # | A | B | C |</span>
+<span class="comment">%   +---+---+---+</span>
+<span class="comment">% 1 | 1 | 4 | 2 |</span>
+<span class="comment">% 2 | 3 | 3 | 4 |</span>
+<span class="comment">% 3 | 1 | 4 | 2 |</span>
+<span class="comment">% 4 | 2 | 5 | 1 |</span>
+<span class="comment">% 5 | 3 | 3 | 4 |</span>
+<span class="comment">% 6 | 2 | 5 | 1 |</span>
+<span class="comment">%   +---+---+---+</span>
+
+<span class="comment">% Randomized trial conditions are useful for many behaviour protocols and</span>
+<span class="comment">% even for some passive stimulus mapping experiments, however sometimes you</span>
+<span class="comment">% require multiple repeats in a row of each conditon.</span>
+
+<span class="comment">% Example 3: To present stimuli in a sequence, right click anywhere on the</span>
+<span class="comment">% conditions table and deselect 'randomise conditions' in the context menu.</span>
+<span class="comment">% Now each row will be numbered sequentially from 1 to the number of</span>
+<span class="comment">% conditions (see note 7 for an alternate solution):</span>
+
+<span class="comment">%     +---+---+---+-------------+</span>
+<span class="comment">%     | A | B | C | Num Repeats |</span>
+<span class="comment">% +---+---+---+---+-------------+</span>
+<span class="comment">% | 1 | 1 | 4 | 2 |           2 |</span>
+<span class="comment">% | 2 | 2 | 5 | 1 |           1 |</span>
+<span class="comment">% | 3 | 3 | 3 | 4 |           2 |</span>
+<span class="comment">% +---+---+---+---+-------------+</span>
+<span class="comment">%</span>
+<span class="comment">% # | A | B | C |</span>
+<span class="comment">%   +---+---+---+</span>
+<span class="comment">% 1 | 1 | 4 | 2 |</span>
+<span class="comment">% 2 | 1 | 4 | 2 |</span>
+<span class="comment">% 3 | 2 | 5 | 1 |</span>
+<span class="comment">% 4 | 3 | 3 | 4 |</span>
+<span class="comment">% 5 | 3 | 3 | 4 |</span>
+<span class="comment">%   +---+---+---+</span>
+</pre><h2 id="19">Using Set values</h2><p>For more involved stimulus sets, we can use Set Values to conveniently set the values of multiple cells at once. This is particularly useful for experiments with many conditions.</p><pre class="codeinput"><span class="comment">% Example 4: Say you want to present each condition twice in a row, and the</span>
+<span class="comment">% entire set two times, e.g.</span>
+<span class="comment">%</span>
+<span class="comment">% #  | A | B | C |</span>
+<span class="comment">%    +---+---+---+</span>
+<span class="comment">% 1  | 1 | 4 | 2 |</span>
+<span class="comment">% 2  | 1 | 4 | 2 |</span>
+<span class="comment">% 3  | 2 | 5 | 1 |</span>
+<span class="comment">% 4  | 2 | 5 | 1 |</span>
+<span class="comment">% 5  | 3 | 3 | 4 |</span>
+<span class="comment">% 6  | 3 | 3 | 4 |</span>
+<span class="comment">% 7  | 1 | 4 | 2 |</span>
+<span class="comment">% 8  | 1 | 4 | 2 |</span>
+<span class="comment">% 9  | 2 | 5 | 1 |</span>
+<span class="comment">% 10 | 2 | 5 | 1 |</span>
+<span class="comment">% 11 | 3 | 3 | 4 |</span>
+<span class="comment">% 12 | 3 | 3 | 4 |</span>
+<span class="comment">%    +---+---+---+</span>
+<span class="comment">%</span>
+<span class="comment">% 1) Add enough new conditions to the table so that there are 6 rows.</span>
+<span class="comment">% 2) Highlight all cells and select 'Set values'.</span>
+<span class="comment">% 3) An input dialog appears where you can input the values for each</span>
+<span class="comment">% parameter. For A, you can type repmat([1 2 3],1,2), for B the vector</span>
+<span class="comment">% would be [4 5 3], etc.</span>
+<span class="comment">% 4) Globalize the numRepeats parameter and set it to 2</span>
+<span class="comment">% 5) Ensure 'randomise conditions' is deselected</span>
+<span class="comment">%</span>
+<span class="comment">% Note that you can sequences of values using any MATLAB function this way,</span>
+<span class="comment">% for instance inputting 2:2:12 would set the conditions to be [2 4 6 8</span>
+<span class="comment">% 12].</span>
+<span class="comment">%</span>
+<span class="comment">% Example 5: With set values you can also apply functions to the current</span>
+<span class="comment">% set of values, for instance to multiply every value of A from the</span>
+<span class="comment">% previous example by 2, we input @(v)v*2 and to set every value of B to a</span>
+<span class="comment">% random integer between 1 and 5, @(~)randi(5):</span>
+<span class="comment">%</span>
+<span class="comment">% #  | A | B | C |</span>
+<span class="comment">%    +---+---+---+</span>
+<span class="comment">% 1  | 2 | 2 | 2 |</span>
+<span class="comment">% 2  | 2 | 4 | 2 |</span>
+<span class="comment">% 3  | 4 | 3 | 1 |</span>
+<span class="comment">% 4  | 4 | 3 | 1 |</span>
+<span class="comment">% 5  | 6 | 2 | 4 |</span>
+<span class="comment">% 6  | 6 | 5 | 4 |</span>
+<span class="comment">% 7  | 2 | 4 | 2 |</span>
+<span class="comment">% 8  | 2 | 1 | 2 |</span>
+<span class="comment">% 9  | 4 | 2 | 1 |</span>
+<span class="comment">% 10 | 4 | 2 | 1 |</span>
+<span class="comment">% 11 | 6 | 4 | 4 |</span>
+<span class="comment">% 12 | 6 | 1 | 4 |</span>
+<span class="comment">%    +---+---+---+</span>
+</pre><h2 id="20">Notes and warning suppressions</h2><p>(1) To load default parameters for legacy experiments, there are simple functions that return these paramteters.  NB: The below are no longer used as signals provides more flexbility in running experiments.</p><pre class="codeinput">choiceParams = exp.choiceWorldParams; <span class="comment">% For the original Burgess task</span>
+diskParams = exp.discWorldParams; <span class="comment">% For a similar orientation-based protocol</span>
+rangeParams = exp.rangeParams; <span class="comment">% A Burgess task prototype experiment</span>
+<span class="comment">% Various visual field mapping experiment parameteres</span>
+barMappingParams = exp.barMappingParams;
+gaborMappingParams = exp.gaborMappingParams; <span class="comment">% Gabor patch mapping</span>
+flashedColumnParams = exp.flashedColumnParams; <span class="comment">% Kalatsky-type</span>
+
+<span class="comment">% (2) The type parameter would be a useful way of implementing a new</span>
+<span class="comment">% experiment stucture, e.g. if you wanted to sub-class EXP.SIGNALSEXP in</span>
+<span class="comment">% order to implement an entirely differnt set of hardware, changing the</span>
+<span class="comment">% type parameter would cause the experiment server to call the correct</span>
+<span class="comment">% experiment class during setup. See also SRV.PREPAREEXP,</span>
+<span class="comment">% EXP.CONFIGURESIGNALSEXPERIMENT</span>
+
+<span class="comment">% (3) Services may be set via the options interface in MC.  For more info</span>
+<span class="comment">% see SRV.PREPAREEXP, SRV.FINDSERVICE, EUI.MCONTROL/RIGOPTIONS and</span>
+<span class="comment">% SRV.STIMULUSCONTROL.</span>
+
+<span class="comment">% (4) The name originates from the fact that this behaviour is useful as a</span>
+<span class="comment">% means of anti-biasing during bahaviour training.  For instance in the</span>
+<span class="comment">% Burgess task the side of the stimulus will be repeated on high contrast</span>
+<span class="comment">% trials until the subject gived the correct response.  This parameter may</span>
+<span class="comment">% be used in other contexts, however.</span>
+
+<span class="comment">% (5) The condition server object is used in legacy experiments such as</span>
+<span class="comment">% ChoiceWorld, however EXP.SIGNALSEXP uses a different implementation.  For</span>
+<span class="comment">% more info see EXP.CONDITIONSERVER and EXP.TRIALCONDITIONS.</span>
+
+<span class="comment">% (6) Below is an example definition function:</span>
+<span class="comment">% function passiveStimWorld(t, evts, par, vs, in, out, audio)</span>
+<span class="comment">% [...]</span>
+<span class="comment">% elem.shape = p.A*sin(p.B) + p.C;</span>
+<span class="comment">% vs.stimulus = elem;</span>
+<span class="comment">%</span>
+<span class="comment">% % parameters with more than one column are trial conditions, where each</span>
+<span class="comment">% % column corresponds to a condition.  All conditional parameters must have</span>
+<span class="comment">% % the same number of columns.</span>
+<span class="comment">% try</span>
+<span class="comment">%   p.A = [1 2 3];</span>
+<span class="comment">%   p.B = [4 5 3];</span>
+<span class="comment">%   p.C = [2 1 4];</span>
+<span class="comment">% catch</span>
+<span class="comment">% end</span>
+<span class="comment">% end</span>
+
+<span class="comment">% (7) Another way to achieve this is to use the events.endTrial signal:</span>
+<span class="comment">% when endTrial takes a value the current trial ends. If the value is 0</span>
+<span class="comment">% (false), then the same condition is repeated on the next trial, otherwise</span>
+<span class="comment">% the next condition is used. This allows you to present each condition n</span>
+<span class="comment">% times in a row but with the order of each condition block randomized:</span>
+
+<span class="comment">%   function passiveStimWorld(t, evts, p, vs, in, out, audio)</span>
+<span class="comment">%   % First define a Signal that counts the repeat number of current condition</span>
+<span class="comment">%   repNum = events.newTrial.scan(@plus, p.skipRepeats().map(0));</span>
+<span class="comment">%   % Define when the next block of repetitions should occur</span>
+<span class="comment">%   nextCondition = repNum == p.numConditionReps;</span>
+<span class="comment">%   % Define trial end</span>
+<span class="comment">%   events.endTrial = events.newTrial.delay(10).then(nextCondition);</span>
+<span class="comment">%   [...]</span>
+<span class="comment">%</span>
+<span class="comment">% +---+---+---+--------------------+</span>
+<span class="comment">% | A | B | C | Num Condition Reps |</span>
+<span class="comment">% +---+---+---+--------------------+</span>
+<span class="comment">% | 1 | 4 | 2 |                  2 |</span>
+<span class="comment">% | 2 | 5 | 1 |                  2 |</span>
+<span class="comment">% | 3 | 3 | 4 |                  2 |</span>
+<span class="comment">% +---+---+---+--------------------+</span>
+<span class="comment">% Num Repeats = 1 (global)</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% # | A | B | C |</span>
+<span class="comment">%   +---+---+---+</span>
+<span class="comment">% 1 | 2 | 5 | 1 |</span>
+<span class="comment">% 2 | 2 | 5 | 1 |</span>
+<span class="comment">% 3 | 3 | 3 | 4 |</span>
+<span class="comment">% 4 | 3 | 3 | 4 |</span>
+<span class="comment">% 5 | 1 | 4 | 2 |</span>
+<span class="comment">% 6 | 1 | 4 | 2 |</span>
+<span class="comment">%   +---+---+---+</span>
+<span class="comment">% (Note the blocks of repeated conditions are shuffled)</span>
+
+<span class="comment">% Author: Miles Wells</span>
+<span class="comment">%</span>
+<span class="comment">% v1.0.0</span>
+
+<span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% This document contains information on how experiment parameters work in
+% Rigbox.  How to create them, edit them and save them.
+%
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
+
+%% Parameters
+% Parameters are structures that contain experiment and session specific
+% variables that may be set via a GUI and stored for each session.
+% Parameters are stored as structures saved MAT files and may also be saved
+% as JSON.  They typically end in '_parameters' and are saved when creating
+% a new experiment using the dat.newExp function or Alyx/newExp method.
+% You can generate and retrieve paths for experiment parameter files using
+% the <./using_dat_package.html dat package>:
+expRef = dat.constructExpRef('fake', now, 1); % Example experiment reference
+paramPath = dat.expFilePath(expRef, 'parameters') % Generate path for saving
+
+% Parameters can be loaded using an experiment reference via DAT.EXPPARAMS:
+paramStruct = dat.expParams(expRef); % Returns empty if params don't exist
+
+% More info on generating paths can be found in USING_DAT_PACKAGE:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_dat_package.m'))
+
+%% Parameter structures
+% In signals a set of parameters may be extracted using EXP.INFERPARAMETERS
+% (see note 1).
+%
+% |defFunction| should be either an experiment definition function handle,
+% or if the function isn't on MATLAB's search path, a char of the full path
+% to such a definition function.
+defFunction = fullfile(getOr(dat.paths,'rigbox'), 'tests', ...
+  'fixtures', 'expDefinitions', 'advancedChoiceWorld.m');
+paramStruct = exp.inferParameters(defFunction);
+
+% Parameter structures are scalar structs where each field is a parameter
+% name written in CamelCase/pascalCase (written this way the parameters
+% will be displayed as seperate words in GUIs such as the ParamEditor)
+%
+% There are two kinds of parameters: global and conditional.  Global
+% parameter values are independent of trial number, whereas conditional
+% parameters represent a range of possible values which vary across
+% trials.  Conditional parameters are those that have more than one column.
+% Note that for this reason, all conditional parameters much have the same
+% number of columns.
+%
+% Examples:
+%
+% A global parameter whose value is a charecter
+paramStruct.rewardKey % (1,1)
+% A global parameter whose value is a column vector
+paramStruct.preStimulusDelay % (3,1)
+% A conditional parameter whose values are column (2,1) column vectors.
+% There are 11 different possible trial conditions
+paramStruct.stimulusContrast % (2,11)
+% Note that for char arrays, this convention is reversed.  Thus the folling
+% is treated as a global parameter, despite having more that 1 columns
+paramStruct.expPanelFun % (1,27)
+
+% Parameters may take a number of different value types, including
+% numerical, string and char arrays.
+
+%% Special parameters
+% There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS
+% and EUI.PARAMEDITOR that should not be set in your experiment definition:
+
+%%% numRepeats
+% The number of times each condition shall be repeated.  By default there
+% are 1000 'trials', split evenly across each condition (parameter column).
+% When trial number > sun(numRepeats), the experiment will automatically
+% end.  If numRepeats is a global parameter (i.e. a scalar value) each
+% condition will be repeated the same number of times. 
+
+%%% randomiseConditions
+% When true (default) the conditional trial parameters are shuffled at the
+% start of the experiment and thus occur in a random order.
+
+%%% defFunction
+% For signals experiments this parameter is the file path of the experiment
+% definition.  This is required for the stimulus computer to load the
+% correct experiment.  It does not appear as a parameter during the
+% experiment.
+
+%%% expPanelFun
+% A char or function handle of the experiment panel class to use for
+% visualization during the experiment in MC.  This allows users to display
+% custom plots, etc. for monitoring different experiments.  See
+% EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.
+
+%%% type
+% A legacy parameter that defines what experiment class to use. Options
+% include 'ChoiceWorld' and 'custom', where the latter indicates a signals
+% experiment.  For these two options the experiment classes are
+% EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2). 
+
+%%% services
+% A cellstr array of service names to be activaed during experiment setup.
+% These are external systems that can be triggered via websockets and UDPs.
+% (See note 3)
+
+%%% waterType
+% The type of water reward to administer during the experiment.  This could
+% allow one to switch between different DAQ outputs and will change the
+% water_type field when posting to Alyx.  This feature is not yet fully
+% implemented.
+
+%%% isPassive
+% When true the experiment is a re-play of a previous one.  This feature is
+% not yet fully implemented.
+
+% In addition to these, parameters can be attributed descriptions and units
+% by setting fields with the same name the end in 'Description' and 'Units'
+% respectively. These are displayed in the ParamEditor GUI.  See below.
+paramStruct.wheelGain % An example parameter that needs a description
+paramStruct.wheelGainDescription = ['Visual stimulus translation per ',...
+  'movement at wheel surface (for stimuli ahead)'];
+paramStruct.visWheelGainUnits = '°/mm';
+
+% There is one special parameter default that may be set in the definition
+% function: repeatIncorrect
+
+%%% repeatIncorrect
+% This is the only special parameter that may have a default set in the
+% definition function.  This parameter must be a boolian and in signals,
+% when both the repeatIncorrect parameter and the endTrial signal evaluate
+% as true, the current conditional parameters will be repeated on the
+% following trial.  See note 4.
+
+%% Saving parameter sets
+% EXP.INFERPARAMETERS is useful for loading an experiment's default
+% parameters (set in the definition function itself).  Also, each time you
+% run an experiment a copy of the modified parameter set is saved in the
+% experiment folder.  The last used parameters for a given experiment and
+% subject are loaded by default in MC.  
+%
+% Suppose however that you want to save and load a parameter set for a
+% given experiment, independent of the subject? For this we use the
+% <./using_dat_package.html dat package>...
+%
+% To save a new parameter set simply call DAT.SAVEPARAMPROFILE:
+paramStruct.rewardSize = 5; % We want to save our modified params
+paramSetName = 'highReward'; % Give our saved set a name
+dat.saveParamProfile('custom', paramSetName, paramStruct)
+
+% The saved parameter sets are usually found in the main repository:
+fullfile(dat.reposPath('main', 'master'), 'parameterProfiles.mat')
+
+% This file contains a stuct for each experiment type, e.g. a variable
+% called 'custom' for saved signals parameter sets.  This contains multiple
+% fields corresponding to the given name of the parameter set.
+savedSets = dat.loadParamProfiles('custom') % Returns all saved parameters for signals
+
+% Finally parameters profiles may be deleted using DAT.DELPARAMPROFILE:
+dat.delParamProfile('custom', paramSetName);
+
+% These parameter sets can also be loaded and saved in MC using the
+% drop-down menu above the ParamEditor.
+
+%% The Parameters object
+% Modifying sturctures directly is error-prone and time consuming for
+% certain tasks.  To manipulate parameters more easily we use the
+% EXP.PARAMETERS class.
+parameters = exp.Parameters(paramStruct) % a new Parameters object
+
+% The Parameters object contains fields indicating which parameters are
+% conditional and which are global.  The underlying structure is stored in
+% the `Struct` property and it is this that should be saved, not the object
+% itself.
+
+% A parameter may be created or modified using the SET method:
+% parameters.set(name, value, description, units)
+parameters.set('incorrectTimeout', 2, 'Timeout on incorrect trials', 's')
+% You can retrieve the description for one or more parameters with the
+% DESCRIPTION method:
+parameters.description({'incorrectTimeout', 'wheelGain'})
+% The TITLE method returns the parameter name formatted for titles:
+parameters.title('onsetToneFrequency') % 'Onset tone frequency'
+
+% To remove a parameter, simply remove it from the Struct property:
+parameters.Struct = rmfield(parameters.Struct, 'incorrectTimeout');
+
+% Parameters may moved between global and condition using the
+% MAKETRIALSPECIFIC and MAKEGLOBAL methods:
+parameters.isTrialSpecific('wheelGain') % false; parameter is global
+parameters.makeTrialSpecific('wheelGain') % Make trial conditional
+parameters.isTrialSpecific('wheelGain') % true
+
+% Note the values are now repeated:
+numTrialConditions(parameters) % There are 11 trial conditions
+parameters.Struct.wheelGain % (1,11)
+
+% Let's make global again.  Note you can set the new value at the same
+% time.  If no `newValue` arg is given, the value of the first trial
+% conditon is used.
+parameters.makeGlobal('wheelGain', 3)
+parameters.isTrialSpecific('wheelGain') % false
+
+% Conditions may be removed using the REMOVECONDITIONS parameter.  This
+% removes the given column indices in all conditional parameters
+numTrialConditions(parameters) % There are 11 trial conditions
+parameters.removeConditions([2, 8]) % Remove conditions 2 and 8
+numTrialConditions(parameters) % There are 9 trial conditions
+
+% Finally, parameters may be assorted for an experiment using the following
+% two methods...
+
+% ASSORTFOREXPERIMENT returns the global parameters and trial condition
+% parameters as separate structures.  The `globalParams` structure is a
+% scalar struct of all global parameters, while `trialParams` is a
+% non-scalar struct of all trial conditions.  This can be useful for
+% looking over the parameters without using a GUI.
+[globalParams, trialParams] = parameters.assortForExperiment;
+trialParams % (1,9) struct
+
+% TOCONDITIONSERVER replicates the trial conditions be however many times
+% are specified by the 'numRepeats' parameter and if the `randomOrder`
+% input arg is true, these are shuffled into a random order.  This method
+% is used by the experiment class during setup.  In addition to returning
+% the assorted global and conditional parameters, a Condition Server
+% object, `cs` is also returned (see note 5)
+[cs, globalParams, trialParams] = parameters.toConditionServer(true);
+sum(parameters.Struct.numRepeats) % Total number of trials
+trialParams % (1,810) struct
+
+% c.f. [~, ~, trialParams] = parameters.toConditionServer(false)
+% See section below for more details on randomizing.
+
+%% The ParamEditor GUI
+% The easiest way to modify parameters is via the ParamEditor GUI, managed
+% by the EUI.PARAMEDITOR class.  A ParamEditor object is embedded into MC
+% and can also be instantiated via the Experiment Panels.
+
+% To instantiate a standalone editor, call EUI.PARAMEDITOR with a
+% Parameters object.  Additionally a parent figure handle may be provided.
+PE = eui.ParamEditor(parameters)
+
+% There are two panels that make up the editor.  On the left are the global
+% parameters and on the right is the trial conditions table, containing the
+% conditional parameters.  
+
+%%% Global panel
+% The global panel is pretty simple.  Each parameter is represented by the
+% parameter name (formatted as a title, see above section) and an input
+% field.  When a field is modified the title turns red.  For numrical and
+% string parameters, vectors may be added by inputting values separated by
+% commas.  For instance typing '1, 3, 5' (without quotes) would set the
+% value of that parameter to [1; 3; 5].  For numrical parameters spaces
+% alone will suffice, e.g. '1 3 5'.
+
+% To make a parameter conditional, right-clicking on the input field or
+% title and select 'Make conditional'.  The parameter will now appear in
+% the conditions table to the right.
+
+%%% Conditions panel
+% Here each parameter is represented as a table column, and its conditions
+% (i.e. the columns of the parameter) as table rows.  The rows may be
+% re-ordered by dragging the field name of the column you with to move.
+
+% New blank conditions (i.e. rows) can be added by clicking the 'New
+% condition' button at the bottom of the table.
+
+% Individual cells can be selected and edited as expected.  To select
+% multiple cells, hold down the ctrl key while clicking.  To select
+% multiple conditions in a row, hold the shift key.  Once you've selected a
+% cell in at least one column, the other buttons become available:
+
+% 'Delete condition' allows you to delete the table rows of the selected
+% cells (i.e. the selected trial conditions).
+
+% 'Globalise parameter' makes the columns of the selected cells global
+% parameters, whereby they are moved to the left panel.  The value in the
+% last selected cell for that parameter is used as the new parameter value.
+% This may also be done via the context menu.
+
+% 'Set values' allows you can set multiple cells are once.  One clicked a
+% small dialog appears with am input field for each selected column.  The
+% number of selected cells for each column is shown in brackets.  Entering
+% a single value will set each cell to that value.  Entering a
+% semicolon-separated list will assign each cell one value going from top
+% to bottom.  For example by selecting three cells in a column and typing
+% '4; 5; 6' (without quotes) the top most cell will take the value '4' and
+% so forth.
+% 
+% This is particularly useful for more involved stimulus sets with many
+% conditions. 
+
+% By right-clicking anywhere in the condition table you get two extra
+% options:
+%
+% 'Sort by selected column' will sort the columns by whichever column the
+% selected cell is in.  Currently only sorting by one column is supported.
+%
+% 'Randomise conditions' is a checkbox that sets the underlying hidden
+% parameter of the same name.  By default this is checked.  When unchecked,
+% the rows of the table are given an index, indicating the set order trial
+% conditions.
+
+% Once your parameters have been modified via the GUI they can be saved by
+% extracting the underlying parameter stuct and saving to a file:
+dat.saveParamProfile('custom', 'variant_2', PE.Parameters.Struct)
+
+%% Advanced trial conditions
+% Let's look at some ways you can set trial condition parameters for
+% different sorts of experiments. In the below examples imagine you have a
+% signals experiment definition with three conditional parameters, A, B and
+% C (see note 6).
+
+% By default all conditions are presented in a random order n times, where
+% n is defined by the numRepeats parameter. If numRepeats is made a global
+% parameter, then all conditions are presented the same number of times.
+
+% Example 1: An illustration of how the trial order may turn out when
+% 'randomiseConditions' is false and 'numRepeats' is a conditional parameter:
+
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+% | A | B | C | Num Repeats |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+% | 1 | 4 | 2 |           2 |
+% | 2 | 5 | 1 |           1 |
+% | 3 | 3 | 4 |           2 |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+% 
+% [~, ~, trialParams] = parameters.toConditionServer;
+% trialParams = 
+%
+% # | A | B | C |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1 | 3 | 3 | 4 |
+% 2 | 2 | 5 | 1 |
+% 3 | 3 | 3 | 4 |
+% 4 | 1 | 4 | 2 |
+% 5 | 1 | 4 | 2 |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+
+
+% Example 2: What happens when we globalize 'numRepeats' and give it the
+% value of 2?
+
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% | A | B | C |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% | 1 | 4 | 2 |
+% | 2 | 5 | 1 |
+% | 3 | 3 | 4 |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 
+% [~, ~, trialParams] = parameters.toConditionServer;
+% trialParams = 
+%
+% # | A | B | C |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1 | 1 | 4 | 2 |
+% 2 | 3 | 3 | 4 |
+% 3 | 1 | 4 | 2 |
+% 4 | 2 | 5 | 1 |
+% 5 | 3 | 3 | 4 |
+% 6 | 2 | 5 | 1 |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+
+% Randomized trial conditions are useful for many behaviour protocols and
+% even for some passive stimulus mapping experiments, however sometimes you
+% require multiple repeats in a row of each conditon.
+
+% Example 3: To present stimuli in a sequence, right click anywhere on the
+% conditions table and deselect 'randomise conditions' in the context menu.
+% Now each row will be numbered sequentially from 1 to the number of
+% conditions (see note 7 for an alternate solution):
+
+%     +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+%     | A | B | C | Num Repeats |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+% | 1 | 1 | 4 | 2 |           2 |
+% | 2 | 2 | 5 | 1 |           1 |
+% | 3 | 3 | 3 | 4 |           2 |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-+
+% 
+% # | A | B | C |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1 | 1 | 4 | 2 |
+% 2 | 1 | 4 | 2 |
+% 3 | 2 | 5 | 1 |
+% 4 | 3 | 3 | 4 |
+% 5 | 3 | 3 | 4 |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+
+%%% Using Set values
+% For more involved stimulus sets, we can use Set Values to conveniently
+% set the values of multiple cells at once. This is particularly useful for
+% experiments with many conditions.
+
+% Example 4: Say you want to present each condition twice in a row, and the
+% entire set two times, e.g.
+% 
+% #  | A | B | C |
+%    +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1  | 1 | 4 | 2 |
+% 2  | 1 | 4 | 2 |
+% 3  | 2 | 5 | 1 |
+% 4  | 2 | 5 | 1 |
+% 5  | 3 | 3 | 4 |
+% 6  | 3 | 3 | 4 |
+% 7  | 1 | 4 | 2 |
+% 8  | 1 | 4 | 2 |
+% 9  | 2 | 5 | 1 |
+% 10 | 2 | 5 | 1 |
+% 11 | 3 | 3 | 4 |
+% 12 | 3 | 3 | 4 |
+%    +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 
+% 1) Add enough new conditions to the table so that there are 6 rows.
+% 2) Highlight all cells and select 'Set values'.
+% 3) An input dialog appears where you can input the values for each
+% parameter. For A, you can type repmat([1 2 3],1,2), for B the vector
+% would be [4 5 3], etc.
+% 4) Globalize the numRepeats parameter and set it to 2
+% 5) Ensure 'randomise conditions' is deselected
+% 
+% Note that you can sequences of values using any MATLAB function this way,
+% for instance inputting 2:2:12 would set the conditions to be [2 4 6 8
+% 12].
+% 
+% Example 5: With set values you can also apply functions to the current
+% set of values, for instance to multiply every value of A from the
+% previous example by 2, we input @(v)v*2 and to set every value of B to a
+% random integer between 1 and 5, @(~)randi(5):
+% 
+% #  | A | B | C |
+%    +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1  | 2 | 2 | 2 |
+% 2  | 2 | 4 | 2 |
+% 3  | 4 | 3 | 1 |
+% 4  | 4 | 3 | 1 |
+% 5  | 6 | 2 | 4 |
+% 6  | 6 | 5 | 4 |
+% 7  | 2 | 4 | 2 |
+% 8  | 2 | 1 | 2 |
+% 9  | 4 | 2 | 1 |
+% 10 | 4 | 2 | 1 |
+% 11 | 6 | 4 | 4 |
+% 12 | 6 | 1 | 4 |
+%    +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+
+%% Notes and warning suppressions
+% (1) To load default parameters for legacy experiments, there are simple
+% functions that return these paramteters.  NB: The below are no longer used as
+% signals provides more flexbility in running experiments.  
+choiceParams = exp.choiceWorldParams; % For the original Burgess task
+diskParams = exp.discWorldParams; % For a similar orientation-based protocol
+rangeParams = exp.rangeParams; % A Burgess task prototype experiment
+% Various visual field mapping experiment parameteres
+barMappingParams = exp.barMappingParams;
+gaborMappingParams = exp.gaborMappingParams; % Gabor patch mapping
+flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
+
+% (2) The type parameter would be a useful way of implementing a new
+% experiment stucture, e.g. if you wanted to sub-class EXP.SIGNALSEXP in
+% order to implement an entirely differnt set of hardware, changing the
+% type parameter would cause the experiment server to call the correct
+% experiment class during setup. See also SRV.PREPAREEXP,
+% EXP.CONFIGURESIGNALSEXPERIMENT
+
+% (3) Services may be set via the options interface in MC.  For more info
+% see SRV.PREPAREEXP, SRV.FINDSERVICE, EUI.MCONTROL/RIGOPTIONS and 
+% SRV.STIMULUSCONTROL.
+
+% (4) The name originates from the fact that this behaviour is useful as a
+% means of anti-biasing during bahaviour training.  For instance in the
+% Burgess task the side of the stimulus will be repeated on high contrast
+% trials until the subject gived the correct response.  This parameter may
+% be used in other contexts, however. 
+
+% (5) The condition server object is used in legacy experiments such as
+% ChoiceWorld, however EXP.SIGNALSEXP uses a different implementation.  For
+% more info see EXP.CONDITIONSERVER and EXP.TRIALCONDITIONS.
+
+% (6) Below is an example definition function:
+% function passiveStimWorld(t, evts, par, vs, in, out, audio)
+% [...]
+% elem.shape = p.A*sin(p.B) + p.C;
+% vs.stimulus = elem;
+% 
+% % parameters with more than one column are trial conditions, where each
+% % column corresponds to a condition.  All conditional parameters must have
+% % the same number of columns.
+% try
+%   p.A = [1 2 3];
+%   p.B = [4 5 3];
+%   p.C = [2 1 4];
+% catch
+% end
+% end
+
+% (7) Another way to achieve this is to use the events.endTrial signal:
+% when endTrial takes a value the current trial ends. If the value is 0
+% (false), then the same condition is repeated on the next trial, otherwise
+% the next condition is used. This allows you to present each condition n
+% times in a row but with the order of each condition block randomized:
+
+%   function passiveStimWorld(t, evts, p, vs, in, out, audio)
+%   % First define a Signal that counts the repeat number of current condition
+%   repNum = events.newTrial.scan(@plus, p.skipRepeats().map(0));
+%   % Define when the next block of repetitions should occur
+%   nextCondition = repNum == p.numConditionReps; 
+%   % Define trial end
+%   events.endTrial = events.newTrial.delay(10).then(nextCondition);
+%   [...]
+% 
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+
+% | A | B | C | Num Condition Reps |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+
+% | 1 | 4 | 2 |                  2 |
+% | 2 | 5 | 1 |                  2 |
+% | 3 | 3 | 4 |                  2 |
+% +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH+
+% Num Repeats = 1 (global)
+% 
+% 
+% # | A | B | C |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% 1 | 2 | 5 | 1 |
+% 2 | 2 | 5 | 1 |
+% 3 | 3 | 3 | 4 |
+% 4 | 3 | 3 | 4 |
+% 5 | 1 | 4 | 2 |
+% 6 | 1 | 4 | 2 |
+%   +REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+REPLACE_WITH_DASH_DASH-+
+% (Note the blocks of repeated conditions are shuffled)
+
+% Author: Miles Wells
+%
+% v1.0.0
+
+%#ok<*NOPTS,*ASGLU,*NASGU>
+##### SOURCE END #####
+--></body></html>

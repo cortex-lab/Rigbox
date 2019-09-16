@@ -8,7 +8,7 @@ function [varargout] = tabulateArgs(varargin)
 % Check if each argument is single, criteria are:
 % 1) *not* a cell array of *any* size, AND
 % 2) number of elements in whatever they are is 1, UNLESS
-% 3) it is a string, in which case it counts a single item (even if len > 1)
+% 3) it is a char, in which case it counts a single item (even if len > 1)
 singleArg = cellfun(@(arg) ~iscell(arg) && numel(arg) == 1 || ischar(arg), varargin);
 allSingleArgs = all(singleArg);
 

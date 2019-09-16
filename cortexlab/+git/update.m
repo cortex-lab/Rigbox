@@ -39,6 +39,13 @@ function exitCode = update(scheduled)
 %
 % TODO Find quicker way to check for changes
 
+% Check that paths are set up
+assert(~isempty(which('dat.paths')), ...
+    'rigbox:git:update:copyPaths',...
+    ['Error: ''dat.paths'' file not found. Please ensure that a '... 
+    '''dat.paths'' file exists for your setup. A template can be found at '...
+    '''docs/setup/paths_template''.'])
+  
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
@@ -49,6 +56,7 @@ elseif ~isnumeric(scheduled) || ~any(0:7 == scheduled)
         'Input must be integer between 0 and 7')
 end
 root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
+
 % Attempt to find date of last fetch
 fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
 % If `FETCH_HEAD` file exists, retrieve datenum for when last modified,
