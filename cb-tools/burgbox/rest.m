@@ -3,6 +3,8 @@ function s = rest(coll)
 %   s = REST(coll) returns a sequence of all but the first element in a
 %   collection
 %
+% See also SEQUENCE, FIRST
+% 
 % Part of Burgbox
 
 % 2013-02 CB created

@@ -16,34 +16,48 @@ classdef StimulusControl < handle
   
   properties
     Uri % 
-    Services = {}  % List of remote services that are to be interfaced with during an experiment.  Should be a list of string ids or hostnames
-    SelectedServices % Logical array the size of Services, indicating which services to use (set by eui.MControl)
-    Name % The name of the remote rig, usually the host name
-    ExpPreDelay = 0 % The delay in seconds before the experiment is to start, set by mc
-    ExpPostDelay = 0 % The delay in seconds after the experiment has ended before data are saved, listeners deleted, etc.  Set by mc
-    ResponseTimeout = 15 % Time to wait for a response from the remote host before throwing an error
+    % List of remote services that are to be interfaced with during an
+    % experiment.  Should be a list of string ids or hostnames
+    Services = {}
+    % Logical array the size of Services, indicating which services to use
+    % (set by eui.MControl)
+    SelectedServices 
+    % The name of the remote rig, usually the host name
+    Name 
+    % The default delay in seconds before the experiment is to start, set
+    % by mc
+    ExpPreDelay = 0 
+    % The default delay in seconds after the experiment has ended before
+    % data are saved, listeners deleted, etc.  Set by mc
+    ExpPostDelay = 0 
+    % Time to wait for a response from the remote host before throwing an
+    % error
+    ResponseTimeout = 15 
   end
   
   properties (Dependent = true)
-    %current status of the rig:
-    %'disconnected' if not currently connected, 'idle' if connected but no
-    %active services on the rig, 'active' if any services are currently
-    %running
+    % Current status of the rig: 'disconnected' if not currently connected,
+    % 'idle' if connected but no active services on the rig, 'active' if
+    % any services are currently running
     Status
-    ExpRunning %Reference of currently running experiment, if any/known
+    % Reference of currently running experiment, if any/known
+    ExpRunning 
   end
   
   properties (Transient, SetAccess = protected, Hidden)
     Socket
-    hSocket%handle to java socket
+    % Handle to java socket
+    hSocket
     NextMsgId = 0
-    Responses %Map from message IDs to responses
+    % Map from message IDs to responses
+    Responses 
     LogTimes = zeros(10000,2)
     LogCount = 0
   end
   
   properties (Transient, Hidden)
-    AlyxInstance % Property to store rig specific Alyx instance
+    % Property to store rig specific Alyx instance
+    AlyxInstance
   end
   
   properties (Constant)
@@ -164,7 +178,7 @@ classdef StimulusControl < handle
     end
   end
   
-  methods %(Access = protected)
+  methods %(Access = protected) %TODO Check everything works as protected
     function b = connected(obj)
       b = ~isempty(obj.Socket) && obj.Socket.isOpen();
     end

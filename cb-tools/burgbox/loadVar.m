@@ -22,6 +22,11 @@ function var = loadVar(filename, varName)
 %   modification date, i.e. if it is modified or moved, it will be
 %   reloaded, otherwise it is just retrieved from memory.
 %
+%   @todo Replace key-value pairs when data modified
+%   @body Currently re-loading a modified file caches the data without
+%   replacing the previous pair.  This may not be optimal, unless users
+%   want to save a version history of a file.
+%
 % Part of Burgbox
 
 % 2013-02 CB created

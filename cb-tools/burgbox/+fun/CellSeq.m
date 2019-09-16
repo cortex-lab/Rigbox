@@ -1,7 +1,14 @@
 classdef CellSeq < fun.Seq
   %FUN.CELLSEQ Sequence wrapper for cell arrays
-  %   Detailed explanation goes here
-  
+  %   Creates an iterable sequence from a column cell array input.  The
+  %   array may be filtered and values mapped through functions only on
+  %   retrieval. Helpful for delaying costly operations such as loading
+  %   files.
+  %
+  % See also SEQUENCE, FUN.SEQ, FUN.KEYEDSEQ
+  % 
+  % Part of Burgbox
+
   properties (Access = private)
     Arr = {}
     Idx = 1

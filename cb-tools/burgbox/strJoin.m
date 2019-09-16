@@ -21,6 +21,8 @@ function str = strJoin(input, separator)
 %     str =
 %     1 2 2 string
 %
+%   Note that MATLAB implemented a similar function, STRJOIN, in R2013a.
+%
 % Part of Burgbox
 
 % 2014-01 CB created
