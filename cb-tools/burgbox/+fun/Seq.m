@@ -1,6 +1,13 @@
 classdef Seq
   %FUN.SEQ Interface for iterating sequences
-  %   Detailed explanation goes here
+  %   Abstract class for creating iterable sequences.  Currently supports
+  %   cell arrays only.  Sequences may be created using the SEQUENCE
+  %   function or by instantiating one of the subclasses directly.  
+  %
+  %   Sequence objects may be reversed, mapped and filtered.  Subsequences
+  %   may be created from them also.
+  %
+  % See also SEQUENCE, FUN.CELLSEQ, FUN.KEYEDSEQ, FUN.CUSTOMSEQ
   %
   % Part of Burgbox
   
@@ -54,6 +61,7 @@ classdef Seq
       % s = FILTER(pred) returns a sub-sequence containing the elements, e
       % from this sequence for which pred(e) returns true.
       
+      narginchk(2,2)
       if isempty(seq)
         s = nil;
       else
@@ -89,9 +97,7 @@ classdef Seq
       % s = TAKE(n) returns a sub-sequence of the first 'n' elements from
       % this sequence (or all elements if there are less than 'n').
       
-      if nargin < 2
-        error('2 arguments required, only passed %i', nargin);
-      end
+      narginchk(2,2)
       s = fun.CustomSeq(@takeFirst, @takeRest);
       
       function s = takeRest(~)

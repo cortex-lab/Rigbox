@@ -250,7 +250,7 @@ classdef Parameters < handle
     end
     
     function str = indivDescrip(obj, name)
-      assert(isfield(obj.Struct, name));
+      assert(isfield(obj.Struct, name), 'Parameter ''%s'' not found', name);
       % add the units details, if any
       descripName = [name 'Description'];
       if isfield(obj.Struct, descripName)
