@@ -145,3 +145,5 @@ git.runCmd('checkout master'); git.update(0);
 % Rigbox:srv:unexpectedUDP
 % rigbox:srv:expServer:noHardwareConfig
 
+% Rigbox:dat:expFilePath:NotEnoughInputs
+
