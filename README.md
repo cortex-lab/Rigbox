@@ -1,7 +1,7 @@
 ----------
 # Rigbox
-![Coverage badge](https://img.shields.io/endpoint.svg?url=http%3A%2F%2Flab.lab.ultrahook.com%2Fcoverage%2Frigbox%2Fdev)
-![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Flab.lab.ultrahook.com%2Fstatus%2Frigbox%2Fdev)
+![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
+![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fdev)
 
 Rigbox is a high-performance, open-source software toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass a variety of experimental paradigms across behavioral neuroscience. Rigbox simplifies hardware/software interfacing, synchronizes data streams from multiple sources, manages experimental data via communication with a remote database, implements a viewing model for visual stimuli, and creates a runtime environment in which an experiment's parameters can be easily monitored and manipulated. Rigbox’s object-oriented paradigm facilitates a modular approach to designing experiments. Rigbox requires two machines, one for stimulus presentation ('the stimulus computer' or 'sc') and another for controlling and monitoring the experiment ('the master computer' or 'mc').
 
@@ -120,6 +120,9 @@ The "cortexlab" directory is intended for functions and classes that are rig or 
 ### tests
 
 The "tests" directory contains code for running unit tests within Rigbox.
+
+### docs
+Contains various guides for how to configure and use Rigbox.
 
 ### submodules
 
