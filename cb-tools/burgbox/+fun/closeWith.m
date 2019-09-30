@@ -1,6 +1,6 @@
 function closeWith_fun = closeWith(f, varargin)
 %FUN.CLOSEWITH Function closure with specified variables
-%   Detailed explanation goes here
+%   TODO Detailed explanation goes here
 %
 % Part of Burgbox
 

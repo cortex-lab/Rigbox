@@ -67,44 +67,81 @@ classdef Timeline < handle
 %   2017-10 MW updated
     
     properties
-        DaqVendor = 'ni' % 'ni' is using National Instruments USB-6211 DAQ
-        DaqIds = 'Dev1' % Device ID can be found with daq.getDevices()
-        DaqSampleRate = 1000 % rate at which daq aquires data in Hz, see Rate
-        DaqSamplesPerNotify % determines the number of data samples to be processed each time, see Timeline.process(), constructor and NotifyWhenDataAvailableExceeds
-        Outputs = hw.TLOutputChrono % array of output classes, defining any signals you desire to be sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
+        % 'ni' is using National Instruments USB-6211 DAQ
+        DaqVendor = 'ni'
+        % Device ID can be found with daq.getDevices()
+        DaqIds = 'Dev1'
+        % rate at which daq aquires data in Hz, see Rate
+        DaqSampleRate = 1000
+        % determines the number of data samples to be processed each time,
+        % see Timeline.process(), constructor and
+        % NotifyWhenDataAvailableExceeds
+        DaqSamplesPerNotify
+        % array of output classes, defining any signals you desire to be
+        % sent from the daq. See Also HW.TLOUTPUT, HW.TLOUTPUTCLOCK
+        Outputs = hw.TLOutputChrono
+        % All configured inputs. 
         Inputs = struct('name', 'chrono',...
-            'arrayColumn', -1,... % -1 is default indicating unused, this is update when the channels are added during tl.start()
+            'arrayColumn', -1,... -1 is default indicating unused, this is update when the channels are added during tl.start()
             'daqChannelID', 'ai0',...
             'measurement', 'Voltage',...
             'terminalConfig', 'SingleEnded',...
             'axesScale', 1) % multiplicative vertical scaling for when live plotting the input
-        UseInputs = {'chrono'} % array of inputs to record while tl is running
-        StopDelay = 2 % currently pauses for at least 2 secs as 'hack' before stopping main DAQ session to allow
-        MaxExpectedDuration = 2*60*60 % expected experiment time so data structure is initialised to sensible size (in secs)
-        AquiredDataType = 'double' % default data type for the acquired data array (i.e. Data.rawDAQData)
-        UseTimeline = false % used by expServer.  If true, timeline is started by default (otherwise can be toggled with the t key)
-        LivePlot = false % if true the data are plotted as the data are aquired
-        FigureScale = [0 0 1 1]; % figure position in normalized units, default is full screen
-        WriteBufferToDisk = false % if true the data buffer is written to disk as they're aquired NB: in the future this will happen by default
+        % array of inputs to record while tl is running
+        UseInputs = {'chrono'}
+        % currently pauses for at least 2 secs as 'hack' before stopping
+        % main DAQ session to allow
+        StopDelay = 2
+        % expected experiment time so data structure is initialised to
+        % sensible size (in secs)
+        MaxExpectedDuration = 2*60*60
+        % default data type for the acquired data array (i.e.
+        % Data.rawDAQData)
+        AquiredDataType = 'double'
+        % If true, timeline is started by default (otherwise can be toggled
+        % with the t key in expServer)
+        UseTimeline matlab.lang.OnOffSwitchState = 'off'
+        % if true the data are plotted as the data are aquired
+        LivePlot matlab.lang.OnOffSwitchState = 'off'
+        % figure position in normalized units, default is full screen
+        FigureScale = [0 0 1 1]
+        % if true the data buffer is written to disk as they're aquired NB:
+        % in the future this will happen by default
+        WriteBufferToDisk matlab.lang.OnOffSwitchState = 'off'
     end
     
     properties (Dependent)
-        SamplingInterval % defined as 1/DaqSampleRate
-        IsRunning = false % flag is set to true when the first chrono pulse is aquired and set to false when tl is stopped (and everything saved), see tl.process and tl.stop
+        % Sampling interval defined as 1/DaqSampleRate
+        SamplingInterval
+        % Switch set to true when the first chrono pulse is aquired and
+        % set to false when tl is stopped (and everything saved), see
+        % tl.process and tl.stop
+        IsRunning matlab.lang.OnOffSwitchState = 'off'
     end
     
     properties (Transient, Access = protected)
-        Listener % holds the listener for 'DataAvailable', see DataAvailable and Timeline.process()
-        LastTimestamp % the last timestamp returned from the daq during the DataAvailable event.  Used to check sampling continuity, see tl.process()
-        Ref % the expRef string.  See tl.start()
-        AlyxInstance % a struct contraining the Alyx token, user and url for ile registration.  See tl.start()
-        Data % A structure containing timeline data
-        Axes % A figure handle for plotting the aquired data as it's processed
-        DataFID % The data file ID for writing aquired data directly to disk
+        % holds the listener for 'DataAvailable', see DataAvailable and
+        % Timeline.process()
+        Listener
+        % the last timestamp returned from the daq during the DataAvailable
+        % event.  Used to check sampling continuity, see tl.process()
+        LastTimestamp
+        % the expRef string.  See tl.start()
+        Ref
+        % a struct contraining the Alyx token, user and url for ile
+        % registration.  See tl.start()
+        AlyxInstance
+        % A structure containing timeline data
+        Data
+        % A figure handle for plotting the aquired data as it's processed
+        Axes
+        % The data file ID for writing aquired data directly to disk
+        DataFID
     end
     
     properties (Transient, SetAccess = protected, GetAccess = {?hw.Timeline, ?hw.TLOutput})
-        Sessions = containers.Map % map of daq sessions and their channels, created at tl.start()
+        % Map of daq sessions and their channels, created at tl.start()
+        Sessions = containers.Map
     end
     
     methods
@@ -326,17 +363,17 @@ classdef Timeline < handle
                 outputClasses = arrayfun(@class, obj.Outputs, 'uni', false);
                 if strcmp(name, 'chrono') % Chrono wiring info
                     idI = cellfun(@(s2)strcmp('chrono',s2), {obj.Inputs.name});
-                    idO = find(cellfun(@(s2)strcmp('tlOutputChrono',s2), outputClasses),1);
+                    idO = find(cellfun(@(s2)strcmp('hw.TLOutputChrono',s2), outputClasses),1);
                     fprintf('Bridge terminals %s and %s\n',...
-                        obj.Outputs(idO).daqChannelID, obj.Inputs(idI).daqChannelID)
-                elseif any(strcmp(name, {obj.Outputs.name})) % Output wiring info
-                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Outputs.name});
-                    fprintf('Connect device to terminal %s of the DAQ\n',...
-                        obj.Outputs(idx).daqChannelID)
-                elseif any(strcmp(name, {obj.Inputs.name})) % Input wiring info
-                    idx = cellfun(@(s2)strcmp(name,s2), {obj.Inputs.name});
-                    fprintf('Connect device to terminal %s of the DAQ\n',...
-                        obj.Inputs(idx).daqChannelID)
+                        obj.Outputs(idO).DaqChannelID, obj.Inputs(idI).daqChannelID)
+                elseif any(strcmpi(name, {obj.Outputs.Name})) % Output wiring info
+                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Outputs.Name});
+                    fprintf('Connect %s to terminal %s of the DAQ\n',...
+                        obj.Outputs(idx).Name, obj.Outputs(idx).DaqChannelID)
+                elseif any(strcmpi(name, {obj.Inputs.name})) % Input wiring info
+                    idx = cellfun(@(s2)strcmpi(name,s2), {obj.Inputs.name});
+                    fprintf('Connect %s to terminal %s of the DAQ\n',...
+                        obj.Inputs(idx).name, obj.Inputs(idx).daqChannelID)
                 else
                     fprintf('No inputs or outputs of that name were found\n')
                 end
@@ -461,7 +498,7 @@ classdef Timeline < handle
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
             % conversion is provided. TODO: Make timelineToALF a class method
-            if ~isempty(which('alf.timelineToALF'))&&~isempty(which('writeNPY'))
+            if exist('+alf/timelineToALF','file') && exist('writeNPY','file')
                 alf.timelineToALF(obj.Data, [],...
                     fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
             else

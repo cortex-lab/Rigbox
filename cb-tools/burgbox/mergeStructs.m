@@ -1,5 +1,5 @@
 function s = mergeStructs(varargin)
-%MERGESTRUCTS Concatenates different structures into one structure array
+%MERGESTRUCTS Combines multiple structures into one scalar structure
 %   s = MERGESTRUCTS(struct1, struct2,...)
 %
 %   If there are any repeated fields, the first instance of that field

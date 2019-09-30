@@ -1,6 +1,6 @@
 classdef DaqEdgeCounter < hw.DaqRotaryEncoder
   %HW.DAQEDGECOUNTER Tracks a DAQ edge counter channel
-  %   TODO
+  %   TODO Document DaqEdgeCounter class
   %
   % Part of Rigbox
   

@@ -22,7 +22,8 @@ paths = dat.paths(name);
 %% Basic initialisation
 fn = fullfile(paths.rigConfig, 'hardware.mat');
 if ~file.exists(fn)
-  rig = [];
+   warning(['hardware config not found for hostname ', hostname]);
+   rig = [];
   return
 end
 rig = load(fn);
