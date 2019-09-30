@@ -8,7 +8,19 @@ classdef Communicator < handle
   % 2013-03 CB created
 
   properties (Abstract, SetAccess = protected)
-    IsMessageAvailable
+    IsMessageAvailable logical
+  end
+  
+  properties (Abstract, Constant)
+    DefaultListenPort int32
+  end
+  
+  properties (Abstract)
+    EventMode matlab.lang.OnOffSwitchState
+  end
+  
+  events
+    MessageReceived
   end
   
   methods (Abstract)

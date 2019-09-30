@@ -8,8 +8,16 @@ classdef DummyCommunicator < io.Communicator
 
   % 2013-03 CB created  
   
+  properties
+    EventMode = 'off'
+  end
+  
   properties (SetAccess = protected)
     IsMessageAvailable = false
+  end
+  
+  properties (Constant)
+    DefaultListenPort = []
   end
   
   methods
