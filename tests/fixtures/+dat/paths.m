@@ -7,6 +7,12 @@ function p = paths(rig)
 
 % 2013-03 CB created
 
+% Ensure we're in the test enviroment
+global INTEST
+assert(~isempty(INTEST) && INTEST == true, 'Rigbox:tests:paths:notInTest', ...
+  'If testing set INTEST to true, otherwise unset %s from your path', ...
+  fullfile(fileparts(which('addRigboxPaths')), 'tests', 'fixtures'));
+
 thishost = 'testRig';
 
 if nargin < 1 || isempty(rig)

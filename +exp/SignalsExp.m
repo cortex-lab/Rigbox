@@ -100,6 +100,8 @@ classdef SignalsExp < handle
     
     %Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
+    
+    Debug matlab.lang.OnOffSwitchState = 'on'
   end
   
   properties (SetAccess = protected)     
@@ -113,13 +115,14 @@ classdef SignalsExp < handle
     %(i.e. strings)
     ActivePhases = {}
     
-    Listeners
-    
-    Net
-    
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    % Flag indicating whether to continue in experiment loop
+    IsLooping = false
+        
+    GlobalPars
     
+    ConditionalPars
   end
   
   properties (Access = protected)
@@ -127,15 +130,18 @@ classdef SignalsExp < handle
     %are awaiting activation pending completion of their delay period.
     Pending
     
-    IsLooping = false %flag indicating whether to continue in experiment loop
-    
     AsyncFlipping = false
     
     StimWindowInvalid = false
+    
+    Listeners
+    
+    Net
   end
   
   methods
-    function obj = SignalsExp(paramStruct, rig)
+    function obj = SignalsExp(paramStruct, rig, debug)
+      if nargin < 3; obj.Debug = debug; end % Set debug mode
       clock = rig.clock;
       clockFun = @clock.now;
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
@@ -147,6 +153,7 @@ classdef SignalsExp < handle
       obj.Events = sig.Registry(clockFun);
       %% configure signals
       net = sig.Net;
+      net.Debug = obj.Debug;
       obj.Net = net;
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
@@ -164,10 +171,10 @@ classdef SignalsExp < handle
       % start the first trial after expStart
       advanceTrial = net.origin('advanceTrial');
       % configure parameters signal
-      globalPars = net.origin('globalPars');
-      allCondPars = net.origin('condPars');
+      obj.GlobalPars = net.origin('globalPars');
+      obj.ConditionalPars = net.origin('condPars');
       [obj.Params, hasNext, obj.Events.repeatNum] = exp.trialConditions(...
-        globalPars, allCondPars, advanceTrial);
+        obj.GlobalPars, obj.ConditionalPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
       % run experiment definition
@@ -178,7 +185,6 @@ classdef SignalsExp < handle
         expDefFun = paramStruct.defFunction;
         obj.Data.expDef = func2str(expDefFun);
       end
-      fprintf('takes %i args\n', nargout(expDefFun));
       expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
           obj.Outputs, obj.Audio);
       % if user defined 'expStop' in their exp def, allow 'expStop' to also
@@ -195,11 +201,9 @@ classdef SignalsExp < handle
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
-      globalPars.post(rmfield(globalStruct, 'defFunction'));
-      allCondPars.post(allCondStruct);
+      obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'));
+      obj.ConditionalPars.post(allCondStruct);
       %% data struct
-      
-%       obj.Params = obj.Params.map(@(v)v, [], @(n,s)sig.Logger([n '[L]'],s));
       %initialise stim window frame times array, large enough for ~2 hours
       obj.Data.stimWindowUpdateTimes = zeros(60*60*60*2, 1);
       obj.Data.stimWindowRenderTimes = zeros(60*60*60*2, 1);
@@ -379,6 +383,7 @@ classdef SignalsExp < handle
           saveData(obj); %save the data
         end
       catch ex
+        % TODO add stack magic here
         %mark that an exception occured in the block data, then save
         obj.Data.endStatus = 'exception';
         obj.Data.exceptionMessage = ex.message;
@@ -891,7 +896,7 @@ classdef SignalsExp < handle
       end
       
       if isempty(obj.AlyxInstance)
-        warning('No Alyx token set');
+        warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
       else
         try
           subject = dat.parseExpRef(obj.Data.expRef);

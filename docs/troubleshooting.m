@@ -74,6 +74,14 @@ git.runCmd('checkout master'); git.update(0);
 %  re-running your code:
 %   pwd % display working directory
 %   cd ~/Documents/MATLAB
+% 5. Check your variable names
+%  Make sure your variable names don't shadow a function or package in
+%  Rigbox, for instance if in an experiment definition you create a varible
+%  called `vis`, you will no longer be able to access functions in the +vis
+%  package from within the function:
+%   vis = 23;
+%   img = vis.image(t);
+%   Error: Reference to non-existent field 'image'.
 
 
 %%% Reverting %%%
@@ -104,6 +112,7 @@ git.runCmd('checkout master'); git.update(0);
 % them.  Note there are plenty of other FAQs in the various setup scripts
 % with more specific information.
 
+
 %% Error and warning IDs
 % Below is a list of Rigbox error & warning IDs.  This list is currently
 % incomplete and there aren't yet very standard.  Typically the ID has the
@@ -111,6 +120,65 @@ git.runCmd('checkout master'); git.update(0);
 %
 % These are here for search convenience and may soon contain more detailed
 % troubleshooting information.
+
+% ..:..:..:notInTest
+% Problem:
+%  This occurs when a mock function is called when the INTEST global
+%  variable is not set.  These mock functions shadow Rigbox and builtin
+%  functions, meaning they have the same name.
+%
+% Solution:
+%  If this function was called during a test, add the following to the top
+%  of your test or in the constructor:
+%    global INTEST
+%    INTEST = true
+%  Ensure that this is cleared during the teardown:
+%    addteardown(@clear, INTEST) % If in a class
+%    mess = onCleanup(@clear, INTEST) % If in a function
+%
+%  If the mock in question is a class, set the InTest flag instead of the
+%  global variable:
+%    mock = MockDialog; % An example using MockDialog class
+%    mock.InTest = true;
+%    addteardown(@clear, MockDialog) % Clear mock class when done
+%    mess = onCleanup(@clear, MockDialog) % If in a function
+%
+%  If you are in not running tests, ensure that tests/fixtures is not in
+%  your MATLAB path and that you are in a different working directory.  It
+%  is best to remove all Rigbox paths and readd them using `addRigboxPaths`
+%
+% IDs
+%  Rigbox:tests:system:notInTest
+%  Rigbox:tests:modDate:notInTest
+%  Rigbox:tests:paths:notInTest
+%  Rigbox:tests:modDate:missingTestFlag % TODO change name
+%  Rigbox:MockDialog:newCall:InTestFalse
+
+% ..:..:..:behaviourNotSet
+% Problem:
+%  A mock function was called while in a test, however the behaviour for
+%  this particular input has not been defined.
+%
+% Solution:
+%  If not testing a specific behavior for this function's output, simply
+%  supress the warning in your test, remembering to restore the warning
+%  state:
+%    origState = warning;
+%    addteardown(@warning, origState) % If in a class
+%    mess = onCleanup(@warning, origState) % If in a function
+%    warning('Rigbox:MockDialog:newCall:behaviourNotSet', 'off')
+%
+%  If you're specifically testing the behavior when the mock returns a
+%  particular output then check that you've set the input-output map
+%  correctly: usually this is done by first calling the mock with input
+%  identical to function under test as well as the output you want to see.
+%  Check the input is formatted correctly.  For more information see the
+%  help of the particular mock you are using.
+%    
+% IDs
+%  Rigbox:tests:system:valueNotSet % TODO change name
+%  Rigbox:MockDialog:newCall:behaviourNotSet
+%  
 
 % Alyx:registerFile:InvalidPath
 % Alyx:registerFile:UnableToValidate
@@ -120,12 +188,6 @@ git.runCmd('checkout master'); git.update(0);
 % Alyx:registerFile:InvalidFileName
 % Alyx:registerFile:NoValidPaths
 
-% Rigbox:tests:system:notInTest
-% Rigbox:tests:system:outputNotSet
-% Tests:mockVerLessThan:ValueNotSet
-% Rigbox:tests:modDate:missingTestFlag
-% Rigbox:tests:modDate:notInTest
-
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
 % Rigbox:git:update:valueError
@@ -134,6 +196,10 @@ git.runCmd('checkout master'); git.update(0);
 % Rigbox:hw:calibrate:noscales
 % Rigbox:hw:calibrate:deadscale
 % Rigbox:hw:calibrate:partialPVpair
+
+% Rigbox:MockDialog:newCall:EmptySeq
+
+% Rigbox:exp:SignalsExp:noTokenSet
 
 % toStr:isstruct:Unfinished
 
