@@ -343,6 +343,7 @@ ShowCursor();
   end
 
   function whiteScreen()
+    % WHITESCREEN Change screen background to white
     rig.stimWindow.BackgroundColour = rig.stimWindow.White;
     rig.stimWindow.flip();
     rig.stimWindow.BackgroundColour = bgColour;
@@ -363,6 +364,7 @@ ShowCursor();
     clockIn = 'ai0';
     clockOut = 'port1/line0';
     clockOutHint = 'PFI4';
+    plotFig = false; % Supress plot to avoid taskbar coming to foreground
     
     % Print to log and screen in case window covers prompt
     msg = sprintf(['Please connect photodiode to %s, clockIn to %s and '...
@@ -374,7 +376,7 @@ ShowCursor();
 
     pause; % wait for keypress
     stimWindow.Calibration = ...
-      stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
+      stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut, plotFig);
     pause(1);
     
     % Save calibration to file and apply to current object
@@ -386,6 +388,8 @@ ShowCursor();
 
   function saveGamma(cal)
     % SAVEGAMMA Save calibration struct to saved stimWindow object
+    %  Loads saved stimWindow object from this rig's hardware file, updates
+    %  the Calibration property with input, then saves.
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     stimWindow = load(rigHwFile,'stimWindow');
     stimWindow = stimWindow.stimWindow;
@@ -394,18 +398,26 @@ ShowCursor();
   end
 
   function log(varargin)
+    % LOG Print timestamped message to command prompt
     message = sprintf(varargin{:});
     timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
     fprintf('[%s] %s\n', timestamp, message);
   end
 
   function setClock(user, clock)
+    % SETCLOCK Set Clock property of rig device object
     if isfield(rig, user)
       rig.(user).Clock = clock;
     end
   end
 
   function t = toggleTimeline(enable)
+    % TOGGLETIMELINE Enable/disable Timeline
+    %  If Timeline is currently enabled, disable and replace rig clock with
+    %  default.  Otherwise enable Timeline and pass Timeline Clock to other
+    %  rig objects.
+    %
+    % See also HW.CLOCK, HW.TIMELINE, SETCLOCK
     if nargin < 1
       enable = ~rig.timeline.UseTimeline;
     end
