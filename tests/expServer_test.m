@@ -208,11 +208,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     
     function test_gammaCalibration(testCase)
       % The expected behaviour is thus:
-      %  1. access the ID from the daqController object;
-      %  2. call the stimWindow calibration method with this value
-      %  3. assign the output to the stimWindow Calibrations property
-      %  4. call the applyCalibrations method
-      %  5. Save this modified object to file
+      %  1. access the ID from the daqController object
+      %  2. call the stimWindow drawText method to prompt user
+      %  3. call the stimWindow calibration method with this value
+      %  4. assign the output to the stimWindow Calibrations property
+      %  5. call the applyCalibrations method
+      %  6. Save this modified object to file
 
       % Check hardware file exists, if not create one
       hwPath = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
@@ -247,8 +248,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       history = testCase.getMockHistory(testCase.Rig.stimWindow);
       
       % Verify mock window interactions
-      testCase.verifyEqual(length(history), 8, ...
+      testCase.verifyEqual(length(history), 10, ...
         'Unexpected number of Window interactions')
+
+      % Verify text prompt
+      drawText = fun.filter(f('Call', 'drawText'), history);
+      correctInput = numel(drawText) == 1 && ...
+                     contains(drawText.Inputs{2}, 'Please connect');
+      testCase.verifyTrue(correctInput, 'Failed to draw text prompt to window')
 
       % Verify calibration
       methodCall = fun.filter(f('Call', 'calibration'), history);

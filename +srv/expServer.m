@@ -349,17 +349,35 @@ ShowCursor();
   end
 
   function calibrateGamma()
+    % CALIBRATEGAMMA Perform gamma correction and save to hardware file
+    %   Performs a gamma correction, applies the new values and saves them
+    %   to the rig hardware config file.
+    %
+    % See also saveGamma, hw.ptb.Window/calibration
+
     stimWindow = rig.stimWindow;
+    
+    % Parameters for calibration
     DaqDev = rig.daqController.DaqIds;
     lightIn = 'ai1'; % defaults from hw.ptb.Window
     clockIn = 'ai0';
     clockOut = 'port1/line0';
     clockOutHint = 'PFI4';
-    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s (%s).\r'...
-        'Press any key to contiue\n'],lightIn,clockIn,clockOut,clockOutHint);
+    
+    % Print to log and screen in case window covers prompt
+    msg = sprintf(['Please connect photodiode to %s, clockIn to %s and '...
+                  'clockOut to %s (%s).\r\n Press any key to contiue\n'], ...
+                  lightIn, clockIn, clockOut, clockOutHint);
+    % Draw white text to centre of screen at 40 chars per line, 1px spacing 
+    stimWindow.drawText(msg, 'center', 'center', stimWindow.White, 1, 40);
+    log(msg); % Log message to command window
+
     pause; % wait for keypress
-    stimWindow.Calibration = stimWindow.calibration(DaqDev,lightIn, clockIn, clockOut); % calibration
+    stimWindow.Calibration = ...
+      stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
     pause(1);
+    
+    % Save calibration to file and apply to current object
     saveGamma(stimWindow.Calibration);
     stimWindow.applyCalibration(stimWindow.Calibration);
     clear('lightIn','clockIn','clockOut','cal');
@@ -367,11 +385,12 @@ ShowCursor();
   end
 
   function saveGamma(cal)
-      rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
-      stimWindow = load(rigHwFile,'stimWindow');
-      stimWindow = stimWindow.stimWindow;
-      stimWindow.Calibration = cal;
-      save(rigHwFile, 'stimWindow', '-append');
+    % SAVEGAMMA Save calibration struct to saved stimWindow object
+    rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
+    stimWindow = load(rigHwFile,'stimWindow');
+    stimWindow = stimWindow.stimWindow;
+    stimWindow.Calibration = cal;
+    save(rigHwFile, 'stimWindow', '-append');
   end
 
   function log(varargin)

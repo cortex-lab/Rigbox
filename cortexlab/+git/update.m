@@ -36,8 +36,6 @@ function exitCode = update(scheduled)
 %     git.update(2);
 % 
 % See also DAT.PATHS
-%
-% TODO Find quicker way to check for changes
 
 % Check that paths are set up
 assert(~isempty(which('dat.paths')), ...
