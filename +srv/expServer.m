@@ -306,7 +306,7 @@ ShowCursor();
     fid = fopen(hwInfo, 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
-    if ~strcmp(dat.parseExpRef(expRef), 'default')
+    if ~strcmp(dat.parseExpRef(expRef), 'default') && ~isempty(getOr(dat.paths, 'databaseURL'))
       try
         Alyx.registerFile(hwInfo);
       catch ex

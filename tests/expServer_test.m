@@ -7,7 +7,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   % TODO Test gamma calibration 
   % TODO Test quit via message
   % TODO Test whitescreen
-  % FIXME 
+  % TODO Verify Alyx warnings 
   
   properties
     Rig

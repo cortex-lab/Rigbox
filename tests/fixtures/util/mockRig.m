@@ -34,15 +34,12 @@ rig = struct;
   'AddedProperties', properties(hw.RewardValveControl)', ...
   'AddedMethods', methods(hw.RewardValveControl)');
 
+% clock
+[rig.clock, behaviour.clock] = createMock(testCase, ?hw.Clock);
+
 % communicator
-if verLessThan('matlab','9.6')
-  % NB: 2018b and below do not support validation functions in abstract
-  % property definitions.  Hence we rely on duck typing.
-  [rig.communicator, behaviour.communicator] = createMock(testCase, ...
-    'AddedProperties', properties(io.WSJCommunicator)', ...
-    'AddedMethods', methods(io.WSJCommunicator)');
-else
+% NB: 2018b and below do not support validation functions in abstract
+% property definitions.
   [rig.communicator, behaviour.communicator] = ...
     createMock(testCase, ?io.Communicator);
-end
 
