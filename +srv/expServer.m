@@ -272,15 +272,12 @@ ShowCursor();
     
     rig.stimWindow.flip(); % clear the screen before
     
+    % start the timeline system
     if rig.timeline.UseTimeline
-      %start the timeline system
-      if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
-        [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
-        rig.timeline.UseInputs(idx) = [];
-      else
-        % turn off rotary encoder recording in timeline by default so
-        % experiment can access it
-        idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+      % turn off rotary encoder recording in timeline by default so
+      % experiment can access it
+      idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+      if ~isempty(idx)
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
       rig.timeline.start(expRef, Alyx);
