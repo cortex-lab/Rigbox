@@ -6,7 +6,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   % TODO Test water calibration 
   % TODO Test quit via message
   % TODO Verify Alyx warnings 
-  % TODO Test rewardId changes in valv_actions
   
   properties
     % Structure of rig device mock objects
@@ -109,6 +108,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(expected, 'Failed to open and close window')
     end
     
+    function test_devices_fail(testCase)
+      % Set hw.devices to return empty
+      clear devices;
+      id = 'rigbox:srv:expServer:missingHardware';
+      testCase.verifyError(@srv.expServer, id, ...
+        'Expected error for misconfigured hardware');
+    end
+    
     function test_bgColour(testCase)
       % Test setting the background colour as an input arg and test making
       % the screen white.
@@ -174,7 +181,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
 
       srv.expServer; % Run the server
       
-      % Find inputs to send method
+      % Find method calls and property modifications
       f = @(a) endsWith(class(a),{'Modification', 'Call'});
       % Retrieve mock history for the DaqControllor
       history = testCase.getMockHistory(testCase.Rig.daqController);
@@ -192,6 +199,67 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Second check the reward toggles
       expected = all(strcmp('Value', [calls(2:3).Name])) && ...
         isequal([calls(2:3).Value], [high low]);
+      testCase.verifyTrue(expected, ...
+        'Failed to correctly toggle water reward valve')
+    end
+    
+    function test_reward_switch(testCase)
+      import matlab.mock.actions.AssignOutputs
+      
+      % Create 'mock' reward controller as nonscalar struct (mock objects
+      % can not be stored in heterogeneous arrays)
+      s = @() struct(...
+        'DefaultCommand', rand, ...
+        'OpenValue', rand, ...
+        'ClosedValue', rand);
+      generators = [s() s()];
+      
+      % Assign output for 'ClosedValue' property
+      testCase.assignOutputsWhen(...
+        get(testCase.RigBehaviours.daqController.SignalGenerators), generators)
+      
+      % Assign output for daqController 'Value' property
+      when(get(testCase.RigBehaviours.daqController.Value), ...
+        AssignOutputs([generators.ClosedValue]). ...
+        then(AssignOutputs([generators.OpenValue])). ...
+        then(AssignOutputs([generators.ClosedValue])). ...
+        then(AssignOutputs([generators.OpenValue])))
+      
+      % Clear history
+      testCase.clearMockHistory(testCase.Rig.daqController)
+
+      keys = sequence({'2', 'space', 'w', 'w', '1', 'space', 'w', 'w', 'q'});
+      KbQueueCheck(-1, keys);
+      srv.expServer; % Run the server
+      
+      % Find method calls and property modifications
+      f = @(a) endsWith(class(a),{'Modification', 'Call'});
+      % Retrieve mock history for the DaqControllor
+      history = testCase.getMockHistory(testCase.Rig.daqController);
+      
+      % Find inputs to send method
+      calls = fun.filter(f, history);
+      testCase.assertEqual(length(calls), 6, ...
+        'Failed to set controller correct number of times')
+      
+      % First call should have been default value command with second
+      % signal generator
+      idx = [1,4]; % Order of command calls
+      inputs = arrayfun(@(a)a.Inputs{2}, calls(idx)); % Get inputs
+      expected = all(strcmp([calls(idx).Name], 'command')) && ...
+        all(inputs == [generators([2,1]).DefaultCommand]);
+      testCase.verifyTrue(expected, ...
+        'Failed to send correct output on reward key press')
+      
+      % Second check the reward toggles
+      idx = [2,3,5,6]; % Order of reward toggles
+      
+      % Index assigns are not recorded in any detail so this looks
+      % confusing.  
+      values = [generators([1,2,1,2]).OpenValue ...
+        repmat([generators(1).ClosedValue generators(2).OpenValue], 1, 2)];
+      expected = all(strcmp('Value', [calls(idx).Name])) && ...
+        isequal([calls(idx).Value], values);
       testCase.verifyTrue(expected, ...
         'Failed to correctly toggle water reward valve')
     end

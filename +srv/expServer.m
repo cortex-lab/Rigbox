@@ -54,11 +54,12 @@ experiment = []; % currently running experiment, if any
 
 % get rig hardware
 rig = hw.devices;
-if isempty(rig)
-  error('rigbox:srv:expServer:noHardwareConfig', ['No hardware config '...
-    'info found for this rig. Cannot find this rig''s ''hardware.mat'' '...
-    'file, or hardware config set-up script. Unable to launch '...
-    'expServer.']);
+required = {'stimWindow', 'timeline', 'daqController'};
+present = isfield(iff(isempty(rig), struct, rig), required);
+if ~all(present)
+  error('rigbox:srv:expServer:missingHardware', ['Rig''s ''hardware.mat'''...
+    ' file not set up correctly. The following objects are missing:\n\r%s'],...
+    strjoin(required(~present), '\n'))
 end
 
 % communicator for receiving commands from clients
