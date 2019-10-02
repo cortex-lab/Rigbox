@@ -41,7 +41,6 @@ nargs = 5; % The number of output arguments in KbQueueCheck
 
 % If no map exists create a new one to store mock mod dates
 if isempty(KbQueue)
-  % FIXME Make into sequence 
   KbQueue = containers.Map('KeyType', 'int32', 'ValueType', 'any');
 end
 
