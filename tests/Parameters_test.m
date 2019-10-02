@@ -171,7 +171,7 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       for i = 1:length(names); p.makeGlobal(names{i}); end
       [~, ~, trialParams] = p.toConditionServer(true);
       testCase.assertEmpty(fieldnames(trialParams))
-      testCase.verifyTrue(~isempty(trialParams), 'Trial conditions empty')
+      testCase.verifyNotEmpty(trialParams, 'Trial conditions empty')
     end
     
     function test_makeTrialSpecific(testCase)

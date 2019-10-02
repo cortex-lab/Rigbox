@@ -248,7 +248,7 @@ ShowCursor();
             else
               log('Ending experiment');
             end
-            if ~isempty(AlyxInstance)&&isempty(experiment.AlyxInstance)
+            if AlyxInstance.IsLoggedIn && ~experiment.AlyxInstance.IsLoggedIn
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
@@ -267,7 +267,7 @@ ShowCursor();
     end
   end
 
-  function aborted = runExp(expRef, preDelay, postDelay, Alyx)
+  function aborted = runExp(expRef, preDelay, postDelay, alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
@@ -281,7 +281,7 @@ ShowCursor();
       if ~isempty(idx)
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      rig.timeline.start(expRef, Alyx);
+      rig.timeline.start(expRef, alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -292,7 +292,7 @@ ShowCursor();
     experiment = srv.prepareExp(params, rig, preDelay, postDelay,...
       communicator);
     communicator.EventMode = true; % use event-based callback mode
-    experiment.AlyxInstance = Alyx; % add Alyx Instance
+    experiment.AlyxInstance = alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
     aborted = strcmp(experiment.Data.endStatus, 'aborted');
@@ -309,7 +309,7 @@ ShowCursor();
     fclose(fid);
     if ~strcmp(dat.parseExpRef(expRef), 'default') && ~isempty(getOr(dat.paths, 'databaseURL'))
       try
-        Alyx.registerFile(hwInfo);
+        alyx.registerFile(hwInfo);
       catch ex
         warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
       end

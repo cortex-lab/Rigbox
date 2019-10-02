@@ -219,7 +219,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Update weight outside of Panel
       w = testCase.Panel.AlyxInstance.postWeight(randi(35)+rand, 'algernon');
-      testCase.assertTrue(~isempty(w), 'Failed to update Alyx')
+      testCase.assertNotEmpty(w, 'Failed to update Alyx')
       
       prev = weight_text.String(2,:);
       button.Callback(); % Hit refresh
@@ -313,7 +313,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Test manual weight dialog
       weight = 32 + rand;
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
-      testCase.assertTrue(~isempty(button), 'Unable to find button object')
+      testCase.assertNotEmpty(button, 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
       button.Callback()
       
@@ -375,7 +375,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_updateWeightButton(testCase)
       % Find the weight button
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
-      testCase.assertTrue(~isempty(button), 'Unable to find button object')
+      testCase.assertNotEmpty(button, 'Unable to find button object')
       callbk_fn = button.Callback;
       src.readGrams = randi(35) + rand;
       testCase.Panel.updateWeightButton(src,[])
@@ -502,7 +502,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % not empty
       
       % First ensure panel was set up as active
-      testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+      testCase.assertNotEmpty(getOr(dat.paths, 'databaseURL'), ...
         'Expected non-empty databaseURL field in paths')
       str = iff(testCase.Panel.AlyxInstance.IsLoggedIn, 'Logout', 'Login');
       button = findobj(testCase.Parent, 'String', str);
