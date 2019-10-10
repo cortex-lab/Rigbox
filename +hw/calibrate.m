@@ -11,7 +11,7 @@ function calibration = calibrate(channel, rewardController, scales, tMin, tMax)
 
 % tMin = 30/1000;
 % tMax = 80/1000;
-interval = 0.1;
+interval = 0.5;
 delivPerSample = 300;
 nPerT = 3;
 % interval = 0.1;
@@ -39,7 +39,7 @@ signalGen.ParamsFun = @(sz) deal(sz(1), sz(3), 1/sum(sz(1:2)));
 
 try
   % rewardController.deliverMultiple(tMax, interval, 50, true);
-  rewardController.command([tMax; interval; 50], 'foreground');
+  rewardController.command([tMax; interval; 10], 'foreground');
   pause(settleWait);
   prevWeight = scales.readGrams; %now take initial reading
   fprintf('Initial scale reading is %.2fg\n', prevWeight);
