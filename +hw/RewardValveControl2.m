@@ -61,8 +61,15 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
             % Returns the duration the valve should be opened for to deliver
             % microLitres of reward. Is calibrated using interpolation of the
             % measured delivery data.
-            if valve==1
-                
+            
+            % For zero water: open the valve for zero time
+            if ul == 0
+                dt = 0;
+                return
+            end
+            
+            % Get the appropriate calibration
+            if valve==1  
                 recent = obj.Calibrations1(end).measuredDeliveries;
             elseif valve == 2
                 recent = obj.Calibrations2(end).measuredDeliveries;
@@ -76,11 +83,14 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
                 warning('Warning requested delivery of %.1f is outside calibration range',...
                     ul);
             end
+            
+            % interpolate linearly from this calibration to get the open
+            % time
             dt = interp1(volumes, durations, ul, 'pchip');
             dt = max(dt, 0); % Don't let dt fall below zero
         end
         
-        
+        s
         
     end
     
