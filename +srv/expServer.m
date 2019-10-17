@@ -344,7 +344,7 @@ ShowCursor();
   end
 
   function whiteScreen()
-    % WHITESCREEN Change screen background to white
+    % WHITESCREEN Changes screen background to white
     rig.stimWindow.BackgroundColour = rig.stimWindow.White;
     rig.stimWindow.flip();
     rig.stimWindow.BackgroundColour = bgColour;
@@ -360,7 +360,7 @@ ShowCursor();
     stimWindow = rig.stimWindow;
     
     % Parameters for calibration
-    DaqDev = rig.daqController.DaqIds;
+    DaqDev = rig.daqController.DaqIds; % device id to which photodiode connects
     lightIn = 'ai1'; % defaults from hw.ptb.Window
     clockIn = 'ai0';
     clockOut = 'port1/line0';

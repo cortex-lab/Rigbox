@@ -613,22 +613,25 @@ classdef Window < hw.Window
     end
     
     function c = calibration(obj, dev, lightIn, clockIn, clockOut, makePlot)
-      % Creates a calibration file automatically using the light meter
+      % CALIBRATION Performs a gamma calibration for the screen
+      %  Requires the user to hold a photodiode, connected to a NI-DAQ,
+      %  against the screen in order to perform gamma calibration, and
+      %  returns the results as a struct.
       %  
       %  Inputs:
-      %    dev (int) - NI DAQ device ID to which the photodiode is
+      %    dev (int) : NI DAQ device ID to which the photodiode is
       %      connected
-      %    lightIn (char) - analogue input channel name to which the
+      %    lightIn (char) : analogue input channel name to which the
       %      photodiode is connected
-      %    clockIn (char) - analogue input channel name for clocking pulse
-      %    clockOut (char) - digital output channel name for clocking pulse
-      %    makePlot (bool) - flag for making photodiode signal plot
+      %    clockIn (char) : analogue input channel name for clocking pulse
+      %    clockOut (char) : digital output channel name for clocking pulse
+      %    makePlot (bool) : flag for making photodiode signal plot
       % 
       %  Output:
-      %    c (struct) - calibration struct containing refresh rate and
+      %    c (struct) : calibration struct containing refresh rate and
       %      gamma tables
       %
-      % See also calibrationStruct
+      % See also calibrationStruct, applyCalibration
       
       %first load a default gamma table
       stdGammaTable = repmat(linspace(0, 1 - 1/256, 256)',[1 3]);

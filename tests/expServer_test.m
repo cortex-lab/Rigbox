@@ -397,6 +397,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % We cannot test the same behaviour for the lickDetertor mock because
       % accesses or modifications of concrete superclass properties are not
+      % recorded
       correctlySet = isa(testCase.Rig.lickDetector.Clock, 'hw.TimelineClock');
       testCase.verifyTrue(correctlySet, 'Failed to correctly set lickDetector clock')
     end
@@ -909,7 +910,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       calls = fun.filter(f('send'), history);
       % Find the call with our message id
       fail = calls(arrayfun(@(o)isequal(o.Inputs{2}, data.Id), calls));
-      testCase.assertNotEmpty(isempty(fail), ...
+      testCase.assertNotEmpty(fail, ...
         'failed to respond to run message in event mode')
       inputs = fail.Inputs;
       testCase.verifyMatches(inputs{3}{1}, 'fail', ...
