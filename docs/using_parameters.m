@@ -115,7 +115,7 @@ paramStruct.expPanelFun % (1,27)
 paramStruct.wheelGain % An example parameter that needs a description
 paramStruct.wheelGainDescription = ['Visual stimulus translation per ',...
   'movement at wheel surface (for stimuli ahead)'];
-paramStruct.visWheelGainUnits = '?/mm';
+paramStruct.visWheelGainUnits = '°/mm';
 
 % There is one special parameter default that may be set in the definition
 % function: repeatIncorrect

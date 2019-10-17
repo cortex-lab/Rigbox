@@ -397,7 +397,7 @@ mouseInput.DaqCounterPeriod = 2^32;
 % related experiment parameters in mm and degrees.  These two properties
 % are used to calculate the MillimetresFactor property.
 
-% Number of pulses per revolution.  Found at the end of the K?BLER product
+% Number of pulses per revolution.  Found at the end of the KÜBLER product
 % number, e.g. 05.2400.1122.0100 has a resolution of 100
 mouseInput.EncoderResolution = 1024
 % Diameter of the wheel in mm
@@ -611,10 +611,10 @@ stimWindow.SyncColourCycle = scc;
 % is that the task bar should stretch across all three of the stimulus
 % screens. Also check that the stimWindow.ScreenNum is correct in the
 % hardware.mat file. When set to 0, PsychToolbox uses all screens available
-% to Windows; 1 means Windows? primary screen (see the Display Settings); 2
-% means Windows? secondary screen, etc.
+% to Windows; 1 means Windows' primary screen (see the Display Settings); 2
+% means Windows' secondary screen, etc.
 
-%%% I get a ?PTB synchronization error? when I run the experiment server.
+%%% I get a ‘PTB synchronization error’ when I run the experiment server.
 % This happens from time-to-time. When a PsychToolbox window is opened it
 % runs some synchronization to retrace tests, checking whether buffer flips
 % are properly synchronized to the vertical retrace signal of your display.
@@ -640,7 +640,7 @@ stimWindow.PtbSyncTests = false;
 % Restart MATLAB. If the error persists, restart the computer with the DAQ
 % unplugged.
 
-%%% The experiment server is unable to open my DAQ on ?Dev1?
+%%% The experiment server is unable to open my DAQ on ‘Dev1’
 % If you have multiple NI devices on this computer, set the DaqIds
 % properties to the correct id in your hardware.mat file, i.e.
 % daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId
@@ -648,7 +648,7 @@ d = daq.getDevices % Availiable devices and their info
 
 %%% My rotary encoder has a different resolution, how do I change the hardware config?
 % Change the mouseInput.EncoderResolution peroperty to the value found at
-% the end of your rotary encoder?s product number: e.g. 05.2400.1122.1024
+% the end of your rotary encoder’s product number: e.g. 05.2400.1122.1024
 % means EncoderResolution = 1024.
 
 %% Notes

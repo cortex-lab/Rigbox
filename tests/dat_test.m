@@ -23,7 +23,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'Test experiment repo not empty.  Please set another path or manually empty folder');
       
       addTeardown(testCase, @clearCBToolsCache)
-      % addTeardown(testCase, @git.reset, which('dat.paths'))
     end
     
   end
@@ -97,6 +96,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'localAlyxQueue';
         'databaseURL';
         'gitExe';
+        'updateSchedule';
         'mainRepository';
         'globalConfig';
         'rigConfig';

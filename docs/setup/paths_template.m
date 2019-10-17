@@ -46,7 +46,8 @@ p.expDefinitions = fullfile(server1Name, 'Code', 'Rigging', 'ExpDefinitions');
 
 %% Non-essential paths
 % Database url and local queue for cached posts.  If empty or undefined,
-% the AlyxPanel and all Alyx interactions are disabled.  
+% the AlyxPanel and all Alyx interactions are disabled.  NB: If the
+% protocol isn't specified, https:// is automatically prepended.
 p.databaseURL = 'https://alyx.cortexlab.net';
 p.localAlyxQueue = 'C:\localAlyxQueue'; % Location of cached posts
 % Location of git for automatic updates
