@@ -373,6 +373,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_updateWeightButton(testCase)
+      % As this test takes at least 10 seconds and is actually doesn't
+      % require database interaction, we will skip it unless the current
+      % panel instance is using the first database URL set in the BaseURL
+      % property.
+      if ~strcmp(testCase.Panel.AlyxInstance.BaseURL, testCase.BaseURL{1})
+        disp('Skipping test')
+        return
+      end
       % Find the weight button
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
       testCase.assertNotEmpty(button, 'Unable to find button object')
@@ -386,15 +394,17 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       
       % Check button resets
-      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
+      t = 10; % Button should reset after this many seconds
+      while toc <= t && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
     
     function test_giveWater(testCase)
-      tol = 0.2; % Tolerance for water verifications, required due to rounding
       testCase.Panel;
-      tol = 0.2; % Tolerance for water verifications, required due to rounding
+      % Tolerance for water verifications, required due to rounding
+      tol2dp = 0.01; % rounding to 2 d.p.
+      tol1dp = 0.1; % rounding to 1 d.p.
       % Set subject on water restriction
       testCase.SubjectUI.Selected = 'algernon';
       % Ensure there's a weight for today
@@ -419,21 +429,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
       [vals, record] = get_test_data;
       
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
-      rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', tol, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'AbsTol', tol2dp, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'AbsTol', tol1dp, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'AbsTol', tol1dp, 'Given water mismatch')
+      rem = str2double(remaining.String(2:end-1)); % Text displayed
+      % The expected value uses a the required water rounded up to 2 d.p.
+      expected = -(eui.AlyxPanel.round(record.excess_water, 'down') + amount);
+      testCase.verifyEqual(rem, expected, 'AbsTol', tol2dp, 'Given water mismatch')
       
       % Test give water callback
       button.Callback()
       [vals, record] = get_test_data;
             
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', tol, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', tol, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', tol, 'Given water mismatch')
-      rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', tol, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'AbsTol', tol2dp, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'AbsTol', tol1dp, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'AbsTol', tol1dp, 'Given water mismatch')
       
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
@@ -450,10 +460,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveFutureWater(testCase)
-      tol = 0.1; % Tolerance for water verifications, required due to rounding
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
-      tol = 0.1; % Tolerance for water verifications, required due to rounding
+      % Tolerance for water verifications, permit rounding to 2 decimal
+      % places; dates have a tolerance of ~15 min
+      tol = 0.01; 
       
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
@@ -469,7 +480,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Check training day added
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', tol, ...
+      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'AbsTol', tol, ...
         'Failed to add training dates to saved params')
       
       % Check water posted to Alyx
@@ -477,7 +488,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       last = wr.water_administrations(end);
       testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', tol, ...
         'Date of post incorrect')
-      testCase.verifyEqual(last.water_administered, amount, 'RelTol', tol, ...
+      testCase.verifyEqual(last.water_administered, amount, 'AbsTol', tol, ...
         'Incorrect amount posted to Alyx')
 
       % Check log
@@ -493,7 +504,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check training day removed
       button.Callback();
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', tol, ...
+      testCase.verifyEqual(toTrian.(subject), now+3, 'AbsTol', tol, ...
         'Failed to add training dates to saved params')
     end
     
@@ -536,15 +547,18 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'up'), 0.85);
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'up', 3), 0.844);
       testCase.verifyEqual(testCase.Panel.round(12.6, 'up'), 13);
+      testCase.verifyEqual(testCase.Panel.round(-2.3710, 'up'), -2.3);
       
       % Test round down
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'down'), 0.84);
       testCase.verifyEqual(testCase.Panel.round(0.78375, 'down', 3), 0.783);
       testCase.verifyEqual(testCase.Panel.round(12.6, 'down'), 12);
+      testCase.verifyEqual(testCase.Panel.round(-2.3710, 'down'), -2.4);
       
       % Test default behaviour
       testCase.verifyEqual(testCase.Panel.round(0.8437), 0.84);
       testCase.verifyEqual(testCase.Panel.round(0.855), 0.86);
+      testCase.verifyEqual(testCase.Panel.round(-0.855), -0.86);
     end
     
   end
