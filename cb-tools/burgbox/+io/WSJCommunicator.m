@@ -33,17 +33,12 @@ classdef WSJCommunicator < io.Communicator
     hWebSocket 
     % When true listeners are notified of new messages via the
     % MessageRecieved event
-    EventMode logical = false
+    EventMode = false
   end
   
   properties (Access = private, Transient)
-    Listener % TODO This property appears to be unused.  Test before removing
     % Handle to java.util.LinkedList object containing recieved data
     InBuffer
-  end
-  
-  events
-    MessageReceived
   end
   
   methods

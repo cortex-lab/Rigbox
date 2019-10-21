@@ -3,12 +3,27 @@ classdef Communicator < handle
   %   Interface encapsulating some connection able to send and receive
   %   messages carrying arbitrary data.
   %
+  %   NB: 2018b and below do not support validation functions in abstract
+  %   property definitions.  Hence we have commented them out.
+  %
   % Part of Burgbox
 
   % 2013-03 CB created
 
   properties (Abstract, SetAccess = protected)
-    IsMessageAvailable
+    IsMessageAvailable %logical 
+  end
+  
+  properties (Abstract, Constant)
+    DefaultListenPort %int32
+  end
+  
+  properties (Abstract)
+    EventMode %matlab.lang.OnOffSwitchState
+  end
+  
+  events
+    MessageReceived
   end
   
   methods (Abstract)
