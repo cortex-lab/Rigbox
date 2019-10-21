@@ -1,8 +1,23 @@
 function s = structAssign(s, fields, values)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+%STRUCTASSIGN Deep subassign field values
+%   Assign values to nested struct fields.
+%
+%   Inputs:
+%     s - struct or object to assign value(s) to 
+%     fields - full dot syntax location of field or cell array of fields to
+%       assign to.
+%     values - either a single value to assign or a numerical/cell array
+%       the same length as fields.
+%
+%   Output:
+%     s - struct with values assigned.
+%
+%   Examples:
+%     s = struct('one', struct('two', []));
+%     s = structAssign(s, 'one.two', 4)
+%     disp(one.two) % 4
 
-fields = regexp(fields, '\.', 'split');
+fields = regexp(ensureCell(fields), '\.', 'split');
 
 for i = 1:numel(fields)
   if iscell(values)
