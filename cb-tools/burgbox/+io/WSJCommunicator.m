@@ -33,7 +33,7 @@ classdef WSJCommunicator < io.Communicator
     hWebSocket 
     % When true listeners are notified of new messages via the
     % MessageRecieved event
-    EventMode = 'off'
+    EventMode = false
   end
   
   properties (Access = private, Transient)
