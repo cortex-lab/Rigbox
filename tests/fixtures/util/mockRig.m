@@ -71,4 +71,4 @@ rig = struct;
 % property definitions.
   [rig.communicator, behaviour.communicator] = ...
     createMock(testCase, ?io.Communicator);
-
+end

@@ -18,6 +18,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - better organization of expServer `f32a0fe` 2019-10-02
 - bug fix for rounding negative numbers in AlyxPanel `31641f1` 2019-10-17
 - stricter and more accurate tolerance in AlyxPanel_test `31641f1` 2019-10-17
+- added tests for dat.mpepMessageParse and tl.bindMpepServer
 
 
 ## [2.3.0](https://github.com/cortex-lab/Rigbox/releases/tag/v2.3.0)
