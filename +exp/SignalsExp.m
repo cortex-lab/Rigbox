@@ -141,7 +141,7 @@ classdef SignalsExp < handle
   
   methods
     function obj = SignalsExp(paramStruct, rig, debug)
-      if nargin < 3; obj.Debug = debug; end % Set debug mode
+      if nargin > 2; obj.Debug = debug; end % Set debug mode
       clock = rig.clock;
       clockFun = @clock.now;
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
@@ -223,7 +223,8 @@ classdef SignalsExp < handle
       if isfield(rig, 'screens')
         obj.Occ.screens = rig.screens;
       else
-        warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
+        warning('Rigbox:exp:SignalsExp:NoScreenConfig', ...
+          'No screen configuration specified. Visual locations will be wrong.');
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
@@ -559,7 +560,9 @@ classdef SignalsExp < handle
     end
 
     function delete(obj)
-      disp('delete exp.SqueakExp');
+      if exp.SignalsExp.Debug
+        disp('delete exp.SignalsExp');
+      end
       obj.Net.delete();
     end
   end
@@ -881,19 +884,21 @@ classdef SignalsExp < handle
       superSave(savepaths, struct('block', obj.Data));
       [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
       
-      % if this is a 'ChoiceWorld' experiment, let's save out for
-      % relevant data for basic behavioural analysis and register them to
-      % Alyx
-      if contains(lower(obj.Data.expDef), 'choiceworld') ...
-          && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
+      % Save out for relevant data for basic behavioural analysis and
+      % register them to Alyx.
+      if ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
           && ~strcmp(obj.Data.endStatus,'aborted')
         try
           fullpath = alf.block2ALF(obj.Data);
           obj.AlyxInstance.registerFile(fullpath);
         catch ex
+          % If Alyx URL not set, simply return
+          if isempty(getOr(dat.paths, 'databaseURL')); return; end
+          % Otherwise throw warning and continue registration process
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
       end
+      
       
       if isempty(obj.AlyxInstance)
         warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');

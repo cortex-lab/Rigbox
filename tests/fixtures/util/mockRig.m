@@ -44,7 +44,7 @@ rig = struct;
 
 % lickDetector
 [rig.lickDetector, behaviour.lickDetector] = ...
-  createMock(testCase, ?hw.DataLogging);
+  createMock(testCase, ?hw.PositionSensor);
 
 % scale
 [rig.scale, behaviour.scale] = createMock(testCase, ...
