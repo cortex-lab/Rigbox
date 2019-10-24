@@ -10,6 +10,9 @@ function addRigboxPaths(savePaths, blind)
 if nargin < 1; savePaths = true; end
 if nargin < 2; blind = false; end
 
+% Location of system library files
+sys32 = dir('C:\Windows\System32');
+
 %%% MATLAB version and toolbox validation %%%
 % MATLAB must be running on Windows
 if ~blind
@@ -17,7 +20,6 @@ assert(ispc, 'Rigbox currently only works on Windows 7 or later')
 
 % Microsoft Visual C++ Redistributable for Visual Studio 2015 must be
 % installed, check for runtime dll file in system32 folder
-sys32 = dir('C:\Windows\System32');
 assert(any(strcmpi('VCRuntime140.dll',{sys32.name})), 'Rigbox:setup:libraryRequired',...
   ['Requires Microsoft Visual C++ Redistributable for Visual Studio 2015. ',...
    'Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.'],...
