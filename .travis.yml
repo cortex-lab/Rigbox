@@ -1,5 +1,5 @@
 os: windows
-language: minimal
+language: bash
 dist: xenial
 install: wget -qO- --retry-connrefused https://storage.googleapis.com/matlabimagesus/public/install.sh | sudo -E bash
 script: matlab -batch "runRigboxTests"
