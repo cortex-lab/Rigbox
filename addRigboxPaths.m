@@ -1,4 +1,4 @@
-function addRigboxPaths(savePaths)
+function addRigboxPaths(savePaths, blind)
 %ADDRIGBOXPATHS Adds the required paths for using Rigbox
 %
 %   Part of the Rigging toolbox
@@ -8,9 +8,11 @@ function addRigboxPaths(savePaths)
 
 % Flag for perminantly saving paths
 if nargin < 1; savePaths = true; end
+if nargin < 2; blind = false; end
 
 %%% MATLAB version and toolbox validation %%%
 % MATLAB must be running on Windows
+if ~blind
 assert(ispc, 'Rigbox currently only works on Windows 7 or later')
 
 % Microsoft Visual C++ Redistributable for Visual Studio 2015 must be
@@ -67,6 +69,7 @@ if isempty(info) || ~any(contains({info.Name}, 'NI-DAQmx'))
     ['The stimulus computer requires the National Instruments support package to be installed. '...
     'Click <a href="matlab:web(''%s'',''-browser'')">here</a> to install.'],...
     'https://www.mathworks.com/hardware-support/nidaqmx.html')
+end
 end
 
 %%% Paths for adding 

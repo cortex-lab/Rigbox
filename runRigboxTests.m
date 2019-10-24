@@ -1,7 +1,8 @@
 function runRigboxTests()
 % Install Rigbox paths
 disp('Installing Rigbox paths')
-addRigboxPaths
+savePaths = false; blind = true;
+addRigboxPaths(savePaths, blind)
 
 % Move into test directory
 currDir = pwd;
