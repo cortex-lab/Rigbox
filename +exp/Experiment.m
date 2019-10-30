@@ -292,7 +292,7 @@ classdef Experiment < handle
       end
       
         %post comms notification with event name and time
-      if isempty(obj.AlyxInstance)
+      if isempty(obj.AlyxInstance) || ~obj.AlyxInstance.IsLoggedIn
         post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
         pause(0.2) 
       end

@@ -191,6 +191,7 @@ classdef SignalsExp < handle
       % take value at 'lastTrialOver', else just set to 'lastTrialOver'
       if isfield(obj.Events, 'expStop')
         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
+        entryAdded(obj.Events, 'expStop', obj.Events.expStop);
       else
         obj.Events.expStop = lastTrialOver;
       end
@@ -365,7 +366,7 @@ classdef SignalsExp < handle
         mainLoop(obj);
         
         %post comms notification with event name and time
-        if isempty(obj.AlyxInstance)
+        if isempty(obj.AlyxInstance) || ~obj.AlyxInstance.IsLoggedIn
           post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
           pause(0.2) 
         end
@@ -419,13 +420,8 @@ classdef SignalsExp < handle
       if isempty(obj.Events.expStop.Node.CurrValue)
         % re-assign 'expStop' as an origin signal and post to it
         obj.Events.expStop = obj.Net.origin('expStop');
+        entryAdded(obj.Events, 'expStop', obj.Events.expStop);
         obj.Events.expStop.post(true);
-      end
-      %stop delay timers. todo: need to use a less global tag
-      tmrs = timerfind('Tag', 'sig.delay');
-      if ~isempty(tmrs)
-        stop(tmrs);
-        delete(tmrs);
       end
       
       % set any pending handlers inactive
@@ -560,7 +556,7 @@ classdef SignalsExp < handle
     end
 
     function delete(obj)
-      if exp.SignalsExp.Debug
+      if obj.Debug
         disp('delete exp.SignalsExp');
       end
       obj.Net.delete();
@@ -899,17 +895,14 @@ classdef SignalsExp < handle
         end
       end
       
-      
       if isempty(obj.AlyxInstance)
         warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
-      else
+      else % FIXME Should try even when logged out
         try
           subject = dat.parseExpRef(obj.Data.expRef);
           if strcmp(subject, 'default'); return; end
           % Register saved files
           obj.AlyxInstance.registerFile(savepaths{end});
-%           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-%             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           url = obj.AlyxInstance.SessionURL;
           if ~isempty(url)
@@ -929,8 +922,8 @@ classdef SignalsExp < handle
             if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
             obj.AlyxInstance.postData(url, sessionData, 'patch');
           else
-            % Retrieve session from endpoint
-            %             subsessions = obj.AlyxInstance.getData(...
+            % TODO Retrieve session from endpoint
+            %             subsessions = obj.AlyxInstance.getSessions(...
             %               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
           end
         catch ex
@@ -939,7 +932,7 @@ classdef SignalsExp < handle
         % Post water to Alyx
         try
           valve_controller = obj.DaqController.SignalGenerators(strcmp(obj.DaqController.ChannelNames,'rewardValve'));
-          type = iff(isprop(valve_controller, 'WaterType'), valve_controller.WaterType, 'Water');
+          type = pick(valve_controller, 'WaterType', 'def', 'Water');
           if isfield(obj.Data.outputs, 'rewardValues')
             amount = sum(obj.Data.outputs.rewardValues)*0.001;
           else

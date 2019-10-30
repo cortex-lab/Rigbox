@@ -75,6 +75,7 @@ if nargin < 2
       if ischar(output) % Convert to actual output
         idx = KbName(output);
         output = cell(1, nargs);
+        output{1} = true; % pressed
         output{2} = zeros(size(KbName('KeyNames')));
         output{2}(idx) = GetSecs();
       end
@@ -87,8 +88,9 @@ else % Set mock
     % Assume all output args set
     output = keyPress;
   else
-    % Assign only second output
+    % Assign only first two outputs
     output = cell(1, nargs);
+    output{1} = true; % pressed
     output{2} = zeros(size(KbName('KeyNames')));
     output{2}(KbName(keyPress)) = GetSecs();
   end

@@ -8,7 +8,7 @@ classdef ClearTestCache < matlab.unittest.fixtures.Fixture
   %   testing required.
     
   methods
-    function teardown(fixture)
+    function setup(fixture)
       fixture.addTeardown(@fixture.clearFunctionCache)
     end
   end

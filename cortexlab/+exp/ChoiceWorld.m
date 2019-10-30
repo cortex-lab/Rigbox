@@ -176,9 +176,13 @@ classdef ChoiceWorld < exp.LIARExperiment
     
     function saveData(obj)
         saveData@exp.Experiment(obj);
+        
+        % If Alyx URL not set, simply return
+        if isempty(getOr(dat.paths, 'databaseURL')); return; end
+
         if ~obj.AlyxInstance.IsLoggedIn
-            warning('No Alyx token set');
-        else
+            warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
+        else % FIXME Should try even when logged out
             try
                 subject = dat.parseExpRef(obj.Data.expRef);
                 if strcmp(subject, 'default'); return; end
