@@ -357,7 +357,12 @@ classdef SignalsExp < handle
       
       %set pending handler to begin the experiment 'PreDelay' secs from now
       start = exp.EventHandler('experimentInit', exp.StartPhase('experiment'));
-      start.addCallback(@(varargin) obj.Events.expStart.post(ref));
+      
+      % Add callback to update Time is necessary
+      start.addCallback(...
+        @(~,t)iff(obj.Time.Node.CurrValue, [], @()obj.Time.post(t)));
+      % Add callback to update expStart
+      start.addCallback(@(varargin)obj.Events.expStart.post(ref));
       obj.Pending = dueHandlerInfo(obj, start, initInfo, obj.Clock.now + obj.PreDelay);
       
       %refresh the stimulus window
