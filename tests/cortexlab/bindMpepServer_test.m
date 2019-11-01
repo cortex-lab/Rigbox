@@ -25,7 +25,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Set INTEST flag
       assert(endsWith(which('dat.paths'),...
         fullfile('tests', 'fixtures', '+dat', 'paths.m')));
-      setTestFlag(true)
+      setTestFlag(true);
       testCase.addTeardown(@setTestFlag, false)
       % Set test expRef
       testCase.Ref = dat.constructExpRef('test', now, 1);

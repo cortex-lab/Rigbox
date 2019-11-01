@@ -137,6 +137,8 @@ classdef SignalsExp < handle
     Listeners
     
     Net
+    
+    PauseTime
   end
   
   methods
@@ -470,6 +472,22 @@ classdef SignalsExp < handle
       end
     end
     
+    function pause(obj)
+      % In the future this will be handled by exp.Experiment
+      if ~obj.IsPaused
+        obj.PauseTime = obj.Clock.now;
+        obj.abortPendingHandlers()
+        obj.IsPaused = true;
+      end
+    end
+    
+    function resume(obj)
+      breakLength = obj.Clock.now - obj.PauseTime;
+      newTimes = num2cell([obj.Net.Schedule.when] + breakLength);
+      [obj.Net.Schedule.when] = deal(newTimes{:});
+      obj.IsPaused = false;
+    end
+    
     function ensureWindowReady(obj)
       % complete any outstanding asynchronous flip
       if obj.AsyncFlipping
@@ -669,6 +687,11 @@ classdef SignalsExp < handle
       t = obj.Clock.now;
       % begin the loop
       while obj.IsLooping
+        %% Check whether we're paused
+        while obj.IsPaused
+          pause(0.25);
+          checkInput(obj);
+        end
         %% create a list of handlers that have become due
         dueIdx = find([obj.Pending.dueTime] <= now(obj.Clock));
         ndue = length(dueIdx);
@@ -778,7 +801,7 @@ classdef SignalsExp < handle
 %           key = keysPressed(find(keysPressed~=obj.QuitKey&...
 %               keysPressed~=obj.PauseKey,1,'first'));
           key = KbName(keysPressed);
-          if ~isempty(key)
+          if ~isempty(key) && ~obj.IsPaused
             post(obj.Inputs.keyboard, key(1));
           end
         end
@@ -878,7 +901,7 @@ classdef SignalsExp < handle
       % save the data to the appropriate locations indicated by expRef
       savepaths = dat.expFilePath(obj.Data.expRef, 'block');
       superSave(savepaths, struct('block', obj.Data));
-      [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
+      subject = dat.parseExpRef(obj.Data.expRef);
       
       % Save out for relevant data for basic behavioural analysis and
       % register them to Alyx.
@@ -897,7 +920,7 @@ classdef SignalsExp < handle
       
       if isempty(obj.AlyxInstance)
         warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
-      else % FIXME Should try even when logged out
+      else
         try
           subject = dat.parseExpRef(obj.Data.expRef);
           if strcmp(subject, 'default'); return; end
@@ -905,27 +928,26 @@ classdef SignalsExp < handle
           obj.AlyxInstance.registerFile(savepaths{end});
           % Save the session end time
           url = obj.AlyxInstance.SessionURL;
-          if ~isempty(url)
-            numCorrect = [];
-            if isfield(obj.Data, 'events')
-              numTrials = length(obj.Data.events.endTrialValues);
-              if isfield(obj.Data.events, 'feedbackValues')
-                numCorrect = sum(obj.Data.events.feedbackValues == 1);
-              end
-            else
-              numTrials = 0;
-              numCorrect = 0;
-            end
-            % Update Alyx session with end time, trial counts and water tye
-            sessionData = struct('end_time', obj.AlyxInstance.datestr(now));
-            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
-            if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
-            obj.AlyxInstance.postData(url, sessionData, 'patch');
-          else
-            % TODO Retrieve session from endpoint
-            %             subsessions = obj.AlyxInstance.getSessions(...
-            %               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
+          if isempty(url)
+            % Infer from date session and retrieve using expFilePath
+            url = getOr(obj.AlyxInstance.getSessions(obj.Data.expRef), 'url');
+            assert(~isempty(url), 'Failed to determine session url')
           end
+          numCorrect = [];
+          if isfield(obj.Data, 'events')
+            numTrials = length(obj.Data.events.endTrialValues);
+            if isfield(obj.Data.events, 'feedbackValues')
+              numCorrect = sum(obj.Data.events.feedbackValues == 1);
+            end
+          else
+            numTrials = 0;
+            numCorrect = 0;
+          end
+          % Update Alyx session with end time, trial counts and water tye
+          sessionData = struct('end_time', obj.AlyxInstance.datestr(now));
+          if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+          if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
+          obj.AlyxInstance.postData(url, sessionData, 'patch');
         catch ex
           warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
         end

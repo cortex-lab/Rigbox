@@ -5,9 +5,22 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'util' filesep 'ptb'])})...
     SignalsExpTest < matlab.perftest.TestCase & matlab.mock.TestCase
   % Note that the experiment object must explicitly be deleted in order for
-  % the Signals networks to be unloaded.  This is important 
+  % the Signals networks to be unloaded.  
+  %
+  % Four major things left to test:
+  %  1. Visual stimuli
+  %  2. Event handlers
+  %  3. Posting water and trial numbers to Alyx
+  %  4. Performance of Signals
 
-  properties (SetAccess = protected)
+  properties
+    % Maximum time in seconds before the quit method is called after
+    % starting an experiment.  Precaution in case we get stuck in the main
+    % experiment loop
+    Timeout {mustBePositive} = 5
+  end
+  
+  properties (SetAccess = protected, Transient)
     % Structure of rig device mock objects
     Rig
     % Structure of mock behavior objects
@@ -15,7 +28,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     % SignalsExp object
     Experiment exp.SignalsExp
     % An experiment reference for the test
-    Ref
+    Ref char
+    % A basic parameter struct for the test experiment `expDef`
+    Pars struct
+    % Timer for quitting experiment after timeout
+    Timer timer
   end
     
   methods (TestClassSetup)
@@ -27,18 +44,26 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       %  deactivate Alyx.
 
       % Set INTEST flag to true
-      setTestFlag(true)
+      setTestFlag(true);
       testCase.addTeardown(@setTestFlag, false)
       
       % Turn off unwanted warnings
       orig = warning('off', 'toStr:isstruct:Unfinished');
       testCase.addTeardown(@warning, orig)
-      
+      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
+      testCase.addTeardown(@warning, origWarn)
+            
       testCase.applyFixture(ReposFixture) %TODO maybe move to method setup
       
       % Clear any current networks and add class teardown
       deleteNetwork
       addTeardown(testCase, @clear, 'createNetwork')
+      
+      % Create our timer
+      testCase.Timer = timer(...
+        'StartDelay', 5, ...
+        'Tag', 'QuitTimer');
+      testCase.addTeardown(@delete, testCase.Timer)
     end
   end
   
@@ -46,9 +71,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function setMockRig(testCase)
       % SETMOCKRIG Inject mock rig with shadowed hw.devices
       %   1. Create mock rig device objects
-      %   2. Create mock experiment
-      %   3. Set the mock rig object to be returned on calls to hw.devices
-      %   4. Set some default behaviours and add teardowns
+      %   2. Set the mock rig object to be returned on calls to hw.devices
+      %   3. Set some default behaviours and add teardowns
+      %   4. Set a fake expRef and some parameter defaults
       % 
       % See also mockRig, KbQueueCheck
       
@@ -79,35 +104,28 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Delete previous experiment, if any
       testCase.addTeardown(@testCase.deleteExperiment)
       
-      % Set some default behaviours for some of the objects
-      % First set up a valid experiment (i.e. save some parameters to load)
+      % First set up a valid experiment reference
       testCase.Ref = dat.constructExpRef('test', now, randi(10000));
       assert(mkdir(dat.expPath(testCase.Ref, 'main', 'master')))
-      
-      % Timeline behaviours
-      tl = testCase.RigBehaviours.timeline;
-      testCase.assignOutputsWhen(get(tl.UseInputs), {'wheel', 'rotaryEncoder'})
-            
-%       KbQueueCheck(-1, 'q'); % Just in case we forget to quit out!
+      % Set some basic parameters for expDef we'll use
+      testCase.Pars = struct(...
+        'defFunction', @testCase.expDef,...
+        'numRepeats', 1000);
 
+      % Clear all persistant variables and cache on teardown
       testCase.applyFixture(ClearTestCache)
     end
   end
   
   methods (Test)
     function test_constructor(testCase)
-      % Create a minimal set or parameters
-      parsStruct.defFunction = @testCase.expDef;
-      parsStruct.numRepeats = 1000;
-      
       % Instantiate
       testCase.Experiment = testCase.verifyWarning(...
-        @()exp.SignalsExp(parsStruct, testCase.Rig), ...
+        @()exp.SignalsExp(testCase.Pars, testCase.Rig), ...
         'Rigbox:exp:SignalsExp:NoScreenConfig');
       
       % Check our signals wired properly.  expStop behaviour is tested
       % separately
-      
       expected = {'expStart'; 'newTrial'; 'repeatNum'; 'trialNum'; 'endTrial'; 'expStop'};
       testCase.assertEqual(fieldnames(testCase.Experiment.Events), expected)
       
@@ -151,15 +169,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_run(testCase)
-      % Turn off KbQueueCheck warning
-      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
-      testCase.addTeardown(@warning, origWarn)
-      
       % Create a minimal set or parameters
-      parsStruct.defFunction = @testCase.expDef;
-      parsStruct.numRepeats = 5;
+      testCase.Pars.numRepeats = 5;
       % Instantiate
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       data = testCase.Experiment.run(testCase.Ref);
       
       expected = {'events', 'inputs', 'outputs', 'paramsValues', 'paramsTimes'};
@@ -173,49 +186,79 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(data.expRef, testCase.Ref)
       testCase.verifyEqual(data.rigName, testCase.Rig.name)
       
+      % Check the data were saved
+      % Load block
+      allSaved = all(file.exists(dat.expFilePath(testCase.Ref, 'Block')));
+      testCase.assertTrue(allSaved)
+      block = dat.loadBlock(testCase.Ref);
+      testCase.verifyEqual(block, block)
+      
+      % TODO Check signals input values
+      
     end
     
     function test_expStop(testCase)
       % Test behaviour of expStop event and of quitting via keypress and
-      % method calls
+      % method calls.  There are 7 possibilities here:
+      %  1. Without expStop defined in def function...
+      %    a. quit method call (by keypress or direct call to quit method)
+      %    b. no more trials (all conditions repeated)
+      %  2. With expStop defined in def function...
+      %    a. quit method call (by keypress or direct call to quit method)
+      %    b. no more trials (all conditions repeated)
+      %    c. user-defined expStop event takes a value
+      %
+      % All but 1b are tested here.
+      
+      % Removing lick detector from rig in order to reduce command output
+      % clutter
+      testCase.Rig = rmfield(testCase.Rig, 'lickDetector');
       
       % Test expStop definition within the experiment function: expStop
-      % takes value on 11th trial
-      parsStruct.defFunction = @testCase.expDef;
-      parsStruct.numRepeats = 15;
-      
-      % Turn off KbQueueCheck warning
-      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
-      testCase.addTeardown(@warning, origWarn)
-      
+      % takes value on 11th trial (2c)
+      testCase.Pars.numRepeats = 15;
+            
       % Instantiate
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       data = testCase.Experiment.run(testCase.Ref);
       
       testCase.verifyEqual(data.endStatus, 'quit')
       testCase.assertTrue(isfield(data.events, 'expStopValues'))
       testCase.verifyTrue(data.events.trialNumValues(end) == 11)
       testCase.verifyMatches(data.events.expStopValues, 'complete')
+      testCase.verifyTrue(numel(data.events.expStopTimes) == 1)
 
-      % Test out of trials
-      parsStruct.numRepeats = 5;
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      % Test out of trials (2b)
+      testCase.Pars.numRepeats = 5;
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       data = testCase.Experiment.run(testCase.Ref);
       
       testCase.verifyEqual(data.endStatus, 'quit')
       testCase.assertTrue(isfield(data.events, 'expStopValues'))
       testCase.verifyTrue(data.events.trialNumValues(end) == 5)
       testCase.verifyTrue(data.events.expStopValues)
+      testCase.verifyTrue(numel(data.events.expStopTimes) == 1)
       
-      % Test no expStop in function
+      % Test quit keypress 
       KbQueueCheck(-1, 'q'); % Immediately quit
-      parsStruct.defFunction = 'advancedChoiceWorld';
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       data = testCase.Experiment.run(testCase.Ref);
       
       testCase.verifyEqual(data.endStatus, 'quit')
       testCase.assertTrue(isfield(data.events, 'expStopValues'))
       testCase.verifyTrue(data.events.expStopValues)
+      testCase.verifyTrue(numel(data.events.expStopTimes) == 1)
+      
+      % Test quit keypress when no expStop in function (1a)
+      KbQueueCheck(-1, 'q'); % Immediately quit
+      testCase.Pars.defFunction = 'advancedChoiceWorld';
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
+      data = testCase.Experiment.run(testCase.Ref);
+      
+      testCase.verifyEqual(data.endStatus, 'quit')
+      testCase.assertTrue(isfield(data.events, 'expStopValues'))
+      testCase.verifyTrue(data.events.expStopValues)
+      testCase.verifyTrue(numel(data.events.expStopTimes) == 1)
     end
     
     function test_alyxRegistration(testCase)
@@ -225,25 +268,17 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       import matlab.mock.constraints.Occurred
       import matlab.mock.constraints.WasCalled
       import matlab.mock.AnyArguments
-      % Test expStop definition within the experiment function: expStop
-      % takes value on 11th trial
-      parsStruct.defFunction = @testCase.expDef;
-      parsStruct.numRepeats = 15;
-      
-      % Turn off KbQueueCheck warning
-      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
-      testCase.addTeardown(@warning, origWarn)
-      
+            
       % Verify databaseURL is set
       testCase.assertNotEmpty(getOr(dat.paths, 'databaseURL'))
       
       % Instantiate
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       testCase.verifyWarning(@()testCase.Experiment.run(testCase.Ref), ...
         'Rigbox:exp:SignalsExp:noTokenSet')
       
       % Test with Alyx not logged in
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       ai = Alyx('','');
       ai.Headless = true;
       testCase.Experiment.AlyxInstance = ai;
@@ -259,7 +294,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'addedMethods', methods(ai)');
       testCase.assignOutputsWhen(get(behaviour.IsLoggedIn), true)
       testCase.assignOutputsWhen(get(behaviour.Headless), true)
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       testCase.Experiment.AlyxInstance = ai;
       testCase.Experiment.run(testCase.Ref);
       testCase.verifyThat(withAnyInputs(behaviour.registerFile), Occurred)
@@ -271,7 +306,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       clearCBToolsCache
       testCase.assertEmpty(getOr(dat.paths, 'databaseURL'))
       
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       testCase.verifyWarningFree(@()testCase.Experiment.run(testCase.Ref))
     end
     
@@ -281,18 +316,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       import matlab.mock.constraints.Occurred
       % Test expStop definition within the experiment function: expStop
       % takes value on 11th trial
-      parsStruct.defFunction = @testCase.expDef;
-      parsStruct.numRepeats = 15;
-      
-      % Turn off KbQueueCheck warning
-      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
-      testCase.addTeardown(@warning, origWarn)
-            
-      % Instantiate
-      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
+                  
+      % Instantiate and spy on comms
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
       testCase.Experiment.Communicator = testCase.Rig.communicator;
       testCase.Experiment.run(testCase.Ref);
       
+      % Get history of communicator interaction and check experiment phase
+      % updates occured in the correct order.
       history = getMockHistory(testCase, testCase.Rig.communicator);
       events = sequence({history.Inputs});
       type = @(kind) @(event)strcmp(event{2}, kind);
@@ -303,21 +334,63 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'experimentEnded'; 
         'experimentCleanup'};
       testCase.verifyEqual(toCell(statuses.map(@(u)u{3}{4})), expected)
+      % Check signals events sent
       testCase.verifyNotEmpty(...
         events.filter(type('signals')).first, ...
         'Failed to send any signals updates')
     end
     
     function test_errors(testCase)
-      % TODO
+      % Test that SignalsExp saves data upon an error 
+      wheel = testCase.RigBehaviours.mouseInput;
+      errorID = 'Rigbox:SignalsExp:Fail'; errorMsg = 'Failed!';
+      testCase.throwExceptionWhen(withAnyInputs(wheel.readAbsolutePosition), ...
+        MException(errorID, errorMsg))
+      
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
+      
+      testCase.assertError(@()testCase.Experiment.run(testCase.Ref), errorID)
+      % Load block
+      allSaved = all(file.exists(dat.expFilePath(testCase.Ref, 'Block')));
+      testCase.assertTrue(allSaved)
+      data = dat.loadBlock(testCase.Ref);
+      testCase.verifyEqual(data.endStatus, 'exception')
+      testCase.verifyEqual(data.exceptionMessage, errorMsg)
     end
     
     function test_checkInput(testCase)
-      % TODO
+      % FIXME This test is not robust
+      testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
+      % Set a post delay that should be aborted upon second quit keypress
+      testCase.Experiment.PostDelay = 5;
+            
+      % Simulate random keypress, then pause, another press, resume, quit
+      % and urgent quit
+      pKey = testCase.Experiment.PauseKey;
+      qKey = testCase.Experiment.QuitKey;
+      otherKey = '7';
+      KbQueueCheck(-1, sequence({otherKey pKey otherKey pKey qKey qKey}));
+      
+      [T, data] = evalc('testCase.Experiment.run(testCase.Ref)');
+      testCase.verifyMatches(T, 'Pause')
+      testCase.verifyMatches(T, 'Quit')
+      testCase.verifyTrue(data.duration < testCase.Timeout, ...
+        'quit key failed to end experiment')
+      % Only the first key press should be posted to keyboard input signal
+      % as others either occur during pause or are reserved keys
+      testCase.verifyEqual(data.inputs.keyboardValues, otherKey, ...
+        'Failed to correctly update keyboard signal')
+      % Test double-quit abort
+      testCase.verifyEqual(data.endStatus, 'aborted', ...
+        'failed to abort on second quit keypress')
+      delay = diff([data.events.expStopTimes data.experimentCleanupTime]);
+      testCase.verifyTrue(delay < testCase.Experiment.PostDelay)
     end
     
     function test_visualStim(testCase)
       % TODO
+      parsStruct = exp.inferParameters(@advancedChoiceWorld);
+      testCase.Experiment = exp.SignalsExp(parsStruct, testCase.Rig);
     end
   end
   
@@ -333,19 +406,18 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % For every new experiment object add event handler for quiting the
       % experiment after 5 seconds.  This is a saftey precaution in case
       % any tests fail and the experiment loop continues indefinitely.
+      if testCase.Timer.Running; stop(testCase.Timer); end
       testCase.deleteExperiment % Delete previous, freeing network slots
       experiment.addEventHandler(exp.EventHandler('experimentStarted'));
+      % TODO Remove display
       cb = @(t,~)iff(isvalid(experiment), ... % If not yet deleted
-        @()quit(experiment), ... % call quit method
+        @()fun.applyForce({@()disp('Timer quit'); @()quit(experiment)}), ... % call quit method
         @()stop(t)); % otherwise just stop the timer
-      tmr = timer(...
-        'StartDelay', 5, ...
-        'TimerFcn', cb,...
-        'StopFcn', @(t,~)delete(t),...
-        'Tag', 'QuitTimer');
-      experiment.EventHandlers.addCallback(@(~,~)start(tmr));
+      testCase.Timer.TimerFcn = cb;
+      experiment.EventHandlers.addCallback(@(~,~)start(testCase.Timer));
       testCase.Experiment = experiment;
     end
+    
   end
   
   methods (Static)
@@ -354,7 +426,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % FIXME: Runaway recursion
       events.endTrial = events.newTrial.delay(0); % delay required for updates
       events.expStop = then(events.trialNum > 10, 'complete');
-%       varargin{4}.reward = events.newTrial;
     end
   end
 end

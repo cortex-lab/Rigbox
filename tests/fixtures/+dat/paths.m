@@ -1,8 +1,8 @@
 function p = paths(rig)
 %DAT.PATHS Returns struct containing important paths for testing
-%   p = DAT.PATHS([RIG])
-%   TODO:
-%    - Clean up expDefinitions directory
+%   p = DAT.PATHS([RIG]) Note that most tests use this function, therefore
+%   you should re-tun all tests after making any changes.
+%
 % Part of Rigbox
 
 % 2013-03 CB created

@@ -1,9 +1,12 @@
 classdef ReposFixture < matlab.unittest.fixtures.Fixture
-  %REPOSFIXTURE Summary of this class goes here
-  %   Detailed explanation goes here
+  %REPOSFIXTURE Fixture for using test dat.paths file
+  %   Assures test paths are returned, creates a rig config folder for
+  %   tests to save a hardware file to and upon teardown removes all
+  %   existing test repository folders.
     
   methods
     function setup(fixture)
+      % SETUP Ensure correct test paths and create rig config folder
       import matlab.unittest.fixtures.PathFixture
       fixture.applyFixture(PathFixture('fixtures'))
       
@@ -18,13 +21,14 @@ classdef ReposFixture < matlab.unittest.fixtures.Fixture
         'Test experiment repo not empty.  Please set another path or manually empty folder');
       
       % Create other folders
-      assert(mkdir(getOr(dat.paths,'rigConfig')), 'Failed to create config directory')
+      assert(mkdir(getOr(dat.paths, 'rigConfig')), 'Failed to create config directory')
     end
     
     function teardown(~)
       testFolders = [dat.reposPath('main');...
         {[dat.reposPath('main', 'm') '2']};...
-        {getOr(dat.paths, 'globalConfig')}];
+        {getOr(dat.paths, 'globalConfig')};...
+        {getOr(dat.paths, 'localAlyxQueue')}];
       testFolders = testFolders(file.exists(testFolders));
       rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
       cellfun(rmFcn, testFolders)
