@@ -364,21 +364,23 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Set a post delay that should be aborted upon second quit keypress
       testCase.Experiment.PostDelay = 5;
             
-      % Simulate random keypress, then pause, another press, resume, quit
-      % and urgent quit
+      % Simulate random keypress, then two quick presses, then pause,
+      % another press, resume, quit and urgent quit
+      abKey = {true, zeros(size(KbName('KeyNames')))};
+      abKey{2}(KbName({'a','b'})) = deal(GetSecs);
       pKey = testCase.Experiment.PauseKey;
       qKey = testCase.Experiment.QuitKey;
       otherKey = '7';
-      KbQueueCheck(-1, sequence({otherKey pKey otherKey pKey qKey qKey}));
+      KbQueueCheck(-1, sequence({otherKey abKey pKey otherKey pKey qKey qKey}));
       
       [T, data] = evalc('testCase.Experiment.run(testCase.Ref)');
       testCase.verifyMatches(T, 'Pause')
       testCase.verifyMatches(T, 'Quit')
       testCase.verifyTrue(data.duration < testCase.Timeout, ...
         'quit key failed to end experiment')
-      % Only the first key press should be posted to keyboard input signal
-      % as others either occur during pause or are reserved keys
-      testCase.verifyEqual(data.inputs.keyboardValues, otherKey, ...
+      % Only the first three key presses should be posted to keyboard input
+      % signal as others either occur during pause or are reserved keys
+      testCase.verifyEqual(data.inputs.keyboardValues, [otherKey, 'ab'], ...
         'Failed to correctly update keyboard signal')
       % Test double-quit abort
       testCase.verifyEqual(data.endStatus, 'aborted', ...

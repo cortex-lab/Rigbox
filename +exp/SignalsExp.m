@@ -798,11 +798,15 @@ classdef SignalsExp < handle
             pause(obj);
           end
         else
-%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
-%               keysPressed~=obj.PauseKey,1,'first'));
+          % Post key presses to inputs.keyboard signal
           key = KbName(keysPressed);
-          if ~isempty(key) && ~obj.IsPaused
-            post(obj.Inputs.keyboard, key(1));
+          if ~obj.IsPaused
+            if ischar(key) % Post single key press
+              post(obj.Inputs.keyboard, key);
+            else % Post each key press in order
+              [~, I] = sort(keysPressed(keysPressed > 0));
+              cellfun(@(k)obj.Inputs.keyboard.post(k), key(I));
+            end
           end
         end
       end

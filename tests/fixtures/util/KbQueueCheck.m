@@ -25,7 +25,7 @@ function varargout = KbQueueCheck(deviceIndex, keyPress)
 %     clear KbQueueCheck INTEST % Reset after test
 %
 %     % Simulate zero keyboard interaction for a given device
-%     KbQueueCheck(1, [{false}, repmat({zeros(1,256)},1,4)]);
+%     KbQueueCheck(1, {false, zeros(size(KbName('KeyNames')))});
 %     assert(~KbQueueCheck(1))
 %     
 % 2019-09 MW created
@@ -98,7 +98,7 @@ else % Set mock
   end
   KbQueue(iff(isempty(deviceIndex), -1, deviceIndex)) = output; % Set our output
   if isempty(INTEST) || ~INTEST
-    fprintf('Set date for %s.  Please set INTEST flag to true\n', p);
+    fprintf('Set ouput for device %i.  Please set INTEST flag to true\n', deviceIndex);
   end
   % Return empty on setting date
   output = cell(1, nargout);
