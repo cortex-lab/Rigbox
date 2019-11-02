@@ -37,16 +37,12 @@ function calibration = calibrate(channel, rewardController, scales, tMin, tMax, 
 
 % Check inputs
 narginchk(5,15)
-if ~all(cellfun(@ischar, (varargin(1:2:end)))) || mod(length(varargin),2)
-  error('Rigbox:hw:calibrate:nameValueMismatch', ...
-        ['If using input arguments, %s requires them to be constructed '... 
-         'in name-value pairs'], mfilename);
-end
+assert(~mod(length(varargin),2), 'Rigbox:hw:calibrate:partialPVpair', ...
+  'Incorrect number of Name-Value pairs')
 % Check that the scale is initialized
 if isempty(scales.Port) || isempty(scales.readGrams)
   error('Rigbox:hw:calibrate:noscales', ...
-        ['Unable to communicate with scale. Scales object is not '...
-         'properly initialized'])
+    'Unable to communicate with scale. Scales object is not properly initialized')
 end
 
 % Parse Name-Value pairs
@@ -59,10 +55,10 @@ defaults = struct(...
 inputs = cell2struct(varargin(2:2:end)', varargin(1:2:end)');
 p = mergeStructs(inputs, defaults);
 
-signalGen =... 
-  rewardController.SignalGenerators(strcmp(rewardController.ChannelNames,...
-                                           channel));
+signalGen = rewardController.SignalGenerators(strcmp(rewardController.ChannelNames, channel));
 t = meshgrid(linspace(tMin, tMax, p.nVolumes), zeros(1, p.nPerT));
+% t = [10 25 50 100 200 500 1000]/1000;
+% t = [1000]/1000;
 n = repmat(p.delivPerSample, size(t));
 dw = zeros(size(t));
 
@@ -82,15 +78,13 @@ pause(p.settleWait);
 newWeight = scales.readGrams;
 assert(newWeight > prevWeight + 0.02, ...
   'Rigbox:hw:calibrate:deadscale',...
-  ['Error: Scale is not registering changes in weight. Confirm scale is \n'...
-   'properly connected and that water is landing into the dish']);
+  'Error: Scale is not registering changes in weight. Confirm scale is properly connected and that water is landing into the dish')
 
 prevWeight = newWeight;
 fprintf('Initial scale reading is %.2fg\n', prevWeight);
 
 startTime = GetSecs;
-fprintf('Deliveries will take approximately %.0f minute(s)\n',...
-        ceil(approxTime/60));
+fprintf('Deliveries will take approximately %.0f minute(s)\n', ceil(approxTime/60));
 
 try
   for j = 1:size(t,2)
@@ -102,8 +96,7 @@ try
       dw(i,j) = newWeight - prevWeight;
       prevWeight = newWeight;
       ml = dw(i,j)/n(i,j);
-      fprintf('Weight delta = %.2fg. Delivered %ful per %fms\n',...
-              dw(i,j), 1000*ml, 1000*t(i,j));
+      fprintf('Weight delta = %.2fg. Delivered %ful per %fms\n', dw(i,j), 1000*ml, 1000*t(i,j));
     end
   end
 catch ex
