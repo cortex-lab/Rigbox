@@ -35,7 +35,6 @@ function expServer(useTimelineOverride, bgColour)
 
 %% Parameters
 global AGL GL GLU %#ok<NUSED>
-listenPort = io.WSJCommunicator.DefaultListenPort;
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
 rewardPulseKey = KbName('space');
@@ -50,18 +49,42 @@ rewardId = 1;
 git.update();
 % random seed random number generator
 rng('shuffle');
+experiment = []; % currently running experiment, if any
+
+% get rig hardware
+rig = hw.devices;
+required = {'stimWindow', 'timeline', 'daqController'};
+present = isfield(iff(isempty(rig), struct, rig), required);
+if ~all(present)
+  error('rigbox:srv:expServer:missingHardware', ['Rig''s ''hardware.mat'''...
+    ' file not set up correctly. The following objects are missing:\n\r%s'],...
+    strjoin(required(~present), '\n'))
+end
+
 % communicator for receiving commands from clients
-communicator = io.WSJCommunicator.server(listenPort);
+communicator = getOr(rig, 'communicator', io.WSJCommunicator.server);
 listener = event.listener(communicator, 'MessageReceived',...
   @(~,msg) handleMessage(msg.Id, msg.Data, msg.Sender));
 communicator.EventMode = false;
 communicator.open();
 
-experiment = []; % currently running experiment, if any
-
 % set PsychPortAudio verbosity to warning level
 oldPpaVerbosity = PsychPortAudio('Verbosity', 2);
 Priority(1); % increase thread priority level
+
+cleanup = onCleanup(@() fun.applyForce({
+  @() communicator.close(),...
+  @ShowCursor,...
+  @KbQueueRelease,...
+  @() delete(listener),...
+  @() Screen('CloseAll'),...
+  @() PsychPortAudio('Close'),...
+  @() Priority(0),... %set back to normal priority level
+  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
+  @() delete(listener),...
+  @() rig.stimWindow.close(),...
+  @() aud.close(rig.audio),...
+  }));
 
 % OpenGL
 InitializeMatlabOpenGL;
@@ -69,39 +92,6 @@ InitializeMatlabOpenGL;
 % listen to keyboard events
 KbQueueCreate();
 KbQueueStart();
-
-% get rig hardware
-try
-  rig = hw.devices;
-  if isempty(rig)
-      error('rigbox:srv:expServer:noHardwareConfig', ['No hardware config '...
-        'info found for this rig. Cannot find this rig''s ''hardware.mat'' '... 
-        'file, or hardware config set-up script. Unable to launch '... 
-        'expServer.']);
-  end
-catch ME
-  fun.applyForce({
-  @() communicator.close(),...
-  @() delete(listener),...
-  @KbQueueRelease,...
-  @() Screen('CloseAll'),...
-  @() PsychPortAudio('Close'),...
-  @() Priority(0),... %set back to normal priority level
-  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
-  });
-  rethrow(ME)
-end
-
-cleanup = onCleanup(@() fun.applyForce({
-  @() communicator.close(),...
-  @() delete(listener),...
-  @ShowCursor,...
-  @KbQueueRelease,...
-  @() rig.stimWindow.close(),...
-  @() aud.close(rig.audio),...
-  @() Priority(0),... %set back to normal priority level
-  @() PsychPortAudio('Verbosity', oldPpaVerbosity)...
-  }));
 
 HideCursor();
 
@@ -116,7 +106,7 @@ fprintf('\n<q> quit, <w> toggle reward, <t> toggle timeline\n');
 fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
   '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
-log('Started presentation server on port %i', listenPort);
+log('Started presentation server on port %i', communicator.DefaultListenPort);
 
 if nargin < 1 || isempty(useTimelineOverride)
   % toggle use of timeline according to rig default setting
@@ -258,7 +248,7 @@ ShowCursor();
             else
               log('Ending experiment');
             end
-            if ~isempty(AlyxInstance)&&isempty(experiment.AlyxInstance)
+            if AlyxInstance.IsLoggedIn && ~experiment.AlyxInstance.IsLoggedIn
               experiment.AlyxInstance = AlyxInstance;
             end
             experiment.quit(immediately);
@@ -277,24 +267,21 @@ ShowCursor();
     end
   end
 
-  function aborted = runExp(expRef, preDelay, postDelay, Alyx)
+  function aborted = runExp(expRef, preDelay, postDelay, alyx)
     % disable ptb keyboard listening
     KbQueueRelease();
     
     rig.stimWindow.flip(); % clear the screen before
     
+    % start the timeline system
     if rig.timeline.UseTimeline
-      %start the timeline system
-      if isfield(rig, 'disregardTimelineInputs') % TODO Depricated, use hw.Timeline.UseInputs instead
-        [~, idx] = intersect(rig.timeline.UseInputs, rig.disregardTimelineInputs);
-        rig.timeline.UseInputs(idx) = [];
-      else
-        % turn off rotary encoder recording in timeline by default so
-        % experiment can access it
-        idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+      % turn off rotary encoder recording in timeline by default so
+      % experiment can access it
+      idx = ~strcmp('rotaryEncoder', rig.timeline.UseInputs);
+      if ~isempty(idx)
         rig.timeline.UseInputs = rig.timeline.UseInputs(idx);
       end
-      rig.timeline.start(expRef, Alyx);
+      rig.timeline.start(expRef, alyx);
     else
       %otherwise using system clock, so zero it
       rig.clock.zero();
@@ -305,7 +292,7 @@ ShowCursor();
     experiment = srv.prepareExp(params, rig, preDelay, postDelay,...
       communicator);
     communicator.EventMode = true; % use event-based callback mode
-    experiment.AlyxInstance = Alyx; % add Alyx Instance
+    experiment.AlyxInstance = alyx; % add Alyx Instance
     experiment.run(expRef); % run the experiment
     communicator.EventMode = false; % back to pull message mode
     aborted = strcmp(experiment.Data.endStatus, 'aborted');
@@ -320,9 +307,9 @@ ShowCursor();
     fid = fopen(hwInfo, 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
-    if ~strcmp(dat.parseExpRef(expRef), 'default')
+    if ~strcmp(dat.parseExpRef(expRef), 'default') && ~isempty(getOr(dat.paths, 'databaseURL'))
       try
-        Alyx.registerFile(hwInfo);
+        alyx.registerFile(hwInfo);
       catch ex
         warning(ex.identifier, 'Failed to register hardware info: %s', ex.message);
       end
@@ -357,22 +344,43 @@ ShowCursor();
   end
 
   function whiteScreen()
+    % WHITESCREEN Changes screen background to white
     rig.stimWindow.BackgroundColour = rig.stimWindow.White;
     rig.stimWindow.flip();
     rig.stimWindow.BackgroundColour = bgColour;
   end
 
   function calibrateGamma()
+    % CALIBRATEGAMMA Perform gamma correction and save to hardware file
+    %   Performs a gamma correction, applies the new values and saves them
+    %   to the rig hardware config file.
+    %
+    % See also saveGamma, hw.ptb.Window/calibration
+
     stimWindow = rig.stimWindow;
-    DaqDev = rig.daqController.DaqIds;
-    lightIn = 'ai0'; % defaults from hw.ptb.Window
-    clockIn = 'ai1';
-    clockOut = 'port1/line0 (PFI4)';
-    log(['Please connect photodiode to %s, clockIn to %s and clockOut to %s.\r'...
-        'Press any key to contiue\n'],lightIn,clockIn,clockOut);
+    
+    % Parameters for calibration
+    DaqDev = rig.daqController.DaqIds; % device id to which photodiode connects
+    lightIn = 'ai1'; % defaults from hw.ptb.Window
+    clockIn = 'ai0';
+    clockOut = 'port1/line0';
+    clockOutHint = 'PFI4';
+    plotFig = false; % Supress plot to avoid taskbar coming to foreground
+    
+    % Print to log and screen in case window covers prompt
+    msg = sprintf(['Please connect photodiode to %s, clockIn to %s and '...
+                  'clockOut to %s (%s).\r\n Press any key to contiue\n'], ...
+                  lightIn, clockIn, clockOut, clockOutHint);
+    % Draw white text to centre of screen at 40 chars per line, 1px spacing 
+    stimWindow.drawText(msg, 'center', 'center', stimWindow.White, 1, 40);
+    log(msg); % Log message to command window
+
     pause; % wait for keypress
-    stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
+    stimWindow.Calibration = ...
+      stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut, plotFig);
     pause(1);
+    
+    % Save calibration to file and apply to current object
     saveGamma(stimWindow.Calibration);
     stimWindow.applyCalibration(stimWindow.Calibration);
     clear('lightIn','clockIn','clockOut','cal');
@@ -380,26 +388,37 @@ ShowCursor();
   end
 
   function saveGamma(cal)
-      rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
-      stimWindow = load(rigHwFile,'stimWindow');
-      stimWindow = stimWindow.stimWindow;
-      stimWindow.Calibration = cal;
-      save(rigHwFile, 'stimWindow', '-append');
+    % SAVEGAMMA Save calibration struct to saved stimWindow object
+    %  Loads saved stimWindow object from this rig's hardware file, updates
+    %  the Calibration property with input, then saves.
+    rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
+    stimWindow = load(rigHwFile,'stimWindow');
+    stimWindow = stimWindow.stimWindow;
+    stimWindow.Calibration = cal;
+    save(rigHwFile, 'stimWindow', '-append');
   end
 
   function log(varargin)
+    % LOG Print timestamped message to command prompt
     message = sprintf(varargin{:});
     timestamp = datestr(now, 'dd-mm-yyyy HH:MM:SS');
     fprintf('[%s] %s\n', timestamp, message);
   end
 
   function setClock(user, clock)
+    % SETCLOCK Set Clock property of rig device object
     if isfield(rig, user)
       rig.(user).Clock = clock;
     end
   end
 
   function t = toggleTimeline(enable)
+    % TOGGLETIMELINE Enable/disable Timeline
+    %  If Timeline is currently enabled, disable and replace rig clock with
+    %  default.  Otherwise enable Timeline and pass Timeline Clock to other
+    %  rig objects.
+    %
+    % See also HW.CLOCK, HW.TIMELINE, SETCLOCK
     if nargin < 1
       enable = ~rig.timeline.UseTimeline;
     end

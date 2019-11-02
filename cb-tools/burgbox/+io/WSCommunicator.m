@@ -32,10 +32,6 @@ classdef WSCommunicator < io.Communicator
     InBuffer
   end
   
-  events
-    MessageReceived
-  end
-  
   methods
     function r = get.Role(obj)
       r = obj.pRole;

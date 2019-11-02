@@ -612,14 +612,35 @@ classdef Window < hw.Window
       Screen('LoadNormalizedGammaTable', obj.PtbHandle, gammaTable);
     end
     
-    function c = calibration(obj, dev, lightIn, clockIn, clockOut)
-      % Creates a calibration file automatically using the light meter
+    function c = calibration(obj, dev, lightIn, clockIn, clockOut, makePlot)
+      % CALIBRATION Performs a gamma calibration for the screen
+      %  Requires the user to hold a photodiode, connected to a NI-DAQ,
+      %  against the screen in order to perform gamma calibration, and
+      %  returns the results as a struct.
+      %  
+      %  Inputs:
+      %    dev (int) : NI DAQ device ID to which the photodiode is
+      %      connected
+      %    lightIn (char) : analogue input channel name to which the
+      %      photodiode is connected
+      %    clockIn (char) : analogue input channel name for clocking pulse
+      %    clockOut (char) : digital output channel name for clocking pulse
+      %    makePlot (bool) : flag for making photodiode signal plot
+      % 
+      %  Output:
+      %    c (struct) : calibration struct containing refresh rate and
+      %      gamma tables
+      %
+      % See also calibrationStruct, applyCalibration
       
       %first load a default gamma table
       stdGammaTable = repmat(linspace(0, 1 - 1/256, 256)',[1 3]);
       disp('Loading standard gamma table');
       Screen('LoadNormalizedGammaTable', obj.PtbHandle, stdGammaTable);
       
+      if nargin < 6
+        makePlot = true;
+      end
       if nargin < 5
         clockOut = 'port1/line0';
       end
@@ -645,37 +666,39 @@ classdef Window < hw.Window
       [light, clock, acqRate] = obj.measuredStim(colours, dev, lightIn, clockIn, clockOut);
       
       %% assess the delay between digital and analog
+      
       [xc, lags ] = xcorr(light, clock, 1000, 'coeff');
-%       figure; plot(lags,xc)
       [~,imax] = max(xc);
       ishift = lags(imax);
       delay = 1000*ishift/acqRate; % in ms
-      fprintf('Digital is ahead of screen by %2.2f ms\n',delay);
-      
+      delayMsg = sprintf('Digital is ahead of screen by %2.2f ms\n', delay);
+      fprintf(delayMsg);
+
       % correct the data
       clock = circshift(clock,[ishift,0]);
       
       %% plot the data
-      
-      ns = length(light);
-      tt = (1:ns)/acqRate;
-      
-      figure; plot(tt,clock);
-      
-      upCrossings = find(diff( clock > 1 ) ==  1);
-      dnCrossings = find(diff( clock > 1 ) == -1);
-      
-      figure; clf
-      for iC = 1:length(upCrossings)
-        plot(tt(upCrossings(iC))*[1 1],[0 5],'-', ...
-          'color', 0.8*[1 1 1] ); hold on
+      if makePlot
+        ns = length(light);
+        tt = (1:ns)/acqRate;
+        
+        figure; plot(tt,clock);
+        ylabel('clock signal'); title('Clock');
+        
+        upCrossings = find(diff( clock > 1 ) ==  1);
+        dnCrossings = find(diff( clock > 1 ) == -1);
+        
+        figure; clf
+        for iC = 1:length(upCrossings)
+          plot(tt(upCrossings(iC))*[1 1],[0 5],'-', ...
+            'color', 0.8*[1 1 1] ); hold on
+        end
+        plot( tt, light ); hold on
+        xlabel('Time (s)');
+        ylabel('Photodiode Signal (Volts)');
+        set(gca,'ylim',[0 1.1*max(light)]);
+        title(delayMsg);
       end
-      plot( tt, light ); hold on
-      xlabel('Time (s)');
-      ylabel('Signal (Volts)');
-      set(gca,'ylim',[0 1.1*max(light)]);
-      title(sprintf('In this plot. digital has been delayed by %2.2f ms', delay));
-      
       %% interpret the results
       
       nsteps = length(steps); % length(UpCrossings)/3;
