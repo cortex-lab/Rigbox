@@ -15,11 +15,16 @@ function [exitStatus, failures] = runall(ignoreTagged)
 
 if nargin < 1; ignoreTagged = true; end
 import matlab.unittest.selectors.HasTag
+% Suppress warnings about shadowed builtins in utilities folder
+origState = warning;
+cleanup = onCleanup(@()warning(origState));
+warning('off','MATLAB:dispatcher:nameConflict')
 
 %% Gather tests
-rigbox_tests = testsuite;
-signals_tests = testsuite(fullfile('..\signals\tests'));
-alyx_tests = testsuite(fullfile('..\alyx-matlab\tests'));
+subfolders = {'IncludeSubfolders', true};
+rigbox_tests = testsuite(subfolders{:});
+signals_tests = testsuite(fullfile('..\signals\tests'), subfolders{:});
+alyx_tests = testsuite(fullfile('..\alyx-matlab\tests'), subfolders{:});
 
 %% Filter & run
 % the suite is automatically sorted based on shared fixtures. However, if
@@ -34,4 +39,3 @@ results = run(tests);
 %% Diagnostics
 exitStatus = any([results.Failed]);
 failures = tests([results.Failed]);
-

@@ -21,6 +21,7 @@ p.localRepository = fullfile(p.rigbox, 'tests', 'fixtures', 'local');
 p.localAlyxQueue = fullfile(p.rigbox, 'tests', 'fixtures', 'alyxQ');
 p.databaseURL = 'https://test.alyx.internationalbrainlab.org';
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
+p.updateSchedule = weekday(now)+1; % Always tomorrow
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.

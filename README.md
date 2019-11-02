@@ -119,6 +119,9 @@ The "cortexlab" directory is intended for functions and classes that are rig or 
 
 The "tests" directory contains code for running unit tests within Rigbox.
 
+### docs
+Contains various guides for how to configure and use Rigbox.
+
 ### submodules
 
 Additional information on the [alyx-matlab](https://github.com/cortex-lab/alyx-matlab), [npy-matlab](https://github.com/kwikteam/npy-matlab), [signals](https://github.com/cortex-lab/signals) and [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) submodules can be found in their respective github repositories.

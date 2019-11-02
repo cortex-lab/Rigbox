@@ -37,6 +37,12 @@ classdef Window < handle
   end
   
   methods (Abstract)
+    % Opens a window into which stimuli can be drawn
+     open(obj)
+     
+     % Closes the window if currently open
+     close(obj)
+    
      % Flips offscreen buffer to window, "validating" it
      % 
      % [TIME, INVALIDFRAMES, VALIDATIONLAG] = flip(WHEN) performs flip as
@@ -63,14 +69,16 @@ classdef Window < handle
     % fillRect(COLOUR, RECT)
     fillRect(obj, colour, rect)
 
-    %Creates the texture on this device from an image matrix
+    % Creates the texture on this device from an image matrix
     tex = makeTexture(obj, image)
     
-    deleteTextures(obj) %Deletes any textures created on this device
+    % Deletes any textures created on this device
+    deleteTextures(obj)
     
-    %Change alpha blending factors
+    % Changes alpha blending factors
     [oldSrcFactor, oldDestFactor] = setAlphaBlending(obj, srcFactor, destFactor)
     
+    % Draws text to the screen
     [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
   end
   

@@ -679,7 +679,7 @@ classdef AlyxPanel < handle
                     obj.WaterRemaining = remainder;
                 end
             catch me
-                d = me.message; %FIXME: JSON no longer returned
+                d = me.message;
                 if isfield(d, 'detail') && strcmp(d.detail, 'Not found.')
                     set(obj.WaterRequiredText, 'ForegroundColor', 'black',...
                         'String', sprintf('Subject %s not found in alyx', obj.Subject));
@@ -761,12 +761,12 @@ classdef AlyxPanel < handle
           %   Examples:
           %     eui.AlyxPanel.round(0.8437, 'up') % 0.85
           %     eui.AlyxPanel.round(12.65, 'up', 3) % 12.6
-          %     eui.AlyxPanel.round(12.6, 'down'), 12);
+          %     eui.AlyxPanel.round(12.6, 'down') % 12
           %
           % See also ROUND
             if nargin < 2; direction = 'nearest'; end
             if nargin < 3; N = 2; end
-            c = 10.^(N-ceil(log10(a)));
+            c = 10.^(N-ceil(log10(abs(a))));
             c(c==Inf) = 0;
             switch direction
                 case 'up'
