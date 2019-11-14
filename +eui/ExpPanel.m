@@ -34,7 +34,7 @@ classdef ExpPanel < handle
     SubjectRef % A string representing the subject's name
     InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
     InfoLabels %label text controls for each info field
-    InfoFields %field controls for each info field
+    InfoFields matlab.ui.control.UIControl %field controls for each info field
     StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
     TrialCountLabel % A counter displaying the current trial number
     ConditionLabel
@@ -47,17 +47,22 @@ classdef ExpPanel < handle
     CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
     MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
     Parameters % A structure of experimental parameters used by this experiment
+    UIContextMenu
   end
   
   methods (Static)
     function p = live(parent, ref, remoteRig, paramsStruct)
-      subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
-      try
-        logEntry = dat.addLogEntry(... % Add new entry to log
-          subject, now, 'experiment-info', struct('ref', ref), '', remoteRig.AlyxInstance);
-      catch ex
-        logEntry.comments = '';
-        warning(ex.getReport());
+      if ~isempty(ref)
+        subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
+        try
+          logEntry = dat.addLogEntry(... % Add new entry to log
+            subject, now, 'experiment-info', struct('ref', ref), '', remoteRig.AlyxInstance);
+        catch ex
+          logEntry.comments = '';
+          warning(ex.getReport());
+        end
+      else
+        logEntry = [];
       end
       params = exp.Parameters(paramsStruct); % Get parameters
       % Can define your own experiment panel
@@ -130,7 +135,7 @@ classdef ExpPanel < handle
     end
   end
   
-  methods %(Access = protected)
+  methods (Access = protected)
     function cleanup(obj)
 %       if ~isempty(obj.ElapsedTimer)
 %         t = obj.ElapsedTimer;
@@ -193,7 +198,7 @@ classdef ExpPanel < handle
       %   show that the experiment has officially begun.
       %   
       % See also EXPSTOPPED
-      if strcmp(evt.Ref, obj.Ref)
+      if strcmp(evt.Ref, obj.Ref) || isempty([evt.Ref, obj.Ref])
         set(obj.StatusLabel, 'String', 'Running'); %staus to running
         set(obj.StopButtons, 'Enable', 'on', 'Visible', 'on'); %enable stop buttons
         obj.StartedDateTime = now; %take note of the experiment start time
@@ -223,36 +228,6 @@ classdef ExpPanel < handle
       %stop listening to further rig events
       obj.Listeners = [];
       obj.Root.TitleColor = [1 0.3 0.22]; % red title area
-      %post water to Alyx
-%       ai = rig.AlyxInstance;
-%       subject = obj.SubjectRef;
-%       if ~isempty(ai)&&~strcmp(subject,'default')
-%           switch class(obj)
-%               case 'eui.ChoiceExpPanel'
-%                   if ~isfield(obj.Block.trial,'feedbackType'); return; end % No completed trials
-%                   if any(strcmp(obj.Parameters.TrialSpecificNames,'rewardVolume')) % Reward is trial specific 
-%                       condition = [obj.Block.trial.condition];
-%                       reward = [condition.rewardVolume];
-%                       amount = sum(reward(:,[obj.Block.trial.feedbackType]==1), 2);
-%                   else % Global reward x positive feedback
-%                       amount = obj.Parameters.Struct.rewardVolume(1)*...
-%                           sum([obj.Block.trial.feedbackType]==1);
-%                   end
-%                   if numel(amount)>1; amount = amount(1); end % Take first element (second being laser)
-%             otherwise
-%                 % Done in exp.SignalsExp/saveData
-%                   %infoFields = {obj.InfoFields.String};
-%                   %inc = cellfun(@(x) any(strfind(x(:)','µl')), {obj.InfoFields.String}); % Find event values ending with 'ul'.
-%                   %reward = cell2mat(cellfun(@str2num,strsplit(infoFields{find(inc,1)},'µl'),'UniformOutput',0));
-%                   %amount = iff(isempty(reward),0,@()reward);
-%           end
-%           if ~any(amount); return; end % Return if no water was given
-%           try
-%             ai.postWater(subject, amount*0.001, now, 'Water', ai.SessionURL);
-%           catch
-%             warning('Failed to post the %.2fml %s recieved during the experiment to Alyx', amount*0.001, subject);
-%           end
-%       end
     end
     
     function expUpdate(obj, rig, evt)
@@ -326,14 +301,38 @@ classdef ExpPanel < handle
       obj.InfoLabels = [bui.label(label, obj.InfoGrid); obj.InfoLabels];
       fieldCtrl = bui.label(field, obj.InfoGrid);
       obj.InfoFields = [fieldCtrl; obj.InfoFields];
+      if isempty(obj.UIContextMenu)
+        obj.UIContextMenu = uicontextmenu(ancestor(obj.Root, 'Figure'));
+        uimenu(obj.UIContextMenu, 'Label', 'Hide field',...
+          'MenuSelectedFcn', @obj.hideInfoField);
+        uimenu(obj.UIContextMenu, 'Label', 'Reset hidden',...
+          'MenuSelectedFcn', @obj.showAllFields);
+      end
+      set([obj.InfoLabels(1), fieldCtrl], 'UIContextMenu', obj.UIContextMenu)
       %reorder the chilren on the grid since it expects controls to be
       %ordered in descending columns
       obj.InfoGrid.Children = [obj.InfoFields; obj.InfoLabels];
-      FieldHeight = 20; %default
-      nRows = numel(obj.InfoLabels);
-      obj.InfoGrid.RowSizes = repmat(FieldHeight, 1, nRows);
+%       nRows = numel(obj.InfoLabels);
+%       fieldHeight = 20; %default
+      fieldHeight = fliplr(strcmp({obj.InfoFields.Visible},'on') * 20);
+      obj.InfoGrid.RowSizes = fieldHeight;%repmat(fieldHeight, 1, nRows);
       %specify more space in parent control for infogrid
-      obj.MainVBox.Sizes(1) = FieldHeight*nRows;
+      obj.MainVBox.Sizes(1) = sum(fieldHeight);%fieldHeight*nRows;
+    end
+    
+    function showAllFields(obj, src, evt)
+      set([obj.InfoGrid.Children], 'Visible', 'on');
+      obj.InfoGrid.RowSizes(obj.InfoGrid.RowSizes == 0) = 20;
+      obj.MainVBox.Sizes(1) = sum(obj.InfoGrid.RowSizes);
+    end
+    
+    function hideInfoField(obj, src, evt)
+        selected = get(ancestor(obj.Root, 'Figure'), 'CurrentObject');
+        [row, ~] = find([obj.InfoFields, obj.InfoLabels] == selected, 1);
+        set([obj.InfoFields(row), obj.InfoLabels(row)], 'Visible', 'off')
+        invisible = fliplr(strcmp({obj.InfoFields.Visible}, 'off'));
+        obj.InfoGrid.RowSizes(invisible) = 0;
+        obj.MainVBox.Sizes(1) = obj.MainVBox.Sizes(1)-20;
     end
     
     function commentsChanged(obj, src, ~)
@@ -358,11 +357,16 @@ classdef ExpPanel < handle
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
+      uimenu(obj.InfoGrid.UIContextMenu, 'Label', 'Hide field',...
+        'MenuSelectedFcn', @obj.hideInfoField);
+      uimenu(obj.InfoGrid.UIContextMenu, 'Label', 'Show all hidden',...
+        'MenuSelectedFcn', @obj.resetHiddenFields);
 %       obj.InfoGrid.ColumnSizes = [100, -1]; % Error: Size of property 'Widths' must be no larger than size of contents.
 
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox); % Custom Panel is where the live plots will go
       
+      if ~isempty(obj.LogEntry)
       bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
       
       obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
@@ -372,6 +376,7 @@ classdef ExpPanel < handle
         'HorizontalAlignment', 'left',... %make it align to the left
         'BackgroundColor', [1 1 1],...%background to white
         'Callback', @obj.commentsChanged); %update comment in log
+      end
       
       buttonpanel = uiextras.HBox('Parent', obj.MainVBox);
       %info grid size will be updated as fields are added, the other
