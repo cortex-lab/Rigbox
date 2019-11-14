@@ -34,25 +34,24 @@ classdef ExpPanel < handle
     SubjectRef % A string representing the subject's name
     InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
     InfoLabels %label text controls for each info field
-    InfoFields matlab.ui.control.UIControl %field controls for each info field
+    InfoFields %field controls for each info field
     StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
     TrialCountLabel % A counter displaying the current trial number
     ConditionLabel
     DurationLabel
     StopButtons % Handles to the End and Abort buttons, used to terminate an experiment through the UI
     StartedDateTime
-%     ElapsedTimer
     CloseButton % The little x at the top right of the panel.  Deletes the object.
     CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
     CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
     MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
     Parameters % A structure of experimental parameters used by this experiment
-    UIContextMenu
+    UIContextMenu % Holds a context menu for show/hide options for info fields
   end
   
   methods (Static)
     function p = live(parent, ref, remoteRig, paramsStruct)
-      if ~isempty(ref)
+      if ~isempty(ref) % TODO Change so that dummy ref may be used, e.g. debug mode?
         subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
         try
           logEntry = dat.addLogEntry(... % Add new entry to log
@@ -75,8 +74,6 @@ classdef ExpPanel < handle
         switch params.Struct.type
           case {'SingleTargetChoiceWorld' 'ChoiceWorld' 'DiscWorld' 'SurroundChoiceWorld'}
             p = eui.ChoiceExpPanel(parent, ref, params, logEntry);
-%           case 'GaborMapping'
-%             p = eui.GaborMappingExpPanel(parent, ref, params, logEntry);
           case 'BarMapping'
             p = eui.MappingExpPanel(parent, ref, params, logEntry);
           case {'PositionTargetRange'}
@@ -103,9 +100,6 @@ classdef ExpPanel < handle
         event.listener(remoteRig, 'ExpStarted', @p.expStarted)
         event.listener(remoteRig, 'ExpStopped', @p.expStopped)
         event.listener(remoteRig, 'ExpUpdate', @p.expUpdate)];
-%       p.ElapsedTimer = timer('Period', 0.9, 'ExecutionMode', 'fixedSpacing',...
-%         'TimerFcn', @(~,~) set(p.DurationLabel, 'String',...
-%         sprintf('%i:%02.0f', floor(p.elapsed/60), mod(p.elapsed, 60))));
     end
   end
   
@@ -118,9 +112,12 @@ classdef ExpPanel < handle
       obj.build(parent);
     end
     
+    function cleanup(obj)
+      % For subclasses to implement
+    end
+    
     function delete(obj)
       disp('ExpPanel destructor called');
-      obj.cleanup();
       if obj.Root.isvalid
         obj.Root.delete();
       end
@@ -136,14 +133,6 @@ classdef ExpPanel < handle
   end
   
   methods (Access = protected)
-    function cleanup(obj)
-%       if ~isempty(obj.ElapsedTimer)
-%         t = obj.ElapsedTimer;
-%         stop(t);
-%         delete(t);
-%         obj.ElapsedTimer = [];
-%       end
-    end
     
     function closeRequest(obj, src, evt)
       obj.delete();
@@ -298,41 +287,56 @@ classdef ExpPanel < handle
     end
     
     function [fieldCtrl] = addInfoField(obj, label, field)
+      % ADDINFOFIELD Add new event info field to InfoGrid
+      %  Adds a given field to the grid and adjusts the total height of the
+      %  grid to accomodate all current fields.
+      %
+      rowH = 20; % default height of each field
       obj.InfoLabels = [bui.label(label, obj.InfoGrid); obj.InfoLabels];
       fieldCtrl = bui.label(field, obj.InfoGrid);
       obj.InfoFields = [fieldCtrl; obj.InfoFields];
       if isempty(obj.UIContextMenu)
         obj.UIContextMenu = uicontextmenu(ancestor(obj.Root, 'Figure'));
         uimenu(obj.UIContextMenu, 'Label', 'Hide field',...
-          'MenuSelectedFcn', @obj.hideInfoField);
+          'MenuSelectedFcn', @(~,~) obj.hideInfoField);
         uimenu(obj.UIContextMenu, 'Label', 'Reset hidden',...
-          'MenuSelectedFcn', @obj.showAllFields);
+          'MenuSelectedFcn', @(~,~) obj.showAllFields);
       end
       set([obj.InfoLabels(1), fieldCtrl], 'UIContextMenu', obj.UIContextMenu)
-      %reorder the chilren on the grid since it expects controls to be
-      %ordered in descending columns
+      % reorder the chilren on the grid since it expects controls to be
+      % ordered in descending columns
       obj.InfoGrid.Children = [obj.InfoFields; obj.InfoLabels];
-%       nRows = numel(obj.InfoLabels);
-%       fieldHeight = 20; %default
-      fieldHeight = fliplr(strcmp({obj.InfoFields.Visible},'on') * 20);
-      obj.InfoGrid.RowSizes = fieldHeight;%repmat(fieldHeight, 1, nRows);
-      %specify more space in parent control for infogrid
-      obj.MainVBox.Sizes(1) = sum(fieldHeight);%fieldHeight*nRows;
+      fieldHeights = fliplr(strcmp({obj.InfoFields.Visible},'on') * rowH);
+      obj.InfoGrid.RowSizes = fieldHeights;
+      % specify more space in parent control for infogrid
+      obj.MainVBox.Sizes(1) = sum(fieldHeights);
     end
     
-    function showAllFields(obj, src, evt)
+    function showAllFields(obj)
+      % SHOWALLFIELDS Show all hidden info fields
+      %  Callback for the 'Reset hidden' ui menu item.  Sets all fields to
+      %  visible and resets row sizes to default height.
+      %
+      % See also HIDEINFOFIELD, ADDINFOFIELD
+      rowHeight = 20;
       set([obj.InfoGrid.Children], 'Visible', 'on');
-      obj.InfoGrid.RowSizes(obj.InfoGrid.RowSizes == 0) = 20;
+      obj.InfoGrid.RowSizes(obj.InfoGrid.RowSizes == 0) = rowHeight;
       obj.MainVBox.Sizes(1) = sum(obj.InfoGrid.RowSizes);
     end
     
-    function hideInfoField(obj, src, evt)
-        selected = get(ancestor(obj.Root, 'Figure'), 'CurrentObject');
-        [row, ~] = find([obj.InfoFields, obj.InfoLabels] == selected, 1);
-        set([obj.InfoFields(row), obj.InfoLabels(row)], 'Visible', 'off')
-        invisible = fliplr(strcmp({obj.InfoFields.Visible}, 'off'));
-        obj.InfoGrid.RowSizes(invisible) = 0;
-        obj.MainVBox.Sizes(1) = obj.MainVBox.Sizes(1)-20;
+    function hideInfoField(obj)
+      % HIDEINFOFIELD Hides the currently selected field row
+      %  Callback for the 'Hide field' ui menu item.  Turns off the
+      %  visiblity of the currently selected field and sets its row height
+      %  to 0.
+      %  
+      % See also SHOWALLFIELDS, ADDINFOFIELD
+      selected = get(ancestor(obj.Root, 'Figure'), 'CurrentObject');
+      [row, ~] = find([obj.InfoFields, obj.InfoLabels] == selected, 1);
+      set([obj.InfoFields(row), obj.InfoLabels(row)], 'Visible', 'off')
+      invisible = fliplr(strcmp({obj.InfoFields.Visible}, 'off'));
+      obj.InfoGrid.RowSizes(invisible) = 0;
+      obj.MainVBox.Sizes(1) = obj.MainVBox.Sizes(1)-20;
     end
     
     function commentsChanged(obj, src, ~)
@@ -367,22 +371,25 @@ classdef ExpPanel < handle
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox); % Custom Panel is where the live plots will go
       
       if ~isempty(obj.LogEntry)
-      bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
-      
-      obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
-        'Style', 'edit',... %text editor
-        'String', obj.LogEntry.comments,...
-        'Max', 2,... %make it multiline
-        'HorizontalAlignment', 'left',... %make it align to the left
-        'BackgroundColor', [1 1 1],...%background to white
-        'Callback', @obj.commentsChanged); %update comment in log
+        bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
+        
+        obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
+          'Style', 'edit',... %text editor
+          'String', obj.LogEntry.comments,...
+          'Max', 2,... %make it multiline
+          'HorizontalAlignment', 'left',... %make it align to the left
+          'BackgroundColor', [1 1 1],...%background to white
+          'Callback', @obj.commentsChanged); %update comment in log
+        h = [15 80];
+      else
+        h = [];
       end
       
       buttonpanel = uiextras.HBox('Parent', obj.MainVBox);
       %info grid size will be updated as fields are added, the other
       %default panels get reasonable space, and the custom panel gets
       %whatever's left
-      obj.MainVBox.Sizes = [0 -1 15 80 24];
+      obj.MainVBox.Sizes = [0 -1 h 24];
       
       %add the default set of info fields to the grid
       obj.StatusLabel = obj.addInfoField('Status', 'Pending');

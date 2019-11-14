@@ -9,66 +9,70 @@ classdef SignalsExp < handle
   % 2012-11 CB created
   
   properties
-    %An array of event handlers. Each should specify the name of the
-    %event that activates it, callback functions to be executed when
-    %activated and an optional delay between the event and activation.
-    %They should be objects of class EventHandler.
+    % An array of event handlers. Each should specify the name of the
+    % event that activates it, callback functions to be executed when
+    % activated and an optional delay between the event and activation.
+    % They should be objects of class EventHandler.
     EventHandlers = exp.EventHandler.empty
 
-    %Timekeeper used by the experiment. Clocks return the current time. See
-    %the Clock class definition for more information.
+    % Timekeeper used by the experiment. Clocks return the current time. See
+    % the Clock class definition for more information.
     Clock = hw.ptb.Clock
     
-    %Key for terminating an experiment whilst running. Shoud be a
-    %Psychtoolbox keyscan code (see PTB KbName function).
+    % Key for terminating an experiment whilst running. Shoud be a
+    % Psychtoolbox keyscan code (see PTB KbName function).
     QuitKey = KbName('q')
     
-    PauseKey = KbName('esc') %Key for pausing an experiment
+    % Key for pausing an experiment
+    PauseKey = KbName('esc')
     
-    %String description of the type of experiment, to be saved into the
-    %block data field 'expType'.
+    % String description of the type of experiment, to be saved into the
+    % block data field 'expType'.
     Type = ''
     
-    %Reference for the rig that this experiment is being run on, to be
-    %saved into the block data field 'rigName'.
+    % Reference for the rig that this experiment is being run on, to be
+    % saved into the block data field 'rigName'.
     RigName
     
-    %Communcator object for sending signals updates to mc.  Set by
-    %expServer
+    % Communcator object for sending signals updates to mc.  Set by
+    % expServer
     Communicator = io.DummyCommunicator
     
-    %Delay (secs) before starting main experiment phase after experiment
-    %init phase has completed
+    % Delay (secs) before starting main experiment phase after experiment
+    % init phase has completed
     PreDelay = 0 
     
-    %Delay (secs) before beginning experiment cleanup phase after
-    %main experiment phase has completed (assuming an immediate abort
-    %wasn't requested).
+    % Delay (secs) before beginning experiment cleanup phase after
+    % main experiment phase has completed (assuming an immediate abort
+    % wasn't requested).
     PostDelay = 0
     
-    %Flag indicating whether the experiment is paused
+    % Flag indicating whether the experiment is paused
     IsPaused = false 
     
-    %Holds the wheel object, 'mouseInput' from the rig object.  See also
-    %USERIG, HW.DAQROTARYENCODER
+    % Holds the wheel object, 'mouseInput' from the rig object.  See also
+    % USERIG, HW.DAQROTARYENCODER
     Wheel
     
-    %Holds the object for interating with the lick detector.  See also
-    %HW.DAQEDGECOUNTER
+    % Holds the object for interating with the lick detector.  See also
+    % HW.DAQEDGECOUNTER
     LickDetector
     
-    %Holds the object for interating with the DAQ outputs (reward valve,
-    %etc.)  See also HW.DAQCONTROLLER
+    % Holds the object for interating with the DAQ outputs (reward valve,
+    % etc.)  See also HW.DAQCONTROLLER
     DaqController
     
-    %Get the handle to the PTB window opened by expServer
+    % Get the handle to the PTB window opened by expServer
     StimWindowPtr
     
+    % The layer textureId names mapped to their numerical GL texture ids
     TextureById
     
+    % A map of stimulus element layers whose keys are the entry names in
+    % the Visual StructRef object
     LayersByStim
     
-    %Occulus viewing model
+    % Occulus viewing model
     Occ
     
     Time
@@ -83,22 +87,22 @@ classdef SignalsExp < handle
     
     Audio % = aud.AudioRegistry
     
-    %Holds the parameters structure for this experiment
+    % Holds the parameters structure for this experiment
     Params
     
     ParamsLog
     
-    %The bounds for the photodiode square
+    % The bounds for the photodiode square
     SyncBounds
     
-    %Sync colour cycle (usually [0, 255]) - cycles through these each
-    %time the screen flips.
+    % Sync colour cycle (usually [0, 255]) - cycles through these each
+    % time the screen flips.
     SyncColourCycle
     
-    %Index into SyncColourCycle for next sync colour
+    % Index into SyncColourCycle for next sync colour
     NextSyncIdx
     
-    %Alyx instance from client.  See also SAVEDATA
+    % Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
     
     Debug matlab.lang.OnOffSwitchState = 'on'
@@ -123,6 +127,8 @@ classdef SignalsExp < handle
     GlobalPars
     
     ConditionalPars
+    
+    ExpStop
   end
   
   properties (Access = protected)
@@ -143,6 +149,10 @@ classdef SignalsExp < handle
   
   methods
     function obj = SignalsExp(paramStruct, rig, debug)
+      % TODO Move all rig related stuff out of constructor to useRig method.
+      % @body This will require a change to audstream.Registry: should work
+      % in a similar way to the visual stucture whereby the names of the
+      % devices are looked up at runtime.
       if nargin > 2; obj.Debug = debug; end % Set debug mode
       clock = rig.clock;
       clockFun = @clock.now;
@@ -160,6 +170,7 @@ classdef SignalsExp < handle
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
+      % TODO Generalize inputs
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
@@ -179,6 +190,7 @@ classdef SignalsExp < handle
         obj.GlobalPars, obj.ConditionalPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
+      obj.Events.expStop = lastTrialOver; %net.origin('expStop');
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -191,12 +203,19 @@ classdef SignalsExp < handle
           obj.Outputs, obj.Audio);
       % if user defined 'expStop' in their exp def, allow 'expStop' to also
       % take value at 'lastTrialOver', else just set to 'lastTrialOver'
-      if isfield(obj.Events, 'expStop')
+      if isequal(obj.Events.expStop, lastTrialOver)
+        obj.ExpStop = lastTrialOver;
+      else
+        obj.ExpStop = obj.Events.expStop;
         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
         entryAdded(obj.Events, 'expStop', obj.Events.expStop);
-      else
-        obj.Events.expStop = lastTrialOver;
       end
+%       if isfield(obj.Events, 'expStop')
+%         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
+%         entryAdded(obj.Events, 'expStop', obj.Events.expStop);
+%       else
+%         obj.Events.expStop = lastTrialOver;
+%       end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
@@ -204,8 +223,8 @@ classdef SignalsExp < handle
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
-      obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'));
-      obj.ConditionalPars.post(allCondStruct);
+      obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'))
+      obj.ConditionalPars.post(allCondStruct)
       %% data struct
       %initialise stim window frame times array, large enough for ~2 hours
       obj.Data.stimWindowUpdateTimes = zeros(60*60*60*2, 1);
@@ -425,10 +444,12 @@ classdef SignalsExp < handle
     function quit(obj, immediately)
       % if the experiment was stopped via 'mc' or 'q' key
       if isempty(obj.Events.expStop.Node.CurrValue)
-        % re-assign 'expStop' as an origin signal and post to it
-        obj.Events.expStop = obj.Net.origin('expStop');
-        entryAdded(obj.Events, 'expStop', obj.Events.expStop);
-        obj.Events.expStop.post(true);
+        stopNode = obj.ExpStop.Node;
+        if isempty(stopNode.CurrValue)
+          % sneak in and update node value
+          affectedIdxs = submit(obj.Net.Id, stopNode.Id, true);
+          applyNodes(obj.Net.Id, affectedIdxs);
+        end
       end
       
       % set any pending handlers inactive
@@ -562,8 +583,19 @@ classdef SignalsExp < handle
     end
     
     function newLayerValues(obj, name, val)
-%       fprintf('new layer value for %s\n', name);
-%       show = [val.show]
+      % NEWLAYERVALUES Callback for layer updates for window invalidation
+      %  When a visual element's layers change, store the new values and
+      %  check whether stim window needs redrawing.  The following two
+      %  conditions invalidate the stim window:
+      %    1. Any of the layers have show == true
+      %    2. Show has changed from true to false for any layer
+      %
+      %  Inputs:
+      %    name (char) : The name of the stimulus (entry name in
+      %      obj.Visual StructRef)
+      %    val (struct) : A struct array of layers with new values
+      %
+      % See also LOADVISUAL, VIS.DRAW, VIS.EMPTYLAYER
       if isKey(obj.LayersByStim, name)
         prev = obj.LayersByStim(name);
         prevshow = any([prev.show]);
@@ -571,7 +603,7 @@ classdef SignalsExp < handle
         prevshow = false;
       end
       obj.LayersByStim(name) = val;
-
+      
       if any([val.show]) || prevshow
         obj.StimWindowInvalid = true;
       end
@@ -694,6 +726,7 @@ classdef SignalsExp < handle
       while obj.IsLooping
         %% Check whether we're paused
         while obj.IsPaused
+          drawnow
           pause(0.25);
           checkInput(obj);
         end
@@ -719,7 +752,7 @@ classdef SignalsExp < handle
         
         %% signalling
 %         tic
-        wx = readAbsolutePosition(obj.Wheel);
+        wx = obj.Wheel.readAbsolutePosition();
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
           % read and log the current lick count
@@ -805,7 +838,7 @@ classdef SignalsExp < handle
         else
           % Post key presses to inputs.keyboard signal
           key = KbName(keysPressed);
-          if ~obj.IsPaused
+          if ~obj.IsPaused && ~isempty(key)
             if ischar(key) % Post single key press
               post(obj.Inputs.keyboard, key);
             else % Post each key press in order

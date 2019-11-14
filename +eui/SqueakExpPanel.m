@@ -1,6 +1,7 @@
 classdef SqueakExpPanel < eui.ExpPanel
-  %EUI.SQUEAKEXPPANEL Basic UI control for monitoring an experiment
-  %   TODO
+  %EUI.SQUEAKEXPPANEL Basic UI control for monitoring a Signals experiment
+  %   Displays all values of events, inputs and outputs signals as they
+  %   arrive from the remote stimulus server.
   %
   % Part of Rigbox
   
@@ -34,7 +35,7 @@ classdef SqueakExpPanel < eui.ExpPanel
     end
   end
   
-  methods %(Access = protected)
+  methods (Access = protected)
     function newTrial(obj, num, condition)
     end
     
@@ -145,25 +146,31 @@ classdef SqueakExpPanel < eui.ExpPanel
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
+      
 %       obj.InfoGrid.ColumnSizes = [150, -1];
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox);
-      
-      bui.label('Comments', obj.MainVBox);
-      
-      obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
-        'Style', 'edit',... %text editor
-        'String', obj.LogEntry.comments,...
-        'Max', 2,... %make it multiline
-        'HorizontalAlignment', 'left',... %make it align to the left
-        'BackgroundColor', [1 1 1],...%background to white
-        'Callback', @obj.commentsChanged); %update comment in log
-      
+      if ~isempty(obj.LogEntry)
+        bui.label('Comments', obj.MainVBox, 'Tag', 'Comments');
+        
+        obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
+          'Style', 'edit',... %text editor
+          'String', obj.LogEntry.comments,...
+          'Max', 2,... %make it multiline
+          'Tag', 'Comments', ...
+          'HorizontalAlignment', 'left',... %make it align to the left
+          'BackgroundColor', [1 1 1],...%background to white
+          'Callback', @obj.commentsChanged); %update comment in log
+        h = [15 80];
+      else
+        h = [];
+      end
+            
       buttonpanel = uiextras.HBox('Parent', obj.MainVBox);
       %info grid size will be updated as fields are added, the other
       %default panels get reasonable space, and the custom panel gets
       %whatever's left
-      obj.MainVBox.Sizes = [0 -1 15 80 24];
+      obj.MainVBox.Sizes = [0 -1 h 24];
       
       %add the default set of info fields to the grid
       obj.StatusLabel = obj.addInfoField('Status', 'Pending');

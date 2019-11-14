@@ -178,7 +178,7 @@ classdef StimulusControl < handle
     end
   end
   
-  methods %(Access = protected) %TODO Check everything works as protected
+  methods (Access = protected)
     function b = connected(obj)
       b = ~isempty(obj.Socket) && obj.Socket.isOpen();
     end

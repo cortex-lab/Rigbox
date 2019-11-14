@@ -45,8 +45,6 @@ classdef Experiment < handle
     % object of class exp.ConditionServer
     ConditionServer;
     
-    LoopDuration = [];
-    
     % String description of the type of experiment, to be saved into the
     % block data field 'expType'.
     Type = '';
