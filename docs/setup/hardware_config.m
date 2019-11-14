@@ -193,11 +193,10 @@ stimWindow.PtbVerbosity = 2;
 help WhiteIndex
 help BlackIndex
 
-%% - Performing gamma calibration from command window
-%%% Calibration 
+%%% Calibration (performing gamma calibration from command window)
 % This stores the gamma correction tables (See Below) The simplist way to
-% to run the calibration is through SRV.EXPSEERVER once the rest of the
-% hardware is configures, however it can also be done via the command
+% to run the calibration is through |srv.expServer| once the rest of the
+% hardware is configured, however it can also be done via the command
 % window, assuming you have an NI DAQ installed:
 lightIn = 'ai0'; % The input channel of the photodiode used to measure screen
 clockIn = 'ai1'; % The clocking pulse input channel
@@ -206,8 +205,8 @@ clockOut = 'port1/line0 (PFI4)'; % The clocking pulse output channel
 % connection between `clockIn` and `clockOut`.
 
 % Make sure the photodiode is placed against the screen before running
-stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-
+stimWindow.Calibration = ...
+  stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
 
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
@@ -221,8 +220,8 @@ stimWindow.BackgroundColour = stimWindow.Green; % Change the background
 stimWindow.flip(); % Whoa!
 
 %% - Displaying a Gabor patch
-% Make a texture and draw it to the screen with MAKETEXTURE and DRAWTEXTURE
-% Let's make a Gabor patch as an example:
+% Make a texture and draw it to the screen with |makeTexture| and
+% |drawTexture| Let's make a Gabor patch as an example:
 sz = 1000; % size of texture matrix
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; % randomised cosine phase
@@ -244,12 +243,12 @@ stimWindow.drawTexture(tex)
 stimWindow.flip;
 
 %% - Clearing the window
-% To clear the window, the use CLEAR method:
+% To clear the window, the use the |clear| method:
 stimWindow.clear % Re-draw background colour
 stimWindow.flip; % Flip to screen
 
 %% - Drawing text to the screen
-% Drawing text to the screen can be done with the DRAWTEXT method:
+% Drawing text to the screen can be done with the |drawText| method:
 [x, y] = deal('center'); % Render the text to the center
 [nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
 stimWindow.flip;

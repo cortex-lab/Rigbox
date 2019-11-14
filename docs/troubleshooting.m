@@ -180,13 +180,60 @@ git.runCmd('checkout master'); git.update(0);
 %  Rigbox:MockDialog:newCall:behaviourNotSet
 %  
 
-% Alyx:registerFile:InvalidPath
-% Alyx:registerFile:UnableToValidate
-% Alyx:registerFile:EmptyDNSField
-% Alyx:registerFile:InvalidRepoPath
-% Alyx:registerFile:InvalidFileType
-% Alyx:registerFile:InvalidFileName
-% Alyx:registerFile:NoValidPaths
+% ..:..:mkdirFailed
+% Problem:
+%  MATLAB was unable to create a new folder on the system.
+%
+% Solution:
+%  In general Rigbox code only creates new folders when a new experiment is
+%  created.  The folders are usually created in the localRepository and
+%  mainRepository locations that are set in your paths file.  If either of
+%  these are remote (e.g. a server accessed via SMB) check that you can
+%  navigate to the location in Windows' File Explorer (sometimes the access
+%  credentials need setting first).  If you can, next check the permissions
+%  of these locations.  If the folders are read-only, MATLAB will not be
+%  able to create a new experiment folder there.  Either change the
+%  permissions or set a different path in |dat.paths|.  One final thing to
+%  check is that the folder names are valid: the presence of a folder that
+%  is not correctly numbered in the subject's date folder may lead to an
+%  invalid expRef.  Withtin a date folder there should only be folders name
+%  '1', '2', '3', etc.
+%
+% IDs
+%  Alyx:newExp:mkdirFailed
+%  Rigbox:dat:newExp:mkdirFailed
+%
+
+% ..:newExp:expFoldersAlreadyExist
+% Problem:
+%  The folder structure for a newly generated experiment reference is
+%  already in place.
+%
+%  Experiment references are generated based on subject name, today's date
+%  and the experiment number, which is found by looking at the folder
+%  structure of the main repository.  In a subject's experiment folder for
+%  a given date there are numbered folders.  When running a new experiment,
+%  the code takes the folder name with the largest number and adds 1.  It
+%  then checks that this numbered folder doesn't exist in the other
+%  repositories.  If it does, an error is thrown so that no previous
+%  experiment data is overwritten.  
+%
+% Solution:
+%  Check the folder structure for all your repositories (namely the
+%  localRepository and mainRepository set in |dat.paths|).  It may be that
+%  there is an empty experiment folder in the localRepository but not the
+%  mainRepository, in which case you can delete it.  Alternatively, if you
+%  find a full experiment folder in the local but not the main, copy it
+%  over so that the two match.  This will avoid a duplicate expRef being
+%  created (remember, new expRefs are created based on the folder structure
+%  of the mainRepository only).
+%
+% IDs
+%  Alyx:newExp:expFoldersAlreadyExist
+%  Rigbox:dat:newExp:expFoldersAlreadyExist
+%
+
+% Other:
 
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
@@ -197,9 +244,35 @@ git.runCmd('checkout master'); git.update(0);
 % Rigbox:hw:calibrate:deadscale
 % Rigbox:hw:calibrate:partialPVpair
 
+% Rigbox:srv:unexpectedUDPResponse
+% Rigbox:srv:unexpectedUDP
+% rigbox:srv:expServer:noHardwareConfig
+
+% Rigbox:tests:pnet:notInTest
+% Rigbox:dat:expPath:NotEnoughInputs
+% Rigbox:exp:SignalsExp:NoScreenConfig
+% Rigbox:exp:Parameters:wrongNumberOfColumns
+
+% Rigbox:dat:expFilePath:NotEnoughInputs
+
 % Rigbox:MockDialog:newCall:EmptySeq
 
 % Rigbox:exp:SignalsExp:noTokenSet
+
+% Alyx:newExp:subjectNotFound
+% Alyx:registerFile:InvalidPath
+% Alyx:registerFile:UnableToValidate
+% Alyx:registerFile:EmptyDNSField
+% Alyx:registerFile:InvalidRepoPath
+% Alyx:registerFile:InvalidFileType
+% Alyx:registerFile:InvalidFileName
+% Alyx:registerFile:NoValidPaths
+
+% Alyx:getFile:InvalidID
+% Alyx:getExpRef:InvalidID
+% Alyx:getFile:InvalidType
+% Alyx:expFilePath:InvalidType
+% Alyx:url2Eid:InvalidURL
 
 % toStr:isstruct:Unfinished
 
@@ -207,9 +280,4 @@ git.runCmd('checkout master'); git.update(0);
 % shape:error
 % window:error
 
-% Rigbox:srv:unexpectedUDPResponse
-% Rigbox:srv:unexpectedUDP
-% rigbox:srv:expServer:noHardwareConfig
-
-% Rigbox:dat:expFilePath:NotEnoughInputs
-
+% signals:test:copyPaths
