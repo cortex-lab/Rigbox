@@ -12,7 +12,6 @@ classdef Signals < exp.SignalsExp
     
     function updateParams(obj, paramStruct)
       % get global parameters & conditional parameters structs
-%       if isempty(obj); return; end
       fprintf('Updating parameters\n');
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));

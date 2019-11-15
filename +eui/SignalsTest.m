@@ -1,6 +1,6 @@
-classdef SignalsTest < handle %& exp.SignalsExp
-  %EXPTEST Creates a GUI for testing Signals Exp Defs
-  %
+classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
+  %SIGNALSTEST A GUI for testing SignalsExp experiment definitions
+  % TODO This may be generalized for all Experiment classes!
   % See also: EXP.SIGNALSEXPTEST, EUI.MCONTROL
   %
   
@@ -82,7 +82,6 @@ classdef SignalsTest < handle %& exp.SignalsExp
       %SIGNALSTEST Creates a GUI for testing SignalsExp experiments
       % constructor method runs the 'buildUI' method to create the ExpTest
       % panel
-      % TODO Maybe add rig as optional input
       PsychDebugWindowConfiguration % TODO Remove
       InitializeMatlabOpenGL
       % Check paths file exists
@@ -173,6 +172,7 @@ classdef SignalsTest < handle %& exp.SignalsExp
       cb = @(~,e) iff(strcmp(e.Name,'update'), @()obj.log('Experiment update: %s', e.Data{2}), @nop);
       addlistener(obj.DummyRemote, 'ExpUpdate', cb);
       obj.DummyRemote.Name = obj.Hardware.name;
+      obj.Ref = dat.constructExpRef('test', now, 1);
       
       obj.loadParameters('<defaults>')
     end
@@ -191,7 +191,6 @@ classdef SignalsTest < handle %& exp.SignalsExp
       % callback for 'Options' button: sets options for running the Exp Def:
       % 1) yes/no for live-plotting; 2) yes/no for saving a block file
       
-      %TODO Add option for automatic posting when params change
       [~,~,w] = distribute(pick(groot, 'ScreenSize'));
       %       getnicedialoglocation_for_newid([300 250], 'pixels')
       dh = dialog('Position', [w/2, 100, 300 250], 'Name', ...
@@ -222,18 +221,21 @@ classdef SignalsTest < handle %& exp.SignalsExp
         
         % Configure live plot
         obj.LivePlot = livePlotCheck.Value;
-        if obj.LivePlot && obj.IsRunning && ~isvalid(obj.LivePlotFig)
-          plot(obj)
-        elseif ~obj.LivePlot && isvalid(obj.LivePlotFig)
-          close(obj.LivePlotFig)
+        figValid =  ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig);
+        if obj.LivePlot && obj.IsRunning && figValid == false
+          % If the experiment is running and we want to show figure...
+          plot(obj) % ... create new plot
+        elseif ~obj.LivePlot && figValid
+          % If the figure is open and we chose not to plot...
+          close(obj.LivePlotFig) % ... close the figure
         end
         
         % Configure the ExpPanel
         obj.ShowExpPanel = expPanelCheck.Value;
-        if ~expPanelCheck.Value
+        if ~obj.ShowExpPanel % Hide the panel
           obj.ExpPanelBox.Visible = false;
           obj.ExpPanelBox.Parent.set('Widths', [-1, 0]);
-        else
+        else % If an experiment is running, show panel, otherwise done by init
           if obj.IsRunning
             obj.ExpPanelBox.Visible = true;
             obj.ExpPanelBox.Parent.set('Widths', [-1, 400]);
@@ -272,11 +274,11 @@ classdef SignalsTest < handle %& exp.SignalsExp
         % Stop experiment
         obj.log('Stopping experiment');
         obj.Experiment.quit;
-%         if obj.LivePlot && ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig)
-%           obj.LivePlotFig.DeleteFcn(); % Clear plot listeners
-%         end
+        %         if obj.LivePlot && ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig)
+        %           obj.LivePlotFig.DeleteFcn(); % Clear plot listeners
+        %         end
         obj.stopTimer
-
+        
         obj.StartButton.set('String', 'Start');
       else % start experiment
         % FIXME Log via event handlers
@@ -286,7 +288,7 @@ classdef SignalsTest < handle %& exp.SignalsExp
         obj.log('Starting ''%s'' experiment.  Press <%s> to pause', ...
           obj.Parent.Name, KbName(obj.Experiment.PauseKey));
         try % TODO Stop timer?
-          obj.Experiment.run([]);
+          obj.Experiment.run(obj.Ref);
         catch ex
           % Experiment stopped with an exception
           % Notify panel and stop timer
@@ -352,13 +354,13 @@ classdef SignalsTest < handle %& exp.SignalsExp
         % After deletion the function continues throwing an error about
         % access to a deleted object
         obj.Experiment.quit(true);
-%         drawnow nocallbacks
-%         waitfor(obj.Experiment,'IsLooping',false)
+        %         drawnow nocallbacks
+        %         waitfor(obj.Experiment,'IsLooping',false)
       end
       delete(obj.Experiment)
       obj.Experiment = experiment;
     end
-        
+    
   end
   
   methods (Access = protected)
@@ -418,12 +420,12 @@ classdef SignalsTest < handle %& exp.SignalsExp
       uicontrol('Parent', hbox,... % Make 'Save' button
         'Style', 'pushbutton',...
         'String', 'Save...',...
-        'Callback', @(~,~)obj.log('Callback not yet implemented'),... % When pressed run saveParamProfile() function
+        'Callback', @(~,~)obj.saveParamProfile,...
         'Enable', 'on');
       uicontrol('Parent', hbox,... % Make 'Delete' button
         'Style', 'pushbutton',...
         'String', 'Delete...',...
-        'Callback', @(~,~)obj.log('Callback not yet implemented'),...% When pressed run delParamProfile() function
+        'Callback', @(~,~)obj.delParamProfile,...
         'Enable', 'on');
       hbox.Sizes = [60 200 60 60 60]; % Set horizontal sizes for Sets dropdowns and buttons
       obj.ParamPanel.Sizes = [22 22]; % Set vertical size by changing obj.ParamPanel VBox size
@@ -440,10 +442,16 @@ classdef SignalsTest < handle %& exp.SignalsExp
       % Set proportions
       obj.MainGrid.set('Heights', [-1 -9 -3]);
       
-      obj.RefreshTimer = timer('Period', 0.1, 'ExecutionMode', 'fixedSpacing',...
-        'TimerFcn', @(~,~)notify(obj, 'UpdatePanel'));
+      % Add a timer for updating the panel.  NB: Although we could call
+      % obj.ExpPanel.update() directly, events throw errors as warnings
+      % providing us with more information for debugging!
+      obj.RefreshTimer = timer(...
+        'Name', 'ExpPanel update', ...
+        'Period', 0.1, ...
+        'ExecutionMode', 'fixedSpacing',...
+        'TimerFcn', @(~,~)obj.notify('UpdatePanel'));
     end
-    
+        
     function init(obj)
       % INIT Initialize experiment object
       %  Instantiate an experiment object and configure the live plot and
@@ -478,9 +486,9 @@ classdef SignalsTest < handle %& exp.SignalsExp
           @()set(obj.ExpPanelBox, 'Visible', false);
           @()set(obj.ExpPanelBox.Parent, 'Widths', [-1, 0])});
         obj.Listeners = [obj.Listeners
-            event.listener(obj, 'UpdatePanel', @(~,~)obj.ExpPanel.update())
-            event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', hidePanel) % FIXME No need to keep around
-            event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', @(~,~)obj.stopTimer)];
+          event.listener(obj, 'UpdatePanel', @(~,~)obj.ExpPanel.update())
+          event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', hidePanel) % FIXME No need to keep around
+          event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', @(~,~)obj.stopTimer)];
         if strcmp(obj.ExpPanelBox.Visible, 'off')
           obj.ExpPanelBox.Visible = true;
           set(get(obj.ExpPanelBox, 'Parent'), 'Widths', [-1, 400])
@@ -489,8 +497,8 @@ classdef SignalsTest < handle %& exp.SignalsExp
       end
       % TODO Set as callback?
       % Update the parameter set label to indicate used for this experiment
-%       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
-%       set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
+      %       parLabel = sprintf('from last experiment of %s (%s)', subject, expRef);
+      %       set(obj.ParamProfileLabel, 'String', parLabel, 'ForegroundColor', [0 0 0]);
     end
     
     function stopTimer(obj)
@@ -585,13 +593,58 @@ classdef SignalsTest < handle %& exp.SignalsExp
       end
       obj.ParamEditor.addlistener('Changed', @(src,event) obj.paramProfileChanged(src, event));
       set(obj.ParamProfileLabel, 'String', label, 'ForegroundColor', [0 0 0]);
-      
-      
-      % construct an expRef % TODO Just save as property?
-      pars.Struct.expRef = dat.constructExpRef('default', now, 1);
-      
     end
     
+    function saveParamProfile(obj)
+      % Called by 'Save...' button press, save a new parameter profile
+      selProfile = obj.ParameterSets.Selected; % Find which set is currently selected
+      % This statement is for autofilling the save as input dialog; default
+      % value is currently selected profile name, however if a special case
+      % profile is selected there is no default value
+      def = iff(selProfile(1) ~= '<', selProfile, '');
+      ipt = inputdlg('Enter a name for the parameters profile', 'Name', 1, {def});
+      if isempty(ipt)
+        return
+      else % Get the name they entered into the dialog
+        name = ipt{1};
+      end
+      doSave = true;
+      validName = matlab.lang.makeValidName(name);
+      if ~strcmp(name, validName) % If the name they entered is non-alphanumeric...
+        q = sprintf('''%s'' is not valid (names must be alphanumeric with no spaces)\n', name);
+        q = [q sprintf('Do you want to use ''%s'' instead?', validName)];
+        doSave = strcmp(questdlg(q, 'Name', 'Yes', 'No', 'No'),  'Yes'); % Do they still want to save with suggested name?
+      end
+      if doSave % Going ahead with save
+        p = obj.ParamEditor.Parameters.Struct;
+        dat.saveParamProfile('custom', validName, p); % Save
+        %add the profile to the control options
+        profiles = obj.ParameterSets.Option;
+        if ~any(strcmp(obj.ParameterSets.Option, validName))
+          obj.ParameterSets.Option = [profiles; validName]; % Add to list
+        end
+        obj.ParameterSets.Selected = validName; % Make currently selected
+        %set label for loaded profile
+        set(obj.ParamProfileLabel, 'String', validName, 'ForegroundColor', [0 0 0]);
+        obj.log('Saved parameters as ''%s''', validName);
+      end
+    end
+    
+    function delParamProfile(obj)
+      % Called when 'Delete...' button is pressed next to saved sets
+      profile = obj.ParameterSets.Selected; % Get param profile that was selected from the dropdown?
+      assert(profile(1) ~= '<', 'Special case profile %s cannot be deleted', profile); % If '<last for subject>' or '<defaults>' is selected give error
+      q = sprintf('Are you sure you want to delete parameters profile ''%s''', profile);
+      doDelete = strcmp(questdlg(q, 'Delete', 'Yes', 'No', 'No'),  'Yes'); % Find out whether they confirmed delete
+      if doDelete % They pressed 'Yes'
+        dat.delParamProfile('custom', profile);
+        %remove the profile from the control options
+        profiles = obj.ParameterSets.Option; % Get parameter profile
+        obj.ParameterSets.Option = profiles(~strcmp(profiles, profile)); % Set new list without deleted profile
+        % log the parameters as being deleted
+        obj.log('Deleted parameter set ''%s''', profile);
+      end
+    end
     
   end
   

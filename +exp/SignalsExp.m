@@ -360,9 +360,13 @@ classdef SignalsExp < handle
       % location to save the data into. If REF is an empty, i.e. [], the
       % data won't be saved.
       
-      if ~isempty(ref)
-        %ensure experiment ref exists
-        assert(dat.expExists(ref), 'Experiment ref ''%s'' does not exist', ref);
+      % Ensure experiment ref exists
+      if ~isempty(ref) && ~dat.expExists(ref)
+        % If in debug mode, throw warning, otherwise throw as error
+        % TODO Propogate debug behaviour to exp.Experiment
+        id = 'Rigbox:exp:SignalsExp:experimenDoesNotExist';
+        msg = 'Experiment ref ''%s'' does not exist';
+        iff(obj.Debug, @() warning(id,msg,ref), @() error(id,msg,ref))
       end
       
       %do initialisation

@@ -19,7 +19,15 @@ git.runCmd('checkout master'); git.update(0);
 % work out what the errors might mean and what part of code they came from.
 % The error at the top is the one that ultimately caused the crash.  Try to
 % determine if this is a MATLAB builtin function, e.g. 
-%   TODO Add good example of builtin errors
+%
+%   Warning: Error occurred while executing the listener callback for event UpdatePanel defined for class eui.SignalsTest:
+%   Error using griddedInterpolant
+%   Interpolation requires at least two sample points in each dimension.
+% 
+%   Error in interp1 (line 151)
+%   F = griddedInterpolant(X,V,method);
+%
+%   TODO Add better example of builtin errors
 %
 % If you're debugging a signals experiment definition, check for the line
 % in your experiment where this particular builtin function was called. NB:
@@ -120,6 +128,35 @@ git.runCmd('checkout master'); git.update(0);
 %
 % These are here for search convenience and may soon contain more detailed
 % troubleshooting information.
+
+% ..:..:..:copyPaths
+% Problem:
+%  In order to load various essential configuration files, and to load and
+%  save experimental data, user specific paths must be retrieved via calls
+%  to |dat.paths|.  This error means the function is not on MATLAB's search
+%  path.
+%
+% Solution:
+%  Add your +dat\paths.m file to MATLAB's search path.  A template is
+%  present in \docs\setup\paths_template.m.  This file is automatically
+%  copied by addRigboxPaths to +dat\.  If you haven't already done so, run
+%  |addRigboxPaths| to ensure all other paths have been correctly set.  
+%
+%  See also README.md for further setup information.
+%
+% IDs
+%  Rigbox:git:update:copyPaths
+%  signals:test:copyPaths
+
+% ..:..:noRemoteFile
+% Problem:
+%  % TODO Add problem & solution for noRemoteFile error
+%
+% Solution:
+%  
+%
+% IDs
+%  Rigbox:mc:noRemoteFile
 
 % ..:..:..:notInTest
 % Problem:
@@ -238,7 +275,6 @@ git.runCmd('checkout master'); git.update(0);
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
 % Rigbox:git:update:valueError
-% rigbox:git:update:copyPaths
 
 % Rigbox:hw:calibrate:noscales
 % Rigbox:hw:calibrate:deadscale
@@ -258,6 +294,9 @@ git.runCmd('checkout master'); git.update(0);
 % Rigbox:MockDialog:newCall:EmptySeq
 
 % Rigbox:exp:SignalsExp:noTokenSet
+
+% Rigbox:eui:choiceExpPanel:toolboxRequired
+% Rigbox:setup:toolboxRequired
 
 % Alyx:newExp:subjectNotFound
 % Alyx:registerFile:InvalidPath
@@ -279,5 +318,3 @@ git.runCmd('checkout master'); git.update(0);
 % squeak.hw
 % shape:error
 % window:error
-
-% signals:test:copyPaths

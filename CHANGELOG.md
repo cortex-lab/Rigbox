@@ -8,7 +8,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - expStop event now logged has missing value when last trial over, even when expStop defined in def fun
 - tests for SignalsExp class
 - alyx warnings not thrown when database url not defined
-- new SignalsExp test GUI has numerous bugfixes and allows you to view exp panel
+- new SignalsExp test GUI has numerous bugfixes and allows you to view exp panel `ad52845` 2019-11-14
 - exp.trialConditions allows trial reset, similar to ConditionServer `62eb9ac` 2019-11-14
 - fix for catastrophic crash when stimulus layers contain empty values
 - time signal now always updates before expStart event `cab5a2f` 2019-11-01

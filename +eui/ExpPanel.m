@@ -291,6 +291,7 @@ classdef ExpPanel < handle
       %  Adds a given field to the grid and adjusts the total height of the
       %  grid to accomodate all current fields.
       %
+      % FIXME Fields with large values, e.g. arrays or chars are cut off
       rowH = 20; % default height of each field
       obj.InfoLabels = [bui.label(label, obj.InfoGrid); obj.InfoLabels];
       fieldCtrl = bui.label(field, obj.InfoGrid);

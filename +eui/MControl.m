@@ -201,20 +201,16 @@ classdef MControl < handle
         profiles = obj.NewExpParamProfile.Option; % Get parameter profile
         obj.NewExpParamProfile.Option = profiles(~strcmp(profiles, profile)); % Set new list without deleted profile
         %log the parameters as being deleted
-        obj.log('Deleted parameters as ''%s''', profile);
+        obj.log('Deleted parameter set ''%s''', profile);
       end
     end
     
     function saveParamProfile(obj) % Called by 'Save...' button press, save a new parameter profile
       selProfile = obj.NewExpParamProfile.Selected; % Find which set is currently selected
-      if selProfile(1) ~= '<' % This statement is for autofilling the save as input dialog
-        %default value is currently selected profile name
-        def = selProfile;
-      else
-        %begins with left bracket: a special case profile is selected
-        %no default value
-        def = '';
-      end
+      % This statement is for autofilling the save as input dialog; default
+      % value is currently selected profile name, however if a special case
+      % profile is selected there is no default value
+      def = iff(selProfile(1) ~= '<', selProfile, '');
       ipt = inputdlg('Enter a name for the parameters profile', 'Name', 1, {def});
       if isempty(ipt)
         return
@@ -240,6 +236,7 @@ classdef MControl < handle
         if ~any(strcmp(obj.NewExpParamProfile.Option, validName))
           obj.NewExpParamProfile.Option = [profiles; validName];
         end
+        obj.NewExpParamProfile.Selected = validName;
         %set label for loaded profile
         set(obj.ParamProfileLabel, 'String', validName, 'ForegroundColor', [0 0 0]);
         obj.log('Saved parameters as ''%s''', validName);
