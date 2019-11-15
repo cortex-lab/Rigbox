@@ -676,7 +676,7 @@ classdef Window < hw.Window
 
       % correct the data
       clock = circshift(clock,[ishift,0]);
-      upCrossings = find(diff( clock > 1 ) ==  1);
+      upCrossings = find(diff( clock > 1 ) ==  1); %ASDFASDF
       dnCrossings = find(diff( clock > 1 ) == -1);
       
       %% plot the data
