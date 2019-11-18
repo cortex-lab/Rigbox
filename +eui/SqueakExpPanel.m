@@ -3,14 +3,29 @@ classdef SqueakExpPanel < eui.ExpPanel
   %   Displays all values of events, inputs and outputs signals as they
   %   arrive from the remote stimulus server.
   %
+  %   % FIXME Rename to SignalsExpPanel
+  %
   % Part of Rigbox
   
   % 2015-03 CB created
   
   properties
+    % Structure of signals event updates from SignalExp.  As new updates
+    % come in, previous updates in the list are overwritten
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
+    % List of updates to exclude (when Exclude == true) or to exclusively
+    % show (Exclude == false) in the InfoGrid.
+    UpdatesFilter = {'inputs.wheel', 'pars'} %DisplayList
+    % Flag for excluding updates in UpdatesFilter list from InfoGrid.  When
+    % false only those in the list are shown, when false those in the list
+    % are hidden
+    Exclude = true
+    % The total number of 
     NumSignalUpdates = 0
+    % containers.Map of InfoGrid ui labels mapped to their corresponding
+    % Signal name
     LabelsMap
+    % The colour of recently updated Signals update events in the InfoGrid
     RecentColour = [0 1 0]
   end
   
@@ -84,16 +99,22 @@ classdef SqueakExpPanel < eui.ExpPanel
       for ui = 1:length(updates)
         signame = updates(ui).name;
         switch signame
-          case {'inputs.wheel', 'pars'}
+          case 'events.trialNum'
+            set(obj.TrialCountLabel, ...
+              'String', num2str(updates(ui).value));
           otherwise
-            if ~isKey(obj.LabelsMap, signame)
-              obj.LabelsMap(signame) = obj.addInfoField(signame, '');
+            if ismember(signame, obj.UpdatesFilter) || isempty(obj.UpdatesFilter)
+              if obj.Exclude
+                continue
+              else
+                if ~isKey(obj.LabelsMap, signame)
+                  obj.LabelsMap(signame) = obj.addInfoField(signame, '');
+                end
+                str = toStr(updates(ui).value);
+                set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
+                  'ForegroundColor', obj.RecentColour);
+              end
             end
-%             time = datenum(updates(ui).timestamp);
-            %             str = ['[' datestr(time,'HH:MM:SS') ']    ' toStr(updates(ui).value)];
-            str = toStr(updates(ui).value);
-            set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-              'ForegroundColor', obj.RecentColour);
         end
       end
     end
@@ -135,66 +156,6 @@ classdef SqueakExpPanel < eui.ExpPanel
       end
     end
     
-    function build(obj, parent)
-      obj.Root = uiextras.BoxPanel('Parent', parent,...
-        'Title', obj.Ref,... %default title is the experiment reference
-        'TitleColor', [0.98 0.65 0.22],...%amber title area
-        'Padding', 5,...
-        'CloseRequestFcn', @obj.closeRequest,...
-        'DeleteFcn', @(~,~) obj.cleanup());
-      
-      obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
-      
-      obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
-      
-%       obj.InfoGrid.ColumnSizes = [150, -1];
-      %panel for subclasses to add their own controls to
-      obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox);
-      if ~isempty(obj.LogEntry)
-        bui.label('Comments', obj.MainVBox, 'Tag', 'Comments');
-        
-        obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
-          'Style', 'edit',... %text editor
-          'String', obj.LogEntry.comments,...
-          'Max', 2,... %make it multiline
-          'Tag', 'Comments', ...
-          'HorizontalAlignment', 'left',... %make it align to the left
-          'BackgroundColor', [1 1 1],...%background to white
-          'Callback', @obj.commentsChanged); %update comment in log
-        h = [15 80];
-      else
-        h = [];
-      end
-            
-      buttonpanel = uiextras.HBox('Parent', obj.MainVBox);
-      %info grid size will be updated as fields are added, the other
-      %default panels get reasonable space, and the custom panel gets
-      %whatever's left
-      obj.MainVBox.Sizes = [0 -1 h 24];
-      
-      %add the default set of info fields to the grid
-      obj.StatusLabel = obj.addInfoField('Status', 'Pending');
-      obj.DurationLabel = obj.addInfoField('Elapsed', '-:--');
-      
-      if isfield(obj.Parameters.Struct, 'conditionId')
-        obj.ConditionLabel = obj.addInfoField('Condition', 'N/A');
-      end
-      
-      %buttons to stop experiment running if and when it is, by default
-      %hidden
-      obj.StopButtons = [...
-        uicontrol('Parent', buttonpanel,...
-        'Style', 'pushbutton',...
-        'String', 'End'),...
-        uicontrol('Parent', buttonpanel,...
-        'Style', 'pushbutton',...
-        'String', 'Abort')];
-      set(obj.StopButtons, 'Enable', 'off', 'Visible', 'off');
-      uicontrol('Parent', buttonpanel,...
-        'Style', 'pushbutton',...
-        'String', 'Parameters...',...
-        'Callback', @(~, ~) obj.viewParams());
-    end
   end
   
 end

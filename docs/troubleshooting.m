@@ -306,6 +306,7 @@ git.runCmd('checkout master'); git.update(0);
 % Alyx:registerFile:InvalidFileType
 % Alyx:registerFile:InvalidFileName
 % Alyx:registerFile:NoValidPaths
+% Alyx:updateNarrative:UploadFailed
 
 % Alyx:getFile:InvalidID
 % Alyx:getExpRef:InvalidID

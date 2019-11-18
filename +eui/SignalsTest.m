@@ -6,9 +6,12 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
   
   % can be set in GUI or command line to improve visualization
   properties
+    % A struct of hardware objects to be used with the Experiment
     Hardware
+    % An experimental reference string that will be posted on expStart
     Ref
-    LoggingDisplay % window within Parent for showing log output
+    % Window within Parent for showing log output
+    LoggingDisplay
   end
   
   properties
@@ -20,17 +23,19 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     SingleScreen matlab.lang.OnOffSwitchState = 'off'
   end
   
-  properties (Transient, SetAccess = private)
+  properties (SetAccess = private)
     % The Signals experiment object
     Experiment exp.test.Signals
     % The parameter editor GUI
     ParamEditor eui.ParamEditor
     % Handle to figure for live-plotting signals
     LivePlotFig matlab.ui.Figure
+    % ExpPanel object
     ExpPanel eui.ExpPanel
   end
   
   properties (Dependent)
+    % True when the Experiment object is looping
     IsRunning
   end
   
@@ -98,8 +103,8 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
           assert(exist(expdef, 'file') == 2, ...
             'rigbox:eui:SignalsTest:fileNotFound',...
             'File function ''%s.m'' not found.', expdef)
-          obj.LastDir = fileparts(which(expdef));
-          obj.ExpDef = fileFunction(expdef);
+          [obj.LastDir, expdefname] = fileparts(which(expdef));
+          obj.ExpDef = fileFunction(obj.LastDir, expdefname);
         else
           obj.ExpDef = expdef;
           expdefname = func2str(expdef);
@@ -166,7 +171,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       tc = matlab.mock.TestCase.forInteractiveUse;
       [obj.DummyRemote, behaviour] = tc.createMock(?srv.StimulusControl);
       when(withAnyInputs(behaviour.quitExperiment), ...
-        matlab.mock.actions.Invoke(@(~,TF)obj.Experiment.quit(TF))); % FIXME Call startStopExp method instead
+        matlab.mock.actions.Invoke(@(~,TF)obj.startStopExp(TF)));
       % Keep TestCase around until cleanup
       addlistener(obj, 'ObjectBeingDestroyed', @(~,~)delete(tc));
       cb = @(~,e) iff(strcmp(e.Name,'update'), @()obj.log('Experiment update: %s', e.Data{2}), @nop);
@@ -266,35 +271,43 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       
     end
     
-    function startStopExp(obj)
+    function startStopExp(obj, varargin)
       % callback for 'Start/Stop' button:
       % stops experiment if running, and starts experiment if not running
       
       if obj.IsRunning
         % Stop experiment
-        obj.log('Stopping experiment');
-        obj.Experiment.quit;
+        type = iff(~isempty(varargin) && varargin{1}, 'Aborting', 'Ending');
+        obj.log('%s experiment', type);
+        obj.Experiment.quit(varargin{:});
         %         if obj.LivePlot && ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig)
         %           obj.LivePlotFig.DeleteFcn(); % Clear plot listeners
         %         end
         obj.stopTimer
-        
-        obj.StartButton.set('String', 'Start');
+        btnCallback = @(~,~)obj.startStopExp(obj.Ref);
+        obj.StartButton.set('String', 'Start', 'Callback', btnCallback);
       else % start experiment
         % FIXME Log via event handlers
         %         obj.Experiment.updateParameters %(?)
-        obj.StartButton.set('String', 'Stop');
         obj.init
+        btnCallback = @(~,~)obj.startStopExp();
+        obj.StartButton.set('String', 'Stop', 'Callback', btnCallback);
         obj.log('Starting ''%s'' experiment.  Press <%s> to pause', ...
           obj.Parent.Name, KbName(obj.Experiment.PauseKey));
-        try % TODO Stop timer?
-          obj.Experiment.run(obj.Ref);
+        oldWarn = warning('off', 'Rigbox:exp:SignalsExp:experimenDoesNotExist');
+        mess = onCleanup(@()warning(oldWarn));
+        try
+          obj.Experiment.run(varargin{:});
         catch ex
           % Experiment stopped with an exception
           % Notify panel and stop timer
           evt = srv.ExpEvent('exception', obj.Ref, ex.message);
           notify(obj.DummyRemote, 'ExpStopped', evt);
+          btnCallback = @(~,~)obj.startStopExp(obj.Ref);
+          obj.StartButton.set('String', 'Start', 'Callback', btnCallback);
           obj.stopTimer
+          obj.log('Exception during experiment');
+          rethrow(ex)
         end
       end
       
@@ -320,6 +333,10 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     
     function cleanup(obj)
       if obj.IsRunning
+        % FIXME Currently when the window is closed the experiment object
+        % is quit and deleted during the main loop's call to drawnow.
+        % After deletion the function continues throwing an error about
+        % access to a deleted object
         obj.Experiment.quit(true);
       end
       obj.Hardware.stimWindow.close()
@@ -338,27 +355,11 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       % makes sure to delete 'ScreenH' PTB Screen and 'LivePlot' figure
       fprintf('delete called on SignalsTest\n');
       cleanup(obj)
-      obj.Experiment = exp.test.Signals.empty;
+      delete(obj.Experiment);
       if ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig)
         delete(obj.LivePlotFig)
       end
       delete(obj.Hardware.stimWindow)
-    end
-    
-    function set.Experiment(obj, experiment)
-      % TODO This should be a cleanup method instead so we can handle any
-      % listeners
-      if obj.IsRunning
-        % FIXME Currently when the window is closed the experiment object
-        % is quit and deleted during the main loop's call to drawnow.
-        % After deletion the function continues throwing an error about
-        % access to a deleted object
-        obj.Experiment.quit(true);
-        %         drawnow nocallbacks
-        %         waitfor(obj.Experiment,'IsLooping',false)
-      end
-      delete(obj.Experiment)
-      obj.Experiment = experiment;
     end
     
   end
@@ -397,7 +398,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         'Callback', @(src,event) obj.setOptions(src,event));
       obj.StartButton = uicontrol('Parent', obj.ExpTopBox,...
         'Style', 'pushbutton', 'String', 'Start',...
-        'Callback', @(~,~)obj.startStopExp());
+        'Callback', @(~,~)obj.startStopExp(obj.Ref));
       
       % Parameters Panel
       param = uix.Panel('Parent', obj.MainGrid,...
@@ -463,8 +464,13 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         obj.Hardware.stimWindow.open();
       end
       p = obj.ParamEditor.Parameters.Struct;
-      p.defFunction = obj.ExpDef;
-      obj.Experiment = exp.test.Signals(p, obj.Hardware); % create new SignalsExp object
+      if strcmp(func2str(obj.ExpDef), 'fileFunction/call')
+        p.defFunction = fullfile(obj.LastDir, [obj.Parent.Name, '.m']);
+      else
+        p.defFunction = obj.ExpDef;
+      end
+      delete(obj.Experiment) % delete previous experiment
+      obj.Experiment = exp.test.Signals(p, obj.Hardware, true); % create new SignalsExp object
       
       % Switch off keypresses
       obj.Experiment.QuitKey = [];
@@ -481,7 +487,8 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         if ~isempty(obj.ExpPanel)
           delete(obj.ExpPanel)
         end
-        obj.ExpPanel = eui.ExpPanel.live(obj.ExpPanelBox, obj.Ref, obj.DummyRemote, p);
+        % FIXME Call directly and remove logEntry flag
+        obj.ExpPanel = eui.ExpPanel.live(obj.ExpPanelBox, obj.Ref, obj.DummyRemote, p, 0);
         hidePanel = @(~,~)fun.apply({ % TODO Turn off param too
           @()set(obj.ExpPanelBox, 'Visible', false);
           @()set(obj.ExpPanelBox.Parent, 'Widths', [-1, 0])});
@@ -582,7 +589,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       if isfield(paramStruct, 'services') % remove 'services' field
         paramStruct = rmfield(paramStruct, 'services');
       end
-      %       paramStruct = rmfield(paramStruct, 'defFunction');
+      paramStruct = rmfield(paramStruct, 'defFunction');
       
       pars = exp.Parameters(paramStruct); % build parameters
       % Now parameters are loaded, pass to ParamEditor for display, etc.
@@ -617,6 +624,12 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       end
       if doSave % Going ahead with save
         p = obj.ParamEditor.Parameters.Struct;
+        % Restore defFunction parameter
+        if strcmp(func2str(obj.ExpDef), 'fileFunction/call')
+          p.defFunction = fullfile(obj.LastDir, [obj.Parent.Name, '.m']);
+        else
+          p.defFunction = obj.ExpDef;
+        end
         dat.saveParamProfile('custom', validName, p); % Save
         %add the profile to the control options
         profiles = obj.ParameterSets.Option;

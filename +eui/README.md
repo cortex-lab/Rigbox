@@ -18,7 +18,7 @@ Below is a list of all files present:
 - `ExpPanel.m` - Basic UI control for monitoring an experiment.
 - `SqueakExpPanel.m` - Basic UI control for monitoring a Signals Experiment.
 - `ChoiceExpPanel.m` - An eui.ExpPanel subclass for monitoring ChoiceWorld experiments.
-- `MappingExpPanel.m' - Preliminary UI for monitoring a mapping experiment.
+- `MappingExpPanel.m` - Preliminary UI for monitoring a mapping experiment.
 - `ParamEditor.m` - GUI for visualizing and editing experiment parameters.
 - `ConditionPanel.m` - A class for displaying the trial condition parameters in eui.ParamEditor.
 - `FieldPanel.m` - A class for displaying global parameters in eui.ParamEditor.

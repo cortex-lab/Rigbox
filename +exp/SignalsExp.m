@@ -105,7 +105,7 @@ classdef SignalsExp < handle
     % Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
     
-    Debug matlab.lang.OnOffSwitchState = 'on'
+    Debug matlab.lang.OnOffSwitchState = 'off'
   end
   
   properties (SetAccess = protected)     
@@ -223,8 +223,12 @@ classdef SignalsExp < handle
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
-      obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'))
-      obj.ConditionalPars.post(allCondStruct)
+      try
+        obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'))
+        obj.ConditionalPars.post(allCondStruct)
+      catch ex
+        rethrow(obj.addErrorCause(ex))
+      end
       %% data struct
       %initialise stim window frame times array, large enough for ~2 hours
       obj.Data.stimWindowUpdateTimes = zeros(60*60*60*2, 1);
@@ -415,7 +419,7 @@ classdef SignalsExp < handle
           saveData(obj); %save the data
         end
       catch ex
-        % TODO add stack magic here
+        obj.IsLooping = false;
         %mark that an exception occured in the block data, then save
         obj.Data.endStatus = 'exception';
         obj.Data.exceptionMessage = ex.message;
@@ -424,7 +428,7 @@ classdef SignalsExp < handle
         end
         ensureWindowReady(obj); % complete any outstanding refresh
         %rethrow the exception
-        rethrow(ex)
+        rethrow(obj.addErrorCause(ex))
       end
     end
     
@@ -940,6 +944,19 @@ classdef SignalsExp < handle
       % if the handler requests the stimulus window be invalided, do so.
       if handler.InvalidateStimWindow
         obj.StimWindow.invalidate;
+      end
+    end
+    
+    function ex = addErrorCause(obj, ex)
+      sigExId = cellfun(@(e) isa(e,'sig.Exception'), ex.cause);
+      if any(sigExId) && obj.Net.Debug
+        nodeid = ex.cause{sigExId}.Node;
+        expdef = iff(ischar(obj.Data.expDef), ...
+          obj.Data.expDef, @()which(func2str(obj.Data.expDef)));
+        ex = ex.addCause(MException(...
+          'Rigbox:exp:SignalsExp:expDefError', ...
+          'Error in %s (line %d)\n%s', ...
+          expdef, obj.Net.NodeLine(nodeid), obj.Net.NodeName(nodeid)));
       end
     end
     

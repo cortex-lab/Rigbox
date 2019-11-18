@@ -45,13 +45,34 @@ classdef ExpPanel < handle
     CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
     CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
     MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
-    Parameters % A structure of experimental parameters used by this experiment
+    Parameters exp.Parameters % A structure of experimental parameters used by this experiment
     UIContextMenu % Holds a context menu for show/hide options for info fields
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct)
-      if ~isempty(ref) % TODO Change so that dummy ref may be used, e.g. debug mode?
+    function p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+      % LIVE Constuct a new ExpPanel based on experiment parameter provided
+      %  Create a new ExpPanel for monitoring an experiment.  Depending on
+      %  the `type` and, in the case of a Signals Experiment, `expPanelFun`
+      %  parameters, a different subclass may be invoked.
+      %
+      %  Inputs:
+      %    parent : the parent figure or container for the panel.
+      %    ref (char) : an experiment reference.
+      %    remoteRig (srv.StimulusControl) : the remote rig communicator
+      %      object for receiving experiment events.
+      %    paramsStruct (struct) : the experiment parameters structure.
+      %      The type parameter is used to determine which subclass is to
+      %      be instantiated.  For type 'custom' the default panel may be
+      %      overridden via the `expPanelFun` parameter.
+      %    activateLog (logical) : flag indicating whether to save a new
+      %      log entry for the experiment (default true).  For test
+      %      experiments this flag may be set to false.
+      %
+      %  Outputs:
+      %    p (eui.ExpPanel) : handle to the panel object.
+      % 
+      if nargin < 5 || activateLog
         subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
         try
           logEntry = dat.addLogEntry(... % Add new entry to log
@@ -76,8 +97,6 @@ classdef ExpPanel < handle
             p = eui.ChoiceExpPanel(parent, ref, params, logEntry);
           case 'BarMapping'
             p = eui.MappingExpPanel(parent, ref, params, logEntry);
-          case {'PositionTargetRange'}
-            p = eui.RangeExpPanel(parent, ref, params, logEntry);
           case 'custom'
             p = eui.SqueakExpPanel(parent, ref, params, logEntry);
           otherwise
@@ -351,6 +370,32 @@ classdef ExpPanel < handle
       obj.saveLogEntry();
     end
     
+    function toggleCommentsBox(obj, src, ~)
+      % TOGGLECOMMENTSBOX Show/hide the comments box
+      %  Callback for the comments uimenu.  If 'Hide Comments' uimenu
+      %  selected, set the height of obj.CommentsBox to 0 and change menu
+      %  option to 'Show Comments'.  The previous height of the box is
+      %  stored in the object's UserData field.
+      
+      % Find the position of the CommentsBox within its parent container
+      idx = flipud(obj.CommentsBox.Parent.Children == obj.CommentsBox);
+      if strcmp(src.Text, 'Show comments')
+        src.Text = 'Hide Comments';
+        obj.CommentsBox.Visible = 'on';
+        % Get previous height from UserData field, otherwise choose 80
+        boxHeight = pick(obj.CommentsBox, 'UserData', 'def', 80);
+        obj.CommentsBox.Parent.Heights(idx) = boxHeight;
+        set(findobj('String', 'Comments [...]'), 'String', 'Comments')
+      else % Hide comments
+        src.Text = 'Show comments';
+        obj.CommentsBox.Visible = 'off';
+        % Save the previous height in UserData
+        obj.CommentsBox.UserData = obj.CommentsBox.Parent.Heights(idx);
+        obj.CommentsBox.Parent.Heights(idx) = 0;
+        set(findobj('String', 'Comments'), 'String', 'Comments [...]')
+      end
+    end
+    
     function build(obj, parent)
       obj.Root = uiextras.BoxPanel('Parent', parent,...
         'Title', obj.Ref,... %default title is the experiment reference
@@ -362,17 +407,16 @@ classdef ExpPanel < handle
       obj.MainVBox = uiextras.VBox('Parent', obj.Root, 'Spacing', 5);
       
       obj.InfoGrid = uiextras.Grid('Parent', obj.MainVBox);
-      uimenu(obj.InfoGrid.UIContextMenu, 'Label', 'Hide field',...
-        'MenuSelectedFcn', @obj.hideInfoField);
-      uimenu(obj.InfoGrid.UIContextMenu, 'Label', 'Show all hidden',...
-        'MenuSelectedFcn', @obj.resetHiddenFields);
 %       obj.InfoGrid.ColumnSizes = [100, -1]; % Error: Size of property 'Widths' must be no larger than size of contents.
 
       %panel for subclasses to add their own controls to
       obj.CustomPanel = uiextras.VBox('Parent', obj.MainVBox); % Custom Panel is where the live plots will go
       
       if ~isempty(obj.LogEntry)
-        bui.label('Comments', obj.MainVBox); % Comments label at bottom of experiment panel
+        c = uicontextmenu(ancestor(obj.Root, 'Figure'));
+        uimenu(c, 'Label', 'Hide comments',...
+          'MenuSelectedFcn', @obj.toggleCommentsBox);
+        bui.label('Comments', obj.MainVBox, 'UIContextMenu', c);
         
         obj.CommentsBox = uicontrol('Parent', obj.MainVBox,...
           'Style', 'edit',... %text editor
@@ -380,6 +424,7 @@ classdef ExpPanel < handle
           'Max', 2,... %make it multiline
           'HorizontalAlignment', 'left',... %make it align to the left
           'BackgroundColor', [1 1 1],...%background to white
+          'UIContextMenu', c,...
           'Callback', @obj.commentsChanged); %update comment in log
         h = [15 80];
       else
