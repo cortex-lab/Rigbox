@@ -1,4 +1,4 @@
-classdef SignalsExp < handle
+classdef SignalsExp < exp.Experiment
   %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
   %   The class defines a framework for event- and state-based experiments.
   %   Visual and auditory stimuli can be controlled by experiment phases.
@@ -9,47 +9,6 @@ classdef SignalsExp < handle
   % 2012-11 CB created
   
   properties
-    % An array of event handlers. Each should specify the name of the
-    % event that activates it, callback functions to be executed when
-    % activated and an optional delay between the event and activation.
-    % They should be objects of class EventHandler.
-    EventHandlers = exp.EventHandler.empty
-
-    % Timekeeper used by the experiment. Clocks return the current time. See
-    % the Clock class definition for more information.
-    Clock = hw.ptb.Clock
-    
-    % Key for terminating an experiment whilst running. Shoud be a
-    % Psychtoolbox keyscan code (see PTB KbName function).
-    QuitKey = KbName('q')
-    
-    % Key for pausing an experiment
-    PauseKey = KbName('esc')
-    
-    % String description of the type of experiment, to be saved into the
-    % block data field 'expType'.
-    Type = ''
-    
-    % Reference for the rig that this experiment is being run on, to be
-    % saved into the block data field 'rigName'.
-    RigName
-    
-    % Communcator object for sending signals updates to mc.  Set by
-    % expServer
-    Communicator = io.DummyCommunicator
-    
-    % Delay (secs) before starting main experiment phase after experiment
-    % init phase has completed
-    PreDelay = 0 
-    
-    % Delay (secs) before beginning experiment cleanup phase after
-    % main experiment phase has completed (assuming an immediate abort
-    % wasn't requested).
-    PostDelay = 0
-    
-    % Flag indicating whether the experiment is paused
-    IsPaused = false 
-    
     % Holds the wheel object, 'mouseInput' from the rig object.  See also
     % USERIG, HW.DAQROTARYENCODER
     Wheel
@@ -62,19 +21,13 @@ classdef SignalsExp < handle
     % etc.)  See also HW.DAQCONTROLLER
     DaqController
     
-    % Get the handle to the PTB window opened by expServer
-    StimWindowPtr
-    
     % The layer textureId names mapped to their numerical GL texture ids
     TextureById
     
     % A map of stimulus element layers whose keys are the entry names in
     % the Visual StructRef object
     LayersByStim
-    
-    % Occulus viewing model
-    Occ
-    
+        
     Time
     
     Inputs
@@ -85,44 +38,22 @@ classdef SignalsExp < handle
     
     Visual
     
-    Audio % = aud.AudioRegistry
+%     Audio % = aud.AudioRegistry
     
     % Holds the parameters structure for this experiment
     Params
     
     ParamsLog
-    
-    % The bounds for the photodiode square
-    SyncBounds
-    
-    % Sync colour cycle (usually [0, 255]) - cycles through these each
-    % time the screen flips.
-    SyncColourCycle
-    
+
     % Index into SyncColourCycle for next sync colour
     NextSyncIdx
-    
-    % Alyx instance from client.  See also SAVEDATA
-    AlyxInstance = []
-    
-    Debug matlab.lang.OnOffSwitchState = 'off'
+        
+    Debug matlab.lang.OnOffSwitchState = 'on'
   end
   
   properties (SetAccess = protected)     
-    %Number of stimulus window flips
-    StimWindowUpdateCount = 0
-    
-    %Data from the currently running experiment, if any.
-    Data = struct
-    
-    %Currently active phases of the experiment. Cell array of their names
-    %(i.e. strings)
-    ActivePhases = {}
-    
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
-    % Flag indicating whether to continue in experiment loop
-    IsLooping = false
         
     GlobalPars
     
@@ -134,8 +65,6 @@ classdef SignalsExp < handle
   properties (Access = protected)
     %Set triggers awaiting activation: a list of Triggered objects, which
     %are awaiting activation pending completion of their delay period.
-    Pending
-    
     AsyncFlipping = false
     
     StimWindowInvalid = false
@@ -156,6 +85,7 @@ classdef SignalsExp < handle
       if nargin > 2; obj.Debug = debug; end % Set debug mode
       clock = rig.clock;
       clockFun = @clock.now;
+      obj.QuitKey = KbName('q');
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
       obj.LayersByStim = containers.Map;
       obj.Inputs = sig.Registry(clockFun);
@@ -241,13 +171,11 @@ classdef SignalsExp < handle
     function useRig(obj, rig)
       obj.Clock = rig.clock;
       obj.Data.rigName = rig.name;
-      obj.SyncBounds = rig.stimWindow.SyncBounds;
-      obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
       obj.NextSyncIdx = 1;
-      obj.StimWindowPtr = rig.stimWindow.PtbHandle;
-      obj.Occ = vis.init(obj.StimWindowPtr);
+      obj.StimWindow = rig.stimWindow;
+      obj.StimViewingModel = vis.init(obj.StimWindow.PtbHandle);
       if isfield(rig, 'screens')
-        obj.Occ.screens = rig.screens;
+        obj.StimViewingModel.screens = rig.screens;
       else
         warning('Rigbox:exp:SignalsExp:NoScreenConfig', ...
           'No screen configuration specified. Visual locations will be wrong.');
@@ -276,81 +204,6 @@ classdef SignalsExp < handle
                     ];   
               end
           end
-      end
-    end
-
-    function abortPendingHandlers(obj, handler)
-      if nargin < 2
-        % Sets all pending triggers inactive
-        [obj.Pending(:).isActive] = deal(false);
-      else
-        % Sets pending triggers for specified handler inactive
-        abortList = ([obj.Pending.handler] == handler);
-        [obj.Pending(abortList).isActive] = deal(false);
-      end
-    end
-    
-    function startPhase(obj, name, time)
-      % Starts a phase
-      %
-      % startPhase(NAME, TIME) causes a phase to start. The phase is added
-      % to the list of active phases. The change is also signalled to any 
-      % interested triggers as having occured at TIME.
-      % 
-      % Note: The time specified is signalled to the triggers, which is
-      % important for maintaining rigid timing offsets even if there are
-      % delays in calling this function. e.g. if a trigger is set to go off
-      % one second after a phase starts, the trigger will become due one
-      % second after the time specified, *not* one second from calling this
-      % function.
-
-      % make sure the phase isn't already active
-      if ~any(strcmpi(obj.ActivePhases, name))      
-        % add the phase from list
-        obj.ActivePhases = [obj.ActivePhases; name];
-
-        % action any triggers contingent on this phase change
-        fireEvent(obj, exp.EventInfo([name 'Started'], time, obj));
-      end
-    end
-
-    function endPhase(obj, name, time)
-      % Ends a phase
-      %
-      % endPhase(NAME, TIME) causes a phase to end. The phase is removed 
-      % from the list of active phases. The event is also signalled to any
-      % interested triggers as having occured at TIME.
-      % 
-      % Note: The time specified is signalled to the triggers, which is
-      % important for maintaining rigid timing offsets even if there are
-      % delays in calling this function. e.g. if a trigger is set to go off
-      % one second after a phase starts, the trigger will become due one
-      % second after the time specified, *not* one second from calling this
-      % function.
-      
-      % make sure the phase is active
-      if any(strcmpi(obj.ActivePhases, name))      
-        % remove the phase from list
-        obj.ActivePhases(strcmpi(obj.ActivePhases, name)) = [];
-
-        % action any triggers contingent on this phase change
-        fireEvent(obj, exp.EventInfo([name 'Ended'], time, obj));
-      end
-    end   
-    
-    function addEventHandler(obj, handler, varargin)
-      % Adds one or more event handlers
-      %
-      % addEventHandler(HANLDER) adds one or more handlers specified by the 
-      % HANLDER parameter (either a single object of class EventHandler, or
-      % an array of them), to this experiment's list of handlers.
-      if iscell(handler)
-        handler = cell2mat(handler);
-      end
-      obj.EventHandlers = [obj.EventHandlers; handler(:)];
-      if ~isempty(varargin)
-        % deal with extra handle arguments recursively
-        addEventHandler(obj, varargin{:});
       end
     end
     
@@ -393,7 +246,7 @@ classdef SignalsExp < handle
       obj.Pending = dueHandlerInfo(obj, start, initInfo, obj.Clock.now + obj.PreDelay);
       
       %refresh the stimulus window
-      Screen('Flip', obj.StimWindowPtr);
+      Screen('Flip', obj.StimWindow.PtbHandle);
       
       try
         % start the experiment loop
@@ -429,23 +282,6 @@ classdef SignalsExp < handle
         ensureWindowReady(obj); % complete any outstanding refresh
         %rethrow the exception
         rethrow(obj.addErrorCause(ex))
-      end
-    end
-    
-    function bool = inPhase(obj, name)
-      % Reports whether currently in specified phase
-      %
-      % inPhase(NAME) checks whether the experiment is currently in the
-      % phase called NAME.
-      bool = any(strcmpi(obj.ActivePhases, name));
-    end
-    
-    function log(obj, field, value)
-      % Logs the value in the experiment data
-      if isfield(obj.Data, field)
-        obj.Data.(field) = [obj.Data.(field) value];
-      else
-        obj.Data.(field) = value;
       end
     end
     
@@ -496,14 +332,11 @@ classdef SignalsExp < handle
         %used
         endExp = exp.EventHandler('experimentEnded'); %event name just for clarity
         endExp.Delay = obj.PostDelay; %delay just for clarity
-        endExp.addCallback(@stopLooping);
+        endExp.addCallback(@(~,~)obj.stopLooping);
         pending = dueHandlerInfo(obj, endExp, [], obj.Clock.now + obj.PostDelay);
         obj.Pending = [obj.Pending, pending];
       end
       
-      function stopLooping(varargin)
-        obj.IsLooping = false;
-      end
     end
     
     function pause(obj)
@@ -526,7 +359,7 @@ classdef SignalsExp < handle
       % complete any outstanding asynchronous flip
       if obj.AsyncFlipping
         % wait for flip to complete, and record the time
-        time = Screen('AsyncFlipEnd', obj.StimWindowPtr);
+        time = Screen('AsyncFlipEnd', obj.StimWindow.PtbHandle);
         obj.AsyncFlipping = false;
         time = fromPtb(obj.Clock, time); %convert ptb/sys time to our clock's time
 %         assert(obj.Data.stimWindowUpdateTimes(obj.StimWindowUpdateCount) == 0);
@@ -669,7 +502,7 @@ classdef SignalsExp < handle
       
       stopdatetime = now;
       %clear the stimulus window
-      Screen('Flip', obj.StimWindowPtr);
+      Screen('Flip', obj.StimWindow.PtbHandle);
       
       % collate the logs
       %events
@@ -711,7 +544,7 @@ classdef SignalsExp < handle
     
     function deleteGlTextures(obj)
       tex = cell2mat(obj.TextureById.values);
-      win = obj.StimWindowPtr;
+      win = obj.StimWindow.PtbHandle;
       fprintf('Deleting %i textures\n', numel(tex));
       Screen('AsyncFlipEnd', win);
       Screen('BeginOpenGL', win);
@@ -783,17 +616,17 @@ classdef SignalsExp < handle
 %           tic
           drawFrame(obj);
 %           toc;
-          if ~isempty(obj.SyncBounds) % render sync rectangle
+          if ~isempty(obj.StimWindow.SyncBounds) % render sync rectangle
             % render sync region with next colour in cycle
-            col = obj.SyncColourCycle(obj.NextSyncIdx,:);
+            col = obj.StimWindow.SyncColourCycle(obj.NextSyncIdx,:);
             % render rectangle in the sync region bounds in the required colour
-            Screen('FillRect', obj.StimWindowPtr, col, obj.SyncBounds);
+            Screen('FillRect', obj.StimWindow.PtbHandle, col, obj.StimWindow.SyncBounds);
             % cyclically increment the next sync idx
-            obj.NextSyncIdx = mod(obj.NextSyncIdx, size(obj.SyncColourCycle, 1)) + 1;
+            obj.NextSyncIdx = mod(obj.NextSyncIdx, size(obj.StimWindow.SyncColourCycle, 1)) + 1;
           end
           renderTime = now(obj.Clock);
           % start the 'flip' of the frame onto the screen
-          Screen('AsyncFlipBegin', obj.StimWindowPtr);
+          Screen('AsyncFlipBegin', obj.StimWindow.PtbHandle);
           obj.AsyncFlipping = true;
           obj.StimWindowUpdateCount = obj.StimWindowUpdateCount + 1;
           obj.Data.stimWindowRenderTimes(obj.StimWindowUpdateCount) = renderTime;
@@ -858,93 +691,16 @@ classdef SignalsExp < handle
       end
     end
     
-    function fireEvent(obj, eventInfo, logEvent)
-      %fireEvent Called when an event occurs to log and handle them
-      %   fireEvent(EVENTINFO) logs the time of the event, and checks the list 
-      %   of experiment event handlers for any that are listening to the event 
-      %   detailed in EVENTINFO. Those that are will be activated after their 
-      %   desired delay period. EVENTINFO must be an object of class EventInfo.
-      
-      event = eventInfo.Event;
-      
-      %post comms notification with event name and time
-      tnow = now(obj.Clock);
-      msg = {'update', obj.Data.expRef, 'event', event, tnow};
-      post(obj, 'status', msg);
-      
-      if nargin < 3
-        % log events by default
-        logEvent = true;
-      end
-      
-      if logEvent
-        % Save the actual time the event completed. For events that occur
-        % during a trial, timestamps are saved within the trial data, otherwise
-        % we just save in experiment-wide data.
-        log(obj, [event 'Time'], tnow);
-      end
-      
-      % create a list of handlers for this event
-      if isempty(obj.EventHandlers)
-        % handle special case bug in matlab
-        % if EventHandlers is empty, the alternate case below will fail so
-        % we handle it here
-        handleEventNames = {};
-      else
-        handleEventNames = {obj.EventHandlers.Event};
-      end
-      
-      evexp = ['(^|\|)' event '($|\|)'];
-      match = ~strcmp(regexp(handleEventNames, evexp, 'match', 'once'), '');
-      handlers = obj.EventHandlers(match);
-      nhandlers = length(handlers);
-      for i = 1:nhandlers
-        if islogical(handlers(i).Delay) && handlers(i).Delay == false
-          % delay is false, so activate immediately
-          due = eventInfo.Time;
-          immediate = true;
-        else
-          % delayed handler
-          due = eventInfo.Time + handlers(i).Delay.secs;
-          immediate = false;
-        end
-
-        % if the handler has no delay, then activate it now,
-        % otherwise add it to our pending list
-        if immediate
-          activateEventHandler(obj, handlers(i), eventInfo, due);
-        else
-          pending = dueHandlerInfo(obj, handlers(i), eventInfo, due);
-          obj.Pending = [obj.Pending, pending]; % append to pending handlers
-        end
-      end
-    end
-    
-    function s = dueHandlerInfo(~, handler, eventInfo, dueTime)
-      s = struct('handler', handler,...
-        'eventInfo', eventInfo,...
-        'dueTime', dueTime,...
-        'isActive', true); % handlers starts active
-    end
-
     function drawFrame(obj)
       % Called to draw current stimulus window frame
       %
       % drawFrame(obj) does nothing in this class but can be overrriden
       % in a subclass to draw the stimulus frame when it is invalidated
-      win = obj.StimWindowPtr;
+      win = obj.StimWindow.PtbHandle;
       layerValues = cell2mat(obj.LayersByStim.values());
       Screen('BeginOpenGL', win);
-      vis.draw(win, obj.Occ, layerValues, obj.TextureById);
+      vis.draw(win, obj.StimViewingModel, layerValues, obj.TextureById);
       Screen('EndOpenGL', win);
-    end
-    
-    function activateEventHandler(obj, handler, eventInfo, dueTime)
-      activate(handler, eventInfo, dueTime);
-      % if the handler requests the stimulus window be invalided, do so.
-      if handler.InvalidateStimWindow
-        obj.StimWindow.invalidate;
-      end
     end
     
     function ex = addErrorCause(obj, ex)
