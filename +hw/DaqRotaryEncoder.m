@@ -7,7 +7,7 @@ classdef DaqRotaryEncoder < hw.PositionSensor
   %
   %   e.g. use:
   %     session = daq.createSession('ni')
-  %     enc = RotaryEncoder  % I think this line should say: enc = hw.DaqRotaryEncoder % NS 2014-10-28
+  %     enc = hw.DaqRotaryEncoder
   %     enc.DaqSession = session
   %     enc.DaqId = 'Dev1'
   %     enc.createDaqChannel
@@ -36,31 +36,61 @@ classdef DaqRotaryEncoder < hw.PositionSensor
   % 2013-01 CB created
   
   properties
-    DaqSession = [] %DAQ session for input (see session-based interface docs)
-    DaqId = 'Dev1' %DAQ's device ID, e.g. 'Dev1'
-    DaqChannelId = 'ctr0' %DAQ's ID for the counter channel. e.g. 'ctr0'
-    %Size of DAQ counter range for detecting over- and underflows (e.g. if
-    %the DAQ's counter is 32-bit, this should be 2^32)
+    % DAQ session for input (see session-based interface docs)
+    DaqSession = []
+    % DAQ's device ID, e.g. 'Dev1'
+    DaqId = 'Dev1'
+    % DAQ's ID for the counter channel. e.g. 'ctr0'
+    % Size of DAQ counter range for detecting over- and underflows (e.g. if
+    % the DAQ's counter is 32-bit, this should be 2^32)
+    DaqChannelId = 'ctr0'
     DaqCounterPeriod = 2^32
   end
   
+  properties (SetObservable)
+    % Number of pulses per revolution.  Found at the end of the KÜBLER
+    % product number, e.g. 05.2400.1122.0100 has a resolution of 100
+    EncoderResolution = 1024
+    % Diameter of the wheel in mm
+    WheelDiameter = 62
+  end
+  
   properties (Access = protected)
-    %Created when listenForAvailableData is called, allowing logging of
-    %positions during DAQ background acquision
-    DaqListener
-    DaqInputChannelIdx %Index into acquired input data matrices for our channel
-    LastDaqValue %Last value obtained from the DAQ counter
-    %Accumulated cycle number for position (i.e. when the DAQ's counter has
-    %over- or underflowed its range, this is incremented or decremented
-    %accordingly)
+    % Index into acquired input data matrices for our channel
+    DaqInputChannelIdx
+    % Last value obtained from the DAQ counter Accumulated cycle number for
+    % position (i.e. when the DAQ's counter has over- or underflowed its
+    % range, this is incremented or decremented accordingly)
+    LastDaqValue
     Cycle
   end
   
+  properties (Transient, Access = protected)
+    % Created when listenForAvailableData is called, allowing logging of
+    % positions during DAQ background acquision
+    DaqListener
+    PropertyListener
+  end
+  
   properties (Dependent)
-    DaqChannelIdx % index into DaqSession's channels for our data
+    % Index into DaqSession's channels for our data
+    DaqChannelIdx
   end
   
   methods
+    
+    function obj = DaqRotaryEncoder()
+      p1 = findprop(obj,'EncoderResolution');
+      p2 = findprop(obj,'WheelDiameter');
+      obj.PropertyListener = event.proplistener(obj,[p1, p2],'PostSet',...
+        @(src,~)obj.setMillimetresFactor(src));
+      setMillimetresFactor(obj);
+    end
+    
+    function setMillimetresFactor(obj,~)
+      obj.MillimetresFactor = obj.WheelDiameter*pi/(obj.EncoderResolution*4);
+    end
+    
     function value = get.DaqChannelIdx(obj)
       inputs = find(strcmpi('input', io.daqSessionChannelDirections(obj.DaqSession)));
       value = inputs(obj.DaqInputChannelIdx);
@@ -153,6 +183,19 @@ classdef DaqRotaryEncoder < hw.PositionSensor
       values = decode(obj, event.Data(:,obj.DaqInputChannelIdx)) - obj.ZeroOffset;
       times = acqStartTime + event.TimeStamps(:,obj.DaqInputChannelIdx);
       logSamples(obj, values, times);
+    end
+  end
+  
+  methods (Static)
+    function obj = loadobj(obj)
+      if isstruct(obj) % Handle error
+        obj = hw.DaqRotaryEncoder();
+      else
+        p1 = findprop(obj,'EncoderResolution');
+        p2 = findprop(obj,'WheelDiameter');
+        obj.PropertyListener = event.proplistener(obj,[p1, p2],'PostSet',...
+          @(src,~)obj.setMillimetresFactor(src));
+      end
     end
   end
 end

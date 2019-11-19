@@ -1,0 +1,481 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_services.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>Timeline outputs are useful for triggering external hardware, but what about notifying other software of an experiment?  Services in Rigbox allow one to trigger software on other devices, including starting and stopping Timeline if it is running on a separate computer.  Services are simply objects that send UDP messages at various times during an experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The Service class</a></li><li><a href="#2">Workflow</a></li><li><a href="#3">Customising your services</a></li><li><a href="#4">Primative UDP Service</a></li><li><a href="#5">Basic UDP Service</a></li><li><a href="#6">MPEP UDP Data Hosts</a></li><li><a href="#7">Selecting services</a></li><li><a href="#8">Conclusion</a></li><li><a href="#9">Notes</a></li><li><a href="#10">Etc.</a></li></ul></div><h2 id="1">The Service class</h2><p>Service classes have at least two methods, <tt>start</tt> and <tt>stop</tt>.  At the beginning of an experiment <tt>srv.expServer</tt> will load these services objects and run the <tt>start</tt> method for each, likewise at the send on an experiment the <tt>stop</tt> method is called.  This provides a flexible way to perform custom tasks during an experiment, and is technically not limited to triggering software with UDPs: if you wanted you could create your own subclass that does something entirely different, such as opening a file or running system commands.</p><pre class="codeinput">doc <span class="string">srv.Service</span>
+</pre><h2 id="2">Workflow</h2><p>The sequence of events leading up to services starting is somewhat convoluted!</p><p>When <tt>srv.expServer</tt> receives a messages from MC to begin a new experiment it first starts Timeline locally (if required), then calls <tt>srv.prepareExp</tt> which initializes the experiment, then calls <tt>srv.findService</tt> with a list of services to be started. <tt>srv.findService</tt> loads <tt>srv.basicServices</tt> which loads all configured service objects.  <tt>srv.findService</tt> returns all requested services to <tt>srv.prepareExp</tt>, which creates stores them in both an <tt>exp.StartServices</tt> and <tt>exp.StopServices</tt> object.  These objects are added as callbacks to the experimentInit event.  <tt>srv.expServer</tt> now calls <tt>run</tt> on the experiment object, which during in turn triggers the experimentInit event, whereby the Service objects send their UDPs to start the auxillary software.  Below is the stack starting at #1 and going down, left to right:</p><pre class="codeinput"><span class="comment">% |srv.expServer/runExp|-(2)------&gt;|</span>
+<span class="comment">%  ^       (1)                     |</span>
+<span class="comment">%  |        |                      V</span>
+<span class="comment">%  | |srv.prepareExp| ----&gt; |exp.SignalsExp| (or other experiment)</span>
+<span class="comment">%  |        |                      |</span>
+<span class="comment">%  |        |--&gt; |srv.findService|-:-&gt; |srv.basicServices| --&gt; |srv.Service|</span>
+<span class="comment">%  |        |           |          |           |&lt;--------------------|</span>
+<span class="comment">%  |        |           |&lt;---------|-----------|</span>
+<span class="comment">%  |        |&lt;----------|          V</span>
+<span class="comment">%  |        |--------------&gt;|exp.StartServices|</span>
+<span class="comment">%  |&lt;-------|</span>
+<span class="comment">%</span>
+</pre><h2 id="3">Customising your services</h2><p>The services are created by <tt>expServer</tt> at the start of the experiment. It calls the function <tt>srv.findService</tt> which in turn calls the function <tt>srv.basicServices</tt>.  Either of these files may be edited to configure the services you need.</p><p>A simple way of doing this is to create a folder named <tt>+srv</tt> in the MATLAB folder (usually found in ~\Documents). Anything in this folder appears at the top of the your paths and therefor you can shadow Rigbox's default <tt>basicServices</tt> function with the one you create in the MATLAB folder.  This way your modified function won't be affected by pulls from Git.</p><p>Your <tt>srv.basicServices</tt> function should have the host names for each service as input and ouput a cell array of <tt>srv.Service</tt> objects: function [services] = basicServices(timelineHost, neuralImgHost, eyeTrackingHost)</p><p>Let's have a look at configuring some services with the <tt>srv.PrimitiveUDPService</tt> subclass.  This used <tt>pnet</tt>, a networking function that comes with PsychToolbox to sent and recieve UDP messages:</p><pre class="codeinput"><span class="comment">% Configure scanimage/neural acquisition service</span>
+<span class="comment">% The class is called with the remote computer's host name.</span>
+neuralImg = srv.PrimitiveUDPService(neuralImgHost);
+<span class="comment">% The title is something human-readable that will be used in command window</span>
+<span class="comment">% status updates</span>
+neuralImg.Title = <span class="string">'Neural imaging'</span>;
+<span class="comment">% The id must match the name stored in your StimulusControl object (more on</span>
+<span class="comment">% this later)</span>
+neuralImg.Id = <span class="string">'neural-imaging'</span>;
+<span class="comment">% The response timeout in seconds.  If the remote devices fails to respond</span>
+<span class="comment">% in this time, expServer with throw an error and the experiment won't</span>
+<span class="comment">% start.</span>
+neuralImg.ResponseTimeout = 5;
+<span class="comment">% The listen and remote ports may also be set either here are as positional</span>
+<span class="comment">% arguments to the constructor.  The defaults are 10000.</span>
+neuralImg.RemotePort = 10000;
+
+services = {timeline neuralImg eyeTracking}; <span class="comment">% Our example output</span>
+</pre><h2 id="4">Primative UDP Service</h2><p>The service is started by calling the <tt>start</tt> method with an experiment reference string:</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'fake'</span>, now, 1);
+neuralImg.start(ref)
+
+<span class="comment">% The object sends the message GOGO&lt;ref&gt;*&lt;host&gt; where &lt;ref&gt; is the</span>
+<span class="comment">% experiment reference and &lt;host&gt; is the hostname.  The remote computer is</span>
+<span class="comment">% expected to echo message within the timeout period.  It is printed to the</span>
+<span class="comment">% command window.</span>
+
+<span class="comment">% Calling stop is similar:</span>
+neuralImg.stop(ref) <span class="comment">% Send STOP*&lt;host&gt;</span>
+<span class="comment">% The message should be echoed back</span>
+
+<span class="comment">% The is also a status method.  When the property Status is accessed the</span>
+<span class="comment">% following message is sent:</span>
+status = neuralImg.Status; <span class="comment">% Send WHAT814724*&lt;host&gt;</span>
+<span class="comment">%</span>
+<span class="comment">% The same random number is expected to be returned along with the status,</span>
+<span class="comment">% e.g.</span>
+<span class="comment">% GOGO814724 % means device running</span>
+</pre><h2 id="5">Basic UDP Service</h2><p>Another subclass is called <tt>srv.basicUDPService</tt>.  This is similar to <tt>primativeUDPService</tt> however it is a little more flexible and uses MATLAB's instrument control toolbox.  It can also send messages asynchronously.</p><pre class="codeinput">doc <span class="string">srv.basicUDPService</span>
+
+<span class="comment">% Below is a configuration for starting a remote computer that controls</span>
+<span class="comment">% some galvo moters during an experiment:</span>
+
+<span class="comment">% Some default hosts</span>
+<span class="keyword">if</span> nargin &lt; 1
+  galvoHost = <span class="string">'zimbabwe'</span>;
+<span class="keyword">end</span>
+<span class="comment">% Configure galvo service</span>
+galvo = srv.BasicUDPService(galvoHost, 10002, 10000);
+galvo.Title = sprintf(<span class="string">'Galvo on %s'</span>, galvoHost);
+galvo.Id = <span class="string">'galvo'</span>;
+galvo.ResponseTimeout = 5;
+
+services = {galvo};
+
+<span class="comment">% The messages sent by this class are similar to those of</span>
+<span class="comment">% srv.PrimativeUDPService.</span>
+</pre><h2 id="6">MPEP UDP Data Hosts</h2><p>Finally there is also a subclass called <tt>io.MpepUDPDataHosts</tt>(1).  This class can also pass around an instance of Alyx via UDP, allowing remote computers to register their files to the Alyx database.  Again, unlike <tt>srv.PrimativeUDPService</tt> which sends and receives messages synchronously, <tt>io.MpepUDPDataHosts</tt> sends the start and stop messages to all remote hosts one after the other without waiting for responses.</p><p>Below is some example code.  Note that this code is found in <tt>srv.findService</tt>, rather than <tt>srv.basicServices</tt>, which has `id` as its first input argument, which matches the Id property of a Service:</p><pre class="codeinput">timelineHost = iff(any(strcmp(id, <span class="string">'timeline'</span>)), {<span class="string">'zcamp3'</span>}, {<span class="string">''</span>});
+neuralImgHost = iff(any(strcmp(id, <span class="string">'b-scope'</span>)), {<span class="string">'zscope'</span>}, {<span class="string">''</span>});
+eyeTrackingHost = iff(any(strcmp(id, <span class="string">'eye-tracking'</span>)), {<span class="string">'zquad'</span>}, {<span class="string">''</span>});
+
+remoteHosts = [timeHost neuralImgHost eyeTrackingHost];
+emp = cellfun(@isempty, remoteHosts);
+
+MpepHosts = io.MpepUDPDataHosts(remoteHosts(~emp));
+MpepHosts.ResponseTimeout = 30;
+MpepHosts.Id = <span class="string">'MPEP-Hosts'</span>;
+MpepHosts.Title = <span class="string">'mPep Data Acquisition Hosts'</span>;
+MpepHosts.open();
+s = {MpepHosts};
+
+<span class="comment">% The messages sent by this class are different to the others.  With this</span>
+<span class="comment">% object you can send an instance of Alyx with the start command.  Below</span>
+<span class="comment">% are a selection of messages sent at the start of an experiment:</span>
+
+<span class="comment">% Ping</span>
+obj.broadcast(<span class="string">'hello'</span>);
+<span class="comment">% Send Alyx instance UDP</span>
+UDP_msg = Alyx.parseAlyxInstance(expRef, ai);
+[subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+alyxmsg = sprintf(<span class="string">'alyx %s %d %d %s'</span>, subject, seriesNum, expNum, UDP_msg);
+confirmedBroadcast(obj, alyxmsg);
+<span class="comment">% Send ExpStart UDP</span>
+expStartMsg = sprintf(<span class="string">'ExpStart %s %d %d'</span>, subject, seriesNum, expNum);
+confirmedBroadcast(obj, expStartMsg);
+<span class="comment">% Send the BlockStart UDP</span>
+blockStartMsg = sprintf(<span class="string">'BlockStart %s %d %d 1'</span>, subject, seriesNum, expNum);
+
+<span class="comment">% There are also methods for ending stimulus start and status messages.</span>
+<span class="comment">% Note that the order in which the devices are started is sometimes</span>
+<span class="comment">% important, particularly if you many inter-connected devices.  For example</span>
+<span class="comment">% you may have a camera that is triggered by Timeline's Clock Output and</span>
+<span class="comment">% some camera software is programmed to start saving the frames to file</span>
+<span class="comment">% after receiving a UDP:</span>
+
+<span class="comment">% expServer       Computer A               Computer B</span>
+<span class="comment">% ------------------------------------------------------</span>
+<span class="comment">% Service ----&gt; Timeline.start() -----&gt; [trigger camera]</span>
+<span class="comment">%                       |                       |</span>
+<span class="comment">% Service &lt;----started--|                       |</span>
+<span class="comment">%                                               |</span>
+<span class="comment">% Service -----&gt; start(eye-tracking) &lt;-----------</span>
+<span class="comment">%                       |</span>
+<span class="comment">% Service &lt;-----started-|</span>
+</pre><h2 id="7">Selecting services</h2><p>Once you have set up your devices you need to add them to your rig's <tt>StimulusControl</tt> object.  This is the object MC uses to access information about availiable stimulus computers.</p><pre class="codeinput">doc <span class="string">srv.StimulusControl</span>
+
+<span class="comment">% One of the properties of this object is Services.  Here you can list all</span>
+<span class="comment">% the configured services for that rig.  This must match the Id properties</span>
+<span class="comment">% of the services:</span>
+sc = srv.stimulusControllers <span class="comment">% Load our StimulusControl objects</span>
+sc(1).Services = {<span class="string">'neural-imaging'</span>, <span class="string">'eye-tracking'</span>, <span class="string">'timeline'</span>};
+
+<span class="comment">% These appear as toggles in the 'rig options' dialog in MC, allowing you</span>
+<span class="comment">% to select which services you need starting for a given experiment.  You</span>
+<span class="comment">% can also set the default state by changing the SelectedServices property:</span>
+sc(1).SelectedServices = [false, false, true]; <span class="comment">% Only timeline on by default</span>
+
+<span class="comment">% Setting default delays is sometimes useful.  These can also be changed in</span>
+<span class="comment">% the 'rig options' dialog in MC.  The ExpPreDelay property is the time in</span>
+<span class="comment">% seconds to wait between starting the services and actually beginning the</span>
+<span class="comment">% experiment (for a Signals experiment this means updating the</span>
+<span class="comment">% 'events.expStart' signal).  This can be useful when a service takes some</span>
+<span class="comment">% time to initialize, or if you want to record some sort of baseline</span>
+<span class="comment">% activity before the first stimulus appears.</span>
+sc(1).ExpPreDelay = 10; <span class="comment">% Send the start message to services then wait 10s</span>
+
+<span class="comment">% Likewise the ExpPostDelay is the time in seconds between the experiment</span>
+<span class="comment">% ending (i.e. the events.expStop signal updating), and the stop command</span>
+<span class="comment">% being sent to the services.  This may be useful if you wish to record</span>
+<span class="comment">% some baseline after the stimulus presentation has ended for example.</span>
+sc(1).ExpPostDelay = 30; <span class="comment">% Wait 30s then send the stop message to services</span>
+
+<span class="comment">% Save your objects:</span>
+stimulusControllers = sc; <span class="comment">% Variable must be saved as stimulusControllers</span>
+save(fullfile(p.globalConfig, <span class="string">'remote.mat'</span>), <span class="string">'stimulusControllers'</span>)
+
+<span class="comment">% More information can be found in the &lt;./websocket_config.html</span>
+<span class="comment">% websocket_config&gt; script:</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
+  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'websocket_config.m'</span>))
+</pre><h2 id="8">Conclusion</h2><p>Ultimately the way you configure your services will be idiosyncratic as it depends on what devices you need to trigger and what information they require from the experiment.  Hopefully the above gives you a good enough idea of the ways in which you can integrate other equipment and devices into Rigbox.</p><h2 id="9">Notes</h2><p>(1) MPEP is another, passive stimulus presentation toolbox that predates Rigbox.  The functions <tt>io.MpepUDPDataHosts</tt> and <tt>tl.mpepListener</tt> / <tt>tl.bindMpepServer</tt> were designed to work with both Rigbox and MPEP.  The latter is the function we run on the receiving end.</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*FINS,*NASGU,*NOPTS&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% Timeline outputs are useful for triggering external hardware, but what
+% about notifying other software of an experiment?  Services in Rigbox
+% allow one to trigger software on other devices, including starting and
+% stopping Timeline if it is running on a separate computer.  Services are
+% simply objects that send UDP messages at various times during an
+% experiment.  
+
+%% The Service class
+% Service classes have at least two methods, |start| and |stop|.  At the
+% beginning of an experiment |srv.expServer| will load these services
+% objects and run the |start| method for each, likewise at the send on an
+% experiment the |stop| method is called.  This provides a flexible way to
+% perform custom tasks during an experiment, and is technically not limited
+% to triggering software with UDPs: if you wanted you could create your own
+% subclass that does something entirely different, such as opening a file
+% or running system commands. 
+doc srv.Service
+
+%% Workflow
+% The sequence of events leading up to services starting is somewhat
+% convoluted!
+%
+% When |srv.expServer| receives a messages from MC to begin a new
+% experiment it first starts Timeline locally (if required), then calls
+% |srv.prepareExp| which initializes the experiment, then calls
+% |srv.findService| with a list of services to be started.
+% |srv.findService| loads |srv.basicServices| which loads all configured
+% service objects.  |srv.findService| returns all requested services to
+% |srv.prepareExp|, which creates stores them in both an
+% |exp.StartServices| and |exp.StopServices| object.  These objects are
+% added as callbacks to the experimentInit event.  |srv.expServer| now
+% calls |run| on the experiment object, which during in turn triggers the
+% experimentInit event, whereby the Service objects send their UDPs to
+% start the auxillary software.  Below is the stack starting at #1 and
+% going down, left to right:
+
+% |srv.expServer/runExp|-(2)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH>|
+%  ^       (1)                     |
+%  |        |                      V
+%  | |srv.prepareExp| REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> |exp.SignalsExp| (or other experiment)
+%  |        |                      |
+%  |        |REPLACE_WITH_DASH_DASH> |srv.findService|-:-> |srv.basicServices| REPLACE_WITH_DASH_DASH> |srv.Service|
+%  |        |           |          |           |<REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH|
+%  |        |           |<REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-|REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-|
+%  |        |<REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH|          V
+%  |        |REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH>|exp.StartServices|
+%  |<REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-|
+%
+%% Customising your services
+% The services are created by |expServer| at the start of the experiment.
+% It calls the function |srv.findService| which in turn calls the function
+% |srv.basicServices|.  Either of these files may be edited to configure
+% the services you need.  
+%
+% A simple way of doing this is to create a folder named |+srv| in the
+% MATLAB folder (usually found in ~\Documents). Anything in this folder
+% appears at the top of the your paths and therefor you can shadow Rigbox's
+% default |basicServices| function with the one you create in the MATLAB
+% folder.  This way your modified function won't be affected by pulls from
+% Git. 
+%
+% Your |srv.basicServices| function should have the host names for each
+% service as input and ouput a cell array of |srv.Service| objects:
+% function [services] = basicServices(timelineHost, neuralImgHost, eyeTrackingHost)
+%
+% Let's have a look at configuring some services with the
+% |srv.PrimitiveUDPService| subclass.  This used |pnet|, a networking
+% function that comes with PsychToolbox to sent and recieve UDP messages:
+
+% Configure scanimage/neural acquisition service
+% The class is called with the remote computer's host name.
+neuralImg = srv.PrimitiveUDPService(neuralImgHost);
+% The title is something human-readable that will be used in command window
+% status updates
+neuralImg.Title = 'Neural imaging';
+% The id must match the name stored in your StimulusControl object (more on
+% this later)
+neuralImg.Id = 'neural-imaging';
+% The response timeout in seconds.  If the remote devices fails to respond
+% in this time, expServer with throw an error and the experiment won't
+% start.
+neuralImg.ResponseTimeout = 5;
+% The listen and remote ports may also be set either here are as positional
+% arguments to the constructor.  The defaults are 10000.
+neuralImg.RemotePort = 10000;
+
+services = {timeline neuralImg eyeTracking}; % Our example output
+
+%% Primative UDP Service
+% The service is started by calling the |start| method with an experiment
+% reference string:
+ref = dat.constructExpRef('fake', now, 1);
+neuralImg.start(ref)
+
+% The object sends the message GOGO<ref>*<host> where <ref> is the
+% experiment reference and <host> is the hostname.  The remote computer is
+% expected to echo message within the timeout period.  It is printed to the
+% command window. 
+
+% Calling stop is similar:
+neuralImg.stop(ref) % Send STOP*<host>
+% The message should be echoed back
+
+% The is also a status method.  When the property Status is accessed the
+% following message is sent:
+status = neuralImg.Status; % Send WHAT814724*<host>
+%
+% The same random number is expected to be returned along with the status,
+% e.g.
+% GOGO814724 % means device running
+
+%% Basic UDP Service
+% Another subclass is called |srv.basicUDPService|.  This is similar to
+% |primativeUDPService| however it is a little more flexible and uses
+% MATLAB's instrument control toolbox.  It can also send messages
+% asynchronously.
+doc srv.basicUDPService
+
+% Below is a configuration for starting a remote computer that controls
+% some galvo moters during an experiment:
+
+% Some default hosts
+if nargin < 1 
+  galvoHost = 'zimbabwe';
+end
+% Configure galvo service
+galvo = srv.BasicUDPService(galvoHost, 10002, 10000);
+galvo.Title = sprintf('Galvo on %s', galvoHost);
+galvo.Id = 'galvo';
+galvo.ResponseTimeout = 5;
+
+services = {galvo};
+
+% The messages sent by this class are similar to those of
+% srv.PrimativeUDPService.
+
+%% MPEP UDP Data Hosts
+% Finally there is also a subclass called |io.MpepUDPDataHosts|(1).  This
+% class can also pass around an instance of Alyx via UDP, allowing remote
+% computers to register their files to the Alyx database.  Again, unlike
+% |srv.PrimativeUDPService| which sends and receives messages
+% synchronously, |io.MpepUDPDataHosts| sends the start and stop messages to
+% all remote hosts one after the other without waiting for responses.
+%
+% Below is some example code.  Note that this code is found in
+% |srv.findService|, rather than |srv.basicServices|, which has `id` as its
+% first input argument, which matches the Id property of a Service:
+timelineHost = iff(any(strcmp(id, 'timeline')), {'zcamp3'}, {''});
+neuralImgHost = iff(any(strcmp(id, 'b-scope')), {'zscope'}, {''});
+eyeTrackingHost = iff(any(strcmp(id, 'eye-tracking')), {'zquad'}, {''});
+
+remoteHosts = [timeHost neuralImgHost eyeTrackingHost];
+emp = cellfun(@isempty, remoteHosts);
+
+MpepHosts = io.MpepUDPDataHosts(remoteHosts(~emp));
+MpepHosts.ResponseTimeout = 30;
+MpepHosts.Id = 'MPEP-Hosts';
+MpepHosts.Title = 'mPep Data Acquisition Hosts';
+MpepHosts.open();
+s = {MpepHosts};
+
+% The messages sent by this class are different to the others.  With this
+% object you can send an instance of Alyx with the start command.  Below
+% are a selection of messages sent at the start of an experiment:
+
+% Ping
+obj.broadcast('hello');
+% Send Alyx instance UDP
+UDP_msg = Alyx.parseAlyxInstance(expRef, ai);
+[subject, seriesNum, expNum] = dat.expRefToMpep(expRef);
+alyxmsg = sprintf('alyx %s %d %d %s', subject, seriesNum, expNum, UDP_msg);
+confirmedBroadcast(obj, alyxmsg);
+% Send ExpStart UDP
+expStartMsg = sprintf('ExpStart %s %d %d', subject, seriesNum, expNum);
+confirmedBroadcast(obj, expStartMsg);
+% Send the BlockStart UDP
+blockStartMsg = sprintf('BlockStart %s %d %d 1', subject, seriesNum, expNum);
+
+% There are also methods for ending stimulus start and status messages.
+% Note that the order in which the devices are started is sometimes
+% important, particularly if you many inter-connected devices.  For example
+% you may have a camera that is triggered by Timeline's Clock Output and
+% some camera software is programmed to start saving the frames to file
+% after receiving a UDP:
+
+% expServer       Computer A               Computer B
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+% Service REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> Timeline.start() REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> [trigger camera]
+%                       |                       |
+% Service <REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHstartedREPLACE_WITH_DASH_DASH|                       |
+%                                               |
+% Service REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-> start(eye-tracking) <REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+%                       |
+% Service <REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-started-|
+
+%% Selecting services
+% Once you have set up your devices you need to add them to your rig's
+% |StimulusControl| object.  This is the object MC uses to access
+% information about availiable stimulus computers.
+doc srv.StimulusControl
+
+% One of the properties of this object is Services.  Here you can list all
+% the configured services for that rig.  This must match the Id properties
+% of the services:
+sc = srv.stimulusControllers % Load our StimulusControl objects
+sc(1).Services = {'neural-imaging', 'eye-tracking', 'timeline'};
+
+% These appear as toggles in the 'rig options' dialog in MC, allowing you
+% to select which services you need starting for a given experiment.  You
+% can also set the default state by changing the SelectedServices property:
+sc(1).SelectedServices = [false, false, true]; % Only timeline on by default
+
+% Setting default delays is sometimes useful.  These can also be changed in
+% the 'rig options' dialog in MC.  The ExpPreDelay property is the time in
+% seconds to wait between starting the services and actually beginning the
+% experiment (for a Signals experiment this means updating the
+% 'events.expStart' signal).  This can be useful when a service takes some
+% time to initialize, or if you want to record some sort of baseline
+% activity before the first stimulus appears.  
+sc(1).ExpPreDelay = 10; % Send the start message to services then wait 10s
+
+% Likewise the ExpPostDelay is the time in seconds between the experiment
+% ending (i.e. the events.expStop signal updating), and the stop command
+% being sent to the services.  This may be useful if you wish to record
+% some baseline after the stimulus presentation has ended for example.
+sc(1).ExpPostDelay = 30; % Wait 30s then send the stop message to services
+
+% Save your objects:
+stimulusControllers = sc; % Variable must be saved as stimulusControllers
+save(fullfile(p.globalConfig, 'remote.mat'), 'stimulusControllers')
+
+% More information can be found in the <./websocket_config.html
+% websocket_config> script:
+open(fullfile(getOr(dat.paths,'rigbox'), ...
+  'docs', 'setup', 'websocket_config.m'))
+
+%% Conclusion
+% Ultimately the way you configure your services will be idiosyncratic as
+% it depends on what devices you need to trigger and what information they
+% require from the experiment.  Hopefully the above gives you a good enough
+% idea of the ways in which you can integrate other equipment and devices
+% into Rigbox.
+
+%% Notes
+% (1) MPEP is another, passive stimulus presentation toolbox that predates
+% Rigbox.  The functions |io.MpepUDPDataHosts| and |tl.mpepListener| /
+% |tl.bindMpepServer| were designed to work with both Rigbox and MPEP.  The
+% latter is the function we run on the receiving end. 
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.1.0
+
+%#ok<*FINS,*NASGU,*NOPTS>
+##### SOURCE END #####
+--></body></html>

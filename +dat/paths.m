@@ -13,7 +13,7 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
-server1Name = '\\zubjects.cortexlab.net';
+server1Name = '\\znas.cortexlab.net';
 server2Name = '\\zserver.cortexlab.net';
 basketName = '\\basket.cortexlab.net'; % for working analyses
 lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
@@ -33,6 +33,7 @@ p.updateSchedule = 2; % Day on which to update code (2 = Monday)
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
 p.mainRepository = fullfile(server1Name, 'Subjects');
+p.main2Repository = fullfile(server1Name, 'Data', 'Subjects');
 
 % directory for organisation-wide configuration files, for now these should
 % all remain on zserver

@@ -1,7 +1,8 @@
 classdef PositionSensor < hw.DataLogging
   %HW.POSITIONSENSOR Abstract class for tracking positions from a sensor
   %   Takes care of logging positions and times every time readPosition is
-  %   called. Has a zeroing function and a gain parameter.
+  %   called. Has a zeroing function and a gain parameter.  This class is
+  %   intended only for linear position sensors.
   %
   % Part of Rigbox
 
@@ -11,13 +12,13 @@ classdef PositionSensor < hw.DataLogging
     MillimetresFactor %Factor to convert position to millimetre units
   end
 
-  properties (Dependent = true)
+  properties (Dependent, Transient)
     Positions %All recorded positions
     PositionTimes %Times for each recorded position
     LastPosition %Most recent position read
   end
   
-  properties (Access = protected)
+  properties (SetAccess = protected)
     ZeroOffset = 0
   end
 
