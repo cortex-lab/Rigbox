@@ -37,8 +37,8 @@
 % remote rig.  When the experiment is initializing or during the
 % cleanup/post-delay phase the title is amber.  During the main experiment
 % phase the title turns green and when complete, red.  This title colour
-% and other properties are set in the `live` method then subsequently by the
-% `event` method.
+% and other properties are set in the `live` method then subsequently by
+% the `event` method.
 
 %%% InfoGrid
 % The info grid contains all experiment event labels and their current

@@ -14,7 +14,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     LoggingDisplay
   end
   
-  properties
+  properties (SetAccess = private) % Should only be public with setters
     % Option for live-plotting signals during experiment
     LivePlot matlab.lang.OnOffSwitchState = 'off'
     % Option for showing ExpPanel defined by 'expPanelFun' parameter
