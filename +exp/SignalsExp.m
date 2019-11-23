@@ -423,6 +423,7 @@ classdef SignalsExp < handle
         %mark that an exception occured in the block data, then save
         obj.Data.endStatus = 'exception';
         obj.Data.exceptionMessage = ex.message;
+        obj.cleanup() % TODO Make cleanup more robust to error states
         if ~isempty(ref)
           saveData(obj); %save the data
         end
