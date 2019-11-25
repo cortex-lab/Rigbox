@@ -188,6 +188,7 @@ git.runCmd('checkout master'); git.update(0);
 %  Rigbox:tests:system:notInTest
 %  Rigbox:tests:modDate:notInTest
 %  Rigbox:tests:paths:notInTest
+%  Rigbox:tests:pnet:notInTest
 %  Rigbox:tests:modDate:missingTestFlag % TODO change name
 %  Rigbox:MockDialog:newCall:InTestFalse
 
@@ -270,6 +271,27 @@ git.runCmd('checkout master'); git.update(0);
 %  Rigbox:dat:newExp:expFoldersAlreadyExist
 %
 
+% ..:..:expRefNotFound
+% Problem:
+%  The experiment reference string does not correspond to the folder
+%  structure in your mainRepository path.  Usually determined via a call to
+%  |dat.expExists|.
+%
+% Solution:
+%  Check that the mainRepository paths are the same on both the computer
+%  that creates the experiment (e.g. MC) and the one that loads the
+%  experiment (e.g. the one that runs |srv.expServer|).  For an experiment
+%  to exist, the subject > date > sequence folder structure should exist in
+%  the mainRepository.  To see the mainRepository location, run the
+%  following:
+%    getOr(dat.paths, 'mainRepository')
+%  For example if the output is '\\server\Subjects\' then for the expRef
+%  '2019-11-25_1_test' to exist, the following folder should exist:
+%  \\server\Subjects\test\2019-11-25\1
+%
+% IDs
+%  Rigbox:srv:expServer:expRefNotFound
+
 % Other:
 
 % Rigbox:git:runCmd:nameValueArgs
@@ -282,9 +304,8 @@ git.runCmd('checkout master'); git.update(0);
 
 % Rigbox:srv:unexpectedUDPResponse
 % Rigbox:srv:unexpectedUDP
-% rigbox:srv:expServer:noHardwareConfig
+% Rigbox:srv:expServer:noHardwareConfig
 
-% Rigbox:tests:pnet:notInTest
 % Rigbox:dat:expPath:NotEnoughInputs
 % Rigbox:exp:SignalsExp:NoScreenConfig
 % Rigbox:exp:Parameters:wrongNumberOfColumns

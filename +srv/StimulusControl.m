@@ -288,7 +288,7 @@ classdef StimulusControl < handle
   methods (Static)
     function errorOnFail(r)
       if iscell(r) && strcmp(r{1}, 'fail')
-        error(r{3});
+        error(r{3:end})
       end
     end
   end
