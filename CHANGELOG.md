@@ -2,7 +2,11 @@
 
 Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.4.0
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.5.0
+
+- improvements to experiment panels including ability to hide info fields `169fbb4` 2019-11-27
+
+## [2.4.0] ()
 
 - patch to readme linking to most up-to-date documentation `4ff1a21` 2019-09-16
 - updates to `+git` package and its tests `5841dd6` 2019-09-24
