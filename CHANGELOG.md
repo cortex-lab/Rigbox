@@ -2,7 +2,7 @@
 
 Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.4.0
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.4.1
 
 - patch to readme linking to most up-to-date documentation `4ff1a21` 2019-09-16
 - updates to `+git` package and its tests `5841dd6` 2019-09-24
@@ -18,6 +18,8 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - better organization of expServer `f32a0fe` 2019-10-02
 - bug fix for rounding negative numbers in AlyxPanel `31641f1` 2019-10-17
 - stricter and more accurate tolerance in AlyxPanel_test `31641f1` 2019-10-17
+- HOTFIX to error when plotting supressed in Window calibrate `7d6b601` 2019-11-15
+- Added change scale port helper; fixed issue with scale cleanup on calibrate error `01e394b` 2019-11-27
 
 
 ## [2.3.0](https://github.com/cortex-lab/Rigbox/releases/tag/v2.3.0)
