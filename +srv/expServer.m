@@ -44,7 +44,7 @@ timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
 rewardId = 1;
 % Function for constructing a full ID for warnings and errors
-fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':'); 
+fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':');
 
 %% Initialisation
 % Pull latest changes from remote
@@ -86,6 +86,7 @@ cleanup = onCleanup(@() fun.applyForce({
   @() delete(listener),...
   @() rig.stimWindow.close(),...
   @() aud.close(rig.audio),...
+  @() rig.scale.cleanup()
   }));
 
 % OpenGL
@@ -339,7 +340,6 @@ ShowCursor();
     ul = [calibration.volumeMicroLitres];
     log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
     
-    %     rigData = load(fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat'));
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
     
     save(rigHwFile, 'daqController', '-append');
