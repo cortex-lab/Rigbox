@@ -210,12 +210,6 @@ classdef SignalsExp < handle
         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
         entryAdded(obj.Events, 'expStop', obj.Events.expStop);
       end
-%       if isfield(obj.Events, 'expStop')
-%         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
-%         entryAdded(obj.Events, 'expStop', obj.Events.expStop);
-%       else
-%         obj.Events.expStop = lastTrialOver;
-%       end
       % listeners
       obj.Listeners = [
         obj.Events.expStart.map(true).into(advanceTrial) %expStart signals advance
@@ -572,23 +566,6 @@ classdef SignalsExp < handle
       obj.Listeners = [obj.Listeners
         layersSig.onValue(fun.partial(@obj.newLayerValues, name))];
       newLayerValues(obj, name, layersSig.Node.CurrValue);
-
-%       %% load textures
-%       layerData = obj.LayersByStim(name);
-%       Screen('BeginOpenGL', win);
-%       try
-%         for ii = 1:numel(layerData)
-%           id = layerData(ii).textureId;
-%           if ~obj.TextureById.isKey(id)
-%             obj.TextureById(id) = ...
-%               vis.loadLayerTextures(layerData(ii));
-%           end
-%         end
-%       catch glEx
-%         Screen('EndOpenGL', win);
-%         rethrow(glEx);
-%       end
-%       Screen('EndOpenGL', win);
     end
     
     function newLayerValues(obj, name, val)
