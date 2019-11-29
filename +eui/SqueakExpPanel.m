@@ -133,7 +133,13 @@ classdef SqueakExpPanel < eui.ExpPanel
             %grow message queue to accommodate
             obj.SignalUpdates(2*newNUpdates).value = [];
           end
-          obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          try
+            obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
+          catch % see github.com/cortex-lab/Rigbox/issues/72
+            id  = 'Rigbox:eui:SqueakExpPanel:signalsUpdateMismatch';
+            msg = 'Error caught in signals updates: length of updates = %g, length newNUpdates = %g';
+            warning(id, msg, length(updates), newNUpdates-(obj.NumSignalUpdates+1))
+          end
           obj.NumSignalUpdates = newNUpdates;
         case 'newTrial'
           cond = evt.Data{2}; %condition data for the new trial
