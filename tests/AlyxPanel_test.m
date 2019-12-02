@@ -219,16 +219,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Update weight outside of Panel
       w = testCase.Panel.AlyxInstance.postWeight(randi(35)+rand, 'algernon');
-      testCase.assertTrue(~isempty(w), 'Failed to update Alyx')
+      testCase.assertNotEmpty(w, 'Failed to update Alyx')
       
       prev = weight_text.String(2,:);
       button.Callback(); % Hit refresh
       new = weight_text.String(2,:);
       
       testCase.verifyTrue(~strcmp(prev, new), 'Failed to retrieve new data')
+      
+      % Test non-existent subject string
+      testCase.SubjectUI.Selected = testCase.SubjectUI.Option{1}; % default
+      testCase.verifyEqual(weight_text.String, 'Subject default not on water restriction', ...
+        'Failed to update string for mice not on water restriction')
     end
     
-    function test_launchSessionURL(testCase, BaseURL)
+    function test_launchSessionURL(testCase)
       % Test the launch of the session page in the admin Web interface
       % TODO Use DELETE to test both creating new session and viewing
       % existing
@@ -260,7 +265,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % todo: close tab after opening? (for `test_launchSubjectURL` as well)
     end
     
-    function test_launchSubjectURL(testCase, BaseURL)
+    function test_launchSubjectURL(testCase)
       % Test the launch of the subject page in the admin Web interface
       p = testCase.Panel;
       baseURL = p.AlyxInstance.BaseURL;
@@ -308,7 +313,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Test manual weight dialog
       weight = 32 + rand;
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
-      testCase.assertTrue(~isempty(button), 'Unable to find button object')
+      testCase.assertNotEmpty(button, 'Unable to find button object')
       testCase.Mock.Dialogs('Manual weight logging') = num2str(weight);
       button.Callback()
       
@@ -368,9 +373,16 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_updateWeightButton(testCase)
+      % As this test takes at least 10 seconds and doesn't require database
+      % interaction, we will skip it unless the current panel instance is
+      % using the first database URL set in the BaseURL property.
+      if ~strcmp(testCase.Panel.AlyxInstance.BaseURL, testCase.BaseURL{1})
+        disp('Skipping test')
+        return
+      end
       % Find the weight button
       button = findobj(testCase.Parent, 'String', 'Manual weighing');
-      testCase.assertTrue(~isempty(button), 'Unable to find button object')
+      testCase.assertNotEmpty(button, 'Unable to find button object')
       callbk_fn = button.Callback;
       src.readGrams = randi(35) + rand;
       testCase.Panel.updateWeightButton(src,[])
@@ -381,13 +393,17 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       callbk_fn = button.Callback;
       
       % Check button resets
-      while toc < 10 && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
+      t = 10; % Button should reset after this many seconds
+      while toc <= t && ~strcmp(button.String, 'Manual weighing'); pause(0.01); end
       testCase.verifyEqual(button.String, 'Manual weighing', 'Button failed to reset')
       testCase.verifyTrue(~isequal(button.Callback, callbk_fn), 'Callback unchanged')
     end
     
     function test_giveWater(testCase)
       testCase.Panel;
+      % Tolerance for water verifications, required due to rounding
+      tol2dp = 0.01; % rounding to 2 d.p.
+      tol1dp = 0.1; % rounding to 1 d.p.
       % Set subject on water restriction
       testCase.SubjectUI.Selected = 'algernon';
       % Ensure there's a weight for today
@@ -412,21 +428,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         testCase.SubjectUI.Selected, datestr(now, 'yyyy-mm-dd'),datestr(now, 'yyyy-mm-dd'));
       [vals, record] = get_test_data;
       
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
-      rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -(record.excess_water+amount), 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'AbsTol', tol2dp, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'AbsTol', tol1dp, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'AbsTol', tol1dp, 'Given water mismatch')
+      rem = str2double(remaining.String(2:end-1)); % Text displayed
+      % The expected value uses a the required water rounded up to 2 d.p.
+      expected = -(eui.AlyxPanel.round(record.excess_water, 'down') + amount);
+      testCase.verifyEqual(rem, expected, 'AbsTol', tol2dp, 'Given water mismatch')
       
       % Test give water callback
       button.Callback()
       [vals, record] = get_test_data;
             
-      testCase.verifyEqual(record.expected_water, vals(2), 'RelTol', 0.1, 'Expected water mismatch')
-      testCase.verifyEqual(-record.excess_water, vals(1), 'RelTol', 0.1, 'Excess water mismatch')
-      testCase.verifyEqual(record.given_water_total, vals(3), 'RelTol', 0.1, 'Given water mismatch')
-      rem = str2double(remaining.String(2:end-1));
-      testCase.verifyEqual(rem, -record.excess_water, 'RelTol', 0.1, 'Given water mismatch')
+      testCase.verifyEqual(record.expected_water, vals(2), 'AbsTol', tol2dp, 'Expected water mismatch')
+      testCase.verifyEqual(-record.excess_water, vals(1), 'AbsTol', tol1dp, 'Excess water mismatch')
+      testCase.verifyEqual(record.given_water_total, vals(3), 'AbsTol', tol1dp, 'Given water mismatch')
       
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
@@ -445,6 +461,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_giveFutureWater(testCase)
       subject = 'ZM_335';
       testCase.SubjectUI.Selected = subject;
+      % Tolerance for water verifications, permit rounding to 2 decimal
+      % places; dates have a tolerance of ~15 min
+      tol = 0.01; 
       
       testCase.Mock.InTest = true;
       testCase.Mock.UseDefaults = false;
@@ -460,15 +479,15 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Check training day added
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), [now+3, now+5], 'AbsTol', tol, ...
         'Failed to add training dates to saved params')
       
       % Check water posted to Alyx
       wr = testCase.Panel.AlyxInstance.getData(['subjects/', subject]);
       last = wr.water_administrations(end);
-      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', 0.01, ...
+      testCase.verifyEqual(Alyx.datenum(last.date_time), now+4, 'AbsTol', tol, ...
         'Date of post incorrect')
-      testCase.verifyEqual(last.water_administered, amount, 'RelTol', 0.1, ...
+      testCase.verifyEqual(last.water_administered, amount, 'AbsTol', tol, ...
         'Incorrect amount posted to Alyx')
 
       % Check log
@@ -484,7 +503,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Check training day removed
       button.Callback();
       toTrian = dat.loadParamProfiles('WeekendWater');
-      testCase.verifyEqual(toTrian.(subject), now+3, 'RelTol', 0.1, ...
+      testCase.verifyEqual(toTrian.(subject), now+3, 'AbsTol', tol, ...
         'Failed to add training dates to saved params')
     end
     
@@ -493,7 +512,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % not empty
       
       % First ensure panel was set up as active
-      testCase.assertTrue(~isempty(getOr(dat.paths, 'databaseURL')), ...
+      testCase.assertNotEmpty(getOr(dat.paths, 'databaseURL'), ...
         'Expected non-empty databaseURL field in paths')
       str = iff(testCase.Panel.AlyxInstance.IsLoggedIn, 'Logout', 'Login');
       button = findobj(testCase.Parent, 'String', str);
@@ -527,15 +546,18 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'up'), 0.85);
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'up', 3), 0.844);
       testCase.verifyEqual(testCase.Panel.round(12.6, 'up'), 13);
+      testCase.verifyEqual(testCase.Panel.round(-2.3710, 'up'), -2.3);
       
       % Test round down
       testCase.verifyEqual(testCase.Panel.round(0.8437, 'down'), 0.84);
       testCase.verifyEqual(testCase.Panel.round(0.78375, 'down', 3), 0.783);
       testCase.verifyEqual(testCase.Panel.round(12.6, 'down'), 12);
+      testCase.verifyEqual(testCase.Panel.round(-2.3710, 'down'), -2.4);
       
       % Test default behaviour
       testCase.verifyEqual(testCase.Panel.round(0.8437), 0.84);
       testCase.verifyEqual(testCase.Panel.round(0.855), 0.86);
+      testCase.verifyEqual(testCase.Panel.round(-0.855), -0.86);
     end
     
   end

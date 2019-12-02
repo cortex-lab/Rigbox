@@ -51,6 +51,7 @@ classdef WeighingScale < handle
             % Do nothing
         end
       end
+      obj.tare(); % Tare the scale to ensure LastGrams is never empty
     end
     
     function cleanup(obj)

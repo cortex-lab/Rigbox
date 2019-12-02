@@ -27,21 +27,18 @@ classdef WSJCommunicator < io.Communicator
   end
   
   properties (Transient)
+    % Handle to java WebSocket
     WebSocket
-    hWebSocket %handle to java WebSocket
+    % WebSocket listener callback handles
+    hWebSocket 
     % When true listeners are notified of new messages via the
     % MessageRecieved event
-    EventMode logical = false
+    EventMode = false
   end
   
   properties (Access = private, Transient)
-    Listener % TODO This property appears to be unused.  Test before removing
     % Handle to java.util.LinkedList object containing recieved data
     InBuffer
-  end
-  
-  events
-    MessageReceived
   end
   
   methods
@@ -130,7 +127,22 @@ classdef WSJCommunicator < io.Communicator
     end
      
     function s = wtf(obj)
-      s = obj.WebSocket.State;
+      % WTF Return the state of the WebSocket.  
+      %  Returns a string, s, that is either 'OPEN' or 'CLOSED'.  These
+      %  states are determined differently for each role as the server role
+      %  is passive.
+      if ~isempty(obj.WebSocket)
+        switch obj.Role
+          case 'client'
+            s = obj.WebSocket.getReadyState;
+          case 'server'
+            s = iff(isempty(obj.hWebSocket), 'CLOSED', 'OPEN');
+          otherwise
+            error('Invalid WebSocket role ''%s''', obj.Role);
+        end
+      else
+        s = 'CLOSED';
+      end
     end
   end
   

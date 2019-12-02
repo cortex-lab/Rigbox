@@ -2629,7 +2629,7 @@ function [handles,levels,parentIdx,listing] = findjobj(container,varargin) %#ok<
             else
                 object = getTopSelectedObject(varargin{:});
             end
-            if isempty(which('uiinspect'))
+            if ~exist('uiinspect','file')
 
                 % If the user has not indicated NOT to be informed about UIInspect
                 if ~ispref('FindJObj','dontCheckUIInspect')

@@ -1,6 +1,13 @@
 function s = catStructs(cellOfStructs, missingValue)
-%catStructs Concatenates different structures into one structure array
+%CATSTRUCTS Concatenates different structures into one structure array
 %   s = catStructs(cellOfStructs, [missingValue])
+%
+%   Returns a non-scalar structure made from concatinating the structures
+%   in `cellOfStructs` and optionally replacing any missing values. NB: all
+%   empty values in the output struct are replaced by `missingValue`,
+%   including ones present in the original input.
+%
+% See also MERGESTRUCTS
 
 % 2013-11 CB created
 
@@ -28,4 +35,3 @@ else
 end
 
 end
-
