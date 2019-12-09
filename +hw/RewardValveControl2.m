@@ -90,7 +90,7 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
             dt = max(dt, 0); % Don't let dt fall below zero
         end
         
-        s
+       
         
     end
     
