@@ -116,11 +116,11 @@ calibration = struct(...
     'durationSecs', num2cell(t(1,:)),...
     'volumeMicroLitres', num2cell(ul));
 
-if isa(signalGen, 'hw.RewardValveControl2') && valve == 1
+if isa(signalGen, 'hw.RewardValveControl2') && p.valve == 1
     signalGen.Calibrations1(end + 1).dateTime = now;
     signalGen.Calibrations1(end).measuredDeliveries = calibration;
     
-elseif isa(signalGen, 'hw.RewardValveControl2') && valve == 2
+elseif isa(signalGen, 'hw.RewardValveControl2') && p.valve == 2
     signalGen.Calibrations2(end + 1).dateTime = now;
     signalGen.Calibrations2(end).measuredDeliveries = calibration;
     

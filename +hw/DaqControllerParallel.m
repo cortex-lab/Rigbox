@@ -96,7 +96,7 @@ classdef DaqControllerParallel < handle
             % the ports associated with outputName. 
             
             output_num = find(strcmp(obj.ChannelNames, outputName));
-            assert(numel(output_num) == 1 && output_num > 0, 'Unknown output -- check that the name in your expDef matches the name in the hardware file')
+            assert(numel(output_num) == 1 && output_num > 0, 'Unknown output -- check that the name in your expDef matches the name in the hardware file');
             
             if obj.DaqSessions{output_num}.IsRunning
                 % if a daq operation is in progress, stop it, and set its output

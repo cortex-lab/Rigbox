@@ -352,19 +352,22 @@ ShowCursor();
 
   function calibrateWaterDelivery()
     daqController = rig.daqController;
-    chan = daqController.ChannelNames(rewardId);
     %perform measured deliveries
     rig.scale.init();
-    calibration = hw.calibrate(chan, daqController, rig.scale, 20e-3, 150e-3);
+    calibration1 = hw.calibrate(daqController, rig.scale, 15e-3, 200e-3, 'valve', 1);
+    
+    ul = [calibration1.volumeMicroLitres];
+    log('Delivered volumes on valve 1 ranged from %.1ful to %.1ful', min(ul), max(ul));
+    
+    calibration2 = hw.calibrate(daqController, rig.scale, 15e-3, 200e-3, 'valve', 2);
+    ul = [calibration2.volumeMicroLitres];
+    log('Delivered volumes on valve 2 ranged from %.1ful to %.1ful', min(ul), max(ul));
+    
     rig.scale.cleanup();
-    %different delivery durations appear in each column, repeats in each row
-    %from the data, make a measuredDelivery structure
-    ul = [calibration.volumeMicroLitres];
-    log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
-    
-    %     rigData = load(fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat'));
+   
     rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
-    
+    calibFile = fullfile(pick(dat.paths, 'rigConfig'), 'calibrations.mat');
+    save(calibFile, 'calibration1', 'calibration2');
     save(rigHwFile, 'daqController', '-append');
   end
 
