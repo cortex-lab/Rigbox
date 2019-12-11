@@ -18,6 +18,8 @@ if nargin < 1 || isempty(rig)
   rig = thishost;
 end
 
+server1Name = '\\znas.cortexlab.net';
+server2Name = '\\zserver.cortexlab.net';
 basketName = '\\basket.cortexlab.net'; % for working analyses
 lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
 
@@ -29,18 +31,18 @@ p.localRepository = 'C:\LocalExpData';
 
 % Under the new system of having data grouped by mouse
 % rather than data type, all experimental data are saved here.
-p.mainRepository =  '\\znas.cortexlab.net\Subjects';
+p.mainRepository = fullfile(server1Name, 'Subjects');
 % Optional alternate named repos may be defined using the repo name
 % followed by a number. These are searched in addition to the master repo.
-p.main2Repository = '\\zserver.cortexlab.net\Subjects';
+p.main2Repository = fullfile(server2Name, 'Data', 'Subjects');
 
 % Directory for organisation-wide configuration files, for now these should
 % all remain on zserver
-p.globalConfig = '\\zserver.cortexlab.net\Code\Rigging\config';
+p.globalConfig = fullfile(server2Name, 'Code', 'Rigging', 'config');
 % Directory for rig-specific configuration files
-p.rigConfig = '\\zserver.cortexlab.net\Code\Rigging\config';
+p.rigConfig = fullfile(p.globalConfig, rig);
 % Repository for all experiment definitions
-p.expDefinitions = '\\zserver.cortexlab.net\Code\Rigging\expDefinitions';
+p.expDefinitions = fullfile(server2Name, 'Code', 'Rigging', 'ExpDefinitions');
 
 %% Non-essential paths
 % Database url and local queue for cached posts.  If empty or undefined,
