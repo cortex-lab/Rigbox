@@ -20,33 +20,65 @@ classdef ExpPanel < handle
   % 2017-05 MW added Alyx compatibility
   
   properties
-    Block = struct('numCompletedTrials', 0, 'trial', struct([])) % A structure to hold update information relevant for the plotting of psychometics and performance calculations
-    %log entry pertaining to this experiment
+    % A structure to hold update information relevant for the plotting of
+    % psychometics and performance calculations.  This is updated as new
+    % ExpUpdate events occur.  See also mergeTrialData
+    Block = struct('numCompletedTrials', 0, 'trial', struct([]))
+    % Log entry pertaining to this experiment
     LogEntry
+    % An array of listener handles for the remote rig, added by the live
+    % static constructor method
     Listeners
   end
   
   properties (Access = protected)
-    ExpRunning = false % A flag indicating whether the experiment is still running
+    % A flag indicating whether the experiment is still running
+    ExpRunning = false
+    % A list of active experiment phases
     ActivePhases = {}
+    % The root BoxPanel container
     Root
-    Ref % The experimental reference (expRef).  
-    SubjectRef % A string representing the subject's name
-    InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
-    InfoLabels %label text controls for each info field
-    InfoFields %field controls for each info field
-    StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
-    TrialCountLabel % A counter displaying the current trial number
+    % The experimental reference string (expRef)
+    Ref
+    % A string representing the subject's name
+    SubjectRef
+    % Handle to the UIX.GRID UI object that holds contains the InfoFields
+    % and InfoLabels
+    InfoGrid
+    % Label text controls for each info field
+    InfoLabels
+    % Field UI controls for each info field
+    InfoFields
+    % A text field displaying the status of the experiment, i.e. the
+    % current phase of the experiment
+    StatusLabel
+    % A counter displaying the current trial number
+    TrialCountLabel
+    % A condition index counter.  Only used if the parameters contains a
+    % conditionId parameter
     ConditionLabel
+    % A counter for the experiment duration
     DurationLabel
-    StopButtons % Handles to the End and Abort buttons, used to terminate an experiment through the UI
+    % Handles to the End and Abort buttons, used to terminate an experiment
+    % through the UI
+    StopButtons
+    % The datetime when the ExpPanel was instantiated
     StartedDateTime
-    CloseButton % The little x at the top right of the panel.  Deletes the object.
-    CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
-    CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
-    MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
-    Parameters exp.Parameters % A structure of experimental parameters used by this experiment
-    UIContextMenu % Holds a context menu for show/hide options for info fields
+    % The little x at the top right of the panel.  Deletes the object
+    CloseButton
+    % A handle to text box.  Text inputed to this box is saved in the
+    % subject's LogEntry
+    CommentsBox
+    % Handle to a UI box where any number of platting axes my be placed by
+    % subclasses
+    CustomPanel
+    % Handle to the main box containing all labels, buttons and UI boxes
+    % for this panel
+    MainVBox
+    % A structure of experimental parameters used by this experiment
+    Parameters exp.Parameters
+    % Holds a context menu for show/hide options for info fields
+    UIContextMenu
   end
   
   methods (Static)
