@@ -113,7 +113,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       ai = Alyx.parseAlyxInstance(testCase.Ref, Alyx('user',''));
       % Function for constructing message strings
       str = @(cmd) sprintf('%s %s %s %d %s', cmd, subject, ...
-        datestr(series, 'yyyymmdd'), seq, iff(strcmp(cmd,'alyx'),ai,'')); 
+        datestr(series, 'yyyymmdd'), seq, iff(strcmp(cmd,'alyx'),ai,''));
+      % Set behaviour for IsRunning method to pass IsRunning assert
+      testCase.assignOutputsWhen(get(testCase.Behaviour.IsRunning), false)
       % Commands
       cmd = {'alyx', 'expstart', 'expend', 'expinterupt'};
       % Set output for 'read'
@@ -124,11 +126,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Test Timeline interactions
       timeline = testCase.Behaviour;
       testCase.verifyThat([...
-        timeline.start(testCase.Ref, IsOfClass(?Alyx)),... % expstart
+        get(timeline.IsRunning), ...
+        timeline.start(testCase.Ref, IsOfClass(?Alyx)), ... % expstart
         withAnyInputs(timeline.record), ... % "
         withAnyInputs(timeline.stop), ... % expstop 
         withAnyInputs(timeline.stop)], ... % expinterupt
-        Occurred('RespectingOrder', true))
+        Occurred('RespectingOrder', false))
       
       % Retrieve mock history for Timeline
       history = testCase.getMockHistory(testCase.Timeline);
@@ -153,6 +156,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       pnet('setoutput', ports(2), 'read', str('expstart'));
       % Trigger pnet read; use evalc to supress output
       evalc('tls.process()');
+      % Set Timeline as already running and check for error
+      testCase.assignOutputsWhen(get(testCase.Behaviour.IsRunning), true)
+      evalc('tls.process()');
       
       % Check message not echoed after error
       history = pnet('gethistory');
@@ -162,7 +168,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_listen(testCase)
-      % TODO
+      % TODO Add test for listen function of bindMpepServer
     end
   end
   
