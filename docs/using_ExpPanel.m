@@ -18,7 +18,7 @@
 % paramsStruct input.  Currently supported types include
 % SingleTargetChoiceWorld, ChoiceWorld, DiscWorld, SurroundChoiceWorld
 % (|eui.ChoiceExpPanel|); BarMapping (|eui.MappingExpPanel|); custom a.k.a.
-% Signals (|eui.SqueakExpPanel|).  
+% Signals (|eui.SignalsExpPanel|).  
 %
 % For Signals experiments the default ExpPanel class may be overridden by
 % providing a parameter named `expPanelFun` whose value is either a
@@ -78,8 +78,8 @@
 %% Method call sequence
 % TODO
 
-%% exp.SqueakExpPanel
-% The subclass, |exp.SqueakExpPanel|, is the default class for Signals
+%% exp.SignalsExpPanel
+% The subclass, |exp.SignalsExpPanel|, is the default class for Signals
 % Experiments.   In this class, all Signals updates are shown as InfoFields
 % whose colours pulse green as the values update.  The signals sent from
 % the stimulus computer includes events, parameters, inputs and outputs

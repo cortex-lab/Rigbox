@@ -1,9 +1,8 @@
-classdef SqueakExpPanel < eui.ExpPanel
-  %EUI.SQUEAKEXPPANEL Basic UI control for monitoring a Signals experiment
+classdef SignalsExpPanel < eui.ExpPanel
+  %EUI.SIGNALSEXPPANEL Basic UI control for monitoring a Signals experiment
   %   Displays all values of events, inputs and outputs signals as they
   %   arrive from the remote stimulus server.
   %
-  %   % FIXME Rename to SignalsExpPanel
   %
   % Part of Rigbox
   
@@ -31,7 +30,7 @@ classdef SqueakExpPanel < eui.ExpPanel
   
   
   methods
-    function obj = SqueakExpPanel(parent, ref, params, logEntry)
+    function obj = SignalsExpPanel(parent, ref, params, logEntry)
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
       obj.LabelsMap = containers.Map();
     end
@@ -136,7 +135,7 @@ classdef SqueakExpPanel < eui.ExpPanel
           try
             obj.SignalUpdates(obj.NumSignalUpdates+1:newNUpdates) = updates;
           catch % see github.com/cortex-lab/Rigbox/issues/72
-            id  = 'Rigbox:eui:SqueakExpPanel:signalsUpdateMismatch';
+            id  = 'Rigbox:eui:SignalsExpPanel:signalsUpdateMismatch';
             msg = 'Error caught in signals updates: length of updates = %g, length newNUpdates = %g';
             warning(id, msg, length(updates), newNUpdates-(obj.NumSignalUpdates+1))
           end

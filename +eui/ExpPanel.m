@@ -9,10 +9,10 @@ classdef ExpPanel < handle
   %   EXPPANEL is not stand-alone and thus requires a handle to a parent
   %   window.  This class has a number of subclasses, one for each
   %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
-  %   SQUEAKEXPPANEL for Signals experiments.  
+  %   SIGNALSEXPPANEL for Signals experiments.  
   %
   %
-  % See also SQUEAKEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
+  % See also SIGNALSEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
   %
   % Part of Rigbox
   
@@ -98,7 +98,7 @@ classdef ExpPanel < handle
           case 'BarMapping'
             p = eui.MappingExpPanel(parent, ref, params, logEntry);
           case 'custom'
-            p = eui.SqueakExpPanel(parent, ref, params, logEntry);
+            p = eui.SignalsExpPanel(parent, ref, params, logEntry);
           otherwise
             p = eui.ExpPanel(parent, ref, params, logEntry);
         end
