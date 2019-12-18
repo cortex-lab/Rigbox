@@ -12,6 +12,8 @@ function d = modDate(p, setDate)
 %     assert(diff(floor([now, file.modDate(p)])) == 0)
 %     clear modDate INTEST % Reset after test
 % 
+% Part of Rigbox tests
+
 % 2019-09 MW created
 
 persistent dates

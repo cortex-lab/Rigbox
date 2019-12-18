@@ -66,8 +66,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % See also MOCKRIG, GIT.UPDATE
       
       % Set INTEST flag to true
-      testCase.setTestFlag(true)
-      testCase.addTeardown(@testCase.setTestFlag, false)
+      setTestFlag(true)
+      testCase.addTeardown(@setTestFlag, false)
       
       % Make sure git update not triggered
       root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
@@ -923,12 +923,4 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
   end
   
-  methods (Static)
-    function setTestFlag(TF)
-      % SETTESTFLAG Set global INTEST flag
-      %   Allows setting of test flag via callback function
-      global INTEST
-      INTEST = TF;
-    end
-  end
 end
