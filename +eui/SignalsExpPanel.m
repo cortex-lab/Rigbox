@@ -1,7 +1,10 @@
 classdef SignalsExpPanel < eui.ExpPanel
   %EUI.SIGNALSEXPPANEL Basic UI control for monitoring a Signals experiment
   %   Displays all values of events, inputs and outputs signals as they
-  %   arrive from the remote stimulus server.
+  %   arrive from the remote stimulus server.  These events arrive as
+  %   'signals' ExpEvents which are added to the SignalUpdates queue by
+  %   expUpdate and processed by processUpdates upon calling the update
+  %   method.
   %
   %
   % Part of Rigbox
@@ -31,16 +34,24 @@ classdef SignalsExpPanel < eui.ExpPanel
   
   methods
     function obj = SignalsExpPanel(parent, ref, params, logEntry)
+      % Subclasses must chain a call to this.
       obj = obj@eui.ExpPanel(parent, ref, params, logEntry);
-      obj.LabelsMap = containers.Map();
+      obj.LabelsMap = containers.Map(); % Initialize labels map
     end
     
     function update(obj)
-      update@eui.ExpPanel(obj);
-      processUpdates(obj); % update labels with latest signal values
+      % UPDATE Update the panel
+      %  Processes any new updates via a call to the processUpdates method
+      %  and changes colours of info field labels based on how recently
+      %  they updated.  This method is the callback to the RefreshTimer in
+      %  MC.  Subclasses must chain a call to this.
+      %
+      % See also eui.ExpPanel/update
+      update@eui.ExpPanel(obj); % Elapsed timer updated by superclass
+      processUpdates(obj); % Update labels with latest signal values
       labelsMapVals = values(obj.LabelsMap)';
       labels = deal([labelsMapVals{:}]);
-      if ~isempty(labels) % colour decay by recency on labels
+      if ~isempty(labels) % Colour decay by recency on labels
         dt = cellfun(@(t)etime(clock,t),...
           ensureCell(get(labels, 'UserData')));
         c = num2cell(exp(-dt/1.5)*obj.RecentColour, 2);
@@ -51,12 +62,54 @@ classdef SignalsExpPanel < eui.ExpPanel
   
   methods (Access = protected)
     function newTrial(obj, num, condition)
+      % NEWTRIAL Process new trial conditions
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a new trial's conditional
+      %  parameters.  For a SignalsExp experiment, this may be called by
+      %  the processUpdates method upon an events.newTrial signal update.
+      %  In the future SignalsExp may send newTrial events (i.e.
+      %  independant of the 'signals' event updates)
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    condition (struct) : Condition data for the new trial
+      %
+      % See also processUpdates, expUpdate, trialCompleted
     end
     
     function trialCompleted(obj, num, data)
+      % TRIALCOMPLETED Process completed trial data
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a complete trial's data.  Called by
+      %  expUpdate method upon 'trialData' event (currently not used by
+      %  exp.SignalsExp).
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    data (struct) : Completed trial data
+      %
+      % See also expUpdate, processUpdates, trialCompleted
     end
     
     function event(obj, name, t)
+      % EVENT Process none-signals experiment event
+      %  Called by expUpdate callback to process all miscellaneous events,
+      %  i.e. experiment phases.  This method is downstream of srv.ExpEvent
+      %  events.  Updates ActivePhases list as well as the panel title
+      %  colour and, upon phase changes, the Status info field.
+      %
+      %  Inputs:
+      %    name (char) : The event name
+      %    t (date vec) : The time the event occured
+      %
+      %  Example:
+      %    if strcmp(evt.Data{1}, 'event') % srv.ExpEvent object
+      %      % Pass event info to be processed
+      %      obj.event(evt.Data{2}, evt.Data{3})
+      %    end
+      
       %called when an experiment event occurs
       phaseChange = false;
       if strEndsWith(name, 'Started')
@@ -92,6 +145,14 @@ classdef SignalsExpPanel < eui.ExpPanel
     end
     
     function processUpdates(obj)
+      % PROCESSUPDATES Process all accumulated signals event updates
+      %  Process the signals events that have occured since the method was
+      %  last called.  Any new field labels are created and all fields are
+      %  updated with the most recent signal values.
+      %
+      %  This function is downstream of the update method, which is 
+      %
+      % See also expUpdate, update
       updates = obj.SignalUpdates(1:obj.NumSignalUpdates);
       obj.NumSignalUpdates = 0;
       %       fprintf('processing %i signal updates\n', length(updates));
@@ -117,6 +178,15 @@ classdef SignalsExpPanel < eui.ExpPanel
     end
     
     function expUpdate(obj, rig, evt)
+      % EXPUPDATE Callback to the remote rig ExpUpdate event
+      %  Processes a new experiment event.  Signals events are added to the
+      %  SignalUpdates queue for processing by the processUpdates method.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
+      %
+      % See also live, event, srv.StimulusControl, srv.ExpEvent
       if strcmp(evt.Name, 'signals')
         type = 'signals';
       else

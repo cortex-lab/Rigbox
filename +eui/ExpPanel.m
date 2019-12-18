@@ -180,6 +180,7 @@ classdef ExpPanel < handle
   
   methods
     function obj = ExpPanel(parent, ref, params, logEntry)
+      % Subclasses must chain a call to this.
       obj.Ref = ref;
       obj.SubjectRef = dat.parseExpRef(ref);
       obj.LogEntry = logEntry;
@@ -188,7 +189,9 @@ classdef ExpPanel < handle
     end
     
     function cleanup(obj)
-      % For subclasses to implement
+      % CLEANUP Cleanup panel For subclasses to implement.  Use this method
+      % to release listener handles and clear any accumulated data that is
+      % no longer required after the experiment has ended.
     end
     
     function delete(obj)
@@ -199,6 +202,11 @@ classdef ExpPanel < handle
     end
     
     function update(obj)
+      % UPDATE Update the panel
+      %  Updates the duration label counter.  This method is the callback
+      %  to the RefreshTimer in MC.  Subclasses must chain a call to this.
+      %
+      % See also eui.ExpPanel/update
       if obj.ExpRunning
         elapsed = round(etime(datevec(now), datevec(obj.StartedDateTime)));
         set(obj.DurationLabel, 'String',...
@@ -210,19 +218,57 @@ classdef ExpPanel < handle
   methods (Access = protected)
     
     function closeRequest(obj, src, evt)
+      % CLOSEREQUEST Callback to the close button
+      %  Callback to the little 'x' in the corner of the panel.  Deletes
+      %  the panel.
       obj.delete();
     end
     
     function newTrial(obj, num, condition)
-      %do nothing, this is for subclasses to override and react to
+      % NEWTRIAL Process new trial conditions
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a new trial's conditional
+      %  parameters.  Called by expUpdate method upon 'newTrial' event.
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    condition (struct) : Condition data for the new trial
+      %
+      % See also expUpdate, trialCompleted
     end
     
     function trialCompleted(obj, num, data)
-      %do nothing, this is for subclasses to override and react to
+      % TRIALCOMPLETED Process completed trial data
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a complete trial's data.  Called by
+      %  expUpdate method upon 'trialData' event.
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    data (struct) : Completed trial data
+      %
+      % See also expUpdate, trialCompleted
     end
     
     function event(obj, name, t)
-      %called when an experiment event occurs
+      % EVENT Called when an experiment event occurs
+      %  Called by expUpdate callback to process all miscellaneous events,
+      %  i.e. experiment phases.  This method is downstream of srv.ExpEvent
+      %  events.  Updates ActivePhases list as well as the panel title
+      %  colour and, upon phase changes, the Status info field.
+      %
+      %  Inputs:
+      %    name (char) : The event name
+      %    t (date vec) : The time the event occured
+      %
+      %  Example:
+      %    if strcmp(evt.Data{1}, 'event') % srv.ExpEvent object
+      %      % Pass event info to be processed
+      %      obj.event(evt.Data{2}, evt.Data{3})
+      %    end
+      
       phaseChange = false;
       if strEndsWith(name, 'Started')
         if strcmp(name, 'experimentStarted')
@@ -260,6 +306,10 @@ classdef ExpPanel < handle
       % EXPSTARTED Callback for the ExpStarted event.
       %   Updates the ExpRunning flag, the panel title and status label to
       %   show that the experiment has officially begun.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
       %   
       % See also EXPSTOPPED
       if strcmp(evt.Ref, obj.Ref) || isempty([evt.Ref, obj.Ref])
@@ -284,8 +334,11 @@ classdef ExpPanel < handle
       %   panel title and status label to show that the experiment has
       %   ended.  This function also records to Alyx the amount of water,
       %   if any, that the subject received during the task.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
       %   
-      %   TODO: Move water to save data functions
       % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
       obj.ExpRunning = false;
@@ -296,6 +349,15 @@ classdef ExpPanel < handle
     end
     
     function expUpdate(obj, rig, evt)
+      % EXPUPDATE Callback to the remote rig ExpUpdate event
+      %  Processes a new experiment event.  Events include 'newTrial',
+      %  'trialData', 'signals', 'event'.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
+      %
+      % See also live, event, srv.StimulusControl, srv.ExpEvent
       type = evt.Data{1};
       switch type
         case 'newTrial'
@@ -454,6 +516,12 @@ classdef ExpPanel < handle
     end
     
     function build(obj, parent)
+      % BUILD Build the panel UI
+      %  Creates the BoxPanel and within it a container for info fields
+      %  (InfoGrid), a container for subclasses to add custom plots
+      %  (CustomPanel) and the buttons and comments box.  If the LogEntry
+      %  is empty, the comments box is skipped. Subclasses must chain a
+      %  call to this.
       obj.Root = uiextras.BoxPanel('Parent', parent,...
         'Title', obj.Ref,... %default title is the experiment reference
         'TitleColor', [0.98 0.65 0.22],...%amber title area
