@@ -82,7 +82,7 @@ classdef ExpPanel < handle
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+    function p = live(parent, ref, remoteRig, paramsStruct, varargin)
       % LIVE Constuct a new ExpPanel based on experiment parameter provided
       %  Create a new ExpPanel for monitoring an experiment.  Depending on
       %  the `type` and, in the case of a Signals Experiment, `expPanelFun`
@@ -97,14 +97,30 @@ classdef ExpPanel < handle
       %      The type parameter is used to determine which subclass is to
       %      be instantiated.  For type 'custom' the default panel may be
       %      overridden via the `expPanelFun` parameter.
-      %    activateLog (logical) : flag indicating whether to save a new
+      %
+      %  Optional Name-Value pairs:
+      %    ActivateLog (logical) : flag indicating whether to save a new
       %      log entry for the experiment (default true).  For test
       %      experiments this flag may be set to false.
+      %    StartedTime (double) : If the experiment has already started,
+      %      the datetime of the experiment start (default []).
       %
       %  Outputs:
       %    p (eui.ExpPanel) : handle to the panel object.
       % 
-      if nargin < 5 || activateLog
+      p = inputParser;
+      addRequired(p, 'parent');
+      addRequired(p, 'ref');
+      addRequired(p, 'remoteRig');
+      addRequired(p, 'paramsStruct');
+      % Activate log
+      addParameter(p, 'activateLog', true);
+      % Resume experiment listening (experiment had alread started)
+      addParameter(p, 'startedTime', []);
+      parse(p, pos, t, Fs, varargin{:});
+      
+      p = p.Results; % Final parameters
+      if p.activateLog
         subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
         try
           logEntry = dat.addLogEntry(... % Add new entry to log
@@ -145,6 +161,14 @@ classdef ExpPanel < handle
         @() remoteRig.quitExperiment(true),...
         @() set(p.StopButtons, 'Enable', 'off')));
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
+      
+      if ~isempty(p.startedTime)
+        % If the experiment has all ready started, trigger all dependent
+        % events.
+        p.expStarted(remoteRig, srv.ExpEvent('started', ref, p.startedTime));
+        p.event('experimentStarted', p.startedTime)
+      end
+        
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
@@ -241,7 +265,8 @@ classdef ExpPanel < handle
       if strcmp(evt.Ref, obj.Ref) || isempty([evt.Ref, obj.Ref])
         set(obj.StatusLabel, 'String', 'Running'); %staus to running
         set(obj.StopButtons, 'Enable', 'on', 'Visible', 'on'); %enable stop buttons
-        obj.StartedDateTime = now; %take note of the experiment start time
+        % Take note of the experiment start time
+        obj.StartedDateTime = iff(isempty(evt.Data), now, evt.Data); 
         obj.ExpRunning = true;
       else
         %started experiment does not match expected
