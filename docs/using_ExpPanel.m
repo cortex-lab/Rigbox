@@ -30,7 +30,7 @@
 % would be 'advancedChoiceWorldExpPanel.m'.
 
 %% Basic layout
-% The ExpPanel has the following basic layout:
+% The ExpPanel has the following basic layout...
 
 %%% Title
 % The panel title contains the experiment reference and the name of the
@@ -45,15 +45,15 @@
 % values.  As new events occur they're added to the last via a call to
 % addInfoField.  There are 4 default fields:
 %
-%   Status - The current experimental phase, e.g. 'Pending', 'Complete'.
+% * Status - The current experimental phase, e.g. 'Pending', 'Complete'.
 %     The status is set based on 'ExpUpdate' events from the remote rig
 %     (see the `expUpdate` method).
-%   Duration - The time elapsed since the experiment began.  This
+% * Duration - The time elapsed since the experiment began.  This
 %     is updated each time the `update` method is called (every 100ms in
 %     MC).
-%   Trial count - The total number of trials.  This field is updated based
+% * Trial count - The total number of trials.  This field is updated based
 %     on the 'newTrial' ExpUpdate status (see `expUpdate` method).
-%   Condition - The current trial condition.  This only appears if
+% * Condition - The current trial condition.  This only appears if
 %     `conditionId` parameter is defined.
 %
 % The fields may be hidden by right-clicking one and selecting 'Hide
@@ -119,58 +119,74 @@
 % updates in the SignalUpdates property.  All updates in this property are
 % delt with and removed by the processUpdates method, which is called via
 % the update by the |MC| Refresh timer once per 100ms(3).
+%
+% The SignalUpdate property is a struct with the following fields:
+% 
+% * name - The name of the signal, e.g. 'events.newTrial'
+% * value - The value of the signal.
+% * timestamp - a date vector of the date and time when the signal was
+% queued.  (NB: This is in the system time of the remote rig and depends on
+% its timezone.  These timestamps aren't as precise as those in the block
+% file).
 
 %% Custom Signals ExpPanels
 % Below is a list of steps to follow when creating a custom Signals
 % ExpPanel, for an example of this see advancedChoiceWorldExpPanel(4):
-% 1. Subclass |eui.SignalsExpPanel|
+% 
+% # Subclass |eui.SignalsExpPanel|
 %  Subclassing means you will inherit all of the methods and properties
 %  found in |eui.SignalsExpPanel| and |eui.ExpPanel|.
-% 2. Add any extra properties specific to your ExpPanel
+% # Add any extra properties specific to your ExpPanel
 %  For example if you're creating a new plot you may wish to store the axes
 %  in a property.  (c.f. PsychometricAxes in advancedChoiceWorldExpPanel)
-% 3. Add a constructor to initialize any properties if required
+% # Add a constructor to initialize any properties if required
 %  Chain a call to the superclass method like so:
 %  obj = obj@eui.SignalsExpPanel(parent, ref, params, logEntry);
-% 4. Add a build method to initialize an axes or extra UI elements.
+% # Add a build method to initialize an axes or extra UI elements.
 %  Typically everything built here will use obj.CustomPanel as the parent
 %  container.  This method must have protected access.
 %  Chain a call to the superclass method first:
 %  build@eui.SignalsExpPanel(obj, parent);
-% 5. Add a processUpdates to deal with your experiment-specific events.
+% # Add a processUpdates to deal with your experiment-specific events.
 %  Here you can add code to update plots, etc. based on the event updates.
 %  This method must have protected access.  Instead of chaining a call,
 %  copy the code from eui.SignalsExpPanel/processUpdates directly and use
 %  it as a template for your own functions.
 %
+%
 % There are some useful superclass methods that are useful to keep in mind:
-% - mergeTrialData: Update the local block structure with data from the
+%
+% * mergeTrialData - Update the local block structure with data from the
 % last trial.  This is found in eui.ExpPanel.
-% - newTrial: This doesn't do anything in the superclasses but is a good
+% * newTrial - This doesn't do anything in the superclasses but is a good
 % place to put code that should be executed at events.newTrial.  Call it
 % from processUpdates.
-% - trialCompleted: As with newTrial, this could be used as a place for
+% * trialCompleted - As with newTrial, this could be used as a place for
 % code that runs after e.g. an outputs or feedback event.
-% - expStopped: Useful for executing code when the session ends.  Must
+% * expStopped - Useful for executing code when the session ends.  Must
 % chain a call to superclass here.
-% - expStarted: See above.
-% - cleanup: Place code here for e.g. stopping timers, clearing listeners,
+% * expStarted - See above.
+% * cleanup - Place code here for e.g. stopping timers, clearing listeners,
 % etc.
 %
+%
 % Here are some useful properties to be aware of:
-% - Parameters: A copy of that experiment's paramStruct.
-% - UpdatesFilter: As mentioned above, this holds a cell array of events
-% you wish to ignore/include.  It's behaviour depends on whether the Exclude
-% property is true or false.
-% - RecentColour: The colour of recently updated Signals update events in
+%
+% * Parameters - A copy of that experiment's paramStruct.
+% * UpdatesFilter - As mentioned above, this holds a cell array of events
+% you wish to ignore/include.  It's behaviour depends on whether the
+% Exclude property is true or false.
+% * RecentColour - The colour of recently updated Signals update events in
 % the InfoGrid.  This can be changed dynamically during the session, for
 % instance could turn red as the subject's performance declines or towards
 % the end of the session.
 %
+%
 % Finally there are some other useful untilities to be aware of:
-% - +psy: The |psy| package contains useful functions for plotting
+%
+% * +psy - The |psy| package contains useful functions for plotting
 % psychometrics and producing fits.
-% - |bui.Axes|: This class provides a convenient way to interact with
+% * |bui.Axes| - This class provides a convenient way to interact with
 % plotting axes.  It's particularly useful if you wish to add multple
 % elements to the same axes.  Below is an example from advancedChoiceWorld:
 
@@ -207,11 +223,10 @@ doc drawnow
 % opentoline(which('eui.MControl'), 84, 7)
 %
 % (4) The below three lines will open this file:
+
 % rigbox = getOr(dat.paths, 'rigbox'); % Location of Rigbox code
 % exampleExps = fullfile(rigbox, 'signals', 'docs', 'examples');
 % open(fullfile(exampleExps, 'advancedChoiceWorldExpPanel.m'))
-%
-% (*) For plotting more precise timings used updates.timestamp
 
 % Author: Miles Wells
 %
