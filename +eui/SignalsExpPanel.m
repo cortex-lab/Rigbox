@@ -14,7 +14,7 @@ classdef SignalsExpPanel < eui.ExpPanel
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     % List of updates to exclude (when Exclude == true) or to exclusively
     % show (Exclude == false) in the InfoGrid.
-    UpdatesFilter = {'inputs.wheel', 'pars'} %DisplayList
+    UpdatesFilter = {'inputs.wheel', 'pars'}
     % Flag for excluding updates in UpdatesFilter list from InfoGrid.  When
     % false only those in the list are shown, when false those in the list
     % are hidden
@@ -102,17 +102,15 @@ classdef SignalsExpPanel < eui.ExpPanel
             set(obj.TrialCountLabel, ...
               'String', num2str(updates(ui).value));
           otherwise
-            if ismember(signame, obj.UpdatesFilter) || isempty(obj.UpdatesFilter)
-              if obj.Exclude
-                continue
-              else
-                if ~isKey(obj.LabelsMap, signame)
-                  obj.LabelsMap(signame) = obj.addInfoField(signame, '');
-                end
-                str = toStr(updates(ui).value);
-                set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
-                  'ForegroundColor', obj.RecentColour);
+            % Check whether to display update using UpdatesFilter
+            onList = any(ismember(signame, obj.UpdatesFilter));
+            if (obj.Exclude && ~onList) || (~obj.Exclude && onList)
+              if ~isKey(obj.LabelsMap, signame) % If new update, add field
+                obj.LabelsMap(signame) = obj.addInfoField(signame, '');
               end
+              str = toStr(updates(ui).value); % Convert the value to string
+              set(obj.LabelsMap(signame), 'String', str, 'UserData', clock,...
+                'ForegroundColor', obj.RecentColour); % Update value
             end
         end
       end
