@@ -394,11 +394,13 @@ ShowCursor();
         
         % Update the apropriate calibrations
         if valve == 1
-            calibration1 = new_calibration;
+            calibration1.measuredDeliveries = new_calibration;
+            calibration1.dateTime = now;
             calibration2 = old_calibrations.calibration2;
         elseif valve == 2
             calibration1 = old_calibrations.calibration1;
-            calibration2 = new_calibration;
+            calibration2.measuredDeliveries = new_calibration;
+            calibration2.dateTime = now;
         end
         
         % save to calibfile
@@ -416,7 +418,9 @@ ShowCursor();
         plot([rig.daqController.SignalGenerators(1, 1).Calibrations2(end).measuredDeliveries.durationSecs],...
             [rig.daqController.SignalGenerators(1, 1).Calibrations2(end).measuredDeliveries.volumeMicroLitres])
         legend({'Left Valve', 'Right Valve'},'location','northwest')
-        title(datestr(rig.daqController.SignalGenerators(1, 1).Calibrations1(end).dateTime))
+        if isfield(rig.daqController.SignalGenerators(1, 1).Calibrations1(end), 'dateTime')
+          title(datestr(rig.daqController.SignalGenerators(1, 1).Calibrations1(end).dateTime))
+        end
         xlabel('Duration (sec)'); ylabel('Volume (uL)')
         set(gca, 'fontsize', 16)
         
