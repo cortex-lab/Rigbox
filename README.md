@@ -32,7 +32,7 @@ Additionally, Rigbox works with a number of extra submodules (included):
 
 ### Installation via git
 
-0. It is highly recommended to install Rigbox via git. If not already downloaded and installed, install [git](https://git-scm.com/download/win) (and the included minGW software environment and Git Bash MinTTY terminal emulator). After installing, launch the Git Bash terminal. 
+0. It is highly recommended to install Rigbox via git. If not already downloaded and installed, install [git](https://git-scm.com/download/win) (accepting all installer defaults will suffice). After installing, launch the Git Bash terminal. 
 1. To install Rigbox, run the following commands in the Git Bash terminal to clone the repository from GitHub to your local machine.  (* *Note*: It is *not* recommended to clone directly into the MATLAB folder)
 ```
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
@@ -43,6 +43,17 @@ git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 5. To keep the submodules up to date, run the following in the Git Bash terminal (within the Rigbox directory):
 ```
 git pull --recurse-submodules
+```
+
+### Installing PsychToolbox
+
+Below are some simple steps for installing PsychToolbox.  For full details see [their documentation](http://psychtoolbox.org/download.html#Windows).
+
+1. Download and install an Subversion client.  [SilkSVN](https://sliksvn.com/download/) is recommended.
+2. Download the [installer function](https://raw.githubusercontent.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
+3. Call the function in MATLAB with the target install location (folder must exist) and follow the instructions:
+```
+DownloadPsychtoolbox('C:\') % Install to C drive
 ```
 
 ### Running an experiment in MATLAB
