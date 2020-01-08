@@ -37,6 +37,7 @@ classdef WeighingScale < handle
     
     function init(obj)
       if isempty(obj.Port)
+        
         obj.Port = serial(obj.ComPort, 'InputBufferSize', 32768);
         set(obj.Port, 'BytesAvailableFcn', @obj.onBytesAvail);
         fopen(obj.Port);

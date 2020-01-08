@@ -387,20 +387,18 @@ ShowCursor();
         
         % Do the calibration
         new_calibration = hw.calibrate(daqController, rig.scale, 20e-3, 200e-3, 'valve', valve);
-        ul = [new_calibration.volumeMicroLitres];
+        ul = [new_calibration.measuredDeliveries.volumeMicroLitres];
         log('Delivered volumes on valve ', num2str(valve), ' ranged from %.1ful to %.1ful', min(ul), max(ul));
         % close the scale
         rig.scale.cleanup();
         
         % Update the apropriate calibrations
         if valve == 1
-            calibration1.measuredDeliveries = new_calibration;
-            calibration1.dateTime = now;
+            calibration1 = new_calibration;
             calibration2 = old_calibrations.calibration2;
         elseif valve == 2
             calibration1 = old_calibrations.calibration1;
-            calibration2.measuredDeliveries = new_calibration;
-            calibration2.dateTime = now;
+            calibration2 = new_calibration;
         end
         
         % save to calibfile
