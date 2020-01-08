@@ -112,22 +112,17 @@ fprintf('Deliveries took %.2f minute(s)\n', (endTime - startTime)/60);
 %different delivery durations appear in each column, repeats in each row
 %from the data, make a measuredDelivery structure
 ul = 1000*mean(dw./n, 1);
-calibration = struct(...
+calibration.measuredDeliveries = struct(...
     'durationSecs', num2cell(t(1,:)),...
     'volumeMicroLitres', num2cell(ul));
+calibration.dateTime = now;
 
 if isa(signalGen, 'hw.RewardValveControl2') && p.valve == 1
-    signalGen.Calibrations1(end + 1).dateTime = now;
-    signalGen.Calibrations1(end).measuredDeliveries = calibration;
-    
+    signalGen.Calibrations1(end + 1) = calibration;
 elseif isa(signalGen, 'hw.RewardValveControl2') && p.valve == 2
-    signalGen.Calibrations2(end + 1).dateTime = now;
-    signalGen.Calibrations2(end).measuredDeliveries = calibration;
-    
+    signalGen.Calibrations2(end + 1) = calibration;    
 elseif isa(signalGen, 'hw.RewardValveControl')
-    signalGen.Calibrations(end + 1).dateTime = now;
-    signalGen.Calibrations(end).measuredDeliveries = calibration;
-    
+    signalGen.Calibrations(end + 1) = calibration;
 else
     error('Unknown signalGen type. Unable to log calibration')
 end

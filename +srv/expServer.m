@@ -386,7 +386,7 @@ ShowCursor();
         rig.scale.init();
         
         % Do the calibration
-        new_calibration = hw.calibrate(daqController, rig.scale, 15e-3, 200e-3, 'valve', valve);
+        new_calibration = hw.calibrate(daqController, rig.scale, 20e-3, 200e-3, 'valve', valve);
         ul = [new_calibration.volumeMicroLitres];
         log('Delivered volumes on valve ', num2str(valve), ' ranged from %.1ful to %.1ful', min(ul), max(ul));
         % close the scale
