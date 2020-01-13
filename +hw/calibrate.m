@@ -74,7 +74,7 @@ approxTime = sum(approxTime(:));
 fprintf('Checking the scale...\n');
 
 prevWeight = scales.readGrams;
-rewardController.set_ports('reward', pulse_command(tMax, p.interval, 50));
+rewardController.set_ports('reward', pulse_command(5, p.interval, 1));
 pause(p.settleWait);
 newWeight = scales.readGrams;
 
