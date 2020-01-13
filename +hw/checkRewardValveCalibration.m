@@ -9,10 +9,11 @@ function checkRewardValveCalibration(varargin)
 % Inputs:
 %   `amt` (numeric): The amount (in mL) of water to deliver. (default =
 %     5.0)
-%   `chan` (string): The channel of the NI-DAQ associated with the reward
-%      valve. If not given, `chan` is found by getting the channel 
-%      associated with the `hw.RewardValveControl` object in the rig's 
-%      `hw.DaqController` object.
+%   `pulse_amt` (numeric): The amount (in uL) of water to deliver per 
+%      pulse. (default = 3)
+%   'interval' (numeric): The time (in s) to wait between pulses (default =
+%      0.2)
+%   `valve` (integer, 1 or 2): The number of the valve to calibrate. 
 %
 % Examples:
 %   - Check that 5 mL of water is delivered:
@@ -51,18 +52,12 @@ catch
          '''hardware.mat'' file.']);
 end
 
-% Get the `hw.RewardValveControl` object from within the rig's 
-% `hw.DaqController` `SignalGenerators`:
-sgClassNames = arrayfun(@class, dc.SignalGenerators,... 
-                        'UniformOutput', false);
-rvChanIdx = cellfun(@(x) strcmpi('hw.RewardValveControl', x),... 
-               sgClassNames);
-chan = dc.DaqChannelIds{rvChanIdx};
-
 % Set default values for input args.
 defaults = struct(...
   'amt', 5.0, ...
-  'chan', chan);
+  'pulse_amt', 3.0, ...
+  'inteval', 0.2, ...
+  'valve', 1);
 
 % Convert user-defined `varargin` into struct.
 inputs = cell2struct(varargin(2:2:end)', varargin(1:2:end)');
@@ -73,10 +68,12 @@ argsStruct = mergeStructs(inputs, defaults);
 
 % De-struct input args
 amt = argsStruct.amt;
-chan = argsStruct.chan;
+amt_per_pulse = argsStruct.amt_per_pulse;
+inteval = argsStruct.interval;
+valve = argsStruct.valve;
 
 % Get the `hw.RewardValveControl` object.
-rv = dc.SignalGenerators(contains(dc.DaqChannelIds, chan));
+rv = dc.SignalGenerators(strcmp(dc.ChannelNames, 'reward'));
 if isempty(rv)
   error('Rigbox:hw:checkRewardValveCalibration:rvNotFound',...
   ['Could not find a `hw.RewardValveControl` object in this rig''s \n'...
@@ -85,32 +82,25 @@ if isempty(rv)
 end
 %% Deliver reward
 
-% Get the most recent, largest delivery volume, `v`, and time, `t`, taken
-% to deliver that volume, from the `rv` calibrations table.
-v = rv.Calibrations(end).measuredDeliveries(end).volumeMicroLitres;
-t = rv.Calibrations(end).measuredDeliveries(end).durationSecs;
+% Get the time to pulse the valve
+t = rv.pulseDuration(amt_per_pulse, valve);
 % Get the number of pulses required to deliver a reward of amount `amt` in
 % increments of `v`.
 nPulses = ceil(amt*10e2 / v); 
 
 % Set-up command, `cmd`, to send to `dc` to deliver reward.
-interval = 0.2; % interval b/w pulses in s
-cmd = [t; interval; nPulses]; % command to output to `dc`
+cmd = [0,0];
+cmd(valve) = amt_per_pulse;
 
 % Print to screen how long it will take to check this calibration:
 totalTInMins = ((interval+t)*nPulses)/60;
 fprintf('This calibration check will take approximately %0.2f mins\n',... 
     totalTInMins);
 
-% Change `ParamsFun` of `rv` to deliver pulses as 
-% [t, nPulses, frequency]. 
-origParamsFun = rv.ParamsFun; % we'll reset `ParamsFun` to this
-rv.ParamsFun = @(cmd) deal(cmd(1), cmd(3), 1/(sum(cmd(1)+cmd(2))));
-
 % Deliver command to `dc`.
-dc.command(cmd, 'foreground');
-
-% Reset `ParamsFun`.
-rv.ParamsFun = origParamsFun;
+for pulse_i = 1:nPulses
+    dc.command('reward', cmd);
+    waitsecs(interval)
+end
 
 end
