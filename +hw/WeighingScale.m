@@ -52,7 +52,7 @@ classdef WeighingScale < handle
             % Do nothing
         end
       end
-      obj.tare; % Tare the scale, to get an initial value into LastGrams
+      obj.LastGrams = 999; % Get an initial value into LastGrams
     end
     
     function cleanup(obj)
