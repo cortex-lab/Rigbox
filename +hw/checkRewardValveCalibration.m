@@ -41,7 +41,7 @@ rigFields = fieldnames(rig);
 % Get a cell array of each object in the `rig` struct.
 rigObjs = cellfun(@(x) rig.(x), rigFields, 'UniformOutput', 0);
 % Get the index of the `hw.DaqController` object in `rigObjs`
-dcIdxInRig = cellfun(@(x) isa(x, 'hw.DaqController'),... 
+dcIdxInRig = cellfun(@(x) isa(x, 'hw.DaqController') || isa(x, 'hw.DaqControllerParallel'),... 
                      rigObjs, 'UniformOutput', 0);
 try
   % Get the `hw.DaqController` object from `rig` based on its fieldname.
@@ -54,9 +54,9 @@ end
 
 % Set default values for input args.
 defaults = struct(...
-  'amt', 5.0, ...
-  'pulse_amt', 3.0, ...
-  'inteval', 0.2, ...
+  'amt', 1.0, ...
+  'amt_per_pulse', 2.0, ...
+  'interval', 0.1, ...
   'valve', 1);
 
 % Convert user-defined `varargin` into struct.
@@ -69,7 +69,7 @@ argsStruct = mergeStructs(inputs, defaults);
 % De-struct input args
 amt = argsStruct.amt;
 amt_per_pulse = argsStruct.amt_per_pulse;
-inteval = argsStruct.interval;
+interval = argsStruct.interval;
 valve = argsStruct.valve;
 
 % Get the `hw.RewardValveControl` object.
@@ -86,7 +86,7 @@ end
 t = rv.pulseDuration(amt_per_pulse, valve);
 % Get the number of pulses required to deliver a reward of amount `amt` in
 % increments of `v`.
-nPulses = ceil(amt*10e2 / v); 
+nPulses = ceil(amt*10e2 / amt_per_pulse); 
 
 % Set-up command, `cmd`, to send to `dc` to deliver reward.
 cmd = [0,0];
@@ -100,7 +100,7 @@ fprintf('This calibration check will take approximately %0.2f mins\n',...
 % Deliver command to `dc`.
 for pulse_i = 1:nPulses
     dc.command('reward', cmd);
-    waitsecs(interval)
+    pause(interval);
 end
 
 end
