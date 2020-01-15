@@ -74,11 +74,15 @@ approxTime = sum(approxTime(:));
 fprintf('Checking the scale...\n');
 
 prevWeight = scales.readGrams;
+if isnan(prevWeight) % If the scale was just set up, and has not yet registered a change in weight, readGrams will return NaN
+    prevWeight = 0;
+end
+
 rewardController.set_ports('reward', pulse_command(5, p.interval, 1));
 pause(p.settleWait);
 newWeight = scales.readGrams;
 
-assert(newWeight > prevWeight + 0.02, ...
+assert(abs(newWeight - prevWeight) > 0.02, ...
     'Rigbox:hw:calibrate:deadscale',...
     'Error: Scale is not registering changes in weight. Confirm scale is properly connected and that water is landing into the dish')
 

@@ -52,7 +52,7 @@ classdef WeighingScale < handle
             % Do nothing
         end
       end
-      obj.LastGrams = fscanf(obj.Port); % Get an initial value into LastGrams
+      obj.LastGrams = NaN; % Get an initial value into LastGrams
     end
     
     function cleanup(obj)
