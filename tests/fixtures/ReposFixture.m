@@ -8,7 +8,7 @@ classdef ReposFixture < matlab.unittest.fixtures.Fixture
     function setup(fixture)
       % SETUP Ensure correct test paths and create rig config folder
       import matlab.unittest.fixtures.PathFixture
-      fixture.applyFixture(PathFixture('fixtures'))
+      fixture.applyFixture(PathFixture(fileparts(mfilename('fullpath'))))
       
       % Check paths file
       assert(endsWith(which('dat.paths'),...
