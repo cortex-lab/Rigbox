@@ -1,0 +1,192 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-17"><meta name="DC.source" content="using_ExpPanel.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>ExpPanels are panels under the Experiment &gt; Current tab of mc that display information about events occuring during an experiment.  This document contains information on how to set up an ExpPanel for customizing the monitoring of an Experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">exp.ExpPanel</a></li><li><a href="#2">Basic layout</a></li><li><a href="#3">Title</a></li><li><a href="#4">InfoGrid</a></li><li><a href="#5">CustomPanel</a></li><li><a href="#6">CommentsBox</a></li><li><a href="#7">ButtonPanel</a></li><li><a href="#8">Method call sequence</a></li><li><a href="#9">exp.SqueakExpPanel</a></li><li><a href="#10">Custom Signals ExpPanels</a></li><li><a href="#11">Notes, etc.</a></li></ul></div><h2 id="1">exp.ExpPanel</h2><p>The base class for the ExpPanel is the <tt>exp.ExpPanel</tt>.  All subclasses chain a call to this class.</p><p>When starting a new experiment in MC a new ExpPanel is created by calling the static contructor method `live`:</p><pre class="language-matlab">p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+doc <span class="string">eui.ExpPanel/live</span>
+</pre><p>The precise subclass used depends on the `type` parameter in the paramsStruct input.  Currently supported types include SingleTargetChoiceWorld, ChoiceWorld, DiscWorld, SurroundChoiceWorld (<tt>eui.ChoiceExpPanel</tt>); BarMapping (<tt>eui.MappingExpPanel</tt>); custom a.k.a. Signals (<tt>eui.SqueakExpPanel</tt>).</p><p>For Signals experiments the default ExpPanel class may be overridden by providing a parameter named `expPanelFun` whose value is either a function handle or path to the class to be instantiated.  This parameter is automatically added in MC if the folder from which the experiment function was loaded contains an ExpPanel.  The name must be the same as the experiment function but with 'ExpPanel' added, e.g. for 'advancedChoiceWorld.m', the corresponding ExpPanel file would be 'advancedChoiceWorldExpPanel.m'.</p><h2 id="2">Basic layout</h2><p>The ExpPanel has the following basic layout:</p><h2 id="3">Title</h2><p>The panel title contains the experiment reference and the name of the remote rig.  When the experiment is initializing or during the cleanup/post-delay phase the title is amber.  During the main experiment phase the title turns green and when complete, red.  This title colour and other properties are set in the `live` method then subsequently by the `event` method.</p><h2 id="4">InfoGrid</h2><p>The info grid contains all experiment event labels and their current values.  As new events occur they're added to the last via a call to addInfoField.  There are 4 default fields:</p><pre class="language-matlab">Status - The current <span class="string">experimental</span> <span class="string">phase</span>, e.g. <span class="string">'Pending'</span>, <span class="string">'Complete'</span>.
+  The <span class="string">status</span> <span class="string">is</span> <span class="string">set</span> <span class="string">based</span> <span class="string">on</span> <span class="string">'ExpUpdate'</span> <span class="string">events</span> <span class="string">from</span> <span class="string">the</span> <span class="string">remote</span> <span class="string">rig</span>
+  (see the `expUpdate` method).
+Duration - The time <span class="string">elapsed</span> <span class="string">since</span> <span class="string">the</span> <span class="string">experiment</span> <span class="string">began.</span>  <span class="string">This</span>
+  is <span class="string">updated</span> <span class="string">each</span> <span class="string">time</span> <span class="string">the</span> <span class="string">`update`</span> <span class="string">method</span> <span class="string">is</span> <span class="string">called</span> <span class="string">(every 100ms in</span>
+  MC).
+Trial <span class="string">count</span> <span class="string">-</span> <span class="string">The</span> <span class="string">total</span> <span class="string">number</span> <span class="string">of</span> <span class="string">trials.</span>  <span class="string">This</span> <span class="string">field</span> <span class="string">is</span> <span class="string">updated</span> <span class="string">based</span>
+  on <span class="string">the</span> <span class="string">'newTrial'</span> <span class="string">ExpUpdate</span> <span class="string">status</span> <span class="string">(see `expUpdate` method).</span>
+Condition - The current <span class="string">trial</span> <span class="string">condition.</span>  <span class="string">This</span> <span class="string">only</span> <span class="string">appears</span> <span class="string">if</span>
+  `conditionId` parameter <span class="string">is</span> <span class="string">defined.</span>
+</pre><p>The fields may be hidden by right-clicking one and selecting 'Hide field'.  The hidden fields may be reset by selecting 'Reset hidden'.</p><h2 id="5">CustomPanel</h2><p>A container for subclasses to build plots into.  For example in the ChoiceWorld Experiment, this contains a psychometric curve plot and the trace of the wheel input.</p><h2 id="6">CommentsBox</h2><p>An input field for taking notes.  These are automatically saved to the Log (see <tt>dat.logPath</tt>, <tt>dat.logEntries</tt>).  If logged into Alyx the notes are also saved to the database session narrative (see <tt>Alyx.updateNarrative</tt>).  The comments box may be hidden by right-clicking and selecting 'Hide comments'.</p><h2 id="7">ButtonPanel</h2><p>A set of buttons for ending/aborting the experiment as well as viewing the parameter set.</p><h2 id="8">Method call sequence</h2><p>TODO</p><h2 id="9">exp.SqueakExpPanel</h2><p>The subclass, <tt>exp.SqueakExpPanel</tt>, is the default class for Signals Experiments.   In this class, all Signals updates are shown as InfoFields whose colours pulse green as the values update.  The signals sent from the stimulus computer includes events, parameters, inputs and outputs signals.  The 'Trial count' field reflects the value of events.trialNum. The UpdatesFilter property contains a list of signals updates to create a label for, or if Exclude == true, all signals names in this list are ignored.  This is useful when your events structure is large and you don't wish to see all of them during the experiment.</p><h2 id="10">Custom Signals ExpPanels</h2><p>TODO Add section on subclassing</p><h2 id="11">Notes, etc.</h2><p>(*) For plotting more precise timings used updates.timestamp</p><pre class="codeinput"><span class="comment">% Author: Miles Wells</span>
+<span class="comment">%</span>
+<span class="comment">% v1.0.0</span>
+
+<span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% ExpPanels are panels under the Experiment > Current tab of mc that
+% display information about events occuring during an experiment.  This
+% document contains information on how to set up an ExpPanel for
+% customizing the monitoring of an Experiment.
+
+%% exp.ExpPanel
+% The base class for the ExpPanel is the |exp.ExpPanel|.  All subclasses
+% chain a call to this class.
+%
+% When starting a new experiment in MC a new ExpPanel is created by calling
+% the static contructor method `live`:
+% 
+%   p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+%   doc eui.ExpPanel/live
+% 
+% The precise subclass used depends on the `type` parameter in the
+% paramsStruct input.  Currently supported types include
+% SingleTargetChoiceWorld, ChoiceWorld, DiscWorld, SurroundChoiceWorld
+% (|eui.ChoiceExpPanel|); BarMapping (|eui.MappingExpPanel|); custom a.k.a.
+% Signals (|eui.SqueakExpPanel|).  
+%
+% For Signals experiments the default ExpPanel class may be overridden by
+% providing a parameter named `expPanelFun` whose value is either a
+% function handle or path to the class to be instantiated.  This parameter
+% is automatically added in MC if the folder from which the experiment
+% function was loaded contains an ExpPanel.  The name must be the same as
+% the experiment function but with 'ExpPanel' added, e.g. for
+% 'advancedChoiceWorld.m', the corresponding ExpPanel file would be
+% 'advancedChoiceWorldExpPanel.m'.
+
+%% Basic layout
+% The ExpPanel has the following basic layout:
+
+%%% Title
+% The panel title contains the experiment reference and the name of the
+% remote rig.  When the experiment is initializing or during the
+% cleanup/post-delay phase the title is amber.  During the main experiment
+% phase the title turns green and when complete, red.  This title colour
+% and other properties are set in the `live` method then subsequently by
+% the `event` method.
+
+%%% InfoGrid
+% The info grid contains all experiment event labels and their current
+% values.  As new events occur they're added to the last via a call to
+% addInfoField.  There are 4 default fields:
+%
+%   Status - The current experimental phase, e.g. 'Pending', 'Complete'.
+%     The status is set based on 'ExpUpdate' events from the remote rig
+%     (see the `expUpdate` method).
+%   Duration - The time elapsed since the experiment began.  This
+%     is updated each time the `update` method is called (every 100ms in
+%     MC).
+%   Trial count - The total number of trials.  This field is updated based
+%     on the 'newTrial' ExpUpdate status (see `expUpdate` method).
+%   Condition - The current trial condition.  This only appears if
+%     `conditionId` parameter is defined.
+%
+% The fields may be hidden by right-clicking one and selecting 'Hide
+% field'.  The hidden fields may be reset by selecting 'Reset hidden'.
+
+%%% CustomPanel
+% A container for subclasses to build plots into.  For example in the
+% ChoiceWorld Experiment, this contains a psychometric curve plot and the
+% trace of the wheel input.  
+
+%%% CommentsBox
+% An input field for taking notes.  These are automatically saved to the
+% Log (see |dat.logPath|, |dat.logEntries|).  If logged into Alyx the notes
+% are also saved to the database session narrative (see
+% |Alyx.updateNarrative|).  The comments box may be hidden by
+% right-clicking and selecting 'Hide comments'.
+
+%%% ButtonPanel
+% A set of buttons for ending/aborting the experiment as well as viewing
+% the parameter set.
+
+%% Method call sequence
+% TODO
+
+%% exp.SqueakExpPanel
+% The subclass, |exp.SqueakExpPanel|, is the default class for Signals
+% Experiments.   In this class, all Signals updates are shown as InfoFields
+% whose colours pulse green as the values update.  The signals sent from
+% the stimulus computer includes events, parameters, inputs and outputs
+% signals.  The 'Trial count' field reflects the value of events.trialNum.
+% The UpdatesFilter property contains a list of signals updates to create a
+% label for, or if Exclude == true, all signals names in this list are
+% ignored.  This is useful when your events structure is large and you
+% don't wish to see all of them during the experiment.
+
+%% Custom Signals ExpPanels
+% TODO Add section on subclassing
+
+%% Notes, etc.
+% (*) For plotting more precise timings used updates.timestamp
+
+% Author: Miles Wells
+%
+% v1.0.0
+
+%#ok<*NOPTS,*ASGLU,*NASGU>
+
+##### SOURCE END #####
+--></body></html>

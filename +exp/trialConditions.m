@@ -1,6 +1,6 @@
 function [pars, hasNext, repeatNum] = trialConditions(globalPars,...
   allCondPars, advanceTrial, reset)
-%EXP.TRIALCONDITIONS Returns trial parameter signal
+%EXP.TRIALCONDITIONS Returns trial parameter Signals
 %   An implementation of the behaviour of the exp.ConditionServer class in
 %   Signals; returns a subscriptable trial parameters signal that updates
 %   based on the input signals.

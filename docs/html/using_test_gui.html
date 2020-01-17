@@ -1,0 +1,166 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>using_test_gui</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-17"><meta name="DC.source" content="using_test_gui.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Opening your expDef in the GUI</a></li><li><a href="#3">Default settings</a></li><li><a href="#4">Testing different hardware</a></li><li><a href="#5">Live plotting</a></li><li><a href="#6">Experiment panel</a></li><li><a href="#7">Notes</a></li><li><a href="#8">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document demonstrates how to test Signals Experiment Definition (expDef) functions in the test GUI.  The GUI opens a PTB window and a Parameter Editor for live-updating parameters.  Before opening the test GUI, loading the debug settings for PTB will make the window transparent. This is particularly useful on small screens(1).</p><pre class="codeinput">PsychDebugWindowConfiguration
+</pre><h2 id="2">Opening your expDef in the GUI</h2><p>Upon calling the <tt>eui.SignalsTest</tt> class with no inputs you will be prompted to select your function from the file browser.  You can also call the function with the function name or function handle.  The function must be on the MATLAB path.  Let's run one of the example expDef functions: the Burgess wheel task(2) implemented in Signals.</p><pre class="codeinput">PsychDebugWindowConfiguration <span class="comment">% Make window transparant and turn of blocking</span>
+root = fileparts(which(<span class="string">'addRigboxPaths'</span>)); <span class="comment">% Location of Rigbox root dir</span>
+cd(fullfile(root, <span class="string">'signals'</span>, <span class="string">'docs'</span>, <span class="string">'examples'</span>)) <span class="comment">% Change to examples folder</span>
+
+e = eui.SignalsTest(@advancedChoiceWorld) <span class="comment">% Start GUI and loaded expDef</span>
+</pre><pre class="codeoutput">
+e = 
+
+  SignalsTest with properties:
+
+          Hardware: [1&times;1 struct]
+               Ref: '2020-01-17_1_test'
+    LoggingDisplay: [1&times;1 UIControl]
+          LivePlot: off
+      ShowExpPanel: on
+      SingleScreen: off
+        Experiment: [0&times;0 exp.test.Signals]
+       ParamEditor: [1&times;1 eui.ParamEditor]
+       LivePlotFig: [0&times;0 Figure]
+          ExpPanel: [0&times;0 eui.ExpPanel]
+         IsRunning: 0
+
+</pre><img vspace="5" hspace="5" src="using_test_gui_01.png" alt=""> <h2 id="3">Default settings</h2><p>The hardware wheel input is simulated in the experiment GUI by the position of the cursor over the stimulus window.  Upon clicking start the 'expStart' event updates with the the experiment ref string.  The ref string can be changed by editing the Ref property before pressing start:</p><pre class="codeinput">e.Ref = dat.constructExpRef(<span class="string">'subject'</span>, now-7, 2);
+
+<span class="comment">% Moving the cursor over the window will move the visual stimulus in the</span>
+<span class="comment">% stimulus window.</span>
+</pre><h2 id="4">Testing different hardware</h2><p>A hardware structure can be assigned to the Hardware property of the test object:</p><pre class="codeinput">e.Hardware = hw.devices;
+</pre><pre class="codeoutput">Warning: hardware config not found for hostname desktop-c6p85d3 
+</pre><h2 id="5">Live plotting</h2><p>The value of the event Signals can be plotted live by checking the LivePlot option in the Options popup.  It can also be set by changing the LivePlot property:</p><pre class="codeinput">e.LivePlot = <span class="string">'on'</span>;
+</pre><pre class="codeoutput error">You cannot set the read-only property 'LivePlot' of 'SignalsTest'.
+
+Error in using_test_gui (line 40)
+e.LivePlot = 'on';
+</pre><h2 id="6">Experiment panel</h2><p>For more info, see <a href="./using_ExpPanel.html">Using ExpPanel</a>. TODO Document</p><h2 id="7">Notes</h2><p>(1) These settings can be cleared by calling the Screen function:</p><pre class="codeinput">clear <span class="string">Screen</span>
+<span class="comment">% (2) &lt;https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047&gt;</span>
+</pre><h2 id="8">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% This document demonstrates how to test Signals Experiment Definition
+% (expDef) functions in the test GUI.  The GUI opens a PTB window and a
+% Parameter Editor for live-updating parameters.  Before opening the test
+% GUI, loading the debug settings for PTB will make the window transparent.
+% This is particularly useful on small screens(1).
+PsychDebugWindowConfiguration
+
+%% Opening your expDef in the GUI
+% Upon calling the |eui.SignalsTest| class with no inputs you will be
+% prompted to select your function from the file browser.  You can also
+% call the function with the function name or function handle.  The
+% function must be on the MATLAB path.  Let's run one of the example
+% expDef functions: the Burgess wheel task(2) implemented in Signals.
+PsychDebugWindowConfiguration % Make window transparant and turn of blocking
+root = fileparts(which('addRigboxPaths')); % Location of Rigbox root dir
+cd(fullfile(root, 'signals', 'docs', 'examples')) % Change to examples folder
+
+e = eui.SignalsTest(@advancedChoiceWorld) % Start GUI and loaded expDef
+
+%% Default settings
+% The hardware wheel input is simulated in the experiment GUI by the
+% position of the cursor over the stimulus window.  Upon clicking start the
+% 'expStart' event updates with the the experiment ref string.  The ref
+% string can be changed by editing the Ref property before pressing start:
+e.Ref = dat.constructExpRef('subject', now-7, 2);
+
+% Moving the cursor over the window will move the visual stimulus in the
+% stimulus window.
+
+%% Testing different hardware
+% A hardware structure can be assigned to the Hardware property of the test
+% object:
+e.Hardware = hw.devices;
+
+%% Live plotting
+% The value of the event Signals can be plotted live by checking the
+% LivePlot option in the Options popup.  It can also be set by changing the
+% LivePlot property:
+e.LivePlot = 'on';
+
+%% Experiment panel
+% For more info, see <./using_ExpPanel.html Using ExpPanel>.
+% TODO Document
+
+%% Notes
+% (1) These settings can be cleared by calling the Screen function:
+clear Screen
+% (2) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.1
+
+%#ok<*NOPTS,*NASGU,*ASGLU>
+
+##### SOURCE END #####
+--></body></html>

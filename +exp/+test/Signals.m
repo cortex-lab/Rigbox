@@ -1,16 +1,24 @@
 classdef Signals < exp.SignalsExp
-  %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
-  %   The class defines a framework for event- and state-based experiments.
-  %   Visual and auditory stimuli can be controlled by experiment phases.
-  %   Phases changes are managed by an event-handling system.
+  %EXP.TEST.SIGNALSEXP Subclass for playing with Signals Experiments
+  %   This class overloads a couple of superclass methods for running an
+  %   experiment definition in a test enviroment.
+  %
+  % See also EUI.SIGNALSTEST
   %
   % Part of Rigbox
-
+  
   % 2012-11 CB created
   
   methods
     
     function updateParams(obj, paramStruct)
+      % UPDATEPARAMS Updates parameters after initialization
+      %  Updates the parameter signals with a new parameter set.
+      %
+      %  Input:
+      %    paramStruct : A parameter structure
+      %
+      
       % get global parameters & conditional parameters structs
       fprintf('Updating parameters\n');
       [~, globalStruct, allCondStruct] = toConditionServer(...
@@ -18,12 +26,16 @@ classdef Signals < exp.SignalsExp
       obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'));
       obj.ConditionalPars.post(allCondStruct);
     end
-          
+    
     function post(obj, id, msg)
+      % POST Directly trigger remote rig events, simulating Web Sockets
+      %  If the Communicator is a srv.StimulusControl object, its events
+      %  are notified as if the events have been received from a Web
+      %  socket.
+      %
+      % See also SRV.STIMULUSCONTROL
       com = obj.Communicator;
-      if isa(com, 'io.Communicator')
-        send(com, id, msg);
-      elseif isa(com, 'srv.StimulusControl')
+      if isa(com, 'srv.StimulusControl')
         % Notify listeners of event to simulate remote message received
         switch id
           case 'signals'
@@ -33,7 +45,7 @@ classdef Signals < exp.SignalsExp
             type = msg{1};
             switch type
               case 'starting'
-                %experiment about to start
+                % experiment about to start
                 ref = msg{2};
                 notify(com, 'ExpStarting', srv.ExpEvent('starting', ref));
               case 'update'
@@ -49,15 +61,17 @@ classdef Signals < exp.SignalsExp
           otherwise
             % Do nothing upon Alyx request
         end
+      else
+        post@exp.SignalsExp(obj, id, msg)
       end
     end
-        
+    
   end
   
   methods (Access = protected)
-
+    
     function saveData(~)
-    % Do nothing
+      % Do nothing
     end
     
   end

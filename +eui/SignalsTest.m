@@ -1,6 +1,8 @@
 classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
   %SIGNALSTEST A GUI for testing SignalsExp experiment definitions
-  % TODO This may be generalized for all Experiment classes!
+  %  TODO Document this class
+  %
+  %  TODO This may be generalized for all Experiment classes!
   % See also: EXP.SIGNALSEXPTEST, EUI.MCONTROL
   %
   
@@ -70,6 +72,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
   end
   
   events
+    % Triggers the ExpPanel to update
     UpdatePanel
   end
   

@@ -1,8 +1,8 @@
 classdef SignalsExp < handle
-  %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
-  %   The class defines a framework for event- and state-based experiments.
-  %   Visual and auditory stimuli can be controlled by experiment phases.
-  %   Phases changes are managed by an event-handling system.
+  %EXP.SIGNALSEXP Trial-based Signals Experiments
+  %   TODO Document. The class defines a framework for running Signals
+  %   experiment definition functions and provides trial event Signals
+  %   along with trial conditions that change each trial.
   %
   % Part of Rigbox
 
@@ -583,17 +583,17 @@ classdef SignalsExp < handle
       %
       % See also LOADVISUAL, VIS.DRAW, VIS.EMPTYLAYER
       if isKey(obj.LayersByStim, name)
+        % If layer(s) already loaded, check if any show == true previously
         prev = obj.LayersByStim(name);
         prevshow = any([prev.show]);
-      else
+      else % Otherwise it clearly wasn't previously shown
         prevshow = false;
       end
-      obj.LayersByStim(name) = val;
-      
+      obj.LayersByStim(name) = val; % Store new layer(s) value by element name
+      % Determine whether new value requires screen redraw
       if any([val.show]) || prevshow
         obj.StimWindowInvalid = true;
       end
-      
     end
 
     function delete(obj)

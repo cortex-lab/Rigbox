@@ -516,7 +516,8 @@ scale.Name = 'SPX222';
 % Device Manager (Win + X, then M).  Under Universal Serial Bus, you can
 % see all current USB and serial ports.  If you right-click and select
 % 'Properties' you can view the port number and even reassign them (under
-% Advanced)
+% Advanced).  You can also list all available ports by running |seriallist|
+% (|serialportlistt("available")| for >2019b).
 scaleComPort = 'COM4'; % Set to a different port
 % The TareCommand and FormatSpec fields should be set based on your scale's
 % input and output configurations.  Check the manual.
@@ -566,6 +567,10 @@ for i = 1:length(names); devs(i).DeviceName = names{i}; end
 audioDevices = devs;
 
 save(hardware, 'audioDevices', '-append')
+
+% @TODO Substantiate
+% @body Info on PTB support, mention the helper for testing devices,
+% mention how audio device naming works
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
