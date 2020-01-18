@@ -3,21 +3,18 @@
 ![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
 ![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fdev)
 
-Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel),  Rigbox simplifies hardware/software interfacing and creates a runtime environment in which an experiment's parameters can be easily monitored and manipulated.
+Rigbox is a high-performance, open-source toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel),  Rigbox's main goals are to simplify hardware/software interfacing, visual and auditory stimuli presentation, and behavioral task design and implementation, by allowing users to progrmatically define behavioral tasks whose parameters can be easily monitored and manipulated. Additionally, Rigbox can time-align data streams from multiple sources and communicate with a remote database to manage experiment data.
 
-Rigbox includes many features including synchronizing recordings, managing experimental data and a viewing model for visual stimuli.
-
-Rigbox is mostly object-oriented and highly modular, making designing new experiments much simpler. Rigbox is currently under active, test-driven development. 
+Rigbox is mostly object-oriented and highly modular, which simplifies the process of designing both new and iterative experiments. Rigbox is run in MATLAB with some Java components that handle network communication and a C library to boost performance. Rigbox is currently under active, test-driven development. 
 
 ## Getting Started
 
-The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [documentation](https://github.com/cortex-lab/Rigbox/tree/master/docs). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
+The following is a brief description of Rigbox's requirements and installation and getting started instructions. For exploring Rigbox's features and running test experiments, Rigbox only needs to be installed on a single computer. However, for running complete experiments, Rigbox must be installed on two computers: one computer communicates with an experiment rig's hardware and presents stimuli (which we refer to as the "Stimulus Computer" or "SC"), and the other computer the user interacts with to start, stop, monitor, and parameterize the experiment (which we refer to as the "Master Computer", or "MC"). Detailed, step-by-step information can be found in Rigbox's [documentation](https://github.com/cortex-lab/Rigbox/tree/master/docs). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
 
 ### Requirements
 
-For running full experiments Rigbox requires two PCs: one for presenting stimuli and one for monitoring the experiment.  Currently only National Instruments DAQs are supported for acquiring data from hardware devices.  For testing, the toolbox can be run on a single machine.  
+#### Software
 
-Rigbox has the following software dependencies:
 * Windows Operating System (7 or later, 64-bit)
 * MATLAB (2017b or later) 
 * [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) <for Signals>
@@ -36,6 +33,9 @@ Additionally, Rigbox works with a number of extra submodules (included):
 * [alyx-matlab](https://github.com/cortex-lab/alyx-matlab) (for registering data to, and retrieving from, an [Alyx database](https://alyx.readthedocs.io/en/latest/))
 * [npy-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
 * [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) (for analyzing data from the steering wheel task) 
+
+#### Hardware
+@todo fill in hardware requirements section.
 
 ### Installation
 
@@ -96,9 +96,9 @@ When calling `srv.expServer` and `mc`, the code is automatically updated if a ne
 ## Acknowledgements
 
 * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) for code pertaining to Rigbox's UI
-* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual stimulus presentation
+* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual and auditory stimulus presentation
 * [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device
-* [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets
+* [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets to handle network communication between 'MC' and 'SC'.
 
 ## Contributing
 
