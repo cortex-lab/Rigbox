@@ -19,7 +19,7 @@ classdef MappingExpPanel < eui.ExpPanel
     end
   end
   
-  methods %(Access = protected)
+  methods (Access = protected)
     function event(obj, name, t)
       event@eui.ExpPanel(obj, name, t); %call superclass method
       switch name

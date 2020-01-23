@@ -86,13 +86,13 @@ paramStruct.expPanelFun % (1,27)
 % A char or function handle of the experiment panel class to use for
 % visualization during the experiment in MC.  This allows users to display
 % custom plots, etc. for monitoring different experiments.  See
-% EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.
+% EUI.EXPPANEL, EUI.SIGNALSEXPPANEL (default) for more info.
 
 %%% type
 % A legacy parameter that defines what experiment class to use. Options
 % include 'ChoiceWorld' and 'custom', where the latter indicates a signals
 % experiment.  For these two options the experiment classes are
-% EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2). 
+% EXP.CHOICEWORLD and EXP.SIGNALSEXP, respectively (see note 2). 
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.

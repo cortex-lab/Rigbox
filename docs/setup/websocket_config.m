@@ -167,7 +167,7 @@ server.close()
 % This id means an experiment update from a currently running signals
 % object (|exp.SignalsExp|) has arrived.  Listeners to the ExpUpdate event
 % are notified with a 'signals' ExpEvent.  In |MC| the listeners to this
-% are obejects of the |eui.ExpPanel| class, e.g. |eui.squeakExpPanel|.
+% are objects of the |eui.ExpPanel| class, e.g. |eui.SignalsExpPanel|.
 % These panel objects plot and display the update data.
 
 %%% - status

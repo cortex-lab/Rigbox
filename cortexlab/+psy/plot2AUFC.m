@@ -69,7 +69,7 @@ if any(contrast(1,:)>0 & contrast(2,:)>0)
 else
   contrast = diff(contrast, [], 1);
   cVals = unique(contrast);
-  colors = iff(numRespTypes>2,[0 1 1; 0 1 0; 1 0 0], [0 1 1; 1 0 0]);
+  colors = iff(numRespTypes>2,[0 1 1; 0 1 0; 1 0 1], [0 1 1; 1 0 1]);
   psychoM = zeros(numRespTypes,length(cVals));
   psychoMCI = zeros(numRespTypes,length(cVals));
   numTrials = zeros(1,length(cVals));

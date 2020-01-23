@@ -4,9 +4,11 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 
 ## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.5.0
 
+- improvements to experiment panels including ability to hide info fields `169fbb4` 2019-11-27
+- added guide to creating custom ExpPanels `90294dd` 2019-12-18
+- correct behaviour when listening to already running experiments `32a2a17` 2019-12-18
 - Added change scale port helper; fixed issue with scale cleanup on calibrate error `01e394b` 2019-11-27
 - Added support for remote error ids in srv.StimulusControl `9d31eea` 2019-11-27
-
 
 ## [2.4.1]
 
