@@ -1,5 +1,10 @@
 classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
   %SIGNALSTEST A GUI for testing SignalsExp experiment definitions
+  %
+  %  Example:
+  %    PsychDebugWindowConfiguration
+  %    e = eui.SignalsTest
+  %
   %  TODO Document this class
   %
   %  TODO This may be generalized for all Experiment classes!
@@ -90,7 +95,6 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       %SIGNALSTEST Creates a GUI for testing SignalsExp experiments
       % constructor method runs the 'buildUI' method to create the ExpTest
       % panel
-      PsychDebugWindowConfiguration % TODO Remove
       InitializeMatlabOpenGL
       % Check paths file exists
       assert(exist('+dat/paths', 'file') == 2, ...
