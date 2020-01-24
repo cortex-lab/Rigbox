@@ -1,10 +1,9 @@
 % +EXP Classes and functions for the Rigbox Experiment framework
-%   The Experiment framework provides a number of features for stimuli-
-%   delivering experiments with a trial structure.  The framework also
-%   provides a way to parameterize individual experiments and trials.
-%   Visual and auditory stimuli can be controlled by experiment phases or
-%   by a Signals reactive network.  Phases changes are managed by an
-%   event-handling system.
+%   The Experiment framework is for setting up and running
+%   stimulus-delivering experiments.  The framework allows parameterizing
+%   individual experiments at a single-trial level. Visual and auditory
+%   stimuli can be controlled by experiment phases or by the Signals
+%   framework.  Phases changes are managed by an event-handling system.
 %
 % Files
 %   %%% Experiment Classes
@@ -49,5 +48,6 @@
 %   UniformInterval            - A time sampled uniformly from an interval
 %   ExponentialInterval        - A time sampled with a flat hazard function
 %
+%   %%% Other
 %   configureSignalsExperiment - 
 %   SignalsTest                - 

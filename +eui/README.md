@@ -1,5 +1,5 @@
-## Experimental UI Package (+eui):
-This `+eui` package contains all code pertaining to guided user interfaces in Rigbox.
+## Experiment UI Package (+eui):
+This `+eui` package contains all code pertaining to graphical user interfaces in Rigbox.
 There are five base classes in this folder:
 
 1. `eui.MControl` - The class behind the Master Control (MC) GUI.  
