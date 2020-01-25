@@ -211,7 +211,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_devices_fail(testCase)
       % Set hw.devices to return empty
       clear devices;
-      id = 'rigbox:srv:expServer:missingHardware';
+      id = 'Rigbox:srv:expServer:missingHardware';
       testCase.verifyError(@srv.expServer, id, ...
         'Expected error for misconfigured hardware');
     end

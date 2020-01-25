@@ -126,8 +126,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Check our signals wired properly.  expStop behaviour is tested
       % separately
-      expected = {'expStart'; 'newTrial'; 'repeatNum'; 'trialNum'; 'endTrial'; 'expStop'};
-      testCase.assertEqual(fieldnames(testCase.Experiment.Events), expected)
+      expected = {'endTrial'; 'expStart'; 'expStop'; 'newTrial'; 'repeatNum'; 'trialNum'};
+      actual = fieldnames(testCase.Experiment.Events);
+      testCase.assertEqual(sort(actual), expected)
       
       testCase.Experiment.Events.expStart.post(testCase.Ref)
       getVals = @()mapToCell(@(s)s.Node.CurrValue, ...
@@ -135,11 +136,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(getVals(), {testCase.Ref; true; 1; 1; []; []})
       
       runSchedule(testCase.Experiment.Events.expStart.Node.Net)
-      testCase.verifyEqual(getVals(), {testCase.Ref; true; 1; 2; true; []})
+      testCase.verifyEqual(getVals(), {testCase.Ref; true; 1; 2; []; true})
       
       testCase.Experiment.Events.newTrial.post(false)
       runSchedule(testCase.Experiment.Events.expStart.Node.Net)
-      testCase.verifyEqual(getVals(), {testCase.Ref; true; 2; 4; false; []}) 
+      testCase.verifyEqual(getVals(), {testCase.Ref; true; 2; 4; []; false}) 
       
       % Check outputs, etc.
       parsStruct = exp.inferParameters(@advancedChoiceWorld);

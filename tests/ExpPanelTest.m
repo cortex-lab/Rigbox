@@ -30,13 +30,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   methods (TestMethodSetup)
     function setupPanel(testCase)
-      testCase.ExpPanel = eui.ExpPanel.live();
+%       testCase.ExpPanel = eui.ExpPanel.live();
     end
   end
   
   methods (Test)
     function test_panel(testCase)
-      % TODO Write tests
+      % TODO Write tests for ExpPanel
     end
     
   end

@@ -1,5 +1,5 @@
 classdef (SharedTestFixtures={...
-    matlab.unittest.fixtures.PathFixture('fixtures')})... % add 'fixtures' folder as test fixture
+    matlab.unittest.fixtures.PathFixture('../fixtures')})... % add 'fixtures' folder as test fixture
     ParamEditor_perfTest < matlab.perftest.TestCase
   
   properties
