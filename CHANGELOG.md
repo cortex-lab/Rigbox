@@ -7,13 +7,19 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - new alyx instance now requested robustly when not logged in during SignalsExp
 - expStop event now logged has missing value when last trial over, even when expStop defined in def fun
 - tests for SignalsExp class
-- alyx warnings not thrown when database url not defined
+- alyx warnings not thrown when database url not defined `b023187`, `cbad678`
 - new SignalsExp test GUI has numerous bugfixes and allows you to view exp panel `ad52845` 2019-11-14
 - exp.trialConditions allows trial reset, similar to ConditionServer `62eb9ac` 2019-11-14
 - fix for catastrophic crash when stimulus layers contain empty values
 - time signal now always updates before expStart event `cab5a2f` 2019-11-01
 - ability to hide event updates in the ExpPanel `fef6ac2` 2019-11-14
-- 
+- updates to documentation including folder READMEs and Contents files `07cb30e`, `d2b2189`, `3f3f869`
+- added utils for changing scale port and audio device `139d770` 2019-11-22
+- bugfix for failing to save signals on error `d6d9289` 2019-11-24
+- support for error ids received by StimulusControl `109b5eb` 2019-11-25
+- cleaned up older code `b89a0c1`, `d6b23c1`
+- scale port cleaned up upon errors `f19cec4` 2019-11-27
+- added flags to addRigboxPaths `10dc661` 2020-01-17
 
 
 ## [2.4.0](https://github.com/cortex-lab/Rigbox/releases/tag/v2.4.0)
