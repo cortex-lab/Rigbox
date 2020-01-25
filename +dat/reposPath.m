@@ -4,20 +4,25 @@ function p = reposPath(name, location)
 %   repository specified by 'name'.
 %
 %   Each repository can have multiple locations with one location being the
-%   "master" copy and others considered backups (e.g. copies on local
-%   machines). Users of this function wanting to *save* data should do so
-%   in all locations. To *load* data, the master may be the only location
-%   containing all data (i.e. because local copies will only be on specific
-%   machines). The optional 'location' parameter specifies one or more
-%   locations, with "all" being the default that returns all locations for
-%   that repository, and "master" will return the path to the master
-%   location.
+%   'master' copy and others considered backups or archives (e.g. copies on
+%   local machines). Users of this function wanting to *save* data should
+%   do so in all locations (i.e. master and local). To *load* data, the
+%   remote locations (i.e. master and archives) should be used (i.e.
+%   because local copies will only be on specific machines). The optional
+%   'location' parameter specifies one or more locations, with 'all' being
+%   the default that returns the master and local locations for that
+%   repository, 'master' will return the path to the master location, and
+%   'remote' will return the master and archive/alternate paths (in that
+%   order).
 %
-%   e.g. to get all paths you should save to for the "main" repository:
-%   savePaths = DAT.REPOSPATH('main') % savePaths is a string cell array
+%   e.g. to get all paths you should save to for the 'main' repository:
+%   savePaths = DAT.REPOSPATH('main') % savePaths is a cell string
 %
-%   To get the master location for the "main" repository:
+%   To get the master location for the 'main' repository:
 %   loadPath = DAT.REPOSPATH('main', 'master') % loadPath is a string
+%
+%   When data are spread across multiple remote locations such as archives:
+%   loadPath = DAT.REPOSPATH('main', 'remote') % loadPath is a cell string
 %
 % Part of Rigbox
 

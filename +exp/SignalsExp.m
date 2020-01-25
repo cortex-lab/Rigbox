@@ -1,74 +1,78 @@
 classdef SignalsExp < handle
-  %EXP.SIGNALSEXP Base class for stimuli-delivering experiments
-  %   The class defines a framework for event- and state-based experiments.
-  %   Visual and auditory stimuli can be controlled by experiment phases.
-  %   Phases changes are managed by an event-handling system.
+  %EXP.SIGNALSEXP Trial-based Signals Experiments
+  %   TODO Document. The class defines a framework for running Signals
+  %   experiment definition functions and provides trial event Signals
+  %   along with trial conditions that change each trial.
   %
   % Part of Rigbox
 
   % 2012-11 CB created
   
   properties
-    %An array of event handlers. Each should specify the name of the
-    %event that activates it, callback functions to be executed when
-    %activated and an optional delay between the event and activation.
-    %They should be objects of class EventHandler.
+    % An array of event handlers. Each should specify the name of the
+    % event that activates it, callback functions to be executed when
+    % activated and an optional delay between the event and activation.
+    % They should be objects of class EventHandler.
     EventHandlers = exp.EventHandler.empty
 
-    %Timekeeper used by the experiment. Clocks return the current time. See
-    %the Clock class definition for more information.
+    % Timekeeper used by the experiment. Clocks return the current time. See
+    % the Clock class definition for more information.
     Clock = hw.ptb.Clock
     
-    %Key for terminating an experiment whilst running. Shoud be a
-    %Psychtoolbox keyscan code (see PTB KbName function).
+    % Key for terminating an experiment whilst running. Shoud be a
+    % Psychtoolbox keyscan code (see PTB KbName function).
     QuitKey = KbName('q')
     
-    PauseKey = KbName('esc') %Key for pausing an experiment
+    % Key for pausing an experiment
+    PauseKey = KbName('esc')
     
-    %String description of the type of experiment, to be saved into the
-    %block data field 'expType'.
+    % String description of the type of experiment, to be saved into the
+    % block data field 'expType'.
     Type = ''
     
-    %Reference for the rig that this experiment is being run on, to be
-    %saved into the block data field 'rigName'.
+    % Reference for the rig that this experiment is being run on, to be
+    % saved into the block data field 'rigName'.
     RigName
     
-    %Communcator object for sending signals updates to mc.  Set by
-    %expServer
+    % Communcator object for sending signals updates to mc.  Set by
+    % expServer
     Communicator = io.DummyCommunicator
     
-    %Delay (secs) before starting main experiment phase after experiment
-    %init phase has completed
+    % Delay (secs) before starting main experiment phase after experiment
+    % init phase has completed
     PreDelay = 0 
     
-    %Delay (secs) before beginning experiment cleanup phase after
-    %main experiment phase has completed (assuming an immediate abort
-    %wasn't requested).
+    % Delay (secs) before beginning experiment cleanup phase after
+    % main experiment phase has completed (assuming an immediate abort
+    % wasn't requested).
     PostDelay = 0
     
-    %Flag indicating whether the experiment is paused
+    % Flag indicating whether the experiment is paused
     IsPaused = false 
     
-    %Holds the wheel object, 'mouseInput' from the rig object.  See also
-    %USERIG, HW.DAQROTARYENCODER
+    % Holds the wheel object, 'mouseInput' from the rig object.  See also
+    % USERIG, HW.DAQROTARYENCODER
     Wheel
     
-    %Holds the object for interating with the lick detector.  See also
-    %HW.DAQEDGECOUNTER
+    % Holds the object for interating with the lick detector.  See also
+    % HW.DAQEDGECOUNTER
     LickDetector
     
-    %Holds the object for interating with the DAQ outputs (reward valve,
-    %etc.)  See also HW.DAQCONTROLLER
+    % Holds the object for interating with the DAQ outputs (reward valve,
+    % etc.)  See also HW.DAQCONTROLLER
     DaqController
     
-    %Get the handle to the PTB window opened by expServer
+    % Get the handle to the PTB window opened by expServer
     StimWindowPtr
     
+    % The layer textureId names mapped to their numerical GL texture ids
     TextureById
     
+    % A map of stimulus element layers whose keys are the entry names in
+    % the Visual StructRef object
     LayersByStim
     
-    %Occulus viewing model
+    % Occulus viewing model
     Occ
     
     Time
@@ -83,23 +87,25 @@ classdef SignalsExp < handle
     
     Audio % = aud.AudioRegistry
     
-    %Holds the parameters structure for this experiment
+    % Holds the parameters structure for this experiment
     Params
     
     ParamsLog
     
-    %The bounds for the photodiode square
+    % The bounds for the photodiode square
     SyncBounds
     
-    %Sync colour cycle (usually [0, 255]) - cycles through these each
-    %time the screen flips.
+    % Sync colour cycle (usually [0, 255]) - cycles through these each
+    % time the screen flips.
     SyncColourCycle
     
-    %Index into SyncColourCycle for next sync colour
+    % Index into SyncColourCycle for next sync colour
     NextSyncIdx
     
-    %Alyx instance from client.  See also SAVEDATA
+    % Alyx instance from client.  See also SAVEDATA
     AlyxInstance = []
+    
+    Debug matlab.lang.OnOffSwitchState = 'off'
   end
   
   properties (SetAccess = protected)     
@@ -113,13 +119,16 @@ classdef SignalsExp < handle
     %(i.e. strings)
     ActivePhases = {}
     
-    Listeners
-    
-    Net
-    
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     NumSignalUpdates = 0
+    % Flag indicating whether to continue in experiment loop
+    IsLooping = false
+        
+    GlobalPars
     
+    ConditionalPars
+    
+    ExpStop
   end
   
   properties (Access = protected)
@@ -127,15 +136,24 @@ classdef SignalsExp < handle
     %are awaiting activation pending completion of their delay period.
     Pending
     
-    IsLooping = false %flag indicating whether to continue in experiment loop
-    
     AsyncFlipping = false
     
     StimWindowInvalid = false
+    
+    Listeners
+    
+    Net
+    
+    PauseTime
   end
   
   methods
-    function obj = SignalsExp(paramStruct, rig)
+    function obj = SignalsExp(paramStruct, rig, debug)
+      % TODO Move all rig related stuff out of constructor to useRig method.
+      % @body This will require a change to audstream.Registry: should work
+      % in a similar way to the visual stucture whereby the names of the
+      % devices are looked up at runtime.
+      if nargin > 2; obj.Debug = debug; end % Set debug mode
       clock = rig.clock;
       clockFun = @clock.now;
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
@@ -147,10 +165,12 @@ classdef SignalsExp < handle
       obj.Events = sig.Registry(clockFun);
       %% configure signals
       net = sig.Net;
+      net.Debug = obj.Debug;
       obj.Net = net;
       obj.Time = net.origin('t');
       obj.Events.expStart = net.origin('expStart');
       obj.Events.newTrial = net.origin('newTrial');
+      % TODO Generalize inputs
       obj.Inputs.wheel = net.origin('wheel');
       obj.Inputs.wheelMM = obj.Inputs.wheel.map(@...
         (x)obj.Wheel.MillimetresFactor*(x-obj.Wheel.ZeroOffset)).skipRepeats();
@@ -164,12 +184,13 @@ classdef SignalsExp < handle
       % start the first trial after expStart
       advanceTrial = net.origin('advanceTrial');
       % configure parameters signal
-      globalPars = net.origin('globalPars');
-      allCondPars = net.origin('condPars');
+      obj.GlobalPars = net.origin('globalPars');
+      obj.ConditionalPars = net.origin('condPars');
       [obj.Params, hasNext, obj.Events.repeatNum] = exp.trialConditions(...
-        globalPars, allCondPars, advanceTrial);
+        obj.GlobalPars, obj.ConditionalPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
+      obj.Events.expStop = lastTrialOver;
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -178,15 +199,15 @@ classdef SignalsExp < handle
         expDefFun = paramStruct.defFunction;
         obj.Data.expDef = func2str(expDefFun);
       end
-      fprintf('takes %i args\n', nargout(expDefFun));
       expDefFun(obj.Time, obj.Events, obj.Params, obj.Visual, obj.Inputs,...
           obj.Outputs, obj.Audio);
       % if user defined 'expStop' in their exp def, allow 'expStop' to also
       % take value at 'lastTrialOver', else just set to 'lastTrialOver'
-      if isfield(obj.Events, 'expStop')
+      obj.ExpStop = obj.Events.expStop;
+      if ~isequal(obj.Events.expStop, lastTrialOver)
+        obj.ExpStop = obj.Events.expStop;
         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
-      else
-        obj.Events.expStop = lastTrialOver;
+        entryAdded(obj.Events, 'expStop', obj.Events.expStop);
       end
       % listeners
       obj.Listeners = [
@@ -195,11 +216,13 @@ classdef SignalsExp < handle
         advanceTrial.map(true).keepWhen(hasNext).into(obj.Events.newTrial) %newTrial if more
         obj.Events.expStop.onValue(@(~)quit(obj))];
       % initialise the parameter signals
-      globalPars.post(rmfield(globalStruct, 'defFunction'));
-      allCondPars.post(allCondStruct);
+      try
+        obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'))
+        obj.ConditionalPars.post(allCondStruct)
+      catch ex
+        rethrow(obj.addErrorCause(ex))
+      end
       %% data struct
-      
-%       obj.Params = obj.Params.map(@(v)v, [], @(n,s)sig.Logger([n '[L]'],s));
       %initialise stim window frame times array, large enough for ~2 hours
       obj.Data.stimWindowUpdateTimes = zeros(60*60*60*2, 1);
       obj.Data.stimWindowRenderTimes = zeros(60*60*60*2, 1);
@@ -219,7 +242,8 @@ classdef SignalsExp < handle
       if isfield(rig, 'screens')
         obj.Occ.screens = rig.screens;
       else
-        warning('squeak:hw', 'No screen configuration specified. Visual locations will be wrong.');
+        warning('Rigbox:exp:SignalsExp:NoScreenConfig', ...
+          'No screen configuration specified. Visual locations will be wrong.');
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
@@ -333,9 +357,13 @@ classdef SignalsExp < handle
       % location to save the data into. If REF is an empty, i.e. [], the
       % data won't be saved.
       
-      if ~isempty(ref)
-        %ensure experiment ref exists
-        assert(dat.expExists(ref), 'Experiment ref ''%s'' does not exist', ref);
+      % Ensure experiment ref exists
+      if ~isempty(ref) && ~dat.expExists(ref)
+        % If in debug mode, throw warning, otherwise throw as error
+        % TODO Propogate debug behaviour to exp.Experiment
+        id = 'Rigbox:exp:SignalsExp:experimenDoesNotExist';
+        msg = 'Experiment ref ''%s'' does not exist';
+        iff(obj.Debug, @() warning(id,msg,ref), @() error(id,msg,ref))
       end
       
       %do initialisation
@@ -349,7 +377,12 @@ classdef SignalsExp < handle
       
       %set pending handler to begin the experiment 'PreDelay' secs from now
       start = exp.EventHandler('experimentInit', exp.StartPhase('experiment'));
-      start.addCallback(@(varargin) obj.Events.expStart.post(ref));
+      
+      % Add callback to update Time is necessary
+      start.addCallback(...
+        @(~,t)iff(obj.Time.Node.CurrValue, [], @()obj.Time.post(t)));
+      % Add callback to update expStart
+      start.addCallback(@(varargin)obj.Events.expStart.post(ref));
       obj.Pending = dueHandlerInfo(obj, start, initInfo, obj.Clock.now + obj.PreDelay);
       
       %refresh the stimulus window
@@ -360,7 +393,7 @@ classdef SignalsExp < handle
         mainLoop(obj);
         
         %post comms notification with event name and time
-        if isempty(obj.AlyxInstance)
+        if isempty(obj.AlyxInstance) || ~obj.AlyxInstance.IsLoggedIn
           post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
           pause(0.2) 
         end
@@ -379,15 +412,17 @@ classdef SignalsExp < handle
           saveData(obj); %save the data
         end
       catch ex
+        obj.IsLooping = false;
         %mark that an exception occured in the block data, then save
         obj.Data.endStatus = 'exception';
         obj.Data.exceptionMessage = ex.message;
+        obj.cleanup() % TODO Make cleanup more robust to error states
         if ~isempty(ref)
           saveData(obj); %save the data
         end
         ensureWindowReady(obj); % complete any outstanding refresh
         %rethrow the exception
-        rethrow(ex)
+        rethrow(obj.addErrorCause(ex))
       end
     end
     
@@ -411,15 +446,12 @@ classdef SignalsExp < handle
     function quit(obj, immediately)
       % if the experiment was stopped via 'mc' or 'q' key
       if isempty(obj.Events.expStop.Node.CurrValue)
-        % re-assign 'expStop' as an origin signal and post to it
-        obj.Events.expStop = obj.Net.origin('expStop');
-        obj.Events.expStop.post(true);
-      end
-      %stop delay timers. todo: need to use a less global tag
-      tmrs = timerfind('Tag', 'sig.delay');
-      if ~isempty(tmrs)
-        stop(tmrs);
-        delete(tmrs);
+        stopNode = obj.ExpStop.Node;
+        if isempty(stopNode.CurrValue)
+          % sneak in and update node value
+          affectedIdxs = submit(obj.Net.Id, stopNode.Id, true);
+          applyNodes(obj.Net.Id, affectedIdxs);
+        end
       end
       
       % set any pending handlers inactive
@@ -466,6 +498,22 @@ classdef SignalsExp < handle
       function stopLooping(varargin)
         obj.IsLooping = false;
       end
+    end
+    
+    function pause(obj)
+      % In the future this will be handled by exp.Experiment
+      if ~obj.IsPaused
+        obj.PauseTime = obj.Clock.now;
+        obj.abortPendingHandlers()
+        obj.IsPaused = true;
+      end
+    end
+    
+    function resume(obj)
+      breakLength = obj.Clock.now - obj.PauseTime;
+      newTimes = num2cell([obj.Net.Schedule.when] + breakLength);
+      [obj.Net.Schedule.when] = deal(newTimes{:});
+      obj.IsPaused = false;
     end
     
     function ensureWindowReady(obj)
@@ -517,44 +565,40 @@ classdef SignalsExp < handle
       obj.Listeners = [obj.Listeners
         layersSig.onValue(fun.partial(@obj.newLayerValues, name))];
       newLayerValues(obj, name, layersSig.Node.CurrValue);
-
-%       %% load textures
-%       layerData = obj.LayersByStim(name);
-%       Screen('BeginOpenGL', win);
-%       try
-%         for ii = 1:numel(layerData)
-%           id = layerData(ii).textureId;
-%           if ~obj.TextureById.isKey(id)
-%             obj.TextureById(id) = ...
-%               vis.loadLayerTextures(layerData(ii));
-%           end
-%         end
-%       catch glEx
-%         Screen('EndOpenGL', win);
-%         rethrow(glEx);
-%       end
-%       Screen('EndOpenGL', win);
     end
     
     function newLayerValues(obj, name, val)
-%       fprintf('new layer value for %s\n', name);
-%       show = [val.show]
+      % NEWLAYERVALUES Callback for layer updates for window invalidation
+      %  When a visual element's layers change, store the new values and
+      %  check whether stim window needs redrawing.  The following two
+      %  conditions invalidate the stim window:
+      %    1. Any of the layers have show == true
+      %    2. Show has changed from true to false for any layer
+      %
+      %  Inputs:
+      %    name (char) : The name of the stimulus (entry name in
+      %      obj.Visual StructRef)
+      %    val (struct) : A struct array of layers with new values
+      %
+      % See also LOADVISUAL, VIS.DRAW, VIS.EMPTYLAYER
       if isKey(obj.LayersByStim, name)
+        % If layer(s) already loaded, check if any show == true previously
         prev = obj.LayersByStim(name);
         prevshow = any([prev.show]);
-      else
+      else % Otherwise it clearly wasn't previously shown
         prevshow = false;
       end
-      obj.LayersByStim(name) = val;
-
+      obj.LayersByStim(name) = val; % Store new layer(s) value by element name
+      % Determine whether new value requires screen redraw
       if any([val.show]) || prevshow
         obj.StimWindowInvalid = true;
       end
-      
     end
 
     function delete(obj)
-      disp('delete exp.SqueakExp');
+      if obj.Debug
+        disp('delete exp.SignalsExp');
+      end
       obj.Net.delete();
     end
   end
@@ -665,6 +709,12 @@ classdef SignalsExp < handle
       t = obj.Clock.now;
       % begin the loop
       while obj.IsLooping
+        %% Check whether we're paused
+        while obj.IsPaused
+          drawnow
+          pause(0.25);
+          checkInput(obj);
+        end
         %% create a list of handlers that have become due
         dueIdx = find([obj.Pending.dueTime] <= now(obj.Clock));
         ndue = length(dueIdx);
@@ -687,7 +737,7 @@ classdef SignalsExp < handle
         
         %% signalling
 %         tic
-        wx = readAbsolutePosition(obj.Wheel);
+        wx = obj.Wheel.readAbsolutePosition();
         post(obj.Inputs.wheel, wx);
         if ~isempty(obj.LickDetector)
           % read and log the current lick count
@@ -771,11 +821,15 @@ classdef SignalsExp < handle
             pause(obj);
           end
         else
-%           key = keysPressed(find(keysPressed~=obj.QuitKey&...
-%               keysPressed~=obj.PauseKey,1,'first'));
+          % Post key presses to inputs.keyboard signal
           key = KbName(keysPressed);
-          if ~isempty(key)
-            post(obj.Inputs.keyboard, key(1));
+          if ~obj.IsPaused && ~isempty(key)
+            if ischar(key) % Post single key press
+              post(obj.Inputs.keyboard, key);
+            else % Post each key press in order
+              [~, I] = sort(keysPressed(keysPressed > 0));
+              cellfun(@(k)obj.Inputs.keyboard.post(k), key(I));
+            end
           end
         end
       end
@@ -870,66 +924,77 @@ classdef SignalsExp < handle
       end
     end
     
+    function ex = addErrorCause(obj, ex)
+      sigExId = cellfun(@(e) isa(e,'sig.Exception'), ex.cause);
+      if any(sigExId) && obj.Net.Debug
+        nodeid = ex.cause{sigExId}.Node;
+        expdef = iff(ischar(obj.Data.expDef), ...
+          obj.Data.expDef, @()which(func2str(obj.Data.expDef)));
+        ex = ex.addCause(MException(...
+          'Rigbox:exp:SignalsExp:expDefError', ...
+          'Error in %s (line %d)\n%s', ...
+          expdef, obj.Net.NodeLine(nodeid), obj.Net.NodeName(nodeid)));
+      end
+    end
+    
     function saveData(obj)
       % save the data to the appropriate locations indicated by expRef
       savepaths = dat.expFilePath(obj.Data.expRef, 'block');
       superSave(savepaths, struct('block', obj.Data));
-      [subject, ~, ~] = dat.parseExpRef(obj.Data.expRef);
+      subject = dat.parseExpRef(obj.Data.expRef);
       
-      % if this is a 'ChoiceWorld' experiment, let's save out for
-      % relevant data for basic behavioural analysis and register them to
-      % Alyx
-      if contains(lower(obj.Data.expDef), 'choiceworld') ...
-          && ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
+      % Save out for relevant data for basic behavioural analysis and
+      % register them to Alyx.
+      if ~strcmp(subject, 'default') && isfield(obj.Data, 'events') ...
           && ~strcmp(obj.Data.endStatus,'aborted')
         try
           fullpath = alf.block2ALF(obj.Data);
           obj.AlyxInstance.registerFile(fullpath);
         catch ex
+          % If Alyx URL not set, simply return
+          if isempty(getOr(dat.paths, 'databaseURL')); return; end
+          % Otherwise throw warning and continue registration process
           warning(ex.identifier, 'Failed to register alf files: %s.', ex.message);
         end
       end
       
       if isempty(obj.AlyxInstance)
-        warning('No Alyx token set');
+        warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
       else
         try
           subject = dat.parseExpRef(obj.Data.expRef);
           if strcmp(subject, 'default'); return; end
           % Register saved files
           obj.AlyxInstance.registerFile(savepaths{end});
-%           obj.AlyxInstance.registerFile(savepaths{end}, 'mat',...
-%             {subject, expDate, seq}, 'Block', []);
           % Save the session end time
           url = obj.AlyxInstance.SessionURL;
-          if ~isempty(url)
-            numCorrect = [];
-            if isfield(obj.Data, 'events')
-              numTrials = length(obj.Data.events.endTrialValues);
-              if isfield(obj.Data.events, 'feedbackValues')
-                numCorrect = sum(obj.Data.events.feedbackValues == 1);
-              end
-            else
-              numTrials = 0;
-              numCorrect = 0;
-            end
-            % Update Alyx session with end time, trial counts and water tye
-            sessionData = struct('end_time', obj.AlyxInstance.datestr(now));
-            if ~isempty(numTrials); sessionData.n_trials = numTrials; end
-            if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
-            obj.AlyxInstance.postData(url, sessionData, 'patch');
-          else
-            % Retrieve session from endpoint
-            %             subsessions = obj.AlyxInstance.getData(...
-            %               sprintf('sessions?type=Experiment&subject=%s&number=%i', subject, seq));
+          if isempty(url)
+            % Infer from date session and retrieve using expFilePath
+            url = getOr(obj.AlyxInstance.getSessions(obj.Data.expRef), 'url');
+            assert(~isempty(url), 'Failed to determine session url')
           end
+          numCorrect = [];
+          if isfield(obj.Data, 'events')
+            numTrials = length(obj.Data.events.endTrialValues);
+            if isfield(obj.Data.events, 'feedbackValues')
+              numCorrect = sum(obj.Data.events.feedbackValues == 1);
+            end
+          else
+            numTrials = 0;
+            numCorrect = 0;
+          end
+          % Update Alyx session with end time, trial counts and water tye
+          sessionData = struct('end_time', obj.AlyxInstance.datestr(now));
+          if ~isempty(numTrials); sessionData.n_trials = numTrials; end
+          if ~isempty(numCorrect); sessionData.n_correct_trials = numCorrect; end
+          obj.AlyxInstance.postData(url, sessionData, 'patch');
         catch ex
           warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
         end
         % Post water to Alyx
         try
           valve_controller = obj.DaqController.SignalGenerators(strcmp(obj.DaqController.ChannelNames,'rewardValve'));
-          type = iff(isprop(valve_controller, 'WaterType'), valve_controller.WaterType, 'Water');
+          type = pick(valve_controller, 'WaterType', 'def', 'Water');
           if isfield(obj.Data.outputs, 'rewardValues')
             amount = sum(obj.Data.outputs.rewardValues)*0.001;
           else

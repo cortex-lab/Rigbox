@@ -11,8 +11,9 @@ function results = checkCoverage(testFile, funLoc)
 %    results (array) - array of test result objects
 %
 %  Examples:
-%    checkCoverage('cellflat') % Folder can be inferred 
+%    checkCoverage('cellflat') % Folder can be inferred
 %    checkCoverage('fun_package', fileparts(which('fun.run')))
+%    checkCoverage('fun_package', '+fun')
 %
 
 narginchk(1,2)
@@ -23,7 +24,11 @@ end
 import matlab.unittest.TestRunner
 import matlab.unittest.plugins.CodeCoveragePlugin
 runner = TestRunner.withTextOutput;
-plugin = CodeCoveragePlugin.forFolder(funLoc);
+if funLoc(1) == '+'
+  plugin = CodeCoveragePlugin.forPackage(funLoc(2:end));
+else
+  plugin = CodeCoveragePlugin.forFolder(funLoc);
+end
 runner.addPlugin(plugin)
 tests = testsuite(testFile);
 results = runner.run(tests);

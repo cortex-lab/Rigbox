@@ -16,6 +16,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       assert(endsWith(which('dat.paths'),...
         fullfile('tests', 'fixtures', '+dat', 'paths.m')));
       
+      % Set INTEST flag to true
+      setTestFlag(true);
+      testCase.addTeardown(@setTestFlag, false)
+      
       % Check temp mainRepo folder is empty.  An extra safe measure as we
       % don't won't to delete important folders by accident!
       mainRepo = dat.reposPath('main', 'master');

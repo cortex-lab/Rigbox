@@ -25,7 +25,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Set INTEST flag
       assert(endsWith(which('dat.paths'),...
         fullfile('tests', 'fixtures', '+dat', 'paths.m')));
-      setTestFlag(true)
+      setTestFlag(true);
       testCase.addTeardown(@setTestFlag, false)
       % Set test expRef
       testCase.Ref = dat.constructExpRef('test', now, 1);
@@ -113,7 +113,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       ai = Alyx.parseAlyxInstance(testCase.Ref, Alyx('user',''));
       % Function for constructing message strings
       str = @(cmd) sprintf('%s %s %s %d %s', cmd, subject, ...
-        datestr(series, 'yyyymmdd'), seq, iff(strcmp(cmd,'alyx'),ai,''));
+        datestr(series, 'yyyymmdd'), seq, iff(strcmp(cmd,'alyx'),ai,'')); 
       % Set behaviour for IsRunning method to pass IsRunning assert
       testCase.assignOutputsWhen(get(testCase.Behaviour.IsRunning), false)
       % Commands
@@ -126,12 +126,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Test Timeline interactions
       timeline = testCase.Behaviour;
       testCase.verifyThat([...
-        get(timeline.IsRunning), ...
-        timeline.start(testCase.Ref, IsOfClass(?Alyx)), ... % expstart
+        timeline.start(testCase.Ref, IsOfClass(?Alyx)),... % expstart
         withAnyInputs(timeline.record), ... % "
         withAnyInputs(timeline.stop), ... % expstop 
         withAnyInputs(timeline.stop)], ... % expinterupt
-        Occurred('RespectingOrder', false))
+        Occurred('RespectingOrder', true))
       
       % Retrieve mock history for Timeline
       history = testCase.getMockHistory(testCase.Timeline);
