@@ -48,10 +48,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.addTeardown(@setTestFlag, false)
       
       % Turn off unwanted warnings
-      orig = warning('off', 'toStr:isstruct:Unfinished');
-      testCase.addTeardown(@warning, orig)
-      origWarn = warning('off', 'Rigbox:tests:KbQueueCheck:keypressNotSet');
-      testCase.addTeardown(@warning, origWarn)
+      unwanted = {
+          'Rigbox:tests:KbQueueCheck:keypressNotSet';
+          'Rigbox:exp:SignalsExp:NoScreenConfig';
+          'Rigbox:exp:SignalsExp:noTokenSet';
+          'toStr:isstruct:Unfinished'};
+      cellfun(@(id)testCase.addTeardown(@warning, warning('off',id)), unwanted)      
             
       testCase.applyFixture(ReposFixture) %TODO maybe move to method setup
       
@@ -119,10 +121,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   methods (Test)
     function test_constructor(testCase)
+      % Ensure warning on for this test
+      id = 'Rigbox:exp:SignalsExp:NoScreenConfig';
+      orig = warning('on', id);
+      testCase.addTeardown(@warning, orig)
+      
       % Instantiate
       testCase.Experiment = testCase.verifyWarning(...
-        @()exp.SignalsExp(testCase.Pars, testCase.Rig), ...
-        'Rigbox:exp:SignalsExp:NoScreenConfig');
+        @()exp.SignalsExp(testCase.Pars, testCase.Rig), id);
       
       % Check our signals wired properly.  expStop behaviour is tested
       % separately
@@ -170,6 +176,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_run(testCase)
+        
       % Create a minimal set or parameters
       testCase.Pars.numRepeats = 5;
       % Instantiate
@@ -273,10 +280,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Verify databaseURL is set
       testCase.assertNotEmpty(getOr(dat.paths, 'databaseURL'))
       
+      % Ensure warning on for this test
+      id = 'Rigbox:exp:SignalsExp:noTokenSet';
+      orig = warning('on', id);
+      testCase.addTeardown(@warning, orig)
+      
       % Instantiate
       testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
-      testCase.verifyWarning(@()testCase.Experiment.run(testCase.Ref), ...
-        'Rigbox:exp:SignalsExp:noTokenSet')
+      testCase.verifyWarning(@()testCase.Experiment.run(testCase.Ref), id)
       
       % Test with Alyx not logged in
       testCase.Experiment = exp.SignalsExp(testCase.Pars, testCase.Rig);
