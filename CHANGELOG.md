@@ -16,15 +16,13 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - updates to documentation including folder READMEs and Contents files `07cb30e`, `d2b2189`, `3f3f869`
 - added utils for changing scale port and audio device `139d770` 2019-11-22
 - bugfix for failing to save signals on error `d6d9289` 2019-11-24
-- support for error ids received by StimulusControl `109b5eb` 2019-11-25
 - cleaned up older code `b89a0c1`, `d6b23c1`
 - scale port cleaned up upon errors `f19cec4` 2019-11-27
 - added flags to addRigboxPaths `10dc661` 2020-01-17
 - improvements to experiment panels including ability to hide info fields `169fbb4` 2019-11-27
 - added guide to creating custom ExpPanels `90294dd` 2019-12-18
 - correct behaviour when listening to already running experiments `32a2a17` 2019-12-18
-- Added change scale port helper; fixed issue with scale cleanup on calibrate error `01e394b` 2019-11-27
-- Added support for remote error ids in srv.StimulusControl `9d31eea` 2019-11-27
+- added support for remote error ids in srv.StimulusControl `9d31eea` 2019-11-27
 
 ## [2.4.1]
 
