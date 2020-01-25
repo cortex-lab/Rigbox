@@ -15,6 +15,23 @@
 % experiments. Any number of custom repositories may be set, allowing them
 % to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see
 % below).
+%
+% It may be prefereable to keep the paths file in a shared network drive
+% where all rigs can access it.  This way only one file needs updating when
+% a path gets changed.  You can also override and add to the fields set by
+% the paths file in a rig specific manner.  To do this, create your paths
+% as a struct with the name `paths` and save this to a MAT file called
+% `paths` in your rig specific config folder:
+rigConfig = getOr(dat.paths('exampleRig'), 'rigConfig');
+customPathsFile = fullfile(rigConfig, 'paths.mat');
+paths.mainRepository = 'overide/path'; % Overide main repo for `exampleRig`
+paths.addedRepository = 'new/custom/path'; % Add novel repo
+
+save(customPathsFile, 'paths') % Save your new custom paths file.
+
+% More info in the paths template:
+root = getOr(dat.paths, 'rigbox');
+opentoline(fullfile(root, 'docs', 'setup', 'paths_template.m'), 75)
 
 %% Using expRefs
 % Experiment reference strings are human-readable labels constructed from

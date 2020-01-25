@@ -1,18 +1,17 @@
-% TESTS Unit tests for Rigbox.
+% TESTS Unit and integration tests for Rigbox.
 % Version xxx 02-Oct-2019
 %  The tests folder contains all tests and fixtures for testing core Rigbox
-%  functions and classes.  To quickly run all tests, use `runall`.  This
-%  will additionally run tests on alyx-matlab and signals.  To quickly
-%  check the coverage of a given test, use `checkCoverage`.
+%  functions and classes.  To run all tests, use `runall`.  This will
+%  additionally run tests on alyx-matlab and signals.  To quickly check the
+%  coverage of a given test, use `checkCoverage`.
 % 
 % Files:
-%   runall               - gathers and runs all tests in Rigbox
+%   runall               - Gathers and runs all tests in Rigbox
 %   checkCoverage        - Check the coverage of a given test
+%
 %   AlyxPanel_test       - Tests for eui.AlyxPanel
 %   ParamEditor_test     - Tests for eui.ParamEditor
 %   Parameters_test      - Tests for exp.Parameters
-%   StimulusControl_test - Tests for srv.StimulusControl and
-%                          srv.stimulusControllers
 %   calibrate_test       - Tests for hw.calibrate
 %   catStructs_test      - Tests for catStructs
 %   cellflat_test        - Tests for cellflat
@@ -35,9 +34,9 @@
 %   obj2json_test        - Tests for obj2struct
 %   pick_test            - pick test
 %   repelems_test        - repelems test
+%   StimulusControl_test - Tests for srv.StimulusControl and
+%                          srv.stimulusControllers
 %   structAssign_test    - structAssign test
 %   superSave_test       - superSave test
 %   tabulateArgs_test    - Tests for tabulateArgs
 %   varName_test         - varName test
-
-
