@@ -190,7 +190,7 @@ classdef SignalsExp < handle
         obj.GlobalPars, obj.ConditionalPars, advanceTrial);
       obj.Events.trialNum = obj.Events.newTrial.scan(@plus, 0); % track trial number
       lastTrialOver = then(~hasNext, true);
-      obj.Events.expStop = lastTrialOver; %net.origin('expStop');
+      obj.Events.expStop = lastTrialOver;
       % run experiment definition
       if ischar(paramStruct.defFunction)
         expDefFun = fileFunction(paramStruct.defFunction);
@@ -203,9 +203,8 @@ classdef SignalsExp < handle
           obj.Outputs, obj.Audio);
       % if user defined 'expStop' in their exp def, allow 'expStop' to also
       % take value at 'lastTrialOver', else just set to 'lastTrialOver'
-      if isequal(obj.Events.expStop, lastTrialOver)
-        obj.ExpStop = lastTrialOver;
-      else
+      obj.ExpStop = obj.Events.expStop;
+      if ~isequal(obj.Events.expStop, lastTrialOver)
         obj.ExpStop = obj.Events.expStop;
         obj.Events.expStop = merge(obj.Events.expStop, lastTrialOver);
         entryAdded(obj.Events, 'expStop', obj.Events.expStop);
