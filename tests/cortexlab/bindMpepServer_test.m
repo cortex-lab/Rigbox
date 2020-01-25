@@ -114,6 +114,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % Function for constructing message strings
       str = @(cmd) sprintf('%s %s %s %d %s', cmd, subject, ...
         datestr(series, 'yyyymmdd'), seq, iff(strcmp(cmd,'alyx'),ai,'')); 
+      % Set behaviour for IsRunning method to pass IsRunning assert
+      testCase.assignOutputsWhen(get(testCase.Behaviour.IsRunning), false)
       % Commands
       cmd = {'alyx', 'expstart', 'expend', 'expinterupt'};
       % Set output for 'read'
@@ -153,6 +155,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       pnet('setoutput', ports(2), 'read', str('expstart'));
       % Trigger pnet read; use evalc to supress output
       evalc('tls.process()');
+      % Set Timeline as already running and check for error
+      testCase.assignOutputsWhen(get(testCase.Behaviour.IsRunning), true)
+      evalc('tls.process()');
       
       % Check message not echoed after error
       history = pnet('gethistory');
@@ -162,7 +167,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_listen(testCase)
-      % TODO
+      % TODO Add test for listen function of bindMpepServer
     end
   end
   

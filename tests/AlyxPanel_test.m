@@ -378,10 +378,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_updateWeightButton(testCase)
-      % As this test takes at least 10 seconds and is actually doesn't
-      % require database interaction, we will skip it unless the current
-      % panel instance is using the first database URL set in the BaseURL
-      % property.
+      % As this test takes at least 10 seconds and doesn't require database
+      % interaction, we will skip it unless the current panel instance is
+      % using the first database URL set in the BaseURL property.
       if ~strcmp(testCase.Panel.AlyxInstance.BaseURL, testCase.BaseURL{1})
         disp('Skipping test')
         return

@@ -381,18 +381,28 @@ classdef MControl < handle
       % If rig is connected check no experiments are running...
       expRef = rig.ExpRunning; % returns expRef if running
       if expRef
-%           error('Experiment %s already running of %s', expDef, rig.Name)
           choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
               upper(rig.Name), 'View', 'Cancel', 'Cancel');
           switch choice
               case 'View'
                   % Load the parameters from file
-                  paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
+                  paramsPath = dat.expFilePath(expRef, 'parameters', 'master');
+                  paramStruct = load(paramsPath);
                   if ~isfield(paramStruct.parameters, 'type')
                       paramStruct.type = 'custom'; % override type name with preferred
                   end
+                  % Determine the experiment start time
+                  try % Try getting data from Alyx
+                    ai = obj.AlyxPanel.AlyxInstance;
+                    assert(ai.IsLoggedIn)
+                    meta = ai.getSessions(expRef);
+                    startedTime = ai.datenum(meta.start_time);
+                  catch % Fall back on parameter file's system mod date
+                    startedTime = file.modDate(paramsPath);
+                  end
                   % Instantiate an ExpPanel and pass it the expRef and parameters
-                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct.parameters);
+                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig,...
+                    paramStruct.parameters, 'StartedTime', startedTime);
                   obj.LastExpPanel = panel;
                   % Add a listener for the new panel
                   panel.Listeners = [panel.Listeners

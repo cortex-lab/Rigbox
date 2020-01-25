@@ -1,6 +1,6 @@
 function ref = constructExpRef(subjectRef, expDate, expSequence)
 %DAT.CONSTRUCTEXPREF Constructs an experiment reference string
-%   ref = DAT.CONSTRUCTEXPREF(subject, dat, seq) constructs and returns a
+%   ref = DAT.CONSTRUCTEXPREF(subject, date, seq) constructs and returns a
 %   standard format string reference, for the experiment using the 'subject',
 %   the 'date' of the experiment (a MATLAB datenum), and the daily sequence
 %   number of the experiment, 'seq' (must be an integer).

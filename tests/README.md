@@ -18,8 +18,6 @@ checkCoverage('cellflat') % Folder can be inferred
 
 % Check coverage of a package test:
 checkCoverage('fun_package', '+fun')
-checkCoverage('fun_package', fileparts(which('fun.run')))
-
 ```
 
 ### Creating new tests

@@ -55,7 +55,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       %  any code updates.
       %
       % See also GIT.UPDATE
-            
+      
       % Make sure git update not triggered
       root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
       fetch_head = fullfile(root, '.git', 'FETCH_HEAD');

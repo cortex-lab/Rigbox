@@ -9,10 +9,10 @@ classdef ExpPanel < handle
   %   EXPPANEL is not stand-alone and thus requires a handle to a parent
   %   window.  This class has a number of subclasses, one for each
   %   experiment type, for example CHOICEEXPPANEL for ChoiceWorld and
-  %   SQUEAKEXPPANEL for Signals experiments.  
+  %   SIGNALSEXPPANEL for Signals experiments.  
   %
   %
-  % See also SQUEAKEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
+  % See also SIGNALSEXPPANEL, CHOICEEXPPANEL, MCONTROL, MC
   %
   % Part of Rigbox
   
@@ -20,37 +20,69 @@ classdef ExpPanel < handle
   % 2017-05 MW added Alyx compatibility
   
   properties
-    Block = struct('numCompletedTrials', 0, 'trial', struct([])) % A structure to hold update information relevant for the plotting of psychometics and performance calculations
-    %log entry pertaining to this experiment
+    % A structure to hold update information relevant for the plotting of
+    % psychometics and performance calculations.  This is updated as new
+    % ExpUpdate events occur.  See also mergeTrialData
+    Block = struct('numCompletedTrials', 0, 'trial', struct([]))
+    % Log entry pertaining to this experiment
     LogEntry
+    % An array of listener handles for the remote rig, added by the live
+    % static constructor method
     Listeners
   end
   
   properties (Access = protected)
-    ExpRunning = false % A flag indicating whether the experiment is still running
+    % A flag indicating whether the experiment is still running
+    ExpRunning = false
+    % A list of active experiment phases
     ActivePhases = {}
+    % The root BoxPanel container
     Root
-    Ref % The experimental reference (expRef).  
-    SubjectRef % A string representing the subject's name
-    InfoGrid % Handle to the UIX.GRID UI object that holds contains the InfoFields and InfoLabels
-    InfoLabels %label text controls for each info field
-    InfoFields %field controls for each info field
-    StatusLabel % A text field displaying the status of the experiment, i.e. the current phase of the experiment
-    TrialCountLabel % A counter displaying the current trial number
+    % The experimental reference string (expRef)
+    Ref
+    % A string representing the subject's name
+    SubjectRef
+    % Handle to the UIX.GRID UI object that holds contains the InfoFields
+    % and InfoLabels
+    InfoGrid
+    % Label text controls for each info field
+    InfoLabels
+    % Field UI controls for each info field
+    InfoFields
+    % A text field displaying the status of the experiment, i.e. the
+    % current phase of the experiment
+    StatusLabel
+    % A counter displaying the current trial number
+    TrialCountLabel
+    % A condition index counter.  Only used if the parameters contains a
+    % conditionId parameter
     ConditionLabel
+    % A counter for the experiment duration
     DurationLabel
-    StopButtons % Handles to the End and Abort buttons, used to terminate an experiment through the UI
+    % Handles to the End and Abort buttons, used to terminate an experiment
+    % through the UI
+    StopButtons
+    % The datetime when the ExpPanel was instantiated
     StartedDateTime
-    CloseButton % The little x at the top right of the panel.  Deletes the object.
-    CommentsBox % A handle to text box.  Text inputed to this box is saved in the subject's LogEntry
-    CustomPanel % Handle to a UI box where any number of platting axes my be placed by subclasses
-    MainVBox % Handle to the main box containing all labels, buttons and UI boxes for this panel
-    Parameters exp.Parameters % A structure of experimental parameters used by this experiment
-    UIContextMenu % Holds a context menu for show/hide options for info fields
+    % The little x at the top right of the panel.  Deletes the object
+    CloseButton
+    % A handle to text box.  Text inputed to this box is saved in the
+    % subject's LogEntry
+    CommentsBox
+    % Handle to a UI box where any number of platting axes my be placed by
+    % subclasses
+    CustomPanel
+    % Handle to the main box containing all labels, buttons and UI boxes
+    % for this panel
+    MainVBox
+    % A structure of experimental parameters used by this experiment
+    Parameters exp.Parameters
+    % Holds a context menu for show/hide options for info fields
+    UIContextMenu
   end
   
   methods (Static)
-    function p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+    function p = live(parent, ref, remoteRig, paramsStruct, varargin)
       % LIVE Constuct a new ExpPanel based on experiment parameter provided
       %  Create a new ExpPanel for monitoring an experiment.  Depending on
       %  the `type` and, in the case of a Signals Experiment, `expPanelFun`
@@ -65,14 +97,30 @@ classdef ExpPanel < handle
       %      The type parameter is used to determine which subclass is to
       %      be instantiated.  For type 'custom' the default panel may be
       %      overridden via the `expPanelFun` parameter.
-      %    activateLog (logical) : flag indicating whether to save a new
+      %
+      %  Optional Name-Value pairs:
+      %    ActivateLog (logical) : flag indicating whether to save a new
       %      log entry for the experiment (default true).  For test
       %      experiments this flag may be set to false.
+      %    StartedTime (double) : If the experiment has already started,
+      %      the datetime of the experiment start (default []).
       %
       %  Outputs:
       %    p (eui.ExpPanel) : handle to the panel object.
       % 
-      if nargin < 5 || activateLog
+      p = inputParser;
+      addRequired(p, 'parent');
+      addRequired(p, 'ref');
+      addRequired(p, 'remoteRig');
+      addRequired(p, 'paramsStruct');
+      % Activate log
+      addParameter(p, 'activateLog', true);
+      % Resume experiment listening (experiment had alread started)
+      addParameter(p, 'startedTime', []);
+      parse(p, pos, t, Fs, varargin{:});
+      
+      p = p.Results; % Final parameters
+      if p.activateLog
         subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
         try
           logEntry = dat.addLogEntry(... % Add new entry to log
@@ -98,7 +146,7 @@ classdef ExpPanel < handle
           case 'BarMapping'
             p = eui.MappingExpPanel(parent, ref, params, logEntry);
           case 'custom'
-            p = eui.SqueakExpPanel(parent, ref, params, logEntry);
+            p = eui.SignalsExpPanel(parent, ref, params, logEntry);
           otherwise
             p = eui.ExpPanel(parent, ref, params, logEntry);
         end
@@ -113,6 +161,14 @@ classdef ExpPanel < handle
         @() remoteRig.quitExperiment(true),...
         @() set(p.StopButtons, 'Enable', 'off')));
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
+      
+      if ~isempty(p.startedTime)
+        % If the experiment has all ready started, trigger all dependent
+        % events.
+        p.expStarted(remoteRig, srv.ExpEvent('started', ref, p.startedTime));
+        p.event('experimentStarted', p.startedTime)
+      end
+        
       p.Listeners = [...
         ...event.listener(remoteRig, 'Connected', @p.expStarted)
         ...event.listener(remoteRig, 'Disconnected', @p.expStopped)
@@ -124,6 +180,7 @@ classdef ExpPanel < handle
   
   methods
     function obj = ExpPanel(parent, ref, params, logEntry)
+      % Subclasses must chain a call to this.
       obj.Ref = ref;
       obj.SubjectRef = dat.parseExpRef(ref);
       obj.LogEntry = logEntry;
@@ -132,7 +189,9 @@ classdef ExpPanel < handle
     end
     
     function cleanup(obj)
-      % For subclasses to implement
+      % CLEANUP Cleanup panel For subclasses to implement.  Use this method
+      % to release listener handles and clear any accumulated data that is
+      % no longer required after the experiment has ended.
     end
     
     function delete(obj)
@@ -143,6 +202,11 @@ classdef ExpPanel < handle
     end
     
     function update(obj)
+      % UPDATE Update the panel
+      %  Updates the duration label counter.  This method is the callback
+      %  to the RefreshTimer in MC.  Subclasses must chain a call to this.
+      %
+      % See also eui.ExpPanel/update
       if obj.ExpRunning
         elapsed = round(etime(datevec(now), datevec(obj.StartedDateTime)));
         set(obj.DurationLabel, 'String',...
@@ -154,19 +218,57 @@ classdef ExpPanel < handle
   methods (Access = protected)
     
     function closeRequest(obj, src, evt)
+      % CLOSEREQUEST Callback to the close button
+      %  Callback to the little 'x' in the corner of the panel.  Deletes
+      %  the panel.
       obj.delete();
     end
     
     function newTrial(obj, num, condition)
-      %do nothing, this is for subclasses to override and react to
+      % NEWTRIAL Process new trial conditions
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a new trial's conditional
+      %  parameters.  Called by expUpdate method upon 'newTrial' event.
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    condition (struct) : Condition data for the new trial
+      %
+      % See also expUpdate, trialCompleted
     end
     
     function trialCompleted(obj, num, data)
-      %do nothing, this is for subclasses to override and react to
+      % TRIALCOMPLETED Process completed trial data
+      %  Do nothing, this is for subclasses to override and react to, e.g.
+      %  to update plots, etc. based on a complete trial's data.  Called by
+      %  expUpdate method upon 'trialData' event.
+      %  
+      %  Inputs:
+      %    num (int) : The new trial number.  May be used to index into
+      %                Block property
+      %    data (struct) : Completed trial data
+      %
+      % See also expUpdate, trialCompleted
     end
     
     function event(obj, name, t)
-      %called when an experiment event occurs
+      % EVENT Called when an experiment event occurs
+      %  Called by expUpdate callback to process all miscellaneous events,
+      %  i.e. experiment phases.  This method is downstream of srv.ExpEvent
+      %  events.  Updates ActivePhases list as well as the panel title
+      %  colour and, upon phase changes, the Status info field.
+      %
+      %  Inputs:
+      %    name (char) : The event name
+      %    t (date vec) : The time the event occured
+      %
+      %  Example:
+      %    if strcmp(evt.Data{1}, 'event') % srv.ExpEvent object
+      %      % Pass event info to be processed
+      %      obj.event(evt.Data{2}, evt.Data{3})
+      %    end
+      
       phaseChange = false;
       if strEndsWith(name, 'Started')
         if strcmp(name, 'experimentStarted')
@@ -204,12 +306,17 @@ classdef ExpPanel < handle
       % EXPSTARTED Callback for the ExpStarted event.
       %   Updates the ExpRunning flag, the panel title and status label to
       %   show that the experiment has officially begun.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
       %   
       % See also EXPSTOPPED
       if strcmp(evt.Ref, obj.Ref) || isempty([evt.Ref, obj.Ref])
         set(obj.StatusLabel, 'String', 'Running'); %staus to running
         set(obj.StopButtons, 'Enable', 'on', 'Visible', 'on'); %enable stop buttons
-        obj.StartedDateTime = now; %take note of the experiment start time
+        % Take note of the experiment start time
+        obj.StartedDateTime = iff(isempty(evt.Data), now, evt.Data); 
         obj.ExpRunning = true;
       else
         %started experiment does not match expected
@@ -227,8 +334,11 @@ classdef ExpPanel < handle
       %   panel title and status label to show that the experiment has
       %   ended.  This function also records to Alyx the amount of water,
       %   if any, that the subject received during the task.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
       %   
-      %   TODO: Move water to save data functions
       % See also EXPSTARTED, ALYX.POSTWATER
       set(obj.StatusLabel, 'String', 'Completed'); %staus to completed
       obj.ExpRunning = false;
@@ -239,6 +349,15 @@ classdef ExpPanel < handle
     end
     
     function expUpdate(obj, rig, evt)
+      % EXPUPDATE Callback to the remote rig ExpUpdate event
+      %  Processes a new experiment event.  Events include 'newTrial',
+      %  'trialData', 'signals', 'event'.
+      %
+      %   Inputs:
+      %     rig (srv.StimulusControl) : The source of the event
+      %     evt (srv.ExpEvent) : The experiment event object
+      %
+      % See also live, event, srv.StimulusControl, srv.ExpEvent
       type = evt.Data{1};
       switch type
         case 'newTrial'
@@ -397,6 +516,12 @@ classdef ExpPanel < handle
     end
     
     function build(obj, parent)
+      % BUILD Build the panel UI
+      %  Creates the BoxPanel and within it a container for info fields
+      %  (InfoGrid), a container for subclasses to add custom plots
+      %  (CustomPanel) and the buttons and comments box.  If the LogEntry
+      %  is empty, the comments box is skipped. Subclasses must chain a
+      %  call to this.
       obj.Root = uiextras.BoxPanel('Parent', parent,...
         'Title', obj.Ref,... %default title is the experiment reference
         'TitleColor', [0.98 0.65 0.22],...%amber title area
