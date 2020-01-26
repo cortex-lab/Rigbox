@@ -105,7 +105,7 @@ classdef ConditionPanel < handle
       % See also FILLCONDITIONTABLE, EUI.PARAMEDITOR/UPDATE
       row = eventData.Indices(1);
       col = eventData.Indices(2);
-      assert(all(cellfun(@strcmpi, strrep(obj.ConditionTable.ColumnName, ' ', ''), ...
+      assert(all(cellfun(@strcmpi, erase(obj.ConditionTable.ColumnName, ' '), ...
         obj.ParamEditor.Parameters.TrialSpecificNames)), 'Unexpected condition names')
       paramName = obj.ParamEditor.Parameters.TrialSpecificNames{col};
       newValue = obj.ParamEditor.update(paramName, eventData.NewData, row);
