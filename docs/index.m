@@ -12,6 +12,7 @@
 % * <./using_services.html Setting up auxiliary services>
 % * <./AlyxMatlabPrimer.html How to interact with an Alyx database>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
+% * <./troubleshooting.html Troubleshooting Rigbox errors>
 %
 % @todo Further files to add to docs
 % @body Burgess config, setting up shared paths 
