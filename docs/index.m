@@ -111,10 +111,10 @@ doc +srv
 
 %%% submodules
 % Additional information on the
-% [alyx-matlab](https://github.com/cortex-lab/alyx-matlab),
-% [npy-matlab](https://github.com/kwikteam/npy-matlab),
-% [signals](https://github.com/cortex-lab/signals) and
-% [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) submodules
+% <https://github.com/cortex-lab/alyx-matlab alyx-matlab>, 
+% <https://github.com/kwikteam/npy-matlab npy-matlab>, 
+% <https://github.com/cortex-lab/signals signals> and 
+% <https://github.com/cortex-lab/wheelAnalysis wheelAnalysis> submodules
 % can be found in their respective github repositories.
 
 %% Etc.
