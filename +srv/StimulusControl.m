@@ -23,7 +23,7 @@ classdef StimulusControl < handle
     % (set by eui.MControl)
     SelectedServices 
     % The name of the remote rig, usually the host name
-    Name 
+    Name char
     % The default delay in seconds before the experiment is to start, set
     % by mc
     ExpPreDelay = 0 

@@ -2,6 +2,7 @@ function saveParamProfile(expType, profileName, params)
 %DAT.SAVEPARAMPROFILE Stores the named parameters for experiment type
 %   TODO
 %     - Figure out how to save struct without for-loop in 2016b!
+%     - Create folder if one doesn't already exist?
 % Part of Rigbox
 
 % 2013-07 CB created

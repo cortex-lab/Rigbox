@@ -322,6 +322,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(dat.expExists(refs{1}))
     end
     
+    function test_saveParamProfile(testCase)
+      %TODO Tests for saveParamProgfile
+    end
+    
   end
   
   methods (Access = private)
