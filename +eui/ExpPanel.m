@@ -108,19 +108,19 @@ classdef ExpPanel < handle
       %  Outputs:
       %    p (eui.ExpPanel) : handle to the panel object.
       % 
-      p = inputParser;
-      addRequired(p, 'parent');
-      addRequired(p, 'ref');
-      addRequired(p, 'remoteRig');
-      addRequired(p, 'paramsStruct');
+      in = inputParser;
+      addRequired(in, 'parent');
+      addRequired(in, 'ref');
+      addRequired(in, 'remoteRig');
+      addRequired(in, 'paramsStruct');
       % Activate log
-      addParameter(p, 'activateLog', true);
+      addOptional(in, 'activateLog', true);
       % Resume experiment listening (experiment had alread started)
-      addParameter(p, 'startedTime', []);
-      parse(p, pos, t, Fs, varargin{:});
+      addOptional(in, 'startedTime', []);
+      in.parse(parent, ref, remoteRig, paramsStruct, varargin{:})
       
-      p = p.Results; % Final parameters
-      if p.activateLog
+      in = in.Results; % Final parameters
+      if in.activateLog
         subject = dat.parseExpRef(ref); % Extract subject, date and seq from experiment ref
         try
           logEntry = dat.addLogEntry(... % Add new entry to log
@@ -162,7 +162,7 @@ classdef ExpPanel < handle
         @() set(p.StopButtons, 'Enable', 'off')));
       p.Root.Title = sprintf('%s on ''%s''', p.Ref, remoteRig.Name); % Set experiment panel title
       
-      if ~isempty(p.startedTime)
+      if ~isempty(in.startedTime)
         % If the experiment has all ready started, trigger all dependent
         % events.
         p.expStarted(remoteRig, srv.ExpEvent('started', ref, p.startedTime));

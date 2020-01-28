@@ -1,18 +1,35 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     matlab.unittest.fixtures.PathFixture('fixtures'),...
-    matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'util'])})...
-    ExpPanelTest < matlab.mock.TestCase
+    matlab.unittest.fixtures.PathFixture(['fixtures' filesep 'expDefinitions'])})...
+    ExpPanelTest < matlab.unittest.TestCase
   
   properties (SetAccess = protected)
     % The figure that contains the ExpPanel
     Parent
     % Handle for ExpPanel
     Panel eui.ExpPanel
+    % Remote Rig object
+    Remote srv.StimulusControl
+    % A parameters structure
+    Parameters
+    % An experiment reference string
+    Ref
   end
-    
+  
+  properties (MethodSetupParameter)
+    % Experiment type under test
+    ExpType = {'Base', 'Signals'} % TODO Add tests for ChoiceWorld, etc.
+  end
+      
   methods (TestClassSetup)
     function setup(testCase)
-      % SETUP TODO Document
+      % SETUP Set up test case
+      %   The following occurs during setup:
+      %   1. Creating parent figure, turn off figure visability and delete
+      %   on taredown.
+      %   2. Set test flag to true to avoid path in test assertion error.
+      %   3. Applies repos fixture and create a test subject and expRef.
+      %   4. Instantiates a StimulusControl object for event listeners.
       
       % Hide figures and add teardown function to restore settings
       def = get(0,'DefaultFigureVisible');
@@ -21,23 +38,114 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
 
       % Create figure for panel
       testCase.Parent = figure();
+      testCase.addTeardown(@delete, testCase.Parent)
       
       % Set INTEST flag to true
       setTestFlag(true);
       testCase.addTeardown(@setTestFlag, false)
+      
+      % Ensure we're using the correct test paths and add teardowns to
+      % remove any folders we create
+      testCase.applyFixture(ReposFixture)
+      
+      % Now create a single subject folder for testing the log
+      subject = 'test';
+      mainRepo = dat.reposPath('main', 'master');
+      assert(mkdir(fullfile(mainRepo, subject)), ...
+        'Failed to create subject folder')
+      testCase.Ref = dat.constructExpRef(subject, now, 1);
+      
+      % Set up a StimulusControl object for simulating rig events
+      testCase.Remote = srv.StimulusControl.create('testRig');
     end
   end
   
   methods (TestMethodSetup)
-    function setupPanel(testCase)
-%       testCase.ExpPanel = eui.ExpPanel.live();
+    function setupParams(testCase, ExpType)
+      % SETUPPARAMS Set up parameters struct
+      %   Create a parameters structure depending of the ExpType.
+      
+      switch lower(ExpType)
+        case 'signals'
+          % A Signals experiment without the custom ExpPanel.  Instantiates
+          % the eui.SignalsExpPanel class
+          testCase.Parameters = struct('type', 'custom', 'defFunction', @nop);
+        case 'choiceworld'
+          % ChoiceWorld experiment params.  Instantiates the
+          % eui.ChoiceExpPanel class
+          testCase.Parameters = exp.choiceWorldParams;
+        case 'custom'
+          % Signals experiment params with the expPanelFun parameter.
+          % Calls the function defined in that parameter
+          testCase.Parameters = exp.inferParameters(@advancedChoiceWorld);
+        case 'base'
+          % Instantiates the eui.ExpPanel base class
+          testCase.Parameters = struct(...
+            'experimentFun', @(pars, rig) nop, ...
+            'type', 'unknown');
+        case 'barmapping'
+          % Instantiates the eui.MappingExpPanel class
+          testCase.Parameters = exp.barMappingParams;
+        otherwise
+          testCase.Parameters = [];
+      end
+    end
+  end
+  
+  methods (TestMethodTeardown)
+    function clearFigure(testCase)
+      % Completely reset the figure on taredown
+      testCase.Parent = clf(testCase.Parent, 'reset');
     end
   end
   
   methods (Test)
-    function test_panel(testCase)
-      % TODO Write tests for ExpPanel
+    function test_live(testCase)
+      % Test the live constructor method for various experiment types.  The
+      % following things are tested:
+      %   1. Default update labels
+      %   2. ActivateLog parameter functionality
+      %   3. Comments box context menu functionality
+      %   4. TODO Test comments changed callback
+      %   5. TODO Check params button function
+      inputs = {
+        testCase.Parent;
+        testCase.Ref;
+        testCase.Remote;
+        testCase.Parameters};
+      testCase.Panel = eui.ExpPanel.live(inputs{:}, 'ActivateLog', false);
+      
+      testCase.fatalAssertTrue(isvalid(testCase.Panel))
+      % Test the default labels have been created
+      % Find all labels
+      labels = findall(testCase.Parent, 'Style', 'text');
+      expected = {'0', '-:--', 'Pending', 'Trial count', 'Elapsed', 'Status'};
+      testCase.verifyEqual({labels.String}, expected, 'Default labels incorrect')
+      comments = findall(testCase.Parent, 'Style', 'edit');
+      testCase.assertEmpty(comments, 'Unexpected comments box');
+      
+      % Test build with log activated
+      delete(testCase.Panel) % Delete previous panel
+      testCase.Panel = eui.ExpPanel.live(inputs{:}, 'ActivateLog', true);
+      % Check Comments label exists
+      labels = findall(testCase.Parent, 'Style', 'text');
+      commentsLabel = labels(strcmp({labels.String}, 'Comments'));
+      testCase.assertNotEmpty(commentsLabel)
+      % Check comments box exits
+      comments = findall(testCase.Parent, 'Style', 'edit');
+      testCase.assertNotEmpty(comments, 'Failed to create comments box');
+      % Test comments box hiding
+      testCase.assertTrue(strcmp(comments.Visible, 'on'))
+      menuOption = commentsLabel.UIContextMenu.Children(1);
+      menuOption.MenuSelectedFcn(menuOption) % Trigger menu callback
+      testCase.assertTrue(strcmp(comments.Visible, 'off'), 'Failed to hide comments')
+      menuOption.MenuSelectedFcn(menuOption) % Trigger menu callback
+      testCase.assertTrue(strcmp(comments.Visible, 'on'), 'Failed to show comments')
     end
+    
+%     function test_starttime(testCase)
+%       % TODO Test Start time input as input (i.e. for reconnect)
+%     end
     
   end
   
