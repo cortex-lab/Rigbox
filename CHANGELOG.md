@@ -23,6 +23,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - added guide to creating custom ExpPanels `90294dd` 2019-12-18
 - correct behaviour when listening to already running experiments `32a2a17` 2019-12-18
 - added support for remote error ids in srv.StimulusControl `9d31eea` 2019-11-27
+- added tests for eui.ExpPanel `572463c` 2020-01-28
 
 ## [2.4.1]
 
