@@ -10,6 +10,7 @@
 %   checkCoverage        - Check the coverage of a given test
 %
 %   AlyxPanel_test       - Tests for eui.AlyxPanel
+%   ExpPanel_test        - Tests for eui.ExpPanel
 %   ParamEditor_test     - Tests for eui.ParamEditor
 %   Parameters_test      - Tests for exp.Parameters
 %   calibrate_test       - Tests for hw.calibrate
