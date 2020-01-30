@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_parameters.m"><style type="text/css">
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-30"><meta name="DC.source" content="using_parameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -90,7 +90,7 @@ paramStruct = exp.inferParameters(defFunction);
 <span class="comment">% number of columns.</span>
 <span class="comment">%</span>
 <span class="comment">% Examples:</span>
-<span class="comment">%</span>
+
 <span class="comment">% A global parameter whose value is a charecter</span>
 paramStruct.rewardKey <span class="comment">% (1,1)</span>
 <span class="comment">% A global parameter whose value is a column vector</span>
@@ -104,17 +104,14 @@ paramStruct.expPanelFun <span class="comment">% (1,27)</span>
 
 <span class="comment">% Parameters may take a number of different value types, including</span>
 <span class="comment">% numerical, string and char arrays.</span>
-</pre><h2 id="3">Special parameters</h2><p>There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS and EUI.PARAMEDITOR that should not be set in your experiment definition:</p><h2 id="4">numRepeats</h2><p>The number of times each condition shall be repeated.  By default there are 1000 'trials', split evenly across each condition (parameter column). When trial number &gt; sun(numRepeats), the experiment will automatically end.  If numRepeats is a global parameter (i.e. a scalar value) each condition will be repeated the same number of times.</p><h2 id="5">randomiseConditions</h2><p>When true (default) the conditional trial parameters are shuffled at the start of the experiment and thus occur in a random order.</p><h2 id="6">defFunction</h2><p>For signals experiments this parameter is the file path of the experiment definition.  This is required for the stimulus computer to load the correct experiment.  It does not appear as a parameter during the experiment.</p><h2 id="7">expPanelFun</h2><p>A char or function handle of the experiment panel class to use for visualization during the experiment in MC.  This allows users to display custom plots, etc. for monitoring different experiments.  See EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.</p><h2 id="8">type</h2><p>A legacy parameter that defines what experiment class to use. Options include 'ChoiceWorld' and 'custom', where the latter indicates a signals experiment.  For these two options the experiment classes are EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2).</p><h2 id="9">services</h2><p>A cellstr array of service names to be activaed during experiment setup. These are external systems that can be triggered via websockets and UDPs. (See note 3)</p><h2 id="10">waterType</h2><p>The type of water reward to administer during the experiment.  This could allow one to switch between different DAQ outputs and will change the water_type field when posting to Alyx.  This feature is not yet fully implemented.</p><h2 id="11">isPassive</h2><p>When true the experiment is a re-play of a previous one.  This feature is not yet fully implemented.</p><pre class="codeinput"><span class="comment">% In addition to these, parameters can be attributed descriptions and units</span>
-<span class="comment">% by setting fields with the same name the end in 'Description' and 'Units'</span>
-<span class="comment">% respectively. These are displayed in the ParamEditor GUI.  See below.</span>
-paramStruct.wheelGain <span class="comment">% An example parameter that needs a description</span>
+</pre><h2 id="3">Special parameters</h2><p>There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS and EUI.PARAMEDITOR that should not be set in your experiment definition:</p><h2 id="4">numRepeats</h2><p>The number of times each condition shall be repeated.  By default there are 1000 'trials', split evenly across each condition (parameter column). When trial number &gt; sun(numRepeats), the experiment will automatically end.  If numRepeats is a global parameter (i.e. a scalar value) each condition will be repeated the same number of times.</p><h2 id="5">randomiseConditions</h2><p>When true (default) the conditional trial parameters are shuffled at the start of the experiment and thus occur in a random order.</p><h2 id="6">defFunction</h2><p>For signals experiments this parameter is the file path of the experiment definition.  This is required for the stimulus computer to load the correct experiment.  It does not appear as a parameter during the experiment.</p><h2 id="7">expPanelFun</h2><p>A char or function handle of the experiment panel class to use for visualization during the experiment in MC.  This allows users to display custom plots, etc. for monitoring different experiments.  See EUI.EXPPANEL, EUI.SIGNALSEXPPANEL (default) for more info.</p><h2 id="8">type</h2><p>A legacy parameter that defines what experiment class to use. Options include 'ChoiceWorld' and 'custom', where the latter indicates a signals experiment.  For these two options the experiment classes are EXP.CHOICEWORLD and EXP.SIGNALSEXP, respectively (see note 2).</p><h2 id="9">services</h2><p>A cellstr array of service names to be activaed during experiment setup. These are external systems that can be triggered via websockets and UDPs. (See note 3)</p><h2 id="10">waterType</h2><p>The type of water reward to administer during the experiment.  This could allow one to switch between different DAQ outputs and will change the water_type field when posting to Alyx.  This feature is not yet fully implemented.</p><h2 id="11">isPassive</h2><p>When true the experiment is a re-play of a previous one.  This feature is not yet fully implemented.</p><p>In addition to these, parameters can be attributed descriptions and units by setting fields with the same name the end in 'Description' and 'Units' respectively. These are displayed in the ParamEditor GUI.  See below.</p><pre class="codeinput">paramStruct.wheelGain <span class="comment">% An example parameter that needs a description</span>
 paramStruct.wheelGainDescription = [<span class="string">'Visual stimulus translation per '</span>,<span class="keyword">...</span>
   <span class="string">'movement at wheel surface (for stimuli ahead)'</span>];
 paramStruct.visWheelGainUnits = <span class="string">'&deg;/mm'</span>;
 
 <span class="comment">% There is one special parameter default that may be set in the definition</span>
 <span class="comment">% function: repeatIncorrect</span>
-</pre><h2 id="12">repeatIncorrect</h2><p>This is the only special parameter that may have a default set in the definition function.  This parameter must be a boolian and in signals, when both the repeatIncorrect parameter and the endTrial signal evaluate as true, the current conditional parameters will be repeated on the following trial.  See note 4.</p><h2 id="13">Saving parameter sets</h2><p>EXP.INFERPARAMETERS is useful for loading an experiment's default parameters (set in the definition function itself).  Also, each time you run an experiment a copy of the modified parameter set is saved in the experiment folder.  The last used parameters for a given experiment and subject are loaded by default in MC.</p><p>Suppose however that you want to save and load a parameter set for a given experiment, independent of the subject? For this we use the <a href="./using_dat_package.html">dat package</a>...</p><p>To save a new parameter set simply call DAT.SAVEPARAMPROFILE:</p><pre class="codeinput">paramStruct.rewardSize = 5; <span class="comment">% We want to save our modified params</span>
+</pre><h2 id="12">repeatIncorrect</h2><p>This is the only special parameter that may have a default set in the definition function.  This parameter must be a boolian and in signals, when both the repeatIncorrect parameter and the endTrial signal evaluate as true, the current conditional parameters will be repeated on the following trial.  See note 4.</p><h2 id="13">Saving parameter sets</h2><p><tt>exp.inferParameters</tt> is useful for loading an experiment's default parameters (set in the definition function itself).  Also, each time you run an experiment a copy of the modified parameter set is saved in the experiment folder.  The last used parameters for a given experiment and subject are loaded by default in MC.</p><p>Suppose however that you want to save and load a parameter set for a given experiment, independent of the subject? For this we use the <a href="./using_dat_package.html">dat package</a>...</p><p>To save a new parameter set simply call <tt>dat.saveParamProfile</tt>:</p><pre class="codeinput">paramStruct.rewardSize = 5; <span class="comment">% We want to save our modified params</span>
 paramSetName = <span class="string">'highReward'</span>; <span class="comment">% Give our saved set a name</span>
 dat.saveParamProfile(<span class="string">'custom'</span>, paramSetName, paramStruct)
 
@@ -131,7 +128,7 @@ dat.delParamProfile(<span class="string">'custom'</span>, paramSetName);
 
 <span class="comment">% These parameter sets can also be loaded and saved in MC using the</span>
 <span class="comment">% drop-down menu above the ParamEditor.</span>
-</pre><h2 id="14">The Parameters object</h2><p>Modifying sturctures directly is error-prone and time consuming for certain tasks.  To manipulate parameters more easily we use the EXP.PARAMETERS class.</p><pre class="codeinput">parameters = exp.Parameters(paramStruct) <span class="comment">% a new Parameters object</span>
+</pre><h2 id="14">The Parameters object</h2><p>Modifying sturctures directly is error-prone and time consuming for certain tasks.  To manipulate parameters more easily we use the <tt>exp.Parameters</tt> class.</p><pre class="codeinput">parameters = exp.Parameters(paramStruct) <span class="comment">% a new Parameters object</span>
 
 <span class="comment">% The Parameters object contains fields indicating which parameters are</span>
 <span class="comment">% conditional and which are global.  The underlying structure is stored in</span>
@@ -195,63 +192,11 @@ trialParams <span class="comment">% (1,810) struct</span>
 
 <span class="comment">% c.f. [~, ~, trialParams] = parameters.toConditionServer(false)</span>
 <span class="comment">% See section below for more details on randomizing.</span>
-</pre><h2 id="15">The ParamEditor GUI</h2><p>The easiest way to modify parameters is via the ParamEditor GUI, managed by the EUI.PARAMEDITOR class.  A ParamEditor object is embedded into MC and can also be instantiated via the Experiment Panels.</p><pre class="codeinput"><span class="comment">% To instantiate a standalone editor, call EUI.PARAMEDITOR with a</span>
-<span class="comment">% Parameters object.  Additionally a parent figure handle may be provided.</span>
-PE = eui.ParamEditor(parameters)
-
-<span class="comment">% There are two panels that make up the editor.  On the left are the global</span>
-<span class="comment">% parameters and on the right is the trial conditions table, containing the</span>
-<span class="comment">% conditional parameters.</span>
-</pre><h2 id="16">Global panel</h2><p>The global panel is pretty simple.  Each parameter is represented by the parameter name (formatted as a title, see above section) and an input field.  When a field is modified the title turns red.  For numrical and string parameters, vectors may be added by inputting values separated by commas.  For instance typing '1, 3, 5' (without quotes) would set the value of that parameter to [1; 3; 5].  For numrical parameters spaces alone will suffice, e.g. '1 3 5'.</p><pre class="codeinput"><span class="comment">% To make a parameter conditional, right-clicking on the input field or</span>
-<span class="comment">% title and select 'Make conditional'.  The parameter will now appear in</span>
-<span class="comment">% the conditions table to the right.</span>
-</pre><h2 id="17">Conditions panel</h2><p>Here each parameter is represented as a table column, and its conditions (i.e. the columns of the parameter) as table rows.  The rows may be re-ordered by dragging the field name of the column you with to move.</p><pre class="codeinput"><span class="comment">% New blank conditions (i.e. rows) can be added by clicking the 'New</span>
-<span class="comment">% condition' button at the bottom of the table.</span>
-
-<span class="comment">% Individual cells can be selected and edited as expected.  To select</span>
-<span class="comment">% multiple cells, hold down the ctrl key while clicking.  To select</span>
-<span class="comment">% multiple conditions in a row, hold the shift key.  Once you've selected a</span>
-<span class="comment">% cell in at least one column, the other buttons become available:</span>
-
-<span class="comment">% 'Delete condition' allows you to delete the table rows of the selected</span>
-<span class="comment">% cells (i.e. the selected trial conditions).</span>
-
-<span class="comment">% 'Globalise parameter' makes the columns of the selected cells global</span>
-<span class="comment">% parameters, whereby they are moved to the left panel.  The value in the</span>
-<span class="comment">% last selected cell for that parameter is used as the new parameter value.</span>
-<span class="comment">% This may also be done via the context menu.</span>
-
-<span class="comment">% 'Set values' allows you can set multiple cells are once.  One clicked a</span>
-<span class="comment">% small dialog appears with am input field for each selected column.  The</span>
-<span class="comment">% number of selected cells for each column is shown in brackets.  Entering</span>
-<span class="comment">% a single value will set each cell to that value.  Entering a</span>
-<span class="comment">% semicolon-separated list will assign each cell one value going from top</span>
-<span class="comment">% to bottom.  For example by selecting three cells in a column and typing</span>
-<span class="comment">% '4; 5; 6' (without quotes) the top most cell will take the value '4' and</span>
-<span class="comment">% so forth.</span>
-<span class="comment">%</span>
-<span class="comment">% This is particularly useful for more involved stimulus sets with many</span>
-<span class="comment">% conditions.</span>
-
-<span class="comment">% By right-clicking anywhere in the condition table you get two extra</span>
-<span class="comment">% options:</span>
-<span class="comment">%</span>
-<span class="comment">% 'Sort by selected column' will sort the columns by whichever column the</span>
-<span class="comment">% selected cell is in.  Currently only sorting by one column is supported.</span>
-<span class="comment">%</span>
-<span class="comment">% 'Randomise conditions' is a checkbox that sets the underlying hidden</span>
-<span class="comment">% parameter of the same name.  By default this is checked.  When unchecked,</span>
-<span class="comment">% the rows of the table are given an index, indicating the set order trial</span>
-<span class="comment">% conditions.</span>
-
-<span class="comment">% Once your parameters have been modified via the GUI they can be saved by</span>
-<span class="comment">% extracting the underlying parameter stuct and saving to a file:</span>
-dat.saveParamProfile(<span class="string">'custom'</span>, <span class="string">'variant_2'</span>, PE.Parameters.Struct)
-</pre><h2 id="18">Advanced trial conditions</h2><p>Let's look at some ways you can set trial condition parameters for different sorts of experiments. In the below examples imagine you have a signals experiment definition with three conditional parameters, A, B and C (see note 6).</p><pre class="codeinput"><span class="comment">% By default all conditions are presented in a random order n times, where</span>
-<span class="comment">% n is defined by the numRepeats parameter. If numRepeats is made a global</span>
-<span class="comment">% parameter, then all conditions are presented the same number of times.</span>
-
-<span class="comment">% Example 1: An illustration of how the trial order may turn out when</span>
+</pre><h2 id="15">The ParamEditor GUI</h2><p>The easiest way to modify parameters is via the ParamEditor GUI, managed by the <tt>eui.ParamEditor</tt> class.  A ParamEditor object is embedded into MC and can also be instantiated via the Experiment Panels.</p><p>To instantiate a standalone editor, call EUI.PARAMEDITOR with a Parameters object.  Additionally a parent figure handle may be provided.</p><p>There are two panels that make up the editor.  On the left are the global parameters and on the right is the trial conditions table, containing the conditional parameters.</p><pre class="codeinput">PE = eui.ParamEditor(parameters)
+</pre>
+<img vspace="5" hspace="5" src="ParamEditor.png" alt="">
+<h2 id="16">Global panel</h2><p>The global panel is pretty simple.  Each parameter is represented by the parameter name (formatted as a title, see above section) and an input field.  When a field is modified the title turns red.  For numrical and string parameters, vectors may be added by inputting values separated by commas.  For instance typing '1, 3, 5' (without quotes) would set the value of that parameter to [1; 3; 5].  For numrical parameters spaces alone will suffice, e.g. '1 3 5'.</p><p>To make a parameter conditional, right-clicking on the input field or title and select 'Make conditional'.  The parameter will now appear in the conditions table to the right.</p><h2 id="17">Conditions panel</h2><p>Here each parameter is represented as a table column, and its conditions (i.e. the columns of the parameter) as table rows.  The rows may be re-ordered by dragging the field name of the column you with to move.</p><p>New blank conditions (i.e. rows) can be added by clicking the 'New condition' button at the bottom of the table.</p><p>Individual cells can be selected and edited as expected.  To select multiple cells, hold down the ctrl key while clicking.  To select multiple conditions in a row, hold the shift key.  Once you've selected a cell in at least one column, the other buttons become available:</p><p>'Delete condition' allows you to delete the table rows of the selected cells (i.e. the selected trial conditions).</p><p>'Globalise parameter' makes the columns of the selected cells global parameters, whereby they are moved to the left panel.  The value in the last selected cell for that parameter is used as the new parameter value. This may also be done via the context menu.</p><p>'Set values' allows you can set multiple cells are once.  One clicked a small dialog appears with am input field for each selected column.  The number of selected cells for each column is shown in brackets.  Entering a single value will set each cell to that value.  Entering a semicolon-separated list will assign each cell one value going from top to bottom.  For example by selecting three cells in a column and typing '4; 5; 6' (without quotes) the top most cell will take the value '4' and so forth.</p><p>This is particularly useful for more involved stimulus sets with many conditions.</p><p>By right-clicking anywhere in the condition table you get two extra options:</p><p>'Sort by selected column' will sort the columns by whichever column the selected cell is in.  Currently only sorting by one column is supported.</p><p>'Randomise conditions' is a checkbox that sets the underlying hidden parameter of the same name.  By default this is checked.  When unchecked, the rows of the table are given an index, indicating the set order trial conditions.</p><p>Once your parameters have been modified via the GUI they can be saved by extracting the underlying parameter stuct and saving to a file:</p><pre class="codeinput">dat.saveParamProfile(<span class="string">'custom'</span>, <span class="string">'variant_2'</span>, PE.Parameters.Struct)
+</pre><h2 id="18">Advanced trial conditions</h2><p>Let's look at some ways you can set trial condition parameters for different sorts of experiments. In the below examples imagine you have a signals experiment definition with three conditional parameters, A, B and C (see note 6).</p><p>By default all conditions are presented in a random order n times, where n is defined by the numRepeats parameter. If numRepeats is made a global parameter, then all conditions are presented the same number of times.</p><pre class="codeinput"><span class="comment">% Example 1: An illustration of how the trial order may turn out when</span>
 <span class="comment">% 'randomiseConditions' is false and 'numRepeats' is a conditional parameter:</span>
 
 <span class="comment">% +---+---+---+-------------+</span>
@@ -461,8 +406,10 @@ flashedColumnParams = exp.flashedColumnParams; <span class="comment">% Kalatsky-
 <span class="comment">%</span>
 <span class="comment">% v1.0.0</span>
 
+<span class="comment">% INTERNAL:</span>
+<span class="comment">%  ln209 ParamEditor.png</span>
 <span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Introduction
 % This document contains information on how experiment parameters work in
@@ -512,7 +459,7 @@ paramStruct = exp.inferParameters(defFunction);
 % number of columns.
 %
 % Examples:
-%
+
 % A global parameter whose value is a charecter
 paramStruct.rewardKey % (1,1)
 % A global parameter whose value is a column vector
@@ -552,13 +499,13 @@ paramStruct.expPanelFun % (1,27)
 % A char or function handle of the experiment panel class to use for
 % visualization during the experiment in MC.  This allows users to display
 % custom plots, etc. for monitoring different experiments.  See
-% EUI.EXPPANEL, EUI.SQUEAKEXPPANEL (default) for more info.
+% EUI.EXPPANEL, EUI.SIGNALSEXPPANEL (default) for more info.
 
 %%% type
 % A legacy parameter that defines what experiment class to use. Options
 % include 'ChoiceWorld' and 'custom', where the latter indicates a signals
 % experiment.  For these two options the experiment classes are
-% EXP.CHOICEWORD and EXP.SIGNALSEXP, respectively (see note 2). 
+% EXP.CHOICEWORLD and EXP.SIGNALSEXP, respectively (see note 2). 
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.
@@ -574,7 +521,7 @@ paramStruct.expPanelFun % (1,27)
 %%% isPassive
 % When true the experiment is a re-play of a previous one.  This feature is
 % not yet fully implemented.
-
+%
 % In addition to these, parameters can be attributed descriptions and units
 % by setting fields with the same name the end in 'Description' and 'Units'
 % respectively. These are displayed in the ParamEditor GUI.  See below.
@@ -594,7 +541,7 @@ paramStruct.visWheelGainUnits = '°/mm';
 % following trial.  See note 4.
 
 %% Saving parameter sets
-% EXP.INFERPARAMETERS is useful for loading an experiment's default
+% |exp.inferParameters| is useful for loading an experiment's default
 % parameters (set in the definition function itself).  Also, each time you
 % run an experiment a copy of the modified parameter set is saved in the
 % experiment folder.  The last used parameters for a given experiment and
@@ -604,7 +551,7 @@ paramStruct.visWheelGainUnits = '°/mm';
 % given experiment, independent of the subject? For this we use the
 % <./using_dat_package.html dat package>...
 %
-% To save a new parameter set simply call DAT.SAVEPARAMPROFILE:
+% To save a new parameter set simply call |dat.saveParamProfile|:
 paramStruct.rewardSize = 5; % We want to save our modified params
 paramSetName = 'highReward'; % Give our saved set a name
 dat.saveParamProfile('custom', paramSetName, paramStruct)
@@ -626,7 +573,7 @@ dat.delParamProfile('custom', paramSetName);
 %% The Parameters object
 % Modifying sturctures directly is error-prone and time consuming for
 % certain tasks.  To manipulate parameters more easily we use the
-% EXP.PARAMETERS class.
+% |exp.Parameters| class.
 parameters = exp.Parameters(paramStruct) % a new Parameters object
 
 % The Parameters object contains fields indicating which parameters are
@@ -694,16 +641,16 @@ trialParams % (1,810) struct
 
 %% The ParamEditor GUI
 % The easiest way to modify parameters is via the ParamEditor GUI, managed
-% by the EUI.PARAMEDITOR class.  A ParamEditor object is embedded into MC
+% by the |eui.ParamEditor| class.  A ParamEditor object is embedded into MC
 % and can also be instantiated via the Experiment Panels.
-
+%
 % To instantiate a standalone editor, call EUI.PARAMEDITOR with a
 % Parameters object.  Additionally a parent figure handle may be provided.
-PE = eui.ParamEditor(parameters)
-
+%
 % There are two panels that make up the editor.  On the left are the global
 % parameters and on the right is the trial conditions table, containing the
 % conditional parameters.  
+PE = eui.ParamEditor(parameters)
 
 %%% Global panel
 % The global panel is pretty simple.  Each parameter is represented by the
@@ -713,7 +660,7 @@ PE = eui.ParamEditor(parameters)
 % commas.  For instance typing '1, 3, 5' (without quotes) would set the
 % value of that parameter to [1; 3; 5].  For numrical parameters spaces
 % alone will suffice, e.g. '1 3 5'.
-
+%
 % To make a parameter conditional, right-clicking on the input field or
 % title and select 'Make conditional'.  The parameter will now appear in
 % the conditions table to the right.
@@ -722,23 +669,23 @@ PE = eui.ParamEditor(parameters)
 % Here each parameter is represented as a table column, and its conditions
 % (i.e. the columns of the parameter) as table rows.  The rows may be
 % re-ordered by dragging the field name of the column you with to move.
-
+%
 % New blank conditions (i.e. rows) can be added by clicking the 'New
 % condition' button at the bottom of the table.
-
+%
 % Individual cells can be selected and edited as expected.  To select
 % multiple cells, hold down the ctrl key while clicking.  To select
 % multiple conditions in a row, hold the shift key.  Once you've selected a
 % cell in at least one column, the other buttons become available:
-
+%
 % 'Delete condition' allows you to delete the table rows of the selected
 % cells (i.e. the selected trial conditions).
-
+%
 % 'Globalise parameter' makes the columns of the selected cells global
 % parameters, whereby they are moved to the left panel.  The value in the
 % last selected cell for that parameter is used as the new parameter value.
 % This may also be done via the context menu.
-
+%
 % 'Set values' allows you can set multiple cells are once.  One clicked a
 % small dialog appears with am input field for each selected column.  The
 % number of selected cells for each column is shown in brackets.  Entering
@@ -750,7 +697,7 @@ PE = eui.ParamEditor(parameters)
 % 
 % This is particularly useful for more involved stimulus sets with many
 % conditions. 
-
+%
 % By right-clicking anywhere in the condition table you get two extra
 % options:
 %
@@ -761,7 +708,7 @@ PE = eui.ParamEditor(parameters)
 % parameter of the same name.  By default this is checked.  When unchecked,
 % the rows of the table are given an index, indicating the set order trial
 % conditions.
-
+%
 % Once your parameters have been modified via the GUI they can be saved by
 % extracting the underlying parameter stuct and saving to a file:
 dat.saveParamProfile('custom', 'variant_2', PE.Parameters.Struct)
@@ -771,7 +718,7 @@ dat.saveParamProfile('custom', 'variant_2', PE.Parameters.Struct)
 % different sorts of experiments. In the below examples imagine you have a
 % signals experiment definition with three conditional parameters, A, B and
 % C (see note 6).
-
+%
 % By default all conditions are presented in a random order n times, where
 % n is defined by the numRepeats parameter. If numRepeats is made a global
 % parameter, then all conditions are presented the same number of times.
@@ -997,6 +944,9 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 %
 % v1.0.0
 
+% INTERNAL:
+%  ln209 ParamEditor.png
 %#ok<*NOPTS,*ASGLU,*NASGU>
+
 ##### SOURCE END #####
 --></body></html>
