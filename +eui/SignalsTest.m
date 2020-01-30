@@ -1,17 +1,17 @@
 classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
   %SIGNALSTEST A GUI for testing SignalsExp experiment definitions
+  %  A GUI for running Signals Experiments, loading/saving parameters,
+  %  testing custom ExpPanels and live-plotting Signals.  The wheel input
+  %  is simulated with mouse movements by default.
   %
   %  Example:
-  %    PsychDebugWindowConfiguration
-  %    e = eui.SignalsTest
-  %
-  %  TODO Document this class
+  %    PsychDebugWindowConfiguration % Transparent window
+  %    e = eui.SignalsTest('advancedChoiceWorld')
   %
   %  TODO This may be generalized for all Experiment classes!
-  % See also: EXP.SIGNALSEXPTEST, EUI.MCONTROL
   %
+  % See also: EXP.SIGNALSEXPTEST, EUI.MCONTROL
   
-  % can be set in GUI or command line to improve visualization
   properties
     % A struct of hardware objects to be used with the Experiment
     Hardware
@@ -50,7 +50,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     % The path of the last selected experiment function
     LastDir
     % The currently chosen Signals experiment definition
-    ExpDef function_handle
+    ExpDef
     % Dummy communicator for ExpPanel events.  Our experiment object may
     % notify the ExpPanel through dummy events.
     DummyRemote srv.StimulusControl
@@ -64,9 +64,9 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     ParamProfileLabel
     % Handles for the ExpPanel and ParamEditor events
     Listeners
-    
     % The container for the running experiment panel
     ExpPanelBox
+    % The timer for refreshing the ExpPanel
     RefreshTimer
     MainGrid % main 'uix.GridFlex' object
     ExpGrid % top 'uix.Grid' object; child of 'MainGrid'
@@ -92,9 +92,26 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     end
     
     function obj = SignalsTest(expdef, rig)
-      %SIGNALSTEST Creates a GUI for testing SignalsExp experiments
-      % constructor method runs the 'buildUI' method to create the ExpTest
-      % panel
+      %EUI.SIGNALSTEST A GUI for testing Signals Experiments
+      %  A GUI for parameterizing and testing exp.SignalsExp Experiments.
+      %  Opens a stimulus window and optionally can live-plot Signals
+      %  updates or display updates in an ExpPanel.  Experiments may be
+      %  paused by pressing the <esc> key.
+      %
+      %  Inputs (optional):
+      %    expdef (char|function_handle): The experiment definition
+      %      function to run.  May be a handle, char function name or a
+      %      full path.  If empty the user is prompted to select a file.
+      %    rig (struct): A hardware structure to containing configuration
+      %      settings for the test experiment.  If empty the mouse is used
+      %      as the primary input device.
+      %
+      %  Example:
+      %    PsychDebugWindowConfiguration
+      %    e = eui.SignalsTest(@advancedChoiceWorld)
+      %    e.startStopExp(e.ExpRef) % Start experiment
+      %    data = e.startStopExp % Stop experiment and return block struct
+      %
       InitializeMatlabOpenGL
       % Check paths file exists
       assert(exist('+dat/paths', 'file') == 2, ...
@@ -106,26 +123,28 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       if nargin > 0 % called with experiment function to run
         if ischar(expdef)
           % Check function exists
-          % TODO bump down to warning
           assert(exist(expdef, 'file') == 2, ...
             'rigbox:eui:SignalsTest:fileNotFound',...
             'File function ''%s.m'' not found.', expdef)
-          [obj.LastDir, expdefname] = fileparts(which(expdef));
-          obj.ExpDef = fileFunction(obj.LastDir, expdefname);
+          % Ensure we get the absolute path of the expdef
+          [mpath, expdefname] = fileparts(expdef);
+          if isempty(mpath), mpath = fileparts(which(expdef)); end
+          obj.ExpDef = fullfile(mpath, [expdefname '.m']);
         else
           obj.ExpDef = expdef;
           expdefname = func2str(expdef);
+          % If we can't resolve the function name, use generic title
+          if isempty(expdefname), expdefname = 'Signals Test'; end
         end
       else
         % Prompt for experiment definition
-        [mfile, mpath] = uigetfile(...
+        [obj.ExpDef, mpath] = uigetfile(...
           '*.m', 'Select the experiment definition function', obj.LastDir);
-        if mfile == 0
+        if obj.ExpDef == 0
           return
         end
         obj.LastDir = mpath;
-        [~, expdefname] = fileparts(mfile);
-        obj.ExpDef = fileFunction(mpath, mfile);
+        [~, expdefname] = fileparts(obj.ExpDef);
       end
       
       obj.buildUI % Build the GUI
@@ -200,8 +219,24 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     end
     
     function setOptions(obj, ~, ~)
-      % callback for 'Options' button: sets options for running the Exp Def:
-      % 1) yes/no for live-plotting; 2) yes/no for saving a block file
+      % SETOPTIONS callback for 'Options' button
+      %   Sets various parameters related to monitering the experiment.
+      %   
+      %   Options:
+      %     Plot Signals (off): Plot all events, input and output Signals
+      %       against time in a separate figure.  Clicking on each subplot 
+      %       will cycle through the plotting styles.
+      %     Show experiment panel (on): Instantiate an eui.SignalsExpPanel
+      %       for monitoring the experiment updates.  The ExpPanelFun
+      %       parameter defines a custom ExpPanel function to display.  NB:
+      %       Unlike in MC, the comments box is hidden.
+      %     View PTB window as single screen (off): When true, the default
+      %       setting of the window simulates a 4:3 aspect ratio screen.
+      %     Post new parameters on edit (off): When true, whenever a
+      %       parameter is edited while the experiment is running, the
+      %       parameter Signals immediately update.
+      %
+      % See also SIG.TEST.TIMEPLOT, EUI.SIGNALSEXPPANEL
       
       [~,~,w] = distribute(pick(groot, 'ScreenSize'));
       %       getnicedialoglocation_for_newid([300 250], 'pixels')
@@ -215,7 +250,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         'TooltipString', 'Display an experiment panel', ...
         'String', 'Show experiment panel', 'Value', logical(obj.ShowExpPanel));
       SingleScreenCheck = uicontrol('Parent', dCheckBox, 'Style', 'checkbox',...
-        'String', 'View PTB Window as Single Screen', ...
+        'String', 'View PTB window as single screen', ...
         'TooltipString', 'Simuluate a single screen monitor', ...
         'Value', logical(obj.SingleScreen), 'Enable', 'off');
       parslist = obj.Listeners(arrayfun(@(o)isa(o.Source{1}, 'eui.ParamEditor'), obj.Listeners));
@@ -279,8 +314,17 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     end
     
     function startStopExp(obj, varargin)
-      % callback for 'Start/Stop' button:
-      % stops experiment if running, and starts experiment if not running
+      % STARTSTOPEXP Callback for 'Start/Stop' button
+      %   Stops experiment if running, and starts experiment if not
+      %   running.  Inputs passed to exp.SignalsExp/run or
+      %   exp.SignalsExp/quit depending on the state.
+      %
+      %   Input:
+      %     expRef | immediately : When IsRunning == false, the experiment
+      %       reference string.  Otherwise, a flag for whether to abort the
+      %       experiment.
+      %
+      % See also EXP.SIGNALSEXP/RUN, EXP.SIGNALSEXP/QUIT
       
       if obj.IsRunning
         % Stop experiment
@@ -471,11 +515,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         obj.Hardware.stimWindow.open();
       end
       p = obj.ParamEditor.Parameters.Struct;
-      if strcmp(func2str(obj.ExpDef), 'fileFunction/call')
-        p.defFunction = fullfile(obj.LastDir, [obj.Parent.Name, '.m']);
-      else
-        p.defFunction = obj.ExpDef;
-      end
+      p.defFunction = obj.ExpDef;
       delete(obj.Experiment) % delete previous experiment
       obj.Experiment = exp.test.Signals(p, obj.Hardware, true); % create new SignalsExp object
       
@@ -567,7 +607,8 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       % gets and sets signals expDef
       [mfile, mpath] = uigetfile('*.m', 'Select Exp Def', obj.LastDir);
       if ~mfile, return; end
-      obj.ExpDef = fileFunction(mpath, mfile);
+      obj.ExpDef = fullfile(mpath, mfile);
+      obj.LastDir = mpath;
       obj.Parent.Name = mfile(1:end-2);
       obj.loadParameters('<defaults>');
     end
@@ -632,11 +673,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       if doSave % Going ahead with save
         p = obj.ParamEditor.Parameters.Struct;
         % Restore defFunction parameter
-        if strcmp(func2str(obj.ExpDef), 'fileFunction/call')
-          p.defFunction = fullfile(obj.LastDir, [obj.Parent.Name, '.m']);
-        else
-          p.defFunction = obj.ExpDef;
-        end
+        p.defFunction = obj.ExpDef;
         dat.saveParamProfile('custom', validName, p); % Save
         %add the profile to the control options
         profiles = obj.ParameterSets.Option;
