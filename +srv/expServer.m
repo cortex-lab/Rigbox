@@ -39,6 +39,7 @@ quitKey = KbName('q');
 rewardToggleKey = KbName('w');
 rewardPulseKey = KbName('space');
 rewardCalibrationKey = KbName('m');
+viewCalibrationKey = KbName('k');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
@@ -119,6 +120,7 @@ else
 end
 
 running = true;
+calibration_displayed = false;
 
 %% Main loop for service
 while running
@@ -162,8 +164,21 @@ while running
   
   % check for reward calibration
   if firstPress(rewardCalibrationKey) > 0
-    log('Performing a reward delivery calibration');
-    calibrateWaterDelivery();
+      log('Performing a reward delivery calibration');
+      calibrateWaterDelivery();
+  end
+  
+  % check for view calibration
+  if firstPress(viewCalibrationKey) > 0
+      if ~calibration_displayed
+          log('Displaying calibration');
+          viewCalibration();
+          calibration_displayed = true;
+      else
+          log('Un-displaying calibration');
+          Screen('Flip', rig.stimWindow.PtbHandle);
+          calibration_displayed = false;
+      end
   end
   
   % check for gamma calibration
@@ -344,6 +359,29 @@ ShowCursor();
     
     save(rigHwFile, 'daqController', '-append');
   end
+
+    function viewCalibration()
+        
+        calib = rig.daqController.SignalGenerators(rewardId).Calibrations(end);
+        
+        fig = figure; hold on
+        plot([calib.measuredDeliveries.durationSecs],...
+            [calib.measuredDeliveries.volumeMicroLitres],'x-')
+        if isfield(calib, 'dateTime')
+            title(datestr(calib.dateTime))
+        end
+        
+        xlabel('Duration (sec)'); ylabel('Volume (uL)')
+        ylim([0, 5])
+        set(gca, 'fontsize', 16)
+        
+        plot_values = getframe(fig);
+        imageDisplay = Screen('MakeTexture', rig.stimWindow.PtbHandle, plot_values.cdata);
+        Screen('DrawTexture', rig.stimWindow.PtbHandle, imageDisplay);
+        Screen('Flip', rig.stimWindow.PtbHandle);
+        WaitSecs(0.5);
+        
+    end
 
   function whiteScreen()
     % WHITESCREEN Changes screen background to white
