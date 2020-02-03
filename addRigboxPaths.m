@@ -19,7 +19,7 @@ p = inputParser;
 p.addOptional('savePaths', true)
 p.addOptional('interactive', true)
 p.addOptional('strict', true)
-p.parse(varargin{:});
+p.parse(varargin{:})
 p = p.Results;
 
 %%% MATLAB version and toolbox validation %%%
