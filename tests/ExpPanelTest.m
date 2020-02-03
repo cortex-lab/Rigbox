@@ -33,7 +33,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Hide figures and add teardown function to restore settings
       def = get(0,'DefaultFigureVisible');
-%       set(0,'DefaultFigureVisible','off'); % TODO Uncomment
+      set(0,'DefaultFigureVisible','off');
       testCase.addTeardown(@set, 0, 'DefaultFigureVisible', def);
 
       % Create figure for panel
