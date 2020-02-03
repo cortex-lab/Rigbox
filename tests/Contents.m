@@ -18,6 +18,7 @@
 %   cellflat_test        - Tests for cellflat
 %   cellsprintf_test     - Tests for cellsprintf
 %   dat_test             - Tests for the +dat package
+%   distribute_test      - Tests for distribute
 %   emptyElems_test      - Tests for emptyElems
 %   ensureCell_test      - Tests for ensureCell
 %   expServer_test       - Tests for srv.expServer
