@@ -294,6 +294,8 @@ git.runCmd('checkout master'); git.update(0);
 
 % Other:
 
+% Rigbox:hw:ptb:Window:PTBNotInstalled
+
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
 % Rigbox:git:update:valueError
@@ -327,6 +329,7 @@ git.runCmd('checkout master'); git.update(0);
 % Alyx:registerFile:InvalidFileType
 % Alyx:registerFile:InvalidFileName
 % Alyx:registerFile:NoValidPaths
+% Alyx:registerFile:HashForDirGiven
 % Alyx:updateNarrative:UploadFailed
 
 % Alyx:getFile:InvalidID

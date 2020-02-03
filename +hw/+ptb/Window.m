@@ -102,7 +102,19 @@ classdef Window < hw.Window
   methods
     % Window constructor
     function obj = Window()
-      obj.ScreenNum = max(Screen('Screens'));
+      try % Get number of screens from PTB
+        obj.ScreenNum = max(Screen('Screens'));
+      catch ex
+        % If there was an error, most likely PsychToolbox is not installed.
+        % Tell user to install PsychToolbox or rethrow error if id unknown.
+        if strcmp(ex.identifier, 'MATLAB:UndefinedFunction')
+          error('Rigbox:hw:ptb:Window:PTBNotInstalled', ...
+            ['PsychToolbox not installed.  ', ... 
+            'PsychToolbox required to use the hw.ptb.Window class'])
+        else % Unknown issue; rethrow
+          rethrow(ex)
+        end
+      end
     end
     
     function positionSyncRegion(obj, refCorner, width, height, xOffset, yOffset)
