@@ -292,6 +292,38 @@ git.runCmd('checkout master'); git.update(0);
 % IDs
 %  Rigbox:srv:expServer:expRefNotFound
 
+% ..:..:missingHardware
+% Problem:
+%  The rig hardware file is either missing, or the required variables are
+%  not set.
+%
+% Solution:
+%  First, check whether your +dat/paths.m file is correctly set up:
+%    which('dat.paths') % Returns the location of the paths file used
+%
+%  If "'dat.paths' not found." is printed to the command window, your paths
+%  are not set up correctly.  Open and run the file 'addRigboxPaths.m'
+%  found in your Rigbox install location.  
+%
+%  If a path is returned, check it is the path you expect.  If there are
+%  multiple files of the same name, MATLAB gives on of them precedence.
+%  See the 'Paths' section of 'Troubleshooting'.  
+%
+%  If the paths file is correct, run it and check that the 'rigConfig'
+%  field is correctly set.  If so, it's likely your hardware file has not
+%  yet been created.  See 'docs/html/hardware_config.html' for information
+%  on correctly setting up your file.  
+%
+%  If you have a hardware file, the error will tell you which required rig
+%  variables are missing.  When saving your hardware file, check that the
+%  varaibles have exactly the same names as those required by the function
+%  that through the error.  
+%
+% IDs
+%  Rigbox:srv:expServer:missingHardware
+%  Rigbox:hw:devices:missingHardware
+%
+
 % Other:
 
 % Rigbox:hw:ptb:Window:PTBNotInstalled
@@ -306,7 +338,6 @@ git.runCmd('checkout master'); git.update(0);
 
 % Rigbox:srv:unexpectedUDPResponse
 % Rigbox:srv:unexpectedUDP
-% Rigbox:srv:expServer:noHardwareConfig
 
 % Rigbox:dat:expPath:NotEnoughInputs
 % Rigbox:exp:SignalsExp:NoScreenConfig
