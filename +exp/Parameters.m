@@ -1,6 +1,21 @@
 classdef Parameters < handle
-  %EXP.PARAMETERS A store & methods for managing experiment parameters
-  %   TODO. See also EUI.PARAMEDITOR.
+  % EXP.PARAMETERS A store & methods for managing experiment parameters
+  %   A class for managing a parameter structure used by the exp.Experiment
+  %   base class.  Methods validate and sort the parameters making it
+  %   convenient to add, view, modify and assort your parameters.
+  %   
+  %   Examples:
+  %     P = exp.Parameters(); % A new parameter set
+  %     % Add a new global parameter
+  %     P.set('onsetToneFreq', 11000, 'Hz', 'Frequency of the onset tone')
+  %     % Add a conditional parameter
+  %     P.set('onsetToneAmplitude', 0:.1:1, 'normalized', ...
+  %       'Relative amplitude of the onset tone')
+  %     % Define the total number of trials
+  %     P.set('numRepeats', 10, '#', 'No. of repeats of each condition')
+  %     cs = P.toConditionServer() % Assort and randomize for experiment
+  %
+  % See also EUI.PARAMEDITOR
   %
   % Part of Rigbox
 
@@ -91,19 +106,43 @@ classdef Parameters < handle
       %    obj.title('numRepeats') % returns 'Num repeats'
       %    obj.title({'numRepeats', 'rewardVolume'}) 
       %    % returns {'Num repeats', 'Reward volume (ul)'}
-      % See also INDIVTITLE
-      if iscell(name)
-        str = mapToCell(@obj.indivTitle, name);
+      %
+      % See also DESCRIPTION
+      if iscell(name) % A list of names to recurse over
+        str = mapToCell(@obj.title, name);
       else
-        str = obj.indivTitle(name);
+        assert(isfield(obj.Struct, name));
+        words = lower(regexprep(name, '([a-z])([A-Z])', '$1 $2'));
+        words(1) = upper(words(1));
+        str = words;
+        % add the units details, if any
+        unitField = [name 'Units'];
+        if isfield(obj.Struct, unitField) && ~isempty(obj.Struct.(unitField))
+          units = obj.Struct.(unitField);
+          if ~strcmp(units, {'normalised', 'logical', '#'})
+            str = sprintf('%s (%s)', str, units);
+          end
+        end
       end
     end
     
     function str = description(obj, name)
-      if iscell(name)
-        str = mapToCell(@obj.indivDescrip, name);
-      else
-        str = obj.indivDescrip(name);
+      % DESCRIPTION Returns the description for a given parameter
+      %  Input name must be a fieldname in Struct or cell array thereof.
+      %  The returned str is the description of that parameter 
+      %
+      %  Example:
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    str = description(P, 'rewardVolume') % returns description
+      %
+      % See also DESCRIPTION, TITLE, SET
+      if iscell(name) % A list of names to recurse over
+        str = mapToCell(@obj.description, name);
+      else % A single name
+        assert(isfield(obj.Struct, name), 'Parameter ''%s'' not found', name);
+        % add the units details, if any
+        descripName = [name 'Description'];
+        str = getOr(obj.Struct, descripName, '');
       end
     end
     
@@ -178,31 +217,63 @@ classdef Parameters < handle
     end
     
     function [globalParams, trialParams] = assortForExperiment(obj)
-      % Divide into global and trial-specific parameter structures
+      % ASSORTFOREXPERIMENT Assort into global and trial-specific 
+      %  Divide parameters into global and trial-specific parameter
+      %  structures for use in an experiment.  In contrast to the
+      %  `toConditionServer` method, the trial-specific parameters are not
+      %  replicated.
+      %
+      %  Outputs:
+      %   globalParams: a scalar struct of all global parameters
+      %   trialParams: a non-scalar struct of all trial-specific parameters
+      %
+      % See also TOCONDITIONSERVER
 
-      %% group trial-specific parameters into a struct with length of parameters
-      % the second dimension (number of columns) specifies parameters for
-      % different trials
+      % Group trial-specific parameters into a struct with length of
+      % parameters the second dimension (number of columns) specifies
+      % parameters for different trials
       trialParamNames = obj.TrialSpecificNames;
       obj.numTrialConditions(); % this asserts that all trial params have same len
       trialParamValues = mapToCell(...
         @(n) iff(~iscell(obj.Struct.(n)), @() num2cell(obj.Struct.(n), 1), obj.Struct.(n)),...
         trialParamNames);
       
-      %% group global parameters
+      % Group global parameters
       globalParamNames = obj.GlobalNames;
       globalParamValues = cellfun(@(n) obj.Struct.(n), globalParamNames,...
         'UniformOutput', false);
       % concatenate trial parameter
       trialParamValues = cat(1, trialParamValues{:});
-      if isempty(trialParamValues) % Removed MW 30.01.19
-        trialParamValues = {};
-      end
+      if isempty(trialParamValues), trialParamValues = {}; end
       trialParams = cell2struct(trialParamValues, trialParamNames, 1)';
       globalParams = cell2struct(globalParamValues, globalParamNames, 1);
     end
     
     function [cs, globalParams, trialParams] = toConditionServer(obj, randomOrder)
+      % TOCONDITIONSERVER Send parameters to a condition server
+      %  Assorts, repeats and permutes parameters for use in a live
+      %  experiment.  The trial-specific parameters are replicated based
+      %  on numRepeats parameter.
+      %
+      %  Input (Optional):
+      %   randomOrder (logical): If true, the trial-specific parameters
+      %     are randomized.  If not provided, the value of the
+      %     'randomiseConditions' field is used.  If no such field exists,
+      %     the conditions are randomly permuted by default.
+      %
+      %  Outputs:
+      %   cs (exp.PresetConditionServer): A condition server object for
+      %     iterating over parameters each trial.
+      %   globalParams (struct): a scalar struct of all global parameters.
+      %   trialParams (struct): a non-scalar struct of all trial-specific
+      %     parameters.  The length is defined by the 'numRepeats'
+      %     parameter.  Parameter order is randomized by default.
+      %
+      %   Example:
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    cs = P.toConditionServer();
+      %
+      % See also EXP.PRESETCONDITIONSERVER
       if nargin < 2
         randomOrder = pick(obj.Struct, 'randomiseConditions', 'def', true);
       end
@@ -234,31 +305,6 @@ classdef Parameters < handle
   end
   
   methods (Access = protected)
-    function str = indivTitle(obj, name)
-      assert(isfield(obj.Struct, name));
-      words = lower(regexprep(name, '([a-z])([A-Z])', '$1 $2'));
-      words(1) = upper(words(1));
-      str = words;
-      % add the units details, if any
-      unitField = [name 'Units'];
-      if isfield(obj.Struct, unitField) && ~isempty(obj.Struct.(unitField))
-        units = obj.Struct.(unitField);
-        if ~strcmp(units, {'normalised', 'logical', '#'})
-          str = sprintf('%s (%s)', str, units);
-        end
-      end
-    end
-    
-    function str = indivDescrip(obj, name)
-      assert(isfield(obj.Struct, name), 'Parameter ''%s'' not found', name);
-      % add the units details, if any
-      descripName = [name 'Description'];
-      if isfield(obj.Struct, descripName)
-        str = obj.Struct.(descripName);
-      else
-        str = '';
-      end
-    end
     
     function l = namesFromFields(obj)
       fields = fieldnames(obj.pStruct);

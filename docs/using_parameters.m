@@ -213,12 +213,12 @@ numTrialConditions(parameters) % There are 9 trial conditions
 [globalParams, trialParams] = parameters.assortForExperiment;
 trialParams % (1,9) struct
 
-% TOCONDITIONSERVER replicates the trial conditions be however many times
-% are specified by the 'numRepeats' parameter and if the `randomOrder`
-% input arg is true, these are shuffled into a random order.  This method
-% is used by the experiment class during setup.  In addition to returning
-% the assorted global and conditional parameters, a Condition Server
-% object, `cs` is also returned (see note 5)
+% TOCONDITIONSERVER replicates the trial conditions however many times are
+% specified by the 'numRepeats' parameter and if the `randomOrder` input
+% arg is true, these are shuffled into a random order.  This method is used
+% by the experiment class during setup.  In addition to returning the
+% assorted global and conditional parameters, a Condition Server object,
+% `cs` is also returned (see note 5)
 [cs, globalParams, trialParams] = parameters.toConditionServer(true);
 sum(parameters.Struct.numRepeats) % Total number of trials
 trialParams % (1,810) struct
