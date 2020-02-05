@@ -21,6 +21,8 @@ if nargin == 1
   % Try to divine test function location
   funLoc = fileparts(which(strrep(testFile,'_test','')));
 end
+assert(~isempty(funLoc), ...
+  'Failed to find file/package under test, please provide the location')
 import matlab.unittest.TestRunner
 import matlab.unittest.plugins.CodeCoveragePlugin
 runner = TestRunner.withTextOutput;
