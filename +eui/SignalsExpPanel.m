@@ -17,7 +17,7 @@ classdef SignalsExpPanel < eui.ExpPanel
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     % List of updates to exclude (when Exclude == true) or to exclusively
     % show (Exclude == false) in the InfoGrid.
-    UpdatesFilter = {'inputs.wheel', 'pars'}
+    UpdatesFilter = ["inputs.wheel", "pars"]
     % Flag for excluding updates in UpdatesFilter list from InfoGrid.  When
     % false only those in the list are shown, when false those in the list
     % are hidden
