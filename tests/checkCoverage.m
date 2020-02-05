@@ -19,7 +19,7 @@ function results = checkCoverage(testFile, funLoc)
 narginchk(1,2)
 if nargin == 1
   % Try to divine test function location
-  funLoc = fileparts(which(strrep(testFile,'_test','')));
+  funLoc = fileparts(which(erase(testFile,'_test')));
 end
 import matlab.unittest.TestRunner
 import matlab.unittest.plugins.CodeCoveragePlugin
