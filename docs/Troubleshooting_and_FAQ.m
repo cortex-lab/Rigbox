@@ -4,17 +4,17 @@
 % the root of the issue and hopefully solve it.
 
 
-%%% Update the code
+%%% Update the code %%%
 % Check what version of the code you're using and that you're up-to-date:
 git.runCmd('status'); % Tells me what branch I'm on
 git.update(0); % Update now
 
 % If you're on a development or feature branch try moving to the master
-% branch, which should be most stable.  
+% branch, which should be most stable.
 git.runCmd('checkout master'); git.update(0);
 
 
-%%% Examining the stack
+%%% Examining the stack %%%
 % Don't be frightened by a wall of red text!  Simply start from the top and
 % work out what the errors might mean and what part of code they came from.
 % The error at the top is the one that ultimately caused the crash.  Try to
@@ -55,19 +55,18 @@ git.runCmd('checkout master'); git.update(0);
 % devices differently.
 
 
-%%% Paths
+%%% Paths %%%
 % By far the most common issue in Rigbox relates to problems with the
 % MATLAB paths.  Check the following:
-% 
-% # Do you have a paths file in the +dat package?
+% 1. Do you have a paths file in the +dat package?
 %  Check the location by running `which dat.paths`.  Check that a file is
 %  on the paths and that it's the correct one.
-% # Check the paths set in this file.
+% 2. Check the paths set in this file.
 %  Run `p = dat.paths` and inspect the output.  Perhaps a path is set
 %  incorrectly for one of the fields.  Note that custom rig paths overwrite
 %  those written in your paths file.  More info found in
 %  `using_dat_package` and `paths_template`.
-% # Do you have path conflicts?  
+% 3. Do you have path conflicts?  
 %  Make sure MATLAB's set paths don't include other functions that have the
 %  same name as Rigbox ones.  Note that any functions in ~/Documents/MATLAB
 %  take precedence over others.  If you keep seeing the following warning
@@ -77,13 +76,13 @@ git.runCmd('checkout master'); git.update(0);
 %  This warning can occur if the tests folder has been added to the paths
 %  by mistake.  Always set the paths by running `addRigboxPaths` and never
 %  set them manually as some folders should not be visible to MATLAB.
-% # Check your working directory
+% 4. Check your working directory
 %  MATLAB prioritizes functions found in your working directory over any
 %  others in your path list so try to change into a 'safe' folder before
 %  re-running your code:
 %   pwd % display working directory
 %   cd ~/Documents/MATLAB
-% # Check your variable names
+% 5. Check your variable names
 %  Make sure your variable names don't shadow a function or package in
 %  Rigbox, for instance if in an experiment definition you create a varible
 %  called `vis`, you will no longer be able to access functions in the +vis
@@ -93,7 +92,7 @@ git.runCmd('checkout master'); git.update(0);
 %   Error: Reference to non-existent field 'image'.
 
 
-%%% Reverting
+%%% Reverting %%%
 % If these errors only started occuring after updating the code,
 % particularly if you hadn't updated in a long time, try reverting to the
 % previous version of the code.  This can help determine if the update
@@ -103,7 +102,7 @@ git.runCmd('checkout master'); git.update(0);
 % directly from the master branch
 
 
-%%% Posting an issue on Github
+%%% Posting an issue on Github %%%
 % If you're completely stumped, open an issue on the Rigbox Github page (or
 % alyx-matlab if you think it's related to the Alyx database).  When
 % creating an issue, read the bug report template carefully and be sure to
@@ -293,68 +292,33 @@ git.runCmd('checkout master'); git.update(0);
 % IDs
 %  Rigbox:srv:expServer:expRefNotFound
 
-% ----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----
-% Problem:
-%   To quote PsychToolbox: One or more internal checks indicate that
-%   synchronization of Psychtoolbox to the vertical retrace (VBL) is not
-%   working on your setup.This will seriously impair proper stimulus
-%   presentation and stimulus presentation timing!
-%
-% Solution:
-%   There are many, many reasons for this error.  Here's a quick list of
-%   things to try, in order: 
-%
-%   # Simply re-trying a couple of times.  Sometimes it happens
-%   sporadically.
-%   # Check the monitor(s) are on and plugged in.  If you're using
-%   multiple monitors they should be of the same make and model.  If they
-%   aren't, try with just one monitor first.
-%   # If you're using multiple screens in NVIDEA's 'Mosaic' mode, the 
-%   settings may have changed: sometimes Mosiac becomes deactivated and you
-%   should set it up again.
-%   # If you're using a remote connection for that computer it may be
-%   interfering with the graphics settings.  Examples of a remote
-%   connection include VNC servers, TeamViewer and Windows Remote Desktop.
-%   Try opening the PTB Window without any of these remote services.
-%   # Update the graphics card drivers and firmware.  This often helps.
-%   # Read the PTB docs carefully and follow their suggestions.  The docs
-%   can be found at http://psychtoolbox.org/docs/SyncTrouble.
-%   # If all else fails.  You can skip these tests and check that there is
-%   no taring manually.  This is not recommended but can be done by setting
-%   your stimWindow object's PtbSyncTests property to false:
-%     stimWindow = getOr(hw.devices([],false), 'stimWindow');
-%     stimWindow.PtbSyncTests = false;
-%     hwPath = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
-%     save(hwPath, 'stimWindow', '-append')
-
-%%% Undocumented IDs
-%  Below is a list of all error and warning ids.  
+% Other:
 
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
 % Rigbox:git:update:valueError
-%
+
 % Rigbox:hw:calibrate:noscales
 % Rigbox:hw:calibrate:deadscale
 % Rigbox:hw:calibrate:partialPVpair
-%
+
 % Rigbox:srv:unexpectedUDPResponse
 % Rigbox:srv:unexpectedUDP
 % Rigbox:srv:expServer:noHardwareConfig
-%
+
 % Rigbox:dat:expPath:NotEnoughInputs
 % Rigbox:exp:SignalsExp:NoScreenConfig
 % Rigbox:exp:Parameters:wrongNumberOfColumns
-%
+
 % Rigbox:dat:expFilePath:NotEnoughInputs
-%
+
 % Rigbox:MockDialog:newCall:EmptySeq
-%
+
 % Rigbox:exp:SignalsExp:noTokenSet
-%
+
 % Rigbox:eui:choiceExpPanel:toolboxRequired
 % Rigbox:setup:toolboxRequired
-%
+
 % Alyx:newExp:subjectNotFound
 % Alyx:registerFile:InvalidPath
 % Alyx:registerFile:UnableToValidate
@@ -364,15 +328,15 @@ git.runCmd('checkout master'); git.update(0);
 % Alyx:registerFile:InvalidFileName
 % Alyx:registerFile:NoValidPaths
 % Alyx:updateNarrative:UploadFailed
-%
+
 % Alyx:getFile:InvalidID
 % Alyx:getExpRef:InvalidID
 % Alyx:getFile:InvalidType
 % Alyx:expFilePath:InvalidType
 % Alyx:url2Eid:InvalidURL
-%
+
 % toStr:isstruct:Unfinished
-%
+
 % squeak.hw
 % shape:error
 % window:error

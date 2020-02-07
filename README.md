@@ -1,130 +1,123 @@
 ----------
 # Rigbox
-![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fcoverage%2Frigbox%2Fdev)
-![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fstatus%2Frigbox%2Fdev)
 
-Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel),  Rigbox simplifies hardware/software interfacing and creates a runtime environment in which an experiment's parameters can be easily monitored and manipulated.
+![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fcoverage%2Frigbox%2Fdev)
+![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fgladius.serveo.net%2Fstatus%2Frigbox%2Fdev)
 
-Rigbox includes many features including synchronizing recordings, managing experimental data and a viewing model for visual stimuli.
+Rigbox is a high-performance, open-source toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Burgess Steering Wheel Task](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox's main goals are to simplify hardware/software interfacing, behavioral task design, and visual and auditory stimuli presentation. Additionally, Rigbox can time-align datastreams from multiple sources and communicate with a remote database to manage experiment data.
 
-Rigbox is mostly object-oriented and highly modular, making designing new experiments much simpler. Rigbox is currently under active, test-driven development. 
+Rigbox is mostly object-oriented and highly modular, which simplifies the process of designing both new and iterative experiments. Rigbox is run in MATLAB with Java components that handle network communication and a C library to boost performance. Rigbox is currently under active, test-driven development.
 
-## Getting Started
+For further information, see the [Rigbox publication](https://www.biorxiv.org/content/10.1101/672204v3).
 
-The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [documentation](https://github.com/cortex-lab/Rigbox/tree/master/docs). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
+@todo add short movie showing exp def running on a rig.
 
-### Requirements
+## Notes on Installation
 
-For running full experiments Rigbox requires two PCs: one for presenting stimuli and one for monitoring the experiment.  Currently only National Instruments DAQs are supported for acquiring data from hardware devices.  For testing, the toolbox can be run on a single machine.  
+There are different requirements and installation instructions depending on the type of installation performed.
 
-Rigbox has the following software dependencies:
+1) For exploring Rigbox's features and running test experiments, Rigbox only needs to be installed on a single computer. We refer to this as a "test installation".
+
+2) When running experiments, Rigbox must be installed on two computers: one computer (which we refer to as the "Stimulus Computer" or "SC") communicates with an experiment rig's hardware and presents stimuli, and the other computer (which we refer to as the "Master Computer" or "MC") runs a GUI which the experimenter uses to start, monitor, parameterize, and stop the experiment. We refer to this as a "MC + SC installation".
+
+## Requirements
+
+### Software
+
 * Windows Operating System (7 or later, 64-bit)
 * MATLAB (2017b or later) 
-* [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) <for Signals>
-* The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
-    * Data Acquisition Toolbox <For using an NI DAQ>
+* The MSVC [mscvr120.dll](https://www.dll-files.com/msvcr120.dll.html) and [vcruntime140.dll](https://www.dll-files.com/vcruntime140.dll.html) libraries. These files may already exist in the `C:\Windows\System32` directory; if not, they can be downloaded inidividually via the links in the previous sentence, or as a part of downloading and installing the MSVC [2013 Redistributable Packages](https://www.itechtics.com/microsoft-visual-c-redistributable-versions-direct-download-links/#Microsoft_Visual_C_Redistributable_2013) and [2015 Redistributable Packages](https://www.itechtics.com/microsoft-visual-c-redistributable-versions-direct-download-links/#Microsoft_Visual_C_Redistributable_2015), respectively. If you choose to download the libraries individually, they should both be copied to the `C:\Windows\System32` directory.
+* The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip. To view a list of the currently installed toolboxes, run `ver` in MATLAB):
+    * Data Acquisition Toolbox <For using an NI DAQ> (only required on a SC computer in a MC + SC installation)
     * Signal Processing Toolbox
     * Instrument Control Toolbox
     * Statistics and Machine Learning Toolbox
 * The following community MATLAB toolboxes:
+    * [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) <For using an NI DAQ> (only required on a SC computer in a MC + SC installation)
     * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
-    * [Psychophsics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
-    * [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) <Required if using an NI DAQ>      
-
-Additionally, Rigbox works with a number of extra submodules (included with Rigbox):
-* [signals](https://github.com/cortex-lab/signals) (for designing bespoke experiments in Signals)
-* [alyx-matlab](https://github.com/cortex-lab/alyx-matlab) (for registering data to, and retrieving from, an [Alyx database](https://alyx.readthedocs.io/en/latest/))
-* [npy-matlab](https://github.com/kwikteam/npy-matlab) (for saving data in binary NPY format)
-* [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) (for analyzing data from the steering wheel task) 
+    * [Psychophysics Toolbox](http://psychtoolbox.org/download.html#Windows) (v3 or later) The Psychophysics Toolbox is required for visual and auditory stimulus presentation. We recommend following their full installation instructions via the link above, but below we provide brief instructions. 
+    1. Download and install a Subversion client. [SilkSVN](https://sliksvn.com/download/) is recommended.
+	2. Download and install [gstreamer](https://gstreamer.freedesktop.org/download/). (When the installer prompts you, select the complete installation.)
+	3. Download the Psychtoolbox MATLAB [installer function](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
+	4. Run the installer function in MATLAB with a target installation location as a string input argument, e.g. `DownloadPsychtoolbox('C:\')`, and follow the instructions that appear in the MATLAB command window.
 
 ### Hardware
 
-Below are a few minimum hardware requirements.  These are more of a guide than a requirement as it depends on the type of experiments you wish to run. 
+For most experiments, typical, contemporary, factory-built desktops running Windows 10 with dedicated graphics cards should suffice. SC computers also require an i/o device to handle rig hardware. For bespoke builds, we recommend the following **minimum** hardware specs:
 
-Processor: Intel Core i3 7100, 3.9 GHz
-Graphics: NVIDIA NVS 510 (for three screen support)
-Memory: 16 GB 2133MHz DDR4 RAM, 1.2 V
-Storage: 1TB HD, 7200rpm, 64MB Cache
-OS: Windows 10 64-bit
+For MC and SC:
+- cpu : at least 4 logical processors and base speed > 3 ghz. ([e.g.](https://ark.intel.com/content/www/us/en/ark/products/75122/intel-core-i7-4770-processor-8m-cache-up-to-3-90-ghz.html))
+- ram: at least 16 gb ddr-4 that clocks at a minimum of 2600 mhz (or has a true latency < 20 ns). ([e.g.](https://www.corsair.com/uk/en/Categories/Products/Memory/VENGEANCE-LPX/p/CMK16GX4M2B3000C15))
 
-### Installation
+For SC, additionally:
+- gpu : at least 256 shaders, 2 gb gddr5 memory, 32 gb/s bandwidth, and base and memory clocks each at a minimum of 1000 mhz. ([e.g.](https://www.pny.com/nvidia-quadro-p400))
+- ssd: a max read/write speed of at least 500 mb/s. ([e.g.](https://www.techradar.com/uk/reviews/samsung-860-evo))
+- i/o device (to handle SC rig hardware): [NI-DAQ USB 6211](https://www.ni.com/en-gb/support/model.usb-6211.html)
 
-Before starting, ensure the above toolboxes and packages are installed.  PsychToobox can not be installed via the MATLAB AddOns browser.  See [Installing PsychToobox](#Installing-PsychToolbox) for install instructions.  
+## Installation
 
-It is highly recommended to install Rigbox via the [Git Bash](https://git-scm.com/download/win) terminal*. 
+Here we provide brief instructions for the test installation of Rigbox via Git. (If not already installed, download and install [Git](https://git-scm.com/download/win), and if unsure which options to select during installation, accept the installer defaults).
 
-1. To install Rigbox, run the following commands in the Git Bash terminal to clone the repository from GitHub to your local machine.
+1. Clone the repository from GitHub. In your git terminal, run:
 ```
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
-2. Run the `addRigboxPaths.m` function in MATLAB (found in the Rigbox directory) then restart the program.  This adds all required folders and functions to your MATLAB path.  *Note*: Do __not__ manually add all Rigbox folders and subfolders to the paths!**
-3. Edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).
+(*Note*: It is **not** recommended to clone directly into the MATLAB folder).
 
-\* Accepting all installer defaults will suffice. 
-** To add the paths temporarily for testing:
+2. Add all required Rigbox folders and functions to your MATLAB path. In MATLAB, navigate to the Rigbox root directory (where Rigbox was cloned), and run:
 ```
-addRigboxPaths('SavePaths', false, 'Strict', false)
+addRigboxPaths() 
 ```
-
-### Installing PsychToolbox
-
-PsychToolbox-3 is required for visual and auditory stimulus presentation.  Below are some simple steps for installing PsychToolbox.  For full details see [their documentation](http://psychtoolbox.org/download.html#Windows).
-
-1. Download and install a Subversion client.  [SilkSVN](https://sliksvn.com/download/) is recommended.
-2. Download the MATLAB [installer function](https://raw.githubusercontent.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
-3. Call the function in MATLAB with the target install location (folder must exist) and follow the instructions:
+OR
 ```
-DownloadPsychtoolbox('C:\') % Install to C drive
+addRigboxPaths('SavePaths', false)
 ```
+if you don't want to save the paths for future MATLAB sessions.
+(*Note*: Do **not** manually add all Rigbox folders and subfolders to the paths.)
 
-### Quickstart
-After following the installation instructions you can start playing around with Rigbox and Signals.
+For detailed, step-by-step instructions on the MC + SC installation, follow the [set-up guide](https://github.com/cortex-lab/Rigbox/tree/master/docs/setup) after following the above steps.
 
-Full Rigbox documentaion can be found in [docs/html/index.html](https://github.com/cortex-lab/tree/master/docs/index.m).
-To get an idea of how experiments run using the Rigbox Signal Experiment framework, have a look at the following file: [docs/html/using_test_gui.html](https://github.com/cortex-lab/signals/tree/master/docs/using_test_gui.m).  To learn how to create a new Signals experiment, see the [Signals tutorials](https://github.com/cortex-lab/signals/tree/master/docs/tutorials)
+## Getting Started
 
-### Running an experiment
-For running experiments, set the hardware configuration by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
+Here we provide a brief overview of how *Signals* experiments run in Rigbox. *Signals* is a framework for programatically designing and running behavioral tasks. Rigbox uses *Signals* to treat an experiment as a reactive network whose nodes represent experimental parameters that update over time. *Signals* allows an experimenter to link stimulus, action, and outcome by defining transformations on input nodes to trigger output nodes. For more information on *Signals*, see the [docs](https://github.com/cortex-lab/signals/tree/master/docs).
 
-On the stimulus computer (SC), run:
-```
-srv.expServer
-```
-This opens up a new stimulus window and initializes the hardware devices
+@todo add picture
 
-On the master computer (MC), run:
-```
-mc
-```
+If you have completed the test installation, you can see the *Signals* [docs](https://github.com/cortex-lab/signals/tree/master/docs) for information on running example *Signals* experiments via `+eui/SignalsTest` and playing around with standalone *Signals* scripts.
 
-This opens the MC GUI for selecting a subject, experiment, and the SC on which to run the experiment. The MC GUI also allows for editing some experimental parameters and logging into the Alyx database (optional). Rigbox comes with some experiments, namely ChoiceWorld and some Signals experiments found in the submodule's [documentation folder](https://github.com/cortex-lab/signals/tree/master/docs).  Signals experiments are run by selecting '<custom..>' from the experiment drop-down menu and navigating to the desired experiment definition function.  To launch the experiment on the selected SC, press 'Start'.
+If you have completed the MC + SC installation, see `\docs\setup\running_experiments\` for information on using the MC GUI to run *Signals* experiments.
 
-Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
+## Code organization
+
+For detailed information on the full contents of the Rigbox repository, see the [index](https://github.com/cortex-lab/Rigbox/blob/dev/docs/html/index.html).
 
 ## Updating the code
-With Git it's very easy to keep the code up-to-date.  To update Rigbox and all submodules at the same time, run the following in the Git Bash terminal (within the Rigbox directory):
+
+With Git it's very easy to keep the code up-to-date. We strongly recommend regularly updating Rigbox and its submodules by running the following git commands (within the Rigbox directory):
 ```
+git fetch
 git pull --recurse-submodules
 ```
 
-When calling `srv.expServer` and `mc`, the code is automatically updated if a new stable release is available.  This behvaiour can be configured with the 'updateSchedule' field in your `+dat/paths.m` file.
+The 'updateSchedule' field in your `+dat/paths.m` file can be set to automatically pull the latest code each time `srv.expServer` or `mc` is run, obviating the need to manually run the above git commands. See the [paths template file](https://github.com/cortex-lab/Rigbox/blob/dev/docs/setup/paths_template.m) for more information.
 
 ## Contributing
 
-If you experience a bug or have a feature request, please report them on the [GitHub Issues page](https://github.com/cortex-lab/Rigbox/issues).  To contribute code we encourage anyone to open up a pull request into the dev branch of Rigbox or one of its submodules.  Ideally you should include documentation and a test with your feature.
-
-Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/dev/CONTRIBUTING.md) for further details on how to contribute, as well as maintainer guidelines and our code of conduct.
-
-## Authors & Accreditation
-
-Rigbox was started by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
-
-For further information, see [our publication](https://www.biorxiv.org/content/10.1101/672204v3). Please cite this source appropriately in publications which use Rigbox to acquire data.
+Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/dev/CONTRIBUTING.md) for details on how to contribute code to this repository and our code of conduct.
 
 ## Acknowledgements
 
-* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) for code pertaining to Rigbox's UI
-* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual stimulus presentation
-* [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device
-* [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets
-* [Andrew Janke](https://github.com/apjanke) for the `isWindowsAdmin` function
+* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) for code pertaining to Rigbox's UI.
+* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual and auditory stimulus presentation.
+* [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device.
+* [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets to handle network communication between 'MC' and 'SC'.
+
+## Authors & Accreditation
+
+The majority of the Rigbox code was written by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
+
+Rigbox is described in-depth in [this publication](https://www.biorxiv.org/content/10.1101/672204v3). Please cite this source appropriately in publications that present data that has been acquired using Rigbox.
+
+The Burgess steering wheel task was first described in [this publication](https://www.ncbi.nlm.nih.gov/pubmed/28877482). Please cite this source appropriately in publications that present data that has been acquired in experiments that use a variant of this task.
+
+In addition to the [Alyx ReadTheDocs](https://alyx.readthedocs.io/en/latest/), Alyx is also described in [this publication](https://www.biorxiv.org/content/10.1101/827873v2). Please cite this source apropriately in publications that present data that has been logged using Alyx.

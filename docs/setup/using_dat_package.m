@@ -90,7 +90,7 @@ clearCBToolsCache % Clear the cached block file
 % 'mainRepository' paths
 [expRef, expSeq] = dat.newExp(subject, expDate, expParams);
 
-%% Loading parameters
+%% Loading parameter sets
 % The dat package allows you to load both session specific and experiment
 % specific <./using_parameters.html parameters> .
 expType = 'custom'; % signals experiments have the type 'custom'
