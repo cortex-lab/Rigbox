@@ -12,6 +12,7 @@
 % * <./using_services.html Setting up auxiliary services>
 % * <./AlyxMatlabPrimer.html How to interact with an Alyx database>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
+% * <./troubleshooting.html Troubleshooting Rigbox errors>
 %
 % @todo Further files to add to docs
 % @body Burgess config, setting up shared paths 
@@ -110,13 +111,13 @@ doc +srv
 
 %%% submodules
 % Additional information on the
-% [alyx-matlab](https://github.com/cortex-lab/alyx-matlab),
-% [npy-matlab](https://github.com/kwikteam/npy-matlab),
-% [signals](https://github.com/cortex-lab/signals) and
-% [wheelAnalysis](https://github.com/cortex-lab/wheelAnalysis) submodules
+% <https://github.com/cortex-lab/alyx-matlab alyx-matlab>, 
+% <https://github.com/kwikteam/npy-matlab npy-matlab>, 
+% <https://github.com/cortex-lab/signals signals> and 
+% <https://github.com/cortex-lab/wheelAnalysis wheelAnalysis> submodules
 % can be found in their respective github repositories.
 
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.1
+% v0.1.0

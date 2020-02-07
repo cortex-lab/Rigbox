@@ -9,7 +9,7 @@ classdef MockDialog < handle
   %     mockdlg.Dialogs('1st dlg title') = 12;
   %     mockdlg.Dialogs('2nd dlg title') = false;
   %
-  %     mockdlg = MockDialog.instance('uin32');
+  %     mockdlg = MockDialog.instance('uint32');
   %     mockdlg.Dialogs(0) = 12;
   %     mockdlg.Dialogs(1) = {12, 'second input ans', true};
   %
