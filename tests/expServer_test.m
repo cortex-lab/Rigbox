@@ -49,18 +49,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       addTeardown(testCase, @ClearTestCache)
     end
     
-    function fixUpdates(~)
-      % FIXUPDATES Ensure git update doesn't pull code
-      %  Have FETCH_HEAD file appear recently modified to avoid triggering
-      %  any code updates.
-      %
-      % See also GIT.UPDATE
-      
-      % Make sure git update not triggered
-      root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
-      fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
-      file.modDate(fetch_head, now); % Set recent fetch
-    end
   end
   
   methods (TestMethodSetup)
