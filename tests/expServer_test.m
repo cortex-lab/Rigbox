@@ -955,7 +955,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         get(testCase.RigBehaviours.daqController.SignalGenerators), generators)
             
       % Simulate pressing view toggle, then switching controller, then quit
-      KbQueueCheck(-1, sequence({'k', 'k', '2', 'k', 'q'}));
+      KbQueueCheck(-1, sequence({'v', 'v', '2', 'v', 'q'}));
       srv.expServer;
 
       % Retrieve mock history for the Window
@@ -985,7 +985,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.assignOutputsWhen(...
         get(testCase.RigBehaviours.daqController.SignalGenerators), generators(1))
       % Simulate selection of 2nd reward controller
-      KbQueueCheck(-1, sequence({'k', '2', 'k', 'q'}));
+      KbQueueCheck(-1, sequence({'v', '2', 'v', 'q'}));
       T = evalc('srv.expServer');
       testCase.verifyMatches(T, 'No reward calibration')
       testCase.verifyNotCalled(withAnyInputs(behaviour.drawTexture))
