@@ -534,14 +534,17 @@ classdef Window < hw.Window
       Screen('PreloadTextures', obj.PtbHandle, tex);
     end
 
-    function [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
+    function [nx, ny] = drawText(obj, text, varargin)
       % DRAWTEXT Draw some text to the screen
+      %  [NX, NY] = DRAWTEXT(OBJ, TEXT, X, Y, COLOUR, TEXTSIZE, VSPACING, WRAPAT)
       %  The outputs may be used as the new start positions to draw further
       %  text to the screen.
       %  
       %  Inputs:
       %    text (char) - The text to be written to screen.  May contain
       %      newline characters '\n'.
+      %
+      %  Inputs (Optional):
       %    x (numerical|char) - The top-left x coordinate of the text in
       %      px.  If empty the left-most area part of the screen is used.
       %      May also be one of the following string options: 'center',
@@ -552,9 +555,12 @@ classdef Window < hw.Window
       %    color - The CLUT index for the text (scalar, RGB or RGBA vector)
       %      If color is left out, the current text color from previous
       %      text drawing commands is used.
-      %    vSpacing - The spacing between the lines in px. Defaults to 1.
-      %    wrapAt (char) - automatically break text longer than this string 
-      %      into newline separated strings of roughly the same length
+      %    textSize (numerical) - The size of the text in px.  Defaults to
+      %      PTB current setting (usually the system default).
+      %    vSpacing (numerical) - The spacing between the lines in px. 
+      %      Defaults to 1.
+      %    wrapAt (numerical) - Automatically break text longer than this 
+      %      number of chars.
       %
       %  Outputs:
       %    nx - The approximate x-coordinate of the 'cursor position' in px
@@ -567,23 +573,32 @@ classdef Window < hw.Window
       %    obj.flip()
       %
       % See also DRAWFORMATTEDTEXT, DRAWTEXTURE, WRAPSTRING
-      if nargin < 7
-        wrapAt = [];
-      end
-      if nargin < 6
-        vSpacing = [];
-      end
-      if nargin < 5
-        colour = [];
-      end
-      if nargin < 4
-        y = [];
-      end
-      if nargin < 3
-        x = [];
-      end
-      [nx, ny] = DrawFormattedText(obj.PtbHandle, text, x, y, colour, wrapAt, [], [],...
-        vSpacing);
+      
+      p = inputParser;
+      p.addRequired('text', @ischar)
+      p.addOptional('x', [], @(x) ischar(x) || isnumeric(x))
+      p.addOptional('y', [], @(x) ischar(x) || isnumeric(x))
+      p.addOptional('colour', [], @isnumeric)
+      p.addOptional('textSize', ...
+        Screen('TextSize', obj.PtbHandle), ...
+        @(x) isnumeric(x) || isscalar(x))
+      p.addOptional('vSpacing', [], @(x) isnumeric(x) || isscalar(x))
+      p.addOptional('wrapAt', [], @isnumeric)
+      p.parse(text, varargin{:})
+      p = p.Results;
+      
+      % Set text size or restore to default on exit
+      oldTextSize = Screen('TextSize', obj.PtbHandle, p.textSize);
+      mess = onCleanup(@() Screen('TextSize', obj.PtbHandle, oldTextSize));
+      
+      % Draw the text to screen
+      [nx, ny] = DrawFormattedText(...
+        obj.PtbHandle, ...
+        p.text, ...
+        p.x, p.y, ...
+        p.colour, ...
+        p.wrapAt, [], [],...
+        p.vSpacing);
 %       Screen('DrawText', obj.PtbHandle, text, x, y, colour, [], real(yPosIsBaseline));
     end
 
