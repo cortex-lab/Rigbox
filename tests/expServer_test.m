@@ -46,7 +46,12 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       qDir = getOr(dat.paths, 'localAlyxQueue');
       assert(mkdir(qDir), 'Failed to create alyx queue')
       
-      addTeardown(testCase, @ClearTestCache)
+      % Supress warnings for file.modeDate mock, called by git.update
+      orig = warning('off', 'Rigbox:tests:modDate:dateNotSet');
+      addTeardown(testCase, @warning, orig)
+      
+      % Clear all cached and persistant variables at the end
+      testCase.applyFixture(ClearTestCache)
     end
     
   end
