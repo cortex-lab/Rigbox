@@ -1,7 +1,9 @@
 function calibration = calibrate(channel, rewardController, scales, tMin, tMax, varargin)
 %HW.CALIBRATE Performs measured reward deliveries for calibration
 %   This function is used by srv.expServer to return a water calibration.
-%   It still requires some scales to be attached to the computer.  
+%   It still requires some scales to be attached to the computer.  The
+%   resulting calibration data are returned and also appended to the
+%   rewardController 'Calibrations' property.
 %
 %   Inputs:
 %     channel (char) - the name of the channel to use.  Must match one of
@@ -26,6 +28,10 @@ function calibration = calibrate(channel, rewardController, scales, tMin, tMax, 
 %     settleWait (double) - time in seconds to wait between delivering
 %       sample and recording a new weight.  Gives the scale reading time to
 %       stabalize.  Default 2 seconds.
+%
+%   Output:
+%     calibration (struct): An 1xnVolumes structure with the fields
+%       'durationSecs' and 'volumeMicroLitres'.
 %     
 %   TODO: Sanitize and integrate into HW.REWARDVALVECONTROL
 %
