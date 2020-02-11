@@ -138,13 +138,12 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         end
       else
         % Prompt for experiment definition
-        [obj.ExpDef, mpath] = uigetfile(...
+        [expdefname, mpath] = uigetfile(...
           '*.m', 'Select the experiment definition function', obj.LastDir);
-        if obj.ExpDef == 0
-          return
-        end
+        if expdefname == 0, return, end % Return on cancel
         obj.LastDir = mpath;
-        [~, expdefname] = fileparts(obj.ExpDef);
+        obj.ExpDef = fullfile(mpath, expdefname);
+        [~, expdefname] = fileparts(obj.ExpDef); % Remove extension
       end
       
       obj.buildUI % Build the GUI

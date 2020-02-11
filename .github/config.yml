@@ -6,4 +6,4 @@ todo:
         caseSensitive: false
         label: true
         reopenClosed: true
-        exclude: null
+        exclude: '.*.html$'
