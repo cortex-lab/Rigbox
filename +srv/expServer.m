@@ -1,5 +1,7 @@
-function expServer(useTimelineOverride, bgColour)
+function expServer(varargin)
 %SRV.EXPSERVER Start the presentation server
+%   SRV.EXPSERVER(NAME, VALUE)
+%   SRV.EXPSERVER(REF[, PREDELAY, POSTDELAY, ALYX])
 %   Principle function for running experiments.  ExpServer listens for
 %   commands via TCP/IP Web sockets to start, stop and pause stimulus
 %   presentation experiments.  
@@ -33,7 +35,7 @@ function expServer(useTimelineOverride, bgColour)
 
 % 2013-06 CB created
 
-%% Parameters
+%% Fixed Parameters
 global AGL GL GLU %#ok<NUSED>
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
@@ -42,9 +44,40 @@ rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
-rewardId = 1;
 % Function for constructing a full ID for warnings and errors
 fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':');
+
+%% User parameters
+p = inputParser;
+p.addParameter('expRef', [], @ischar)
+p.addParameter('alyx', Alyx('',''), @(v)isa(v,'Alyx'))
+p.addParameter('preDelay', 0, @isnumerical)
+p.addParameter('postDelay', 0, @isnumerical)
+p.addParameter('rewardId', 1, @isnumerical) % May be changed via keypress
+p.addParameter('useTimelineOverride', [])
+checkBgColour = @(x)validateattributes(x,...
+  "numeric", {'nonnegative', '<=', 255, 'vector'}, 'srv.expServer', 'bgColour');
+p.addParameter('bgColour', 127*[1 1 1], checkBgColour) % mid gray by default
+p.parse(varargin{:})
+
+singleShot = ~isempty(p.Results.expRef);
+if ~singleShot
+  % The following parameters are only relevent when an expRef is provided.
+  irrelevent = {'alyx', 'preDelay', 'postDelay'};
+  defined = ~ismember(irrelevent, p.UsingDefaults);
+  ignored = strcat('''', irrelevent(defined), '''');
+  if ~isempty(ignored)
+    delim = iff(numel(ignored) > 2, {', ', ' and '}, ' and ');
+    warning(...
+      fullID('ignoredParameters'), ...
+      'The input parameter(s) %s will be ignored', ...
+      strjoin(ignored, delim))
+  end
+end
+
+p = p.Results;
+rewardId = p.rewardId;
+bgColour = p.bgColour;
 
 %% Initialisation
 % Pull latest changes from remote
@@ -98,9 +131,6 @@ KbQueueStart();
 
 HideCursor();
 
-if nargin < 2
-  bgColour = 127*[1 1 1]; % mid gray by default
-end
 % open the stimulus window
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
@@ -111,16 +141,22 @@ fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
 log('Started presentation server on port %i', communicator.DefaultListenPort);
 
-if nargin < 1 || isempty(useTimelineOverride)
+if nargin < 1 || isempty(p.useTimelineOverride)
   % toggle use of timeline according to rig default setting
   toggleTimeline(rig.timeline.UseTimeline);
 else
-  toggleTimeline(useTimelineOverride);
+  toggleTimeline(p.useTimelineOverride);
 end
 
-running = true;
+%% If running single experiment mode immediately start the experiment
+if singleShot
+  assert(dat.expExists(p.expRef), fullID('expRefNotFound'), ...
+    'Experiment ref ''%s'' does not exist', p.expRef)
+  runExp(p.expRef, p.preDelay, p.postDelay, alyx);
+end
 
 %% Main loop for service
+running = ~singleShot;
 while running
   % Check for messages when out of event mode
   if communicator.IsMessageAvailable
