@@ -28,6 +28,12 @@ function expServer(varargin)
 %     b - Toggle the background colour between the default and white.
 %     g - Perform gamma correction
 %     
+%   Example 1: Run in listener mode with Timeline disabled
+%     srv.expServer('UseTimelineOverride', false)
+%
+%   Example 2: Run in single-shot mode with 10 second delay
+%     ref = dat.newExp('test', now, exp.choiceWorldParams);
+%     srv.expServer('expRef', ref, 'preDelay', 10)
 %
 % See also MC, io.WSJCommunicator, hw.devices, srv.prepareExp, hw.Timeline
 %
@@ -51,12 +57,12 @@ fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':');
 p = inputParser;
 p.addParameter('expRef', [], @ischar)
 p.addParameter('alyx', Alyx('',''), @(v)isa(v,'Alyx'))
-p.addParameter('preDelay', 0, @isnumerical)
-p.addParameter('postDelay', 0, @isnumerical)
-p.addParameter('rewardId', 1, @isnumerical) % May be changed via keypress
+p.addParameter('preDelay', 0, @isnumeric)
+p.addParameter('postDelay', 0, @isnumeric)
+p.addParameter('rewardId', 1, @isnumeric) % May be changed via keypress
 p.addParameter('useTimelineOverride', [])
 checkBgColour = @(x)validateattributes(x,...
-  "numeric", {'nonnegative', '<=', 255, 'vector'}, 'srv.expServer', 'bgColour');
+  "numeric", {'nonnegative', '<=', 255, 'vector'}, mfilename, 'bgColour');
 p.addParameter('bgColour', 127*[1 1 1], checkBgColour) % mid gray by default
 p.parse(varargin{:})
 
@@ -152,7 +158,7 @@ end
 if singleShot
   assert(dat.expExists(p.expRef), fullID('expRefNotFound'), ...
     'Experiment ref ''%s'' does not exist', p.expRef)
-  runExp(p.expRef, p.preDelay, p.postDelay, alyx);
+  runExp(p.expRef, p.preDelay, p.postDelay, p.alyx);
 end
 
 %% Main loop for service
