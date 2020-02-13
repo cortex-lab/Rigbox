@@ -128,6 +128,12 @@
 % queued.  (NB: This is in the system time of the remote rig and depends on
 % its timezone.  These timestamps aren't as precise as those in the block
 % file).
+%
+% When new updates are processed in |eui.SignalsExpPanel|, if an info field
+% does not already exist, one is created.  When the FormatLabels property
+% is true the Signals update labels are formatted as sperate words.  For
+% example 'events.newTrial' is displayed as 'New trial'.  This flag and
+% others such as the UpdatesFilter can be set it your subclass constructor.
 
 %% Custom Signals ExpPanels
 % Below is a list of steps to follow when creating a custom Signals
@@ -141,12 +147,12 @@
 %  in a property.  (c.f. PsychometricAxes in advancedChoiceWorldExpPanel)
 % # Add a constructor to initialize any properties if required
 %  Chain a call to the superclass method like so:
-%  obj = obj@eui.SignalsExpPanel(parent, ref, params, logEntry);
+%  |obj = obj@eui.SignalsExpPanel(parent, ref, params, logEntry);|
 % # Add a build method to initialize an axes or extra UI elements.
 %  Typically everything built here will use obj.CustomPanel as the parent
 %  container.  This method must have protected access.
 %  Chain a call to the superclass method first:
-%  build@eui.SignalsExpPanel(obj, parent);
+%  |build@eui.SignalsExpPanel(obj, parent);|
 % # Add a processUpdates to deal with your experiment-specific events.
 %  Here you can add code to update plots, etc. based on the event updates.
 %  This method must have protected access.  Instead of chaining a call,

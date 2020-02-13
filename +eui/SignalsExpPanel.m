@@ -17,11 +17,13 @@ classdef SignalsExpPanel < eui.ExpPanel
     SignalUpdates = struct('name', cell(500,1), 'value', cell(500,1), 'timestamp', cell(500,1))
     % List of updates to exclude (when Exclude == true) or to exclusively
     % show (Exclude == false) in the InfoGrid.
-    UpdatesFilter = {'inputs.wheel', 'pars'}
+    UpdatesFilter = ["inputs.wheel", "pars"]
     % Flag for excluding updates in UpdatesFilter list from InfoGrid.  When
     % false only those in the list are shown, when false those in the list
     % are hidden
     Exclude = true
+    % Flag for formating Signals updates in the InfoField Labels
+    FormatLabels = false
     % The total number of 
     NumSignalUpdates = 0
     % containers.Map of InfoGrid ui labels mapped to their corresponding
@@ -142,6 +144,27 @@ classdef SignalsExpPanel < eui.ExpPanel
         phasesStr = ['[' strJoin(obj.ActivePhases, ',') ']'];
         set(obj.StatusLabel, 'String', sprintf('Running %s', phasesStr));
       end
+    end
+    
+    function fieldCtrl = addInfoField(obj, name, value)
+      % ADDINFOFIELD Add new event info field to InfoGrid
+      %  Adds a given field to the grid and adjusts the total height of the
+      %  grid to accomodate all current fields.  If the FormatLabels
+      %  property is true, the updates are formatted with a space beween
+      %  capital letters.
+      %
+      %  Example:
+      %    obj.FormatLabels = true;
+      %    obj.addInfoField('events.newTrial', 0)
+      %    obj.InfoLabels(1).String % Formatted as 'New trial'
+      %
+      % See also eui.ExpPanel/addInfoField
+      if any(name=='.') && obj.FormatLabels == true
+        name = extractAfter(name, '.'); % Take substring after dot
+        name = lower(regexprep(name, '([a-z])([A-Z])', '$1 $2')); % Spaces
+        name(1) = upper(name(1)); % Capitalize first letter
+      end
+      fieldCtrl = addInfoField@eui.ExpPanel(obj, name, value);
     end
     
     function processUpdates(obj)

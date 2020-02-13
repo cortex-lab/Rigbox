@@ -16,7 +16,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     Ref
   end
   
-  properties (MethodSetupParameter)
+  properties (TestParameter)
     % Experiment type under test
     ExpType = {'Base', 'Signals'} % TODO Add tests for ChoiceWorld, etc.
   end
@@ -60,10 +60,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
   end
   
-  methods (TestMethodSetup)
+  methods
     function setupParams(testCase, ExpType)
       % SETUPPARAMS Set up parameters struct
-      %   Create a parameters structure depending of the ExpType.
+      %   Create a parameters structure depending on the ExpType.
       
       switch lower(ExpType)
         case 'signals'
@@ -100,7 +100,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   end
   
   methods (Test)
-    function test_live(testCase)
+    function test_live(testCase, ExpType)
       % Test the live constructor method for various experiment types.  The
       % following things are tested:
       %   1. Default update labels
@@ -108,6 +108,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       %   3. Comments box context menu functionality
       %   4. TODO Test comments changed callback
       %   5. TODO Check params button function
+      setupParams(testCase, ExpType)
       inputs = {
         testCase.Parent;
         testCase.Ref;
@@ -141,6 +142,51 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.assertTrue(strcmp(comments.Visible, 'off'), 'Failed to hide comments')
       menuOption.MenuSelectedFcn(menuOption) % Trigger menu callback
       testCase.assertTrue(strcmp(comments.Visible, 'on'), 'Failed to show comments')
+    end
+    
+    function test_formatLabels(testCase)
+      % Test the formatting of InfoField labels in eui.SignalsExpPanel when
+      % the FormatLabels property is set to true.
+      
+      % Parameters for instantiation of eui.SignalsExpPanel class
+      setupParams(testCase, 'signals')
+      inputs = {
+        testCase.Parent;
+        testCase.Ref;
+        testCase.Remote;
+        testCase.Parameters};
+      
+      % Some events to trigger for the panel to accept signals updates
+      initEvent = srv.ExpEvent('started', testCase.Ref);
+      startedEvent = srv.ExpEvent('update', testCase.Ref, ...
+        {'event', 'experimentStarted', clock});
+      testCase.Panel = eui.ExpPanel.live(inputs{:}, 'ActivateLog', false);
+      notify(testCase.Remote, 'ExpStarted', initEvent)
+      notify(testCase.Remote, 'ExpUpdate', startedEvent)
+      
+      % Initialize the signals update event data
+      data = struct(...
+        'name', '', ...
+        'value', 'true', ...
+        'timestamp', clock);
+      
+      % For both states, test the label format
+      for formatLabels = [false true]
+        name = toStr(formatLabels);
+        name(1) = upper(name(1));
+        data.name = ['events.testEvent', name]; % A unique event name
+        testCase.Panel.FormatLabels = formatLabels; % Set flag
+        % Notify the panel of a new signals update event
+        signalsEvent = srv.ExpEvent('signals', [], data);
+        notify(testCase.Remote, 'ExpUpdate', signalsEvent)
+        testCase.Panel.update % Process the update
+        % Find the new label and verify its formatting
+        labels = findobj(testCase.Parent, 'Style', 'text');
+        i = (numel(labels)/2) + 1; % Controls returned as [values; labels]
+        expected = iff(formatLabels, 'Test event true', data.name);
+        testCase.verifyEqual(labels(i).String, expected, ...
+          sprintf('Failed to format labels correctly when FormatLabels == %d', formatLabels) )
+      end
     end
     
 %     function test_starttime(testCase)

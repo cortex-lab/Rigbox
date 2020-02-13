@@ -23,7 +23,10 @@ classdef Signals < exp.SignalsExp
       fprintf('Updating parameters\n');
       [~, globalStruct, allCondStruct] = toConditionServer(...
         exp.Parameters(paramStruct));
-      obj.GlobalPars.post(rmfield(globalStruct, 'defFunction'));
+      if isfield(globalStruct, 'defFunction')
+        globalStruct = rmfield(globalStruct, 'defFunction');
+      end
+      obj.GlobalPars.post(globalStruct);
       obj.ConditionalPars.post(allCondStruct);
     end
     
