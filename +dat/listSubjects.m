@@ -14,4 +14,4 @@ function subjects = listSubjects()
 mainPath = dat.reposPath('main', 'remote');
 
 dirs = unique(cellflat(rmEmpty(file.list(mainPath, 'dirs'))));
-subjects = dirs(~cellfun(@(d)startsWith(d, '@'), dirs)); % exclude misc directories
+subjects = dirs(~startsWith(dirs, '@')); % exclude misc directories
