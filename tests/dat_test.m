@@ -322,6 +322,60 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyTrue(dat.expExists(refs{1}))
     end
     
+    function test_saveParamProfile(testCase)
+      % Test saving files when repo folder doesn't yet exist
+      repos = dat.reposPath('main');
+      rmdir(repos{1}) % Delete local repo
+      
+      % Full path to expected files
+      fn = 'parameterProfiles.mat';
+      repos = fullfile(repos, fn);
+
+      % Test saving some defaults with a given name:
+      name = 'testName';
+      expType = 'ChoiceWorld';
+      dat.saveParamProfile(expType, name, exp.choiceWorldParams)
+      actual = cellfun(@load, repos); % Load from both locations
+      for i = 1:length(actual) % Check saved
+        testCase.verifyEqual(fieldnames(actual(i)), {expType}, 'Failed to append to current file')
+        testCase.verifyEqual(fieldnames(actual(i).(expType)), {name}, 'Failed to save under given name')
+        testCase.verifyEqual(actual(i).(expType).(name).type, expType)
+      end
+      
+      % Test saving another param profile.  Nothing should be overwritten.
+      name = 'another';
+      types = {expType; 'BarMapping'};
+      dat.saveParamProfile(types{end}, name, exp.barMappingParams)
+      actual = cellfun(@load, repos); % Load from both locations
+      for i = 1:length(actual) % Check saved
+        testCase.verifyEqual(fieldnames(actual(i)), types, 'Failed to append to current file')
+        testCase.verifyEqual(fieldnames(actual(i).(types{end})), {name}, 'Failed to save under given name')
+        testCase.verifyEqual(actual(i).(types{end}).(name).type, types{end})
+      end
+    end
+    
+    function test_loadParamProfiles(testCase)
+      % Test loading a specific parameter profile from file
+      fn = 'parameterProfiles.mat';
+      repo = fullfile(dat.reposPath('main', 'master'), fn);
+      
+      name = 'testSet';
+      expType = 'ChoiceWorld';
+      set.(expType).testSet = exp.choiceWorldParams;
+      set.BarMapping.anotherSet = exp.barMappingParams;
+      save(repo, '-struct', 'set')
+      
+      % Test loading existing
+      profiles = dat.loadParamProfiles(expType);
+      testCase.verifyEqual(fieldnames(profiles), {name}, 'Failed to load profile')
+      testCase.verifyEqual(profiles.(name).type, expType)
+      
+      % Test loading non-existing exp type
+      profiles = testCase.verifyWarningFree(@()dat.loadParamProfiles('fake'));
+      expected = isstruct(profiles) && isempty(fieldnames(profiles));
+      testCase.verifyTrue(expected)
+    end
+    
   end
   
   methods (Access = private)
