@@ -21,7 +21,6 @@ Rigbox has the following software dependencies:
 * [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) <for Signals>
 * The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
     * Data Acquisition Toolbox <For using an NI DAQ>
-    * Statistics and Machine Learning Toolbox
 * The following community MATLAB toolboxes:
     * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
     * [Psychophysics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
@@ -54,7 +53,6 @@ It is highly recommended to install Rigbox via the [Git Bash](https://git-scm.co
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
 2. Run the `addRigboxPaths.m` function in MATLAB (found in the Rigbox directory) then restart the program.  This adds all required folders and functions to your MATLAB path.  *Note*: Do __not__ manually add all Rigbox folders and subfolders to the paths!**
-3. Edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).
 
 \* Accepting all installer defaults will suffice.  
 ** To add the paths temporarily for testing:
@@ -80,7 +78,7 @@ Full Rigbox documentaion can be found in [docs/html/index.html](https://github.c
 To get an idea of how experiments run using the Rigbox Signal Experiment framework, have a look at the following file: [docs/html/using_test_gui.html](https://github.com/cortex-lab/signals/tree/master/docs/using_test_gui.m).  To learn how to create a new Signals experiment, see the [Signals tutorials](https://github.com/cortex-lab/signals/tree/master/docs/tutorials)
 
 ### Running an experiment
-For running experiments, set the hardware configuration by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
+For running experiments, edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).  Then configure the hardware by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
 
 On the stimulus computer (SC), run:
 ```

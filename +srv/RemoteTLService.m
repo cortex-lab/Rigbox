@@ -25,6 +25,8 @@ classdef RemoteTLService < srv.Service
   %     @(srv, evt)processMessage(srv, evt)); % Add a listener to do
   %     something when a message is received.
   %
+  %   NB: Requires the Instrument Control Toolbox
+  %
   %   See also SRV.PRIMITIVEUDPSERVICE, UDP.
   %
   % Part of Rigbox
