@@ -693,8 +693,10 @@ classdef Timeline < handle
                     % the range and making it impossible to see any of the
                     % other traces. Plus it is probably more useful,
                     % anyway.
+                    x = linspace(-1,1,50)'; % A 50-point Gaussian smoothing window
+                    win = exp(-0.5 .* (2.5.* x).^2); % alpha = 2.5
                     yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
-                        gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
+                        win./sum(win), 'same') * scales(t) + offsets(t);
                 else
                     yy(end-nSamps+1:end) = data(:,t)*scales(t)+offsets(t);
                 end

@@ -30,13 +30,14 @@ classdef PulseSwitcher < hw.ControlSignalGenerator
       nsamples = ceil(len*sampleRate);
 %       fprintf('duty=%.3f,wavelength=%.4f,dt=%.4f\n', duty, wavelength, dt);
       tt = linspace(0, npulses - 1/sampleRate, nsamples)';
-      samples = 0.5*(square(2*pi*tt, 100*duty) + 1); % zero to one
+      w0 = (2*pi*100*duty)/100; % Normalized frequency
+      squarewave = 2*(mod(2*pi*tt, 2*pi) < w0)-1;
+      samples = 0.5*(squarewave + 1); % zero to one
       % closed to open
       samples = (obj.OpenValue - obj.ClosedValue)*samples + obj.ClosedValue;
       % add 1 sample at 'closed value' to ensure it remains so
       samples = [samples; obj.ClosedValue];
     end
   end
-  
 end
 

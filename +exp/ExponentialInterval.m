@@ -21,7 +21,10 @@ classdef ExponentialInterval < exp.TimeSampler
     end
     
     function t = secs(obj)
-      t = obj.Min + exprnd(obj.Lambda);
+      % Draw a random value from an exponential distribution by applying
+      % the exponential inverse CDF.
+      r = -obj.Lambda * log(rand);
+      t = obj.Min + r;
       if t > obj.Max
         t = obj.Max;
       end
