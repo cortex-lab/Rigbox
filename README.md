@@ -9,13 +9,11 @@ Rigbox includes many features including synchronizing recordings, managing exper
 
 Rigbox is mostly object-oriented and highly modular, making designing new experiments much simpler. Rigbox is currently under active, test-driven development. 
 
-## Getting Started
-
-The following is a brief description of how to install Rigbox on your experimental rig. Detailed, step-by-step information can be found in Rigbox's [documentation](https://github.com/cortex-lab/Rigbox/tree/master/docs). Information specific to the steering wheel task can be found on the [CortexLab website](https://www.ucl.ac.uk/cortexlab/tools/wheel).
-
-### Requirements
+## Requirements
 
 For running full experiments Rigbox requires two PCs: one for presenting stimuli and one for monitoring the experiment.  Currently only National Instruments DAQs are supported for acquiring data from hardware devices.  For testing, the toolbox can be run on a single machine.  
+
+### Software
 
 Rigbox has the following software dependencies:
 * Windows Operating System (7 or later, 64-bit)
@@ -23,12 +21,9 @@ Rigbox has the following software dependencies:
 * [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) <for Signals>
 * The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
     * Data Acquisition Toolbox <For using an NI DAQ>
-    * Signal Processing Toolbox
-    * Instrument Control Toolbox
-    * Statistics and Machine Learning Toolbox
 * The following community MATLAB toolboxes:
     * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
-    * [Psychophsics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
+    * [Psychophysics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
     * [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) <Required if using an NI DAQ>      
 
 Additionally, Rigbox works with a number of extra submodules (included with Rigbox):
@@ -39,15 +34,15 @@ Additionally, Rigbox works with a number of extra submodules (included with Rigb
 
 ### Hardware
 
-Below are a few minimum hardware requirements.  These are more of a guide than a requirement as it depends on the type of experiments you wish to run. 
+Below are a few minimum hardware requirements for both PCs.  These are more of a guide than a requirement as it depends on the type of experiments you wish to run. 
 
-Processor: Intel Core i3 7100, 3.9 GHz
-Graphics: NVIDIA NVS 510 (for three screen support)
-Memory: 16 GB 2133MHz DDR4 RAM, 1.2 V
-Storage: 1TB HD, 7200rpm, 64MB Cache
-OS: Windows 10 64-bit
+**Processor:** Intel Core i3 7100, 3.9 GHz  
+**Graphics:** NVIDIA NVS 510 (for three screen support)  
+**Memory:** 16 GB 2133MHz DDR4 RAM, 1.2 V  
+**Storage:** 1TB HD, 7200rpm, 64MB Cache  
+**OS:** Windows 7 64-bit  
 
-### Installation
+## Installation
 
 Before starting, ensure the above toolboxes and packages are installed.  PsychToobox can not be installed via the MATLAB AddOns browser.  See [Installing PsychToobox](#Installing-PsychToolbox) for install instructions.  
 
@@ -58,9 +53,8 @@ It is highly recommended to install Rigbox via the [Git Bash](https://git-scm.co
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
 2. Run the `addRigboxPaths.m` function in MATLAB (found in the Rigbox directory) then restart the program.  This adds all required folders and functions to your MATLAB path.  *Note*: Do __not__ manually add all Rigbox folders and subfolders to the paths!**
-3. Edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).
 
-\* Accepting all installer defaults will suffice. 
+\* Accepting all installer defaults will suffice.  
 ** To add the paths temporarily for testing:
 ```
 addRigboxPaths('SavePaths', false, 'Strict', false)
@@ -77,14 +71,14 @@ PsychToolbox-3 is required for visual and auditory stimulus presentation.  Below
 DownloadPsychtoolbox('C:\') % Install to C drive
 ```
 
-### Quickstart
-After following the installation instructions you can start playing around with Rigbox and Signals.
+## Getting started
+After following the installation instructions you can start playing around with Rigbox and Signals.  To run one of the example experiments, open MATLAB and run `eui.SignalsTest();`, then select 'advancedChoiceWorld.m'.
 
 Full Rigbox documentaion can be found in [docs/html/index.html](https://github.com/cortex-lab/tree/master/docs/index.m).
 To get an idea of how experiments run using the Rigbox Signal Experiment framework, have a look at the following file: [docs/html/using_test_gui.html](https://github.com/cortex-lab/signals/tree/master/docs/using_test_gui.m).  To learn how to create a new Signals experiment, see the [Signals tutorials](https://github.com/cortex-lab/signals/tree/master/docs/tutorials)
 
 ### Running an experiment
-For running experiments, set the hardware configuration by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
+For running experiments, edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).  Then configure the hardware by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
 
 On the stimulus computer (SC), run:
 ```
@@ -128,3 +122,4 @@ For further information, see [our publication](https://www.biorxiv.org/content/1
 * [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device
 * [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets
 * [Andrew Janke](https://github.com/apjanke) for the `isWindowsAdmin` function
+* [Timothy E. Holy](http://holylab.wustl.edu/) for the `distinguishable_colors` function
