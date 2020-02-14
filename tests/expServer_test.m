@@ -20,54 +20,41 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function setupFolder(testCase)
       % SETUPFOLDER Set up subject, queue and config folders for test
       %  Creates a few folders for saving parameters and hardware.  Adds
-      %  teardowns for deletion of these folders.  Also creates a custom
-      %  paths file to deactivate Alyx.
+      %  teardowns for deletion of these folders via ReposFixture.  Also
+      %  creates a custom paths file to deactivate Alyx.
       %
-      % TODO Make into shared fixture
+            
+      % Set INTEST flag to true
+      setTestFlag(true);
+      testCase.addTeardown(@setTestFlag, false)
       
-      assert(endsWith(which('dat.paths'),...
-        fullfile('tests', 'fixtures', '+dat', 'paths.m')));
-      
-      % Check temp mainRepo folder is empty.  An extra safe measure as we
-      % don't won't to delete important folders by accident!
-      mainRepo = dat.reposPath('main', 'master');
-      assert(~exist(mainRepo, 'dir') || isempty(file.list(mainRepo)),...
-        'Test experiment repo not empty.  Please set another path or manually empty folder');
+      % Ensure we're using the correct test paths and add teardowns to
+      % remove any folders we create
+      testCase.applyFixture(ReposFixture)
       
       % Now create a single subject folder
+      mainRepo = dat.reposPath('main', 'master');
       assert(mkdir(fullfile(mainRepo, 'test')), ...
         'Failed to create subject folder')
-      
-      % Create a rig config folder
-      configDir = getOr(dat.paths, 'rigConfig');
-      assert(mkdir(configDir), 'Failed to create config directory')
-      
+            
       % Save a custom path disabling Alyx
       paths.databaseURL = [];
+      configDir = getOr(dat.paths, 'rigConfig');
       save(fullfile(configDir, 'paths.mat'), 'paths')
       
       % Alyx queue location
       qDir = getOr(dat.paths, 'localAlyxQueue');
       assert(mkdir(qDir), 'Failed to create alyx queue')
       
-      addTeardown(testCase, @clearCBToolsCache)
-      
-      % Add teardown to remove folders
-      testFolders = {mainRepo; qDir; getOr(dat.paths, 'globalConfig')};
-      rmFcn = @(repo)assert(rmdir(repo, 's'), 'Failed to remove test repo %s', repo);
-      addTeardown(testCase, @cellfun, rmFcn, testFolders)
+      addTeardown(testCase, @ClearTestCache)
     end
     
-    function setupMock(testCase)
-      % SETUPMOCK Create mock rig objects and avoid git update
-      %  1. Sets global INTEST flag to true and adds teardown
-      %  2. Ensure git update doesn't pull code
+    function fixUpdates(~)
+      % FIXUPDATES Ensure git update doesn't pull code
+      %  Have FETCH_HEAD file appear recently modified to avoid triggering
+      %  any code updates.
       %
-      % See also MOCKRIG, GIT.UPDATE
-      
-      % Set INTEST flag to true
-      testCase.setTestFlag(true)
-      testCase.addTeardown(@testCase.setTestFlag, false)
+      % See also GIT.UPDATE
       
       % Make sure git update not triggered
       root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
@@ -224,7 +211,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     function test_devices_fail(testCase)
       % Set hw.devices to return empty
       clear devices;
-      id = 'rigbox:srv:expServer:missingHardware';
+      id = 'Rigbox:srv:expServer:missingHardware';
       testCase.verifyError(@srv.expServer, id, ...
         'Expected error for misconfigured hardware');
     end
@@ -923,12 +910,4 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
   end
   
-  methods (Static)
-    function setTestFlag(TF)
-      % SETTESTFLAG Set global INTEST flag
-      %   Allows setting of test flag via callback function
-      global INTEST
-      INTEST = TF;
-    end
-  end
 end

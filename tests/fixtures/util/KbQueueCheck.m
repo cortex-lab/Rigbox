@@ -25,7 +25,7 @@ function varargout = KbQueueCheck(deviceIndex, keyPress)
 %     clear KbQueueCheck INTEST % Reset after test
 %
 %     % Simulate zero keyboard interaction for a given device
-%     KbQueueCheck(1, [{false}, repmat({zeros(1,256)},1,4)]);
+%     KbQueueCheck(1, {false, zeros(size(KbName('KeyNames')))});
 %     assert(~KbQueueCheck(1))
 %     
 % 2019-09 MW created
@@ -55,7 +55,7 @@ if nargin < 2
   if ~isKey(KbQueue, deviceIndex)
     % If not set, throw warning and return real mod date
     warning('Rigbox:tests:KbQueueCheck:keypressNotSet', ...
-      'Mock called but date not set, returning actual')
+      'Mock called but device output not set, returning actual')
     orig = pwd;
     mess = onCleanup(@() cd(orig));
     PTB = fileparts(which('SetupPsychtoolbox'));
@@ -72,9 +72,10 @@ if nargin < 2
         KbQueue(deviceIndex) = output.rest;
       end
       output = output.first;
-      if ischar(output) % Convert to actual output
-        idx = KbName(output);
+      if ischar(output) || isnumeric(output) % Convert to actual output
+        idx = iff(ischar(output), KbName(output), output);
         output = cell(1, nargs);
+        output{1} = true; % pressed
         output{2} = zeros(size(KbName('KeyNames')));
         output{2}(idx) = GetSecs();
       end
@@ -87,14 +88,17 @@ else % Set mock
     % Assume all output args set
     output = keyPress;
   else
-    % Assign only second output
+    % Convert keypress to code if necessary
+    keyPress = iff(ischar(keyPress), KbName(keyPress), keyPress);
+    % Assign only first two outputs
     output = cell(1, nargs);
+    output{1} = true; % pressed
     output{2} = zeros(size(KbName('KeyNames')));
-    output{2}(KbName(keyPress)) = GetSecs();
+    output{2}(keyPress) = GetSecs();
   end
   KbQueue(iff(isempty(deviceIndex), -1, deviceIndex)) = output; % Set our output
   if isempty(INTEST) || ~INTEST
-    fprintf('Set date for %s.  Please set INTEST flag to true\n', p);
+    fprintf('Set ouput for device %i.  Please set INTEST flag to true\n', deviceIndex);
   end
   % Return empty on setting date
   output = cell(1, nargout);

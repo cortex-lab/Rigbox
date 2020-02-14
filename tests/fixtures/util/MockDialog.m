@@ -9,7 +9,7 @@ classdef MockDialog < handle
   %     mockdlg.Dialogs('1st dlg title') = 12;
   %     mockdlg.Dialogs('2nd dlg title') = false;
   %
-  %     mockdlg = MockDialog.instance('uin32');
+  %     mockdlg = MockDialog.instance('uint32');
   %     mockdlg.Dialogs(0) = 12;
   %     mockdlg.Dialogs(1) = {12, 'second input ans', true};
   %
@@ -92,7 +92,7 @@ classdef MockDialog < handle
       
       % Check we're in test mode, throw warning if not
       if ~obj.InTest
-        warning('MockDialog:newCall:InTestFalse', ...
+        warning('Rigbox:MockDialog:newCall:notInTest', ...
           ['MockDialog method called whilst InTest flag set to false. ' ...
           'Check paths or set flag to true to avoid this message'])
       end
@@ -142,7 +142,7 @@ classdef MockDialog < handle
         answer = answer.first;
         obj.Dialogs(key) = obj.Dialogs(key).rest;
       elseif isa(answer, 'fun.EmptySeq')
-        warning('MockDialog:NewCall:EmptySeq', ...
+        warning('Rigbox:MockDialog:newCall:EmptySeq', ...
           'End of input sequence, using default input instead')
         answer = def;
       end
@@ -163,7 +163,8 @@ classdef MockDialog < handle
         key = [];
         return
       elseif ~obj.UseDefaults
-        assert(obj.Dialogs.Count > 0, 'MockDialog:newCall:NoValuesSet', ...
+        assert(obj.Dialogs.Count > 0, ...
+          'Rigbox:MockDialog:newCall:behaviourNotSet', ...
           'No values saved in Dialogs property')
       end
       key = obj.NumCalls;

@@ -175,47 +175,54 @@ classdef ChoiceWorld < exp.LIARExperiment
     end
     
     function saveData(obj)
-        saveData@exp.Experiment(obj);
-        if ~obj.AlyxInstance.IsLoggedIn
-            warning('No Alyx token set');
-        else
-            try
-                subject = dat.parseExpRef(obj.Data.expRef);
-                if strcmp(subject, 'default'); return; end
-                % Register saved files
-                savepaths = dat.expFilePath(obj.Data.expRef, 'block');
-                obj.AlyxInstance.registerFile(savepaths{end});
-                % Save the session end time
-                if ~isempty(obj.AlyxInstance.SessionURL)
-                  numTrials = obj.Data.numCompletedTrials;
-                  if isfield(obj.Data, 'trial')&&isfield(obj.Data.trial, 'feedbackType')
-                    numCorrect = sum([obj.Data.trial.feedbackType] == 1);
-                  else
-                    numCorrect = 0;
-                  end
-                  sessionData = struct('end_time', obj.AlyxInstance.datestr(now), ...
-                    'n_trials', numTrials, 'n_correct_trials', numCorrect);
-                  obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'patch');
-                else
-                  % Infer from date session and retrieve using expFilePath
-                end
-            catch ex
-                warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
-            end
-            try
-              if ~isfield(obj.Data,'rewardDeliveredSizes') || ...
-                      strcmp(obj.Data.endStatus, 'aborted')
-                return % No completed trials
-              end
-              amount = sum(obj.Data.rewardDeliveredSizes(:,1)); % Take first element (second being laser)
-              if ~any(amount); return; end % Return if no water was given
-              controller = obj.RewardController.SignalGenerators(strcmp(obj.RewardController.ChannelNames,'rewardValve'));
-              type = iff(isprop(controller, 'WaterType'), controller.WaterType, 'Water');
-              obj.AlyxInstance.postWater(subject, amount*0.001, now, type, obj.AlyxInstance.SessionURL);
-            catch ex
-              warning(ex.identifier, 'Failed to post water to Alyx: %s', ex.message);
-            end
+      saveData@exp.Experiment(obj);
+      
+      % If Alyx URL not set or default subject, simply return
+      subject = dat.parseExpRef(obj.Data.expRef);
+      if isempty(getOr(dat.paths, 'databaseURL')) || strcmp(subject, 'default')
+        return
+      end
+      
+      if ~obj.AlyxInstance.IsLoggedIn
+        warning('Rigbox:exp:SignalsExp:noTokenSet', 'No Alyx token set');
+        try
+          % Register saved files
+          savepaths = dat.expFilePath(obj.Data.expRef, 'block');
+          obj.AlyxInstance.registerFile(savepaths{end});
+          
+          % Save the session end time
+          if ~isempty(obj.AlyxInstance.SessionURL)
+            % Infer from date session and retrieve using expFilePath
+            url = getOr(obj.AlyxInstance.getSessions(obj.Data.expRef), 'url');
+            assert(~isempty(url), 'Failed to determine session url')
+            obj.AlyxInstance.SessionURL = url;
+          end
+          numTrials = obj.Data.numCompletedTrials;
+          if isfield(obj.Data, 'trial') && isfield(obj.Data.trial, 'feedbackType')
+            numCorrect = sum([obj.Data.trial.feedbackType] == 1);
+          else
+            numCorrect = 0;
+          end
+          sessionData = struct('end_time', obj.AlyxInstance.datestr(now), ...
+            'n_trials', numTrials, 'n_correct_trials', numCorrect);
+          obj.AlyxInstance.postData(obj.AlyxInstance.SessionURL, sessionData, 'patch');
+        catch ex
+          warning(ex.identifier, 'Failed to register files to Alyx: %s', ex.message);
         end
+        try
+          if ~isfield(obj.Data,'rewardDeliveredSizes') || ...
+              strcmp(obj.Data.endStatus, 'aborted')
+            return % No completed trials
+          end
+          amount = sum(obj.Data.rewardDeliveredSizes(:,1)); % Take first element (second being laser)
+          if ~any(amount); return; end % Return if no water was given
+          controller = obj.RewardController.SignalGenerators(strcmp(obj.RewardController.ChannelNames,'rewardValve'));
+          type = iff(isprop(controller, 'WaterType'), controller.WaterType, 'Water');
+          obj.AlyxInstance.postWater(subject, amount*0.001, now, type, obj.AlyxInstance.SessionURL);
+        catch ex
+          warning(ex.identifier, 'Failed to post water to Alyx: %s', ex.message);
+        end
+      end
     end
     
   end

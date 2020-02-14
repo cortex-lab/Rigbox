@@ -456,7 +456,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(gLabels(idx).ForegroundColor, [1 0 0], ...
         'Unexpected label colour')
       % Verify change in underlying param struct
-      par = strcmpi(PE.Parameters.GlobalNames, strrep(gLabels(idx).String, ' ', ''));
+      par = strcmpi(PE.Parameters.GlobalNames, erase(gLabels(idx).String, ' '));
       testCase.verifyEqual(PE.Parameters.Struct.(PE.Parameters.GlobalNames{par}), 666, ...
         'UI edit failed to update parameters struct')
       % Verify Changed event triggered
@@ -476,7 +476,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyEqual(gLabels(idx).ForegroundColor, [1 0 0], ...
         'Unexpected label colour')
       % Verify change in underlying param struct
-      par = strcmpi(PE.Parameters.GlobalNames, strrep(gLabels(idx).String, ' ', ''));
+      par = strcmpi(PE.Parameters.GlobalNames, erase(gLabels(idx).String, ' '));
       testCase.verifyEqual(...
         PE.Parameters.Struct.(PE.Parameters.GlobalNames{par}), gInputs(idx).Value==true, ...
         'UI checkbox failed to update parameters struct')

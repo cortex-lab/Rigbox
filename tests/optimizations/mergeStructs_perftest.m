@@ -46,7 +46,13 @@ classdef mergeStructs_perftest < matlab.perftest.TestCase
       % src corresponds to conditional pars in SignalExp
       I = n_global:n+n_global;
       vals = mapToCell(@(~) rand(10,1), I);
-      fnConds = strcat('fn', num2cellstr(I));
+      small = I < 1000000;
+      fnConds = strcat('fn', num2cellstr(I(small)));
+      if any(~small)
+        % To avoid invalid fieldnames (e.g. '1e+06'), generate names from
+        % larger numbers using the slower `num2str` function
+        fnConds = [fnConds strcat('fn', strsplit(num2str(I(~small))))];
+      end
       testCase.src = cell2struct(vals(:), fnConds(:));
     end
   end

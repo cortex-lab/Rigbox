@@ -392,7 +392,7 @@ classdef ParamEditor < handle
                 rethrow(ex);
               end
             end
-          elseif iscellstr(currParam)
+          elseif iscellstr(currParam) %#ok<ISCLSTR>
             C = textscan(data, '%s',...
                 'ReturnOnError', false,...
                 'delimiter', {' ', ','}, 'MultipleDelimsAsOne', 1);

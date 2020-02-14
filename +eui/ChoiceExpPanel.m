@@ -95,7 +95,7 @@ classdef ChoiceExpPanel < eui.ExpPanel
     end
   end
   
-  methods %(Access = protected)
+  methods (Access = protected)
     function newTrial(obj, num, condition)
       %attempt num is red when on higher than third
       attemptColour = iff(condition.repeatNum > 3, [1 0 0], [0 0 0]);

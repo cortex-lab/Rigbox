@@ -201,20 +201,16 @@ classdef MControl < handle
         profiles = obj.NewExpParamProfile.Option; % Get parameter profile
         obj.NewExpParamProfile.Option = profiles(~strcmp(profiles, profile)); % Set new list without deleted profile
         %log the parameters as being deleted
-        obj.log('Deleted parameters as ''%s''', profile);
+        obj.log('Deleted parameter set ''%s''', profile);
       end
     end
     
     function saveParamProfile(obj) % Called by 'Save...' button press, save a new parameter profile
       selProfile = obj.NewExpParamProfile.Selected; % Find which set is currently selected
-      if selProfile(1) ~= '<' % This statement is for autofilling the save as input dialog
-        %default value is currently selected profile name
-        def = selProfile;
-      else
-        %begins with left bracket: a special case profile is selected
-        %no default value
-        def = '';
-      end
+      % This statement is for autofilling the save as input dialog; default
+      % value is currently selected profile name, however if a special case
+      % profile is selected there is no default value
+      def = iff(selProfile(1) ~= '<', selProfile, '');
       ipt = inputdlg('Enter a name for the parameters profile', 'Name', 1, {def});
       if isempty(ipt)
         return
@@ -240,6 +236,7 @@ classdef MControl < handle
         if ~any(strcmp(obj.NewExpParamProfile.Option, validName))
           obj.NewExpParamProfile.Option = [profiles; validName];
         end
+        obj.NewExpParamProfile.Selected = validName;
         %set label for loaded profile
         set(obj.ParamProfileLabel, 'String', validName, 'ForegroundColor', [0 0 0]);
         obj.log('Saved parameters as ''%s''', validName);
@@ -384,18 +381,28 @@ classdef MControl < handle
       % If rig is connected check no experiments are running...
       expRef = rig.ExpRunning; % returns expRef if running
       if expRef
-%           error('Experiment %s already running of %s', expDef, rig.Name)
           choice = questdlg(['Attention: An experiment is already running on ', rig.Name], ...
               upper(rig.Name), 'View', 'Cancel', 'Cancel');
           switch choice
               case 'View'
                   % Load the parameters from file
-                  paramStruct = load(dat.expFilePath(expRef, 'parameters', 'master'));
+                  paramsPath = dat.expFilePath(expRef, 'parameters', 'master');
+                  paramStruct = load(paramsPath);
                   if ~isfield(paramStruct.parameters, 'type')
                       paramStruct.type = 'custom'; % override type name with preferred
                   end
+                  % Determine the experiment start time
+                  try % Try getting data from Alyx
+                    ai = obj.AlyxPanel.AlyxInstance;
+                    assert(ai.IsLoggedIn)
+                    meta = ai.getSessions(expRef);
+                    startedTime = ai.datenum(meta.start_time);
+                  catch % Fall back on parameter file's system mod date
+                    startedTime = file.modDate(paramsPath);
+                  end
                   % Instantiate an ExpPanel and pass it the expRef and parameters
-                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig, paramStruct.parameters);
+                  panel = eui.ExpPanel.live(obj.ActiveExpsGrid, expRef, rig,...
+                    paramStruct.parameters, 'StartedTime', startedTime);
                   obj.LastExpPanel = panel;
                   % Add a listener for the new panel
                   panel.Listeners = [panel.Listeners
