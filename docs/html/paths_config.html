@@ -1,0 +1,150 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-14"><meta name="DC.source" content="paths_config.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>The <tt>dat.paths</tt> function is used for configuring important paths for the computers which Rigbox runs on. These include paths to:</p><div><ol><li>either the shared folder(s) OR the remote server(s) on which organization-wide configuration files, subject data and experiment data is stored, and a local directory for generating redundant copies of this data.</li><li>optionally, paths to a remote database (if using Alyx), and a local redundant copy of that database</li><li>optionally, paths to any other directories for storing additional back-ups (e.g. for working analyses, tapes, etc...)</li><li>optionally, a path to a custom config file for the local computer.</li></ol></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setting up the paths</a></li><li><a href="#2">Manually copying the paths template</a></li><li><a href="#3">Sharing a folder in Windows</a></li><li><a href="#4">Etc.</a></li></ul></div><h2 id="1">Setting up the paths</h2><p><tt>dat.paths</tt> is simply a function that returns a struct of directory paths to various things.  Much of the code in Rigbox calls this function to determine where to save and load data.</p><p>Running the <tt>addRigboxPaths</tt> function should result in a copy of the paths template file being moved to the <tt>+dat</tt> folder. If running `which dat.paths` shows this isn't the case, manually copy the template (see below) and open the file.  The inline comments should explain each field.</p><pre class="codeinput">open <span class="string">dat.paths</span>
+</pre><h2 id="2">Manually copying the paths template</h2><p>The below code should copy <tt>docs\setup\paths_template.m</tt> to <tt>+dat\paths.m</tt>:</p><pre class="codeinput">assert(exist(<span class="string">'addRigboxPaths'</span>,<span class="string">'file'</span>) == 2, <span class="keyword">...</span>
+  <span class="string">'Rigbox not installed.  Please run addRigboxPaths.m before continuing'</span>)
+root = fileparts(which(<span class="string">'addRigboxPaths'</span>)); <span class="comment">% Location of Rigbox root dir</span>
+source = fullfile(root, <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'paths_template.m'</span>);
+destination = fullfile(root, <span class="string">'+dat'</span>, <span class="string">'paths.m'</span>);
+assert(copyfile(source, destination), <span class="string">'Failed to copy the template file'</span>)
+</pre><h2 id="3">Sharing a folder in Windows</h2><p>If you don&#8217;t yet have a data server, follow the steps below to set up a shared folder on the stimulus server computer:</p><div><ol><li>Create a folder in C:\ called &#8216;LocalExpCode&#8217; and one called &#8216;LocalExpData&#8217; (if it doesn&#8217;t already exist)</li><li>Copy everything inside the GitHub\Rigbox\Repositories\data folder into &#8216;LocalExpData&#8217; and everything inside GitHub\Rigbox\Repositories\code into &#8216;LocalExpCode&#8217;</li><li>Right click on the &#8216;LocalExpData&#8217; folder and select Properties and select the Sharing tab and click &#8216;Share...&#8217;</li><li>Under the drop-down list select &#8216;Everyone&#8217; and click &#8216;Add&#8217;, then &#8216;Share&#8217;.</li><li>Now click &#8216;Advanced Sharing&#8230;&#8217;, make sure the &#8216;Share this folder&#8217; check box is selected.  Click the &#8216;Permissions&#8217; button and ensure that under the &#8216;Permissions for Everyone&#8217; section, the &#8216;Full Control&#8217; is allowed.</li><li>Repeat step 3, 4 and 5 for &#8216;LocalExpCode&#8217;.</li><li>You should now be able to navigate to these folder from other computers on the network be going to \\&lt;StimulusServerName&gt;\LocalExpData (where &#8216;&lt;StimulusServerName&gt;&#8217; is the computer name of the stimulus server)</li><li>In dat.paths, change line 21 to be the following: serverName = '\\&lt;StimulusServerName&gt;';  % where '&lt;StimulusServerName&gt;'    is the stimulus server&#8217;s computer name</li><li>On lines 26 and 32, replace &#8216;data&#8217; with &#8216;LocalExpData&#8217; and on lines 37 and 41, replace the word &#8216;code&#8217; with &#8216;LocalExpCode&#8217;.</li><li>Save the paths file in Documents\MATLAB\+dat and do the same on the mc computer (the two computers must have the same paths).</li></ol></div><h2 id="4">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction 
+% The |dat.paths| function is used for configuring important paths for the
+% computers which Rigbox runs on. These include paths to:
+%
+% 
+% # either the shared folder(s) OR the remote server(s) on which 
+% organization-wide configuration files, subject data and experiment data 
+% is stored, and a local directory for generating redundant copies of this 
+% data.
+% # optionally, paths to a remote database (if using Alyx), and a local
+% redundant copy of that database
+% # optionally, paths to any other directories for storing additional
+% back-ups (e.g. for working analyses, tapes, etc...)
+% # optionally, a path to a custom config file for the local computer.
+%
+%
+%% Setting up the paths
+% |dat.paths| is simply a function that returns a struct of directory paths
+% to various things.  Much of the code in Rigbox calls this function to
+% determine where to save and load data.  
+%
+% Running the |addRigboxPaths| function should result in a copy of the
+% paths template file being moved to the |+dat| folder. If running `which
+% dat.paths` shows this isn't the case, manually copy the template (see
+% below) and open the file.  The inline comments should explain each field.
+open dat.paths
+
+%% Manually copying the paths template
+% The below code should copy |docs\setup\paths_template.m| to
+% |+dat\paths.m|:
+assert(exist('addRigboxPaths','file') == 2, ...
+  'Rigbox not installed.  Please run addRigboxPaths.m before continuing')
+root = fileparts(which('addRigboxPaths')); % Location of Rigbox root dir
+source = fullfile(root, 'docs', 'setup', 'paths_template.m');
+destination = fullfile(root, '+dat', 'paths.m');
+assert(copyfile(source, destination), 'Failed to copy the template file')
+
+%% Sharing a folder in Windows
+% If you don’t yet have a data server, follow the steps below to set up a
+% shared folder on the stimulus server computer:
+%
+% # Create a folder in C:\ called ‘LocalExpCode’ and one called
+% ‘LocalExpData’ (if it doesn’t already exist)
+% # Copy everything inside the GitHub\Rigbox\Repositories\data folder into
+% ‘LocalExpData’ and everything inside GitHub\Rigbox\Repositories\code into
+% ‘LocalExpCode’
+% # Right click on the ‘LocalExpData’ folder and select Properties and
+% select the Sharing tab and click ‘Share...’
+% # Under the drop-down list select ‘Everyone’ and click ‘Add’, then
+% ‘Share’.
+% # Now click ‘Advanced Sharing…’, make sure the ‘Share this folder’ check
+% box is selected.  Click the ‘Permissions’ button and ensure that under
+% the ‘Permissions for Everyone’ section, the ‘Full Control’ is allowed.
+% # Repeat step 3, 4 and 5 for ‘LocalExpCode’.
+% # You should now be able to navigate to these folder from other computers
+% on the network be going to \\<StimulusServerName>\LocalExpData (where
+% ‘<StimulusServerName>’ is the computer name of the stimulus server)
+% # In dat.paths, change line 21 to be the following: serverName =
+% '\\<StimulusServerName>';  % where '<StimulusServerName>'    is the
+% stimulus server’s computer name
+% # On lines 26 and 32, replace ‘data’ with ‘LocalExpData’ and on lines 37
+% and 41, replace the word ‘code’ with ‘LocalExpCode’.
+% # Save the paths file in Documents\MATLAB\+dat and do the same on the mc
+% computer (the two computers must have the same paths).
+
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.1
+
+##### SOURCE END #####
+--></body></html>

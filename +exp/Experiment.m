@@ -9,67 +9,69 @@ classdef Experiment < handle
   % 2012-11 CB created
   
   properties
-    %An array of event handlers. Each should specify the name of the
-    %event that activates it, callback functions to be executed when
-    %activated and an optional delay between the event and activation.
-    %They should be objects of class EventHandler.
+    % An array of event handlers. Each should specify the name of the
+    % event that activates it, callback functions to be executed when
+    % activated and an optional delay between the event and activation.
+    % They should be objects of class EventHandler.
     EventHandlers = exp.EventHandler.empty;
     
-    %Timekeeper used by the experiment. Clocks return the current time. See
-    %the Clock class definition for more information.
+    % Timekeeper used by the experiment. Clocks return the current time. See
+    % the Clock class definition for more information.
     Clock = hw.ptb.Clock;
     
-    %A stimulus window for rendering visual stimuli during the experiment.
-    %Must be of Window class.
+    % A stimulus window for rendering visual stimuli during the experiment.
+    % Must be of Window class.
     StimWindow;
     
-    %Handles conversion between graphics and visual field coordinates of
-    %the stimulus window. Must be an object of ViewingModel class.
+    % Handles conversion between graphics and visual field coordinates of
+    % the stimulus window. Must be an object of ViewingModel class.
     StimViewingModel;
     
-    %Key for terminating an experiment whilst running. Shoud be a
-    %Psychtoolbox keyscan code (see PTB KbName function).
+    % Key for terminating an experiment whilst running. Shoud be a
+    % Psychtoolbox keyscan code (see PTB KbName function).
     QuitKey = KbName('esc')
     
-    PauseKey = KbName('esc') %Key for pausing an experiment
+    % Key for pausing an experiment
+    PauseKey = KbName('esc')
     
-    %Possible phases of the experiment. Cell array of the names (strings) of the phases.
+    % Possible phases of the experiment. Cell array of the names (strings) of the phases.
     % not currently used
 %     Phases = {};
     
-    %Display debugging information
+    % Display debugging information
     DisplayDebugInfo = false;
 
-    %Provides the conditions (parameters etc) for each trial. Must be an
-    %object of class exp.ConditionServer
+    % Provides the conditions (parameters etc) for each trial. Must be an
+    % object of class exp.ConditionServer
     ConditionServer;
     
-    LoopDuration = [];
-    
-    %String description of the type of experiment, to be saved into the
-    %block data field 'expType'.
+    % String description of the type of experiment, to be saved into the
+    % block data field 'expType'.
     Type = '';
     
-    %Reference for the rig that this experiment is being run on, to be
-    %saved into the block data field 'rigName'.
+    % Reference for the rig that this experiment is being run on, to be
+    % saved into the block data field 'rigName'.
     RigName
     
     Communicator = io.DummyCommunicator
     
     Audio
     
-    %Delay (secs) before starting main experiment phase after experiment
-    %init phase has completed
+    % Delay (secs) before starting main experiment phase after experiment
+    % init phase has completed
     PreDelay = 0 
     
-    %Delay (secs) before beginning experiment cleanup phase after
-    %main experiment phase has completed (assuming an immediate abort
-    %wasn't requested).
+    % Delay (secs) before beginning experiment cleanup phase after
+    % main experiment phase has completed (assuming an immediate abort
+    % wasn't requested).
     PostDelay = 0
     
-    IsPaused = false %flag indicating whether the experiment is paused
+    % Flag indicating whether the experiment is paused.
+    % FIXME Protect access to IsPaused property
+    % @body This should be set only via the pause and resume methods
+    IsPaused = false
     
-    %AlyxToken from client
+    % AlyxToken from client
     AlyxInstance
   end
   
@@ -292,7 +294,7 @@ classdef Experiment < handle
       end
       
         %post comms notification with event name and time
-      if isempty(obj.AlyxInstance)
+      if isempty(obj.AlyxInstance) || ~obj.AlyxInstance.IsLoggedIn
         post(obj, 'AlyxRequest', obj.Data.expRef); %request token from client
         pause(0.2) 
       end

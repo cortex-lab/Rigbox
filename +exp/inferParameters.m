@@ -1,5 +1,5 @@
 function parsStruct = inferParameters(expdef)
-%EXP.INFERPARAMETERS Infers the parameters required for experiment
+%EXP.INFERPARAMETERS Infers the parameters required for Signals experiments
 %   Detailed explanation goes here
 
 % create some signals just to pass to the definition function and track

@@ -1,0 +1,360 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-31"><meta name="DC.source" content="using_ExpPanel.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>ExpPanels are panels under the Experiment &gt; Current tab of mc that display information about events occuring during an experiment.  This document contains information on how to set up an ExpPanel for customizing the monitoring of an Experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">exp.ExpPanel</a></li><li><a href="#2">Basic layout</a></li><li><a href="#3">Title</a></li><li><a href="#4">InfoGrid</a></li><li><a href="#5">CustomPanel</a></li><li><a href="#6">CommentsBox</a></li><li><a href="#7">ButtonPanel</a></li><li><a href="#8">Method call sequence</a></li><li><a href="#9">exp.SignalsExpPanel</a></li><li><a href="#10">Custom Signals ExpPanels</a></li><li><a href="#11">Notes, etc.</a></li></ul></div><h2 id="1">exp.ExpPanel</h2><p>The base class for the ExpPanel is the <tt>exp.ExpPanel</tt>.  All subclasses chain a call to this class.</p><p>When starting a new experiment in MC a new ExpPanel is created by calling the static contructor method `live`:</p><pre class="language-matlab">p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+doc <span class="string">eui.ExpPanel/live</span>
+</pre><p>The precise subclass used depends on the `type` parameter in the paramsStruct input.  Currently supported types include SingleTargetChoiceWorld, ChoiceWorld, DiscWorld, SurroundChoiceWorld (<tt>eui.ChoiceExpPanel</tt>); BarMapping (<tt>eui.MappingExpPanel</tt>); custom a.k.a. Signals (<tt>eui.SignalsExpPanel</tt>).</p><p>For Signals experiments the default ExpPanel class may be overridden by providing a parameter named `expPanelFun` whose value is either a function handle for an ExpPanel constructor or path to the class to be instantiated.  This parameter is automatically added in MC if the folder from which the experiment function was loaded contains an ExpPanel.  The name must be the same as the experiment function but with 'ExpPanel' added, e.g. for 'advancedChoiceWorld.m', the corresponding ExpPanel file would be 'advancedChoiceWorldExpPanel.m'.</p><h2 id="2">Basic layout</h2><p>The ExpPanel has the following basic layout...</p><h2 id="3">Title</h2><p>The panel title contains the experiment reference and the name of the remote rig.  When the experiment is initializing or during the cleanup/post-delay phase the title is amber.  During the main experiment phase the title turns green and when complete, red.  This title colour and other properties are set in the `live` method then subsequently by the `event` method.  The title is stored in the Root.Title property.</p><h2 id="4">InfoGrid</h2><p>The info grid contains all experiment event labels and their current values.  As new events occur they're added to the last via a call to addInfoField.  There are 4 default fields:</p><div><ul><li>Status - The current experimental phase, e.g. 'Pending', 'Complete'.     The status is set based on 'ExpUpdate' events from the remote rig     (see the `expUpdate` method).</li><li>Duration - The time elapsed since the experiment began.  This     is updated each time the `update` method is called (every 100ms in     MC).</li><li>Trial count - The total number of trials.  This field is updated based     on the 'newTrial' ExpUpdate status (see `expUpdate` method).</li><li>Condition - The current trial condition.  This only appears if     `conditionId` parameter is defined.</li></ul></div><p>The fields may be hidden by right-clicking one and selecting 'Hide field'.  The hidden fields may be reset by selecting 'Reset hidden'.</p><h2 id="5">CustomPanel</h2><p>A container for subclasses to build plots into.  For example in the ChoiceWorld Experiment, this contains a psychometric curve plot and the trace of the wheel input.</p><h2 id="6">CommentsBox</h2><p>An input field for taking notes.  These are automatically saved to the Log (see <tt>dat.logPath</tt>, <tt>dat.logEntries</tt>).  If logged into Alyx the notes are also saved to the database session narrative (see <tt>Alyx.updateNarrative</tt>).  The comments box may be hidden by right-clicking and selecting 'Hide comments'.</p><h2 id="7">ButtonPanel</h2><p>A set of buttons for ending/aborting the experiment as well as viewing the parameter set.  If End is pressed, the experiment is ended after the post delay, the block's endStatus field is set to 'quit', and ALF files may be extracted from the block.  If Abort is pressed, the post delay is skipped, the endStatus is set to 'aborted' and no ALF files are extracted from the block during save.</p><h2 id="8">Method call sequence</h2><p>Below is the sequence of method calls.  This is useful to be aware of when making your own subclass.</p><pre>mc/beginExp
+     |
+eui.ExpPanel/live
+     |
+eui._ExpPanel/_ExpPanel (may be a subclass constructor, e.g.
+     |                   SignalsExpPanel)
+eui._ExpPanel/build (subclasses should chain call to superclass build)
+     |
+eui.ExpPanel/addInfoField (adds any default info labels, e.g.
+                           TrialCount)</pre><pre>eui._ExpPanel/update (mc timer callback)
+     | (if eui.SignalsExpPanel or subclass.
+     |  NB: All subclasses should chain a call to superclass update)
+eui._ExpPanel/processUpdates (method only present in SignalExpPanel
+     |                        classes)
+eui.ExpPanel/addInfoField (adds any new Signals event fields)</pre><h2 id="9">exp.SignalsExpPanel</h2><p>The subclass, <tt>eui.SignalsExpPanel</tt>, is the default class for Signals Experiments.   In this class, all Signals updates are shown as InfoFields whose colours pulse green as the values update.  The signals sent from the stimulus computer includes events, parameters, inputs and outputs signals.  The 'Trial count' field reflects the value of events.trialNum.</p><p>The UpdatesFilter property contains a list of signals updates to create a label for, or if Exclude == true, all signals names in this list are ignored.  This is useful when your events structure is large and you don't wish to see all of them during the experiment.</p><p><tt>exp.SignalsExp</tt> periodically(1) sends signals event updates to the <tt>MC</tt> computer(2).  These updates trigger the expUpdate method which stores the updates in the SignalUpdates property.  All updates in this property are delt with and removed by the processUpdates method, which is called via the update by the <tt>MC</tt> Refresh timer once per 100ms(3).</p><p>The SignalUpdate property is a struct with the following fields:</p><div><ul><li>name - The name of the signal, e.g. 'events.newTrial'</li><li>value - The value of the signal.</li><li>timestamp - a date vector of the date and time when the signal was queued.  (NB: This is in the system time of the remote rig and depends on its timezone.  These timestamps aren't as precise as those in the block file).</li></ul></div><p>When new updates are processed in <tt>eui.SignalsExpPanel</tt>, if an info field does not already exist, one is created.  When the FormatLabels property is true the Signals update labels are formatted as sperate words.  For example 'events.newTrial' is displayed as 'New trial'.  This flag and others such as the UpdatesFilter can be set it your subclass constructor.</p><h2 id="10">Custom Signals ExpPanels</h2><p>Below is a list of steps to follow when creating a custom Signals ExpPanel, for an example of this see advancedChoiceWorldExpPanel(4):</p><div><ol><li>Subclass <tt>eui.SignalsExpPanel</tt>  Subclassing means you will inherit all of the methods and properties  found in <tt>eui.SignalsExpPanel</tt> and <tt>eui.ExpPanel</tt>.</li><li>Add any extra properties specific to your ExpPanel  For example if you're creating a new plot you may wish to store the axes  in a property.  (c.f. PsychometricAxes in advancedChoiceWorldExpPanel)</li><li>Add a constructor to initialize any properties if required  Chain a call to the superclass method like so:  <tt>obj = <a href="mailto:obj@eui.SignalsExpPanel">obj@eui.SignalsExpPanel</a>(parent, ref, params, logEntry);</tt></li><li>Add a build method to initialize an axes or extra UI elements.  Typically everything built here will use obj.CustomPanel as the parent  container.  This method must have protected access.  Chain a call to the superclass method first:  <tt>build@eui.SignalsExpPanel(obj, parent);</tt></li><li>Add a processUpdates to deal with your experiment-specific events.  Here you can add code to update plots, etc. based on the event updates.  This method must have protected access.  Instead of chaining a call,  copy the code from eui.SignalsExpPanel/processUpdates directly and use  it as a template for your own functions.</li></ol></div><p>There are some useful superclass methods that are useful to keep in mind:</p><div><ul><li>mergeTrialData - Update the local block structure with data from the last trial.  This is found in eui.ExpPanel.</li><li>newTrial - This doesn't do anything in the superclasses but is a good place to put code that should be executed at events.newTrial.  Call it from processUpdates.</li><li>trialCompleted - As with newTrial, this could be used as a place for code that runs after e.g. an outputs or feedback event.</li><li>expStopped - Useful for executing code when the session ends.  Must chain a call to superclass here.</li><li>expStarted - See above.</li><li>cleanup - Place code here for e.g. stopping timers, clearing listeners, etc.</li></ul></div><p>Here are some useful properties to be aware of:</p><div><ul><li>Parameters - A copy of that experiment's paramStruct.</li><li>UpdatesFilter - As mentioned above, this holds a cell array of events you wish to ignore/include.  It's behaviour depends on whether the Exclude property is true or false.</li><li>RecentColour - The colour of recently updated Signals update events in the InfoGrid.  This can be changed dynamically during the session, for instance could turn red as the subject's performance declines or towards the end of the session.</li></ul></div><p>Finally there are some other useful untilities to be aware of:</p><div><ul><li>+psy - The <tt>psy</tt> package contains useful functions for plotting psychometrics and producing fits.</li><li><tt>bui.Axes</tt> - This class provides a convenient way to interact with plotting axes.  It's particularly useful if you wish to add multple elements to the same axes.  Below is an example from advancedChoiceWorld:</li></ul></div><pre class="codeinput">obj.ExperimentAxes = bui.Axes(plotgrid); <span class="comment">% Create new bui.Axes object</span>
+obj.ExperimentAxes.ActivePositionProperty = <span class="string">'position'</span>;
+obj.ExperimentAxes.XTickLabel = []; <span class="comment">% Remove the X tick labels</span>
+obj.ExperimentAxes.NextPlot = <span class="string">'add'</span>; <span class="comment">% Add new plots without clearing axes</span>
+<span class="comment">% First initialize a plot for the wheel trace and store the resulting axes</span>
+obj.ExperimentHands.wheelH = plot(obj.ExperimentAxes,<span class="keyword">...</span>
+  [0 0],<span class="keyword">...</span>
+  [NaN NaN],<span class="keyword">...</span>
+  <span class="string">'Color'</span>, .75*[1 1 1]);
+<span class="comment">% Now initialize a threshold line on the same plot</span>
+obj.ExperimentHands.threshL = plot(obj.ExperimentAxes, <span class="keyword">...</span>
+  [0 0],<span class="keyword">...</span>
+  [NaN NaN],<span class="keyword">...</span>
+  <span class="string">'Color'</span>, [1 1 1], <span class="string">'LineWidth'</span>, 4);
+<span class="comment">% Note that updating plots can be memory intensive, so consider tweaks such</span>
+<span class="comment">% as updating the underlying plot data instead of clearing and redrawing:</span>
+set(obj.ExperimentHands.wheelH,<span class="keyword">...</span>
+  <span class="string">'XData'</span>, xx,<span class="keyword">...</span>
+  <span class="string">'YData'</span>, tt);
+<span class="comment">% Also take a look at the drawnow builtin function:</span>
+doc <span class="string">drawnow</span>
+</pre><h2 id="11">Notes, etc.</h2><p>(1) <tt>exp.SignalsExp</tt> sends any new Signals event updates once every 100ms: opentoline(which('exp.SignalsExp'), 731, 9)</p><p>(2) Any number of computers may listen for these updates, see <a href="./websocket_config.html">websocket_config</a></p><p>(3) See <tt>eui.MControl</tt>: opentoline(which('eui.MControl'), 84, 7)</p><p>(4) The below three lines will open this file:</p><pre class="codeinput"><span class="comment">% rigbox = getOr(dat.paths, 'rigbox'); % Location of Rigbox code</span>
+<span class="comment">% exampleExps = fullfile(rigbox, 'signals', 'docs', 'examples');</span>
+<span class="comment">% open(fullfile(exampleExps, 'advancedChoiceWorldExpPanel.m'))</span>
+
+<span class="comment">% Author: Miles Wells</span>
+<span class="comment">%</span>
+<span class="comment">% v1.0.0</span>
+
+<span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% ExpPanels are panels under the Experiment > Current tab of mc that
+% display information about events occuring during an experiment.  This
+% document contains information on how to set up an ExpPanel for
+% customizing the monitoring of an Experiment.
+
+%% exp.ExpPanel
+% The base class for the ExpPanel is the |exp.ExpPanel|.  All subclasses
+% chain a call to this class.
+%
+% When starting a new experiment in MC a new ExpPanel is created by calling
+% the static contructor method `live`:
+% 
+%   p = live(parent, ref, remoteRig, paramsStruct, activateLog)
+%   doc eui.ExpPanel/live
+% 
+% The precise subclass used depends on the `type` parameter in the
+% paramsStruct input.  Currently supported types include
+% SingleTargetChoiceWorld, ChoiceWorld, DiscWorld, SurroundChoiceWorld
+% (|eui.ChoiceExpPanel|); BarMapping (|eui.MappingExpPanel|); custom a.k.a.
+% Signals (|eui.SignalsExpPanel|).  
+%
+% For Signals experiments the default ExpPanel class may be overridden by
+% providing a parameter named `expPanelFun` whose value is either a
+% function handle for an ExpPanel constructor or path to the class to be
+% instantiated.  This parameter is automatically added in MC if the folder
+% from which the experiment function was loaded contains an ExpPanel.  The
+% name must be the same as the experiment function but with 'ExpPanel'
+% added, e.g. for 'advancedChoiceWorld.m', the corresponding ExpPanel file
+% would be 'advancedChoiceWorldExpPanel.m'.
+
+%% Basic layout
+% The ExpPanel has the following basic layout...
+
+%%% Title
+% The panel title contains the experiment reference and the name of the
+% remote rig.  When the experiment is initializing or during the
+% cleanup/post-delay phase the title is amber.  During the main experiment
+% phase the title turns green and when complete, red.  This title colour
+% and other properties are set in the `live` method then subsequently by
+% the `event` method.  The title is stored in the Root.Title property.
+
+%%% InfoGrid
+% The info grid contains all experiment event labels and their current
+% values.  As new events occur they're added to the last via a call to
+% addInfoField.  There are 4 default fields:
+%
+% * Status - The current experimental phase, e.g. 'Pending', 'Complete'.
+%     The status is set based on 'ExpUpdate' events from the remote rig
+%     (see the `expUpdate` method).
+% * Duration - The time elapsed since the experiment began.  This
+%     is updated each time the `update` method is called (every 100ms in
+%     MC).
+% * Trial count - The total number of trials.  This field is updated based
+%     on the 'newTrial' ExpUpdate status (see `expUpdate` method).
+% * Condition - The current trial condition.  This only appears if
+%     `conditionId` parameter is defined.
+%
+% The fields may be hidden by right-clicking one and selecting 'Hide
+% field'.  The hidden fields may be reset by selecting 'Reset hidden'.
+
+%%% CustomPanel
+% A container for subclasses to build plots into.  For example in the
+% ChoiceWorld Experiment, this contains a psychometric curve plot and the
+% trace of the wheel input.  
+
+%%% CommentsBox
+% An input field for taking notes.  These are automatically saved to the
+% Log (see |dat.logPath|, |dat.logEntries|).  If logged into Alyx the notes
+% are also saved to the database session narrative (see
+% |Alyx.updateNarrative|).  The comments box may be hidden by
+% right-clicking and selecting 'Hide comments'.
+
+%%% ButtonPanel
+% A set of buttons for ending/aborting the experiment as well as viewing
+% the parameter set.  If End is pressed, the experiment is ended after the
+% post delay, the block's endStatus field is set to 'quit', and ALF files
+% may be extracted from the block.  If Abort is pressed, the post delay is
+% skipped, the endStatus is set to 'aborted' and no ALF files are extracted
+% from the block during save.
+
+%% Method call sequence
+% Below is the sequence of method calls.  This is useful to be aware of
+% when making your own subclass.
+%
+%  mc/beginExp
+%       |
+%  eui.ExpPanel/live
+%       |
+%  eui._ExpPanel/_ExpPanel (may be a subclass constructor, e.g.
+%       |                   SignalsExpPanel)
+%  eui._ExpPanel/build (subclasses should chain call to superclass build)
+%       |
+%  eui.ExpPanel/addInfoField (adds any default info labels, e.g.
+%                             TrialCount)
+%
+%
+%  eui._ExpPanel/update (mc timer callback)
+%       | (if eui.SignalsExpPanel or subclass. 
+%       |  NB: All subclasses should chain a call to superclass update)
+%  eui._ExpPanel/processUpdates (method only present in SignalExpPanel
+%       |                        classes)
+%  eui.ExpPanel/addInfoField (adds any new Signals event fields)
+
+%% exp.SignalsExpPanel
+% The subclass, |eui.SignalsExpPanel|, is the default class for Signals
+% Experiments.   In this class, all Signals updates are shown as InfoFields
+% whose colours pulse green as the values update.  The signals sent from
+% the stimulus computer includes events, parameters, inputs and outputs
+% signals.  The 'Trial count' field reflects the value of events.trialNum.
+%
+% The UpdatesFilter property contains a list of signals updates to create a
+% label for, or if Exclude == true, all signals names in this list are
+% ignored.  This is useful when your events structure is large and you
+% don't wish to see all of them during the experiment.
+%
+% |exp.SignalsExp| periodically(1) sends signals event updates to the |MC|
+% computer(2).  These updates trigger the expUpdate method which stores the
+% updates in the SignalUpdates property.  All updates in this property are
+% delt with and removed by the processUpdates method, which is called via
+% the update by the |MC| Refresh timer once per 100ms(3).
+%
+% The SignalUpdate property is a struct with the following fields:
+% 
+% * name - The name of the signal, e.g. 'events.newTrial'
+% * value - The value of the signal.
+% * timestamp - a date vector of the date and time when the signal was
+% queued.  (NB: This is in the system time of the remote rig and depends on
+% its timezone.  These timestamps aren't as precise as those in the block
+% file).
+%
+% When new updates are processed in |eui.SignalsExpPanel|, if an info field
+% does not already exist, one is created.  When the FormatLabels property
+% is true the Signals update labels are formatted as sperate words.  For
+% example 'events.newTrial' is displayed as 'New trial'.  This flag and
+% others such as the UpdatesFilter can be set it your subclass constructor.
+
+%% Custom Signals ExpPanels
+% Below is a list of steps to follow when creating a custom Signals
+% ExpPanel, for an example of this see advancedChoiceWorldExpPanel(4):
+% 
+% # Subclass |eui.SignalsExpPanel|
+%  Subclassing means you will inherit all of the methods and properties
+%  found in |eui.SignalsExpPanel| and |eui.ExpPanel|.
+% # Add any extra properties specific to your ExpPanel
+%  For example if you're creating a new plot you may wish to store the axes
+%  in a property.  (c.f. PsychometricAxes in advancedChoiceWorldExpPanel)
+% # Add a constructor to initialize any properties if required
+%  Chain a call to the superclass method like so:
+%  |obj = obj@eui.SignalsExpPanel(parent, ref, params, logEntry);|
+% # Add a build method to initialize an axes or extra UI elements.
+%  Typically everything built here will use obj.CustomPanel as the parent
+%  container.  This method must have protected access.
+%  Chain a call to the superclass method first:
+%  |build@eui.SignalsExpPanel(obj, parent);|
+% # Add a processUpdates to deal with your experiment-specific events.
+%  Here you can add code to update plots, etc. based on the event updates.
+%  This method must have protected access.  Instead of chaining a call,
+%  copy the code from eui.SignalsExpPanel/processUpdates directly and use
+%  it as a template for your own functions.
+%
+%
+% There are some useful superclass methods that are useful to keep in mind:
+%
+% * mergeTrialData - Update the local block structure with data from the
+% last trial.  This is found in eui.ExpPanel.
+% * newTrial - This doesn't do anything in the superclasses but is a good
+% place to put code that should be executed at events.newTrial.  Call it
+% from processUpdates.
+% * trialCompleted - As with newTrial, this could be used as a place for
+% code that runs after e.g. an outputs or feedback event.
+% * expStopped - Useful for executing code when the session ends.  Must
+% chain a call to superclass here.
+% * expStarted - See above.
+% * cleanup - Place code here for e.g. stopping timers, clearing listeners,
+% etc.
+%
+%
+% Here are some useful properties to be aware of:
+%
+% * Parameters - A copy of that experiment's paramStruct.
+% * UpdatesFilter - As mentioned above, this holds a cell array of events
+% you wish to ignore/include.  It's behaviour depends on whether the
+% Exclude property is true or false.
+% * RecentColour - The colour of recently updated Signals update events in
+% the InfoGrid.  This can be changed dynamically during the session, for
+% instance could turn red as the subject's performance declines or towards
+% the end of the session.
+%
+%
+% Finally there are some other useful untilities to be aware of:
+%
+% * +psy - The |psy| package contains useful functions for plotting
+% psychometrics and producing fits.
+% * |bui.Axes| - This class provides a convenient way to interact with
+% plotting axes.  It's particularly useful if you wish to add multple
+% elements to the same axes.  Below is an example from advancedChoiceWorld:
+
+obj.ExperimentAxes = bui.Axes(plotgrid); % Create new bui.Axes object
+obj.ExperimentAxes.ActivePositionProperty = 'position';
+obj.ExperimentAxes.XTickLabel = []; % Remove the X tick labels
+obj.ExperimentAxes.NextPlot = 'add'; % Add new plots without clearing axes
+% First initialize a plot for the wheel trace and store the resulting axes
+obj.ExperimentHands.wheelH = plot(obj.ExperimentAxes,...
+  [0 0],...
+  [NaN NaN],...
+  'Color', .75*[1 1 1]);
+% Now initialize a threshold line on the same plot
+obj.ExperimentHands.threshL = plot(obj.ExperimentAxes, ...
+  [0 0],...
+  [NaN NaN],...
+  'Color', [1 1 1], 'LineWidth', 4);
+% Note that updating plots can be memory intensive, so consider tweaks such
+% as updating the underlying plot data instead of clearing and redrawing:
+set(obj.ExperimentHands.wheelH,...
+  'XData', xx,...
+  'YData', tt);
+% Also take a look at the drawnow builtin function:
+doc drawnow
+
+%% Notes, etc.
+% (1) |exp.SignalsExp| sends any new Signals event updates once every 100ms:
+% opentoline(which('exp.SignalsExp'), 731, 9)
+%
+% (2) Any number of computers may listen for these updates, see
+% <./websocket_config.html websocket_config>
+%
+% (3) See |eui.MControl|:
+% opentoline(which('eui.MControl'), 84, 7)
+%
+% (4) The below three lines will open this file:
+
+% rigbox = getOr(dat.paths, 'rigbox'); % Location of Rigbox code
+% exampleExps = fullfile(rigbox, 'signals', 'docs', 'examples');
+% open(fullfile(exampleExps, 'advancedChoiceWorldExpPanel.m'))
+
+% Author: Miles Wells
+%
+% v1.0.0
+
+%#ok<*NOPTS,*ASGLU,*NASGU>
+
+##### SOURCE END #####
+--></body></html>

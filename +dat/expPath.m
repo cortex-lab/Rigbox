@@ -23,6 +23,9 @@ if nargin == 2 || nargin == 4
   reposArgs = varargin(end);
   varargin = varargin(1:end - 1);
 else
+  % Check for minimum inputs
+  assert(nargin > 2, ...
+    'Rigbox:dat:expPath:NotEnoughInputs', 'Must provide repo location')
   reposArgs = varargin((end - 1):end);
   varargin = varargin(1:end - 2);
 end

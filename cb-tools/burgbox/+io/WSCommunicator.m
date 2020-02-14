@@ -24,7 +24,7 @@ classdef WSCommunicator < io.Communicator
   
   properties (Transient)
     WebSocket
-    EventMode = false
+    EventMode = 'off'
   end
   
   properties (Access = private, Transient)
