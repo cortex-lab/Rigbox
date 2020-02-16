@@ -6,6 +6,33 @@
 % that manage experimental log entries and parameter profiles. A nice
 % metaphor for this package is a lab notebook.
 
+%% Setting up the paths
+% In order to use Rigbox, a 'paths' file must be placed in a |+dat| folder
+% somewhere in the MATLAB path. You can copy |docs/setup/paths_template.m|
+% to |+dat/paths.m|, then customise the file according to your setup. The
+% paths used by the wider Rigbox code are found in the 'essential paths'
+% section of the |paths_template.m| file. These paths are required to run
+% experiments. Any number of custom repositories may be set, allowing them
+% to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see
+% below).
+%
+% It may be prefereable to keep the paths file in a shared network drive
+% where all rigs can access it.  This way only one file needs updating when
+% a path gets changed.  You can also override and add to the fields set by
+% the paths file in a rig specific manner.  To do this, create your paths
+% as a struct with the name `paths` and save this to a MAT file called
+% `paths` in your rig specific config folder:
+rigConfig = getOr(dat.paths('exampleRig'), 'rigConfig');
+customPathsFile = fullfile(rigConfig, 'paths.mat');
+paths.mainRepository = 'overide/path'; % Overide main repo for `exampleRig`
+paths.addedRepository = 'new/custom/path'; % Add novel repo
+
+save(customPathsFile, 'paths') % Save your new custom paths file.
+
+% More info in the paths template:
+root = getOr(dat.paths, 'rigbox');
+opentoline(fullfile(root, 'docs', 'setup', 'paths_template.m'), 75)
+
 %% Using expRefs
 % Experiment reference strings are human-readable labels constructed from
 % the subject name, date and sequence (i.e. session number).  Many of the
@@ -63,7 +90,7 @@ clearCBToolsCache % Clear the cached block file
 % 'mainRepository' paths
 [expRef, expSeq] = dat.newExp(subject, expDate, expParams);
 
-%% Loading parameter sets
+%% Loading parameters
 % The dat package allows you to load both session specific and experiment
 % specific <./using_parameters.html parameters> .
 expType = 'custom'; % signals experiments have the type 'custom'
