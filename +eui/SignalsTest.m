@@ -74,6 +74,8 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     SelectExpDef % handle to 'Select Signals Exp Def' push-button
     OptionsButton % handle to 'Options' push-button
     StartButton % handle to 'Start' push-button
+    % Flag set to true when the obj is being deleted
+    Deleting = false
   end
   
   events
@@ -193,12 +195,10 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       else
         obj.Hardware = rig;
       end
-      tc = matlab.mock.TestCase.forInteractiveUse;
-      [obj.DummyRemote, behaviour] = tc.createMock(?srv.StimulusControl);
-      when(withAnyInputs(behaviour.quitExperiment), ...
-        matlab.mock.actions.Invoke(@(~,TF)obj.startStopExp(TF)));
+      obj.DummyRemote = srv.DummyStimulusControl;
+      addlistener(obj.DummyRemote, 'QuitExperiment', @(~,evt)obj.startStopExp(evt.Data));
+
       % Keep TestCase around until cleanup
-      addlistener(obj, 'ObjectBeingDestroyed', @(~,~)delete(tc));
       cb = @(~,e) iff(strcmp(e.Name,'update'), @()obj.log('Experiment update: %s', e.Data{2}), @nop);
       addlistener(obj.DummyRemote, 'ExpUpdate', cb);
       obj.DummyRemote.Name = obj.Hardware.name;
@@ -279,11 +279,11 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         % Configure the ExpPanel
         obj.ShowExpPanel = expPanelCheck.Value;
         if ~obj.ShowExpPanel % Hide the panel
-          obj.ExpPanelBox.Visible = false;
+          obj.ExpPanelBox.Visible = 'off';
           obj.ExpPanelBox.Parent.set('Widths', [-1, 0]);
         else % If an experiment is running, show panel, otherwise done by init
           if obj.IsRunning
-            obj.ExpPanelBox.Visible = true;
+            obj.ExpPanelBox.Visible = 'on';
             obj.ExpPanelBox.Parent.set('Widths', [-1, 400]);
           end
         end
@@ -349,6 +349,8 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         try
           obj.Experiment.run(varargin{:});
         catch ex
+          % If in the middle of deleting obj, 
+          if ~obj.Deleting, return, end
           % Experiment stopped with an exception
           % Notify panel and stop timer
           evt = srv.ExpEvent('exception', obj.Ref, ex.message);
@@ -404,6 +406,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
     function delete(obj)
       % makes sure to delete 'ScreenH' PTB Screen and 'LivePlot' figure
       fprintf('delete called on SignalsTest\n');
+      obj.Deleting = true;
       cleanup(obj)
       delete(obj.Experiment);
       if ~isempty(obj.LivePlotFig) && isvalid(obj.LivePlotFig)
@@ -433,7 +436,7 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
       panel = uix.HBox('Parent', obj.Parent, 'Padding', 5);
       obj.MainGrid = uix.GridFlex('Parent', panel, 'Spacing', 10,...
         'Padding', 5);
-      obj.ExpPanelBox = uix.VBox('Parent', panel, 'Padding', 5, 'Visible', 0);
+      obj.ExpPanelBox = uix.VBox('Parent', panel, 'Padding', 5, 'Visible', 'off');
       panel.set('Widths', [-1, 0])
       obj.ExpGrid = uix.Grid('Parent', obj.MainGrid, 'Spacing', 5,...
         'Padding', 5);
@@ -532,18 +535,20 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         % If there's a previous panel, delete it
         if ~isempty(obj.ExpPanel)
           delete(obj.ExpPanel)
+          obj.ExpPanelBox.Visible = 'on';
+          obj.ExpPanelBox.Parent.set('Widths', [-1, 400]);
         end
         % FIXME Call directly and remove logEntry flag
         obj.ExpPanel = eui.ExpPanel.live(obj.ExpPanelBox, obj.Ref, obj.DummyRemote, p, 0);
         hidePanel = @(~,~)fun.apply({ % TODO Turn off param too
-          @()set(obj.ExpPanelBox, 'Visible', false);
+          @()set(obj.ExpPanelBox, 'Visible', 'on');
           @()set(obj.ExpPanelBox.Parent, 'Widths', [-1, 0])});
         obj.Listeners = [obj.Listeners
           event.listener(obj, 'UpdatePanel', @(~,~)obj.ExpPanel.update())
           event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', hidePanel) % FIXME No need to keep around
           event.listener(obj.ExpPanel, 'ObjectBeingDestroyed', @(~,~)obj.stopTimer)];
         if strcmp(obj.ExpPanelBox.Visible, 'off')
-          obj.ExpPanelBox.Visible = true;
+          obj.ExpPanelBox.Visible = 'on';
           set(get(obj.ExpPanelBox, 'Parent'), 'Widths', [-1, 400])
         end
         start(obj.RefreshTimer);
