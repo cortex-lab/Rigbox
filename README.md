@@ -71,7 +71,7 @@ if you don't want to save the paths for future MATLAB sessions.
 Rigbox uses the *Signals* framework for programatically designing and running behavioral tasks. 
 See the *Signals* [docs](https://github.com/cortex-lab/signals/tree/master/docs) for more information on *Signals* and how to run example test experiments on a single computer via Rigbox's `+eui/SignalsTest.m` GUI.
 
-@todo add short 
+![](https://github.com/cortex-lab/Rigbox/blob/docs_reorg/docs/html/SignalsTest%20GUI%20Example.gif)
 (The above is an example of running the `signals/docs/examples/exp defs/advancedChoiceWorld.m` file in the `+eui/SignalsTest.m` GUI)
 
 For information on running experiments via MC and SC, see Rigbox's [index page](https://github.com/cortex-lab/Rigbox/blob/dev/docs/html/index.html). This page also contains information on setting up Rigbox (see also [`docs/setup`](https://github.com/cortex-lab/Rigbox/tree/master/docs/setup)) and using certain Rigbox features (see also [`docs/usage`](https://github.com/cortex-lab/Rigbox/tree/master/docs/setup)) after an MC and SC installation. Furthermore, this page gives an overview of the repository's organization.
