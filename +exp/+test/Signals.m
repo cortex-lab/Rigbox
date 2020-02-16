@@ -11,6 +11,11 @@ classdef Signals < exp.SignalsExp
   
   methods
     
+    % Explicit constructor required for 2017b
+    function obj = Signals(varargin)
+      obj = obj@exp.SignalsExp(varargin{:});
+    end
+    
     function updateParams(obj, paramStruct)
       % UPDATEPARAMS Updates parameters after initialization
       %  Updates the parameter signals with a new parameter set.
