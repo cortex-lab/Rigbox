@@ -24,7 +24,7 @@ For most experiments, typical, contemporary, factory-built desktops running Wind
 
 ### Software
 
-Below are the **minimum** computer software dependencies:
+Below are the **minimum** computer software dependencies which must be installed before installing Rigbox:
 
 * OS: 64 Bit Windows 7 (or later)
 * Libraries: Visual C++ Redistributable Packages for Visual Studio [2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
