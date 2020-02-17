@@ -15,37 +15,37 @@ For running experiments, we recommend installing Rigbox on two computers: one co
 
 ### Hardware
 
-For most experiments, typical, contemporary, factory-built desktops running Windows 10 with dedicated graphics cards should suffice. Specific requirements of a SC will depend on the complexity of the experiment. For example, running an audio-visual integration task on multiple screens will require quality graphics and sound cards. SCs may additionally require an i/o device to communicate with external rig hardware, of which only National Instruments Data Acquisition Devices (NI-DAQs, e.g. NI-DAQ USB 6211) are currently supported.
-
-Below are some **minimum** hardware specs required for computers that run Rigbox:
+Below are the **minimum** computer hardware specs:
 * CPU: 4 logical processors @ 3.0 GHz base speed (e.g. Intel Core i5-6500)
 * RAM: DDR4 16 GB @ 2133 MHz (e.g. Corsair Vengeance 16 GB)
 * GPU: 2 GB @ 1000 MHz base and memory speed (e.g. NVIDIA Quadro P400)
 
+For most experiments, typical, contemporary, factory-built desktops running Windows 10 with dedicated graphics cards should suffice. Specific requirements of a SC will depend on the complexity of the experiment. For example, running an audio-visual integration task on multiple screens will require quality graphics and sound cards. SCs may additionally require an i/o device to communicate with external rig hardware, of which only National Instruments Data Acquisition Devices (NI-DAQs, e.g. NI-DAQ USB 6211) are currently supported.
+
 ### Software
 
-Similar to the hardware requirements, software requirements for a SC will depend on the experiment: if acquiring data through a NI-DAQ, the SC will require the MATLAB Data Acquisition Toolbox and MATLAB [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) in addition to the following **minimum** requirements:
+Below are the **minimum** computer software dependencies:
 
 * OS: 64 Bit Windows 7 (or later)
 * Libraries: Visual C++ Redistributable Packages for Visual Studio [2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 * MATLAB: 2017b or later
 * Community MATLAB toolboxes:
 	* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
-    * [Psychophysics Toolbox](http://psychtoolbox.org/download.html#Windows) (v3 or later)
+	* [Psychophysics Toolbox](http://psychtoolbox.org/download.html#Windows) (v3 or later)
+	
+	The Psychophysics Toolbox is required for visual and auditory stimulus presentation. We recommend following their full installation instructions via the link above, but below we provide brief instructions:
 
-    		The Psychophysics Toolbox is required for visual and auditory stimulus presentation. We recommend following their full installation instructions via the link above, but below we provide brief instructions:
+	1. Download and install a Subversion client. [SilkSVN](https://sliksvn.com/download/) is recommended.
+	2. Download and install [gstreamer](https://gstreamer.freedesktop.org/download/). (When the installer prompts you, select the complete installation.)
+	3. Download the Psychtoolbox MATLAB [installer function](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
+	4. Run the installer function in MATLAB with a target installation location as a string input argument, e.g. `DownloadPsychtoolbox('C:\')`, and follow the instructions that appear in the MATLAB command window.
 
-    		1. Download and install a Subversion client. [SilkSVN](https://sliksvn.com/download/) is recommended.
 
-			2. Download and install [gstreamer](https://gstreamer.freedesktop.org/download/). (When the installer prompts you, select the complete installation.)
-
-			3. Download the Psychtoolbox MATLAB [installer function](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
-
-			4. Run the installer function in MATLAB with a target installation location as a string input argument, e.g. `DownloadPsychtoolbox('C:\')`, and follow the instructions that appear in the MATLAB command window.
+Similar to the hardware requirements, software requirements for a SC will depend on the experiment: if acquiring data through a NI-DAQ, the SC will require the MATLAB Data Acquisition Toolbox and MATLAB [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) 
 
 ## Installation
 
-Before starting, ensure you have read and followed the above [requirements section](#Requirements).
+Before starting, ensure you have read and followed the above [requirements section](#requirements).
 
 Here we provide brief instructions for installing Rigbox via Git. (If not already installed, download and install [Git](https://git-scm.com/download/win), and if unsure which options to select during installation, accept the installer defaults).
 
