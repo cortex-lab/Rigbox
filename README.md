@@ -53,17 +53,9 @@ Here we provide brief instructions for installing Rigbox via Git. (If not alread
 ```
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
-(*Note*: It is **not** recommended to clone directly into the MATLAB folder).
 
 2. Add all required Rigbox folders and functions to your MATLAB path. In MATLAB, navigate to the Rigbox root directory (where Rigbox was cloned), and run:
-```
-addRigboxPaths() 
-```
-OR
-```
-addRigboxPaths('SavePaths', false)
-```
-if you don't want to save the paths for future MATLAB sessions.
+`addRigboxPaths()`, OR `addRigboxPaths('SavePaths', false)` if you don't want to save the paths for future MATLAB sessions. 
 (*Note*: Do **not** manually add all Rigbox folders and subfolders to the paths.)
 
 ## Getting started
@@ -80,13 +72,12 @@ For information on running experiments via MC and SC, see Rigbox's [index page](
 
 With Git it's very easy to keep the code up-to-date. We strongly recommend regularly updating Rigbox and its submodules by running the following git commands (within the Rigbox directory):
 ```
-git fetch
 git pull --recurse-submodules
 ```
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/master/CONTRIBUTING.md) for details on how to contribute code to this repository and our code of conduct.
+If you experience a bug or have a feature request, please report them on the [GitHub Issues page](https://github.com/cortex-lab/Rigbox/issues). To contribute code, we encourage anyone to open up a pull request into the dev branch of Rigbox or one of its submodules. Ideally you should include documentation and a test with your feature. Please read [CONTRIBUTING.md](https://github.com/cortex-lab/Rigbox/blob/master/CONTRIBUTING.md) for details on how to contribute code to this repository and our code of conduct.
 
 ## Authors & Accreditation
 
