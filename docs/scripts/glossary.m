@@ -2,6 +2,12 @@
 % Below is a list of terms and their meaning, along with some links for
 % finding out more information.
 
+%% ALF
+% ALF stands for 'ALyx File'.  
+
+%% Alyx
+%
+
 %% Block file
 % The 'block' file is a MAT file that contains most of the data acquired
 % during an experiment.  It is saved by the Experiment class upon

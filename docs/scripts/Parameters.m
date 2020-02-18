@@ -1,4 +1,4 @@
-%% Introduction
+%% Parameters
 % This document contains information on how experiment parameters work in
 % Rigbox.  How to create them, edit them and save them.
 %
@@ -6,7 +6,7 @@
 % specific hardware configuration is required.  Always read the preceeding
 % text before running each line.
 
-%% Parameters
+%% Loading parameters
 % Parameters are structures that contain experiment and session specific
 % variables that may be set via a GUI and stored for each session.
 % Parameters are stored as structures saved MAT files and may also be saved
@@ -21,7 +21,8 @@ paramPath = dat.expFilePath(expRef, 'parameters') % Generate path for saving
 paramStruct = dat.expParams(expRef); % Returns empty if params don't exist
 
 % More info on generating paths can be found in USING_DAT_PACKAGE:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_dat_package.m'))
+root = getOr(dat.paths,'rigbox');
+open(fullfile(root, 'docs', 'scripts', 'using_dat_package.m'))
 
 %% Parameter structures
 % In signals a set of parameters may be extracted using EXP.INFERPARAMETERS
@@ -238,6 +239,10 @@ trialParams % (1,810) struct
 % parameters and on the right is the trial conditions table, containing the
 % conditional parameters.  
 PE = eui.ParamEditor(parameters)
+%%
+% 
+% <<ParamEditor.PNG>>
+% 
 
 %%% Global panel
 % The global panel is pretty simple.  Each parameter is represented by the
@@ -529,8 +534,6 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
 % Author: Miles Wells
 %
-% v1.1.0
+% v1.1.1
 
-% INTERNAL:
-%  ln209 ParamEditor.png
 %#ok<*NOPTS,*ASGLU,*NASGU>

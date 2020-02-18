@@ -46,8 +46,8 @@ hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
 
 % For more info on setting the paths and using the DAT package:
 rigbox = getOr(dat.paths, 'rigbox'); % Location of Rigbox code
-open(fullfile(rigbox, 'docs', 'setup', 'paths_config.m'))
-open(fullfile(rigbox, 'docs', 'using_dat_package.m'))
+open(fullfile(rigbox, 'docs', 'scripts', 'paths_config.m'))
+open(fullfile(rigbox, 'docs', 'scripts', 'using_dat_package.m'))
 
 %% Configuring the stimulus window
 % The +hw Window class is the main class for configuring the visual
@@ -500,7 +500,7 @@ save(hardware, 'timeline', '-append')
 
 % For more information on configuring and using Timeline, see
 % TIMELINE:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'Timeline.m'))
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'scripts', 'Timeline.m'))
 
 %% Weigh scale
 % MC allows you to log weights through the GUI by interfacing with a
@@ -661,6 +661,6 @@ d = daq.getDevices % Availiable devices and their info
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.0
+% v1.1.1
 
 %#ok<*NOPTS,*NASGU,*ASGLU>
