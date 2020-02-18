@@ -18,7 +18,7 @@ For running full experiments Rigbox requires two PCs: one for presenting stimuli
 Rigbox has the following software dependencies:
 * Windows Operating System (7 or later, 64-bit)
 * MATLAB (2017b or later) 
-* [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145) <for Signals>
+* [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015-2019](https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe) <for Signals>
 * The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
     * Data Acquisition Toolbox <For using an NI DAQ>
 * The following community MATLAB toolboxes:
@@ -36,13 +36,13 @@ Additionally, Rigbox works with a number of extra submodules (included with Rigb
 
 Below are a few minimum hardware requirements for both PCs.  These are more of a guide than a requirement as it depends on the type of experiments you wish to run. 
 
-**Processor:** Intel Core i3 7100, 3.9 GHz  
-**Graphics:** NVIDIA NVS 510 (for three screen support)  
-**Memory:** 16 GB 2133MHz DDR4 RAM, 1.2 V  
-**Storage:** 1TB HD, 7200rpm, 64MB Cache  
-**OS:** Windows 7 64-bit  
+**Processor:** Intel Core i5-6500 @ 3.0 GHz (or similar)
+**Graphics:** NVIDIA Quadro P400 (or similar)
+**Memory:** DDR4 16 GB @ 2133 MHz (e.g. Corsair Vengeance 16 GB) 
 
 ## Installation
+
+Below are instructions for installing Rigbox for users familiar with Git and MATLAB.  If you are completely new to both of these, please see the [simple installation guide](https://cortex-lab.github.io/Rigbox/intall_for_dummies.html).
 
 Before starting, ensure the above toolboxes and packages are installed.  PsychToobox can not be installed via the MATLAB AddOns browser.  See [Installing PsychToobox](#Installing-PsychToolbox) for install instructions.  
 
@@ -65,8 +65,9 @@ addRigboxPaths('SavePaths', false, 'Strict', false)
 PsychToolbox-3 is required for visual and auditory stimulus presentation.  Below are some simple steps for installing PsychToolbox.  For full details see [their documentation](http://psychtoolbox.org/download.html#Windows).
 
 1. Download and install a Subversion client.  [SilkSVN](https://sliksvn.com/download/) is recommended.
-2. Download the MATLAB [installer function](https://raw.githubusercontent.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
-3. Call the function in MATLAB with the target install location (folder must exist) and follow the instructions:
+2. Download and install the [64-Bit GStreamer-1.16.0 MSVC runtime](https://gstreamer.freedesktop.org/data/pkg/windows/1.16.0/gstreamer-1.0-msvc-x86_64-1.16.0.msi).  Make sure all offered packages are installed.
+3. Download the MATLAB [installer function](https://raw.githubusercontent.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
+4. Call the function in MATLAB with the target install location (folder must exist) and follow the instructions:
 ```
 DownloadPsychtoolbox('C:\') % Install to C drive
 ```
@@ -74,11 +75,12 @@ DownloadPsychtoolbox('C:\') % Install to C drive
 ## Getting started
 After following the installation instructions you can start playing around with Rigbox and Signals.  To run one of the example experiments, open MATLAB and run `eui.SignalsTest();`, then select 'advancedChoiceWorld.m'.
 
-Full Rigbox documentaion can be found in [docs/html/index.html](https://github.com/cortex-lab/tree/master/docs/index.m).
-To get an idea of how experiments run using the Rigbox Signal Experiment framework, have a look at the following file: [docs/html/using_test_gui.html](https://github.com/cortex-lab/signals/tree/master/docs/using_test_gui.m).  To learn how to create a new Signals experiment, see the [Signals tutorials](https://github.com/cortex-lab/signals/tree/master/docs/tutorials)
+Full Rigbox documentaion can be found at [https://cortex-lab.github.io/Rigbox/](https://cortex-lab.github.io/Rigbox/).
+To get an idea of how experiments are run using the Rigbox Signal Experiment framework see [Playing Around With Signals](https://cortex-lab.github.io/Rigbox/using_test_gui.html).  
+To run the example experiments from the Rigbox paper, see [Running Paper Examples](https://cortex-lab.github.io/Rigbox/paper_examples.html).
 
 ### Running an experiment
-For running experiments, edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).  Then configure the hardware by following the instructions in the [docs/html/hardware_config.html](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/hardware_config.m) file.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
+For running experiments, edit your `+dat.paths.m` file to set paths for saving config files and experiment data.  A template can be found in  [docs/setup/paths_template.m](https://github.com/cortex-lab/Rigbox/blob/master/docs/setup/paths_template.m).  Then configure the hardware by following the instructions in the [Configuring hardware](https://cortex-lab.github.io/Rigbox/hardware_config.html) guide.  This will guide you through configuring a visual viewing model, configuring audio devices and setting up hardware that requires a DAQ.  
 
 On the stimulus computer (SC), run:
 ```
