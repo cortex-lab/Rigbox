@@ -229,7 +229,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Simulate a couple of key presses and run
       KbQueueCheck(-1, sequence({'b', 'q'}));
-      srv.expServer(false, colour)
+      in = {'useTimelineOverride', false, 'bgColour', colour};
+      srv.expServer(in{:})
       
       % Filter for interactions
       f = @(type,name) @(a) contains(class(a), type) && strcmp(a.Name, name);
@@ -369,7 +370,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       import matlab.mock.constraints.WasSet
       
       KbQueueCheck(-1, sequence({'t', 'q'})); % Toggle timeline then quit
-      srv.expServer(false) % Call server
+      in = {'useTimelineOverride', false};
+      srv.expServer(in{:}) % Call server
       testCase.verifyThat(testCase.RigBehaviours.timeline.UseTimeline, ...
         WasSet('ToValue', false), 'Failed to override timeline default')
       
@@ -418,7 +420,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.clearMockHistory(testCase.Rig.communicator)
       
       KbQueueCheck(-1, 'q'); % Simulate quit
-      srv.expServer(true)
+      in = {'useTimelineOverride', true};
+      srv.expServer(in{:})
       
       % Filter for interactions
       f = @(type,name) @(a) contains(class(a), type) && strcmp(a.Name, name);
@@ -523,7 +526,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         id, {'run', testCase.Ref, 0, 0, ai}, 'mockRig');
       
       KbQueueCheck(-1, 'q');
-      srv.expServer(false) % run without timeline
+      in = {'useTimelineOverride', false};
+      srv.expServer(in{:}) % run without timeline
       
       % We expect Alyx to be made headless, then a file to be registered:
       hwInfo = dat.expFilePath(testCase.Ref, 'hw-info', 'master', 'json');
@@ -536,7 +540,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.throwExceptionWhen(withAnyInputs(behaviour.registerFile), ...
         MException('Alyx:registerFile:Fail', 'Failed!'))
       KbQueueCheck(-1, 'q');
-      testCase.verifyWarning(@()srv.expServer(false), 'Alyx:registerFile:Fail')
+      testCase.verifyWarning(@()srv.expServer(in{:}), 'Alyx:registerFile:Fail')
       
       %%% Test update request during experiment %%%
       % When the experiment is run, notify comm listeners of a new
@@ -555,7 +559,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.clearMockHistory(testCase.Experiment)
       
       KbQueueCheck(-1, 'q');
-      srv.expServer(false) % run without timeline
+      srv.expServer(in{:}) % run without timeline
       
       % Check confirmation of receipt sent
       comm = testCase.RigBehaviours.communicator;
@@ -756,7 +760,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         get(testCase.RigBehaviours.communicator.IsMessageAvailable), true)
       
       % Now run expServer
-      srv.expServer(false) % Override UseTimeline
+      in = {'useTimelineOverride', false};
+      srv.expServer(in{:}) % Override UseTimeline
       
       % We expect four messages sent:
       %  1. confirmation of 'run' receive
@@ -852,7 +857,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         AssignOutputs(true).then(AssignOutputs(false)))
       
       KbQueueCheck(-1, 'q'); % Simulate quit
-      testCase.verifyError(@()srv.expServer(false), exId, ...
+      in = {'useTimelineOverride', false};
+      testCase.verifyError(@()srv.expServer(in{:}), exId, ...
         'Failed to throw expected error')
       
       % Retrieve mock history for the communicator
@@ -889,7 +895,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         get(testCase.RigBehaviours.communicator.IsMessageAvailable), true)
       
       KbQueueCheck(-1, 'q'); % Simulate quit
-      srv.expServer(false)
+      srv.expServer(in{:})
       
       % Retrieve mock history for the communicator
       history = testCase.getMockHistory(testCase.Rig.communicator);
@@ -907,6 +913,45 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       testCase.verifyCalled(withAnyInputs(testCase.ExpBehaviour.delete), ...
         'Failed to cleanup experiment object')
+    end
+    
+    function test_single_shot(testCase)
+      % Test running expServer in single-shot mode 
+      import matlab.mock.constraints.Occurred
+      ref = testCase.Ref;
+      
+      % Inject our our mock experiment via function call in srv.prepareExp
+      exp.configureDummyExperiment([], [], testCase.Experiment);
+      params.experimentFun = @(~,~)exp.configureDummyExperiment;
+
+      % Save parameters to file
+      savePath = dat.expFilePath(ref, 'parameters', 'master');
+      superSave(savePath, struct('parameters', params))
+      testCase.assertTrue(dat.expExists(ref), ...
+        'Failed to save test parameters')
+      
+      % Create a mock Alyx object
+      [ai, aiBehaviour] = ...
+        testCase.createMock(?Alyx, 'ConstructorInputs', {'',''});
+      
+      % Call expServer with an expRef and other parameters
+      inputs.expRef = ref;
+      inputs.preDelay = 2;
+      inputs.postDelay = 3;
+      inputs.alyx = ai;
+      inputs.useTimelineOverride = false;
+      srv.expServer(inputs);
+      
+      % Test that experiment was run and inputs were passed to the
+      % experiment object
+      experiment = testCase.ExpBehaviour;
+      testCase.verifyThat([...
+        experiment.PreDelay.setToValue(inputs.preDelay), ...
+        experiment.PostDelay.setToValue(inputs.postDelay), ...
+        experiment.Communicator.setToValue(testCase.RigBehaviours.communicator), ...
+        experiment.AlyxInstance.setToValue(aiBehaviour), ...
+        experiment.run(inputs.expRef)], ...
+        Occurred('RespectingOrder', true))
     end
   end
   
