@@ -1,0 +1,584 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Timeline</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="Timeline.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Timeline</h1><img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt=""><!--introduction--><p>Timeline manages the acquisition and generation of experimental timing data using a NI-DAQ. The main timing signal, 'chrono', is a digital square wave that flips each time a new chunk of data is available from the DAQ. A callback function to this flip event collects the DAQ timestamp of the scan where each flip occured. The difference between this timestamp and the system time recorded when the flip command was given is recorded as the offset time and can be used to unify all timestamps across computers during an experiment. Thus, all event timestamps across all computers for a given experiment are recorded in times relative to the DAQ's clock.  These timestamps can be interchanged with MATLAB and system times during an experiment.  Timeline can acquire any number of hardware events and record their values with respect to this offset; for example, Timeline can use a photodiode to record the times at which the screen updates.</p><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Using Timeline</a></li><li><a href="#3">Using settings from a previous experiment</a></li><li><a href="#5">Inputs</a></li><li><a href="#11">Activating Inputs</a></li><li><a href="#13">Dealing with ghosting</a></li><li><a href="#15">Wiring information</a></li><li><a href="#17">Outputs</a></li><li><a href="#18">Acquire Live</a></li><li><a href="#19">Output Clock</a></li><li><a href="#20">Acquisitions</a></li><li><a href="#21">Live plotting</a></li><li><a href="#23">Clocks</a></li><li><a href="#24">Notes</a></li><li><a href="#25">Etc.</a></li></ul></div><h2 id="1">Using Timeline</h2><p>For more details on setting up Timeline, see <a href="./hardware_config.html">hardware_config</a>:</p><pre class="codeinput">opentoline(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
+  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'hardware_config.m'</span>), 58)
+</pre><p><b>NB</b> : Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><pre class="codeinput"><span class="comment">% Let's set up a timeline object:</span>
+timeline = hw.Timeline;
+</pre><h2 id="3">Using settings from a previous experiment</h2><p>To set up a new timeline object using setting from a previous experiment, call the constructor with the variable saved in <tt>*_Timeline.mat</tt> for that experiment:</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'example'</span>, now - 10, 2); <span class="comment">% Example experiment</span>
+hwPath = dat.expFilePath(ref, <span class="string">'timeline'</span>, <span class="string">'master'</span>); <span class="comment">% Path to timeline MAT</span>
+timeline = hw.Timeline(loadVar(hwPath, <span class="string">'hw'</span>)); <span class="comment">% Load and instantiate</span>
+</pre><p>A JSON file is also saved after each experiment, currently with the name <tt>TimelineHW.json</tt>:</p><pre class="codeinput">hwPath = fullfile(dat.expPath(ref,<span class="string">'main'</span>,<span class="string">'master'</span>), <span class="string">'TimelineHW.json'</span>);
+timeline = hw.Timeline(jsondecode(fileread(hwPath))); <span class="comment">% Load from JSON copy</span>
+</pre><h2 id="5">Inputs</h2><p>The Inputs property contains a structure for configuring which channels to aquire data from.</p><pre class="codeinput">timeline.Inputs
+</pre><pre class="language-matlab">ans =
+</pre><pre>   struct with fields:</pre><pre>               name: 'chrono'
+        arrayColumn: -1
+       daqChannelID: 'ai0'
+        measurement: 'Voltage'
+     terminalConfig: 'SingleEnded'
+          axesScale: 1</pre><p>You can add a channel by adding directly to the Inputs property or by using <tt>addInput</tt>:</p><pre class="codeinput">name = <span class="string">'rotary encoder'</span>; <span class="comment">% Name of the device or signal you're acquiring</span>
+channel = <span class="string">'ctr0'</span>; <span class="comment">% The channel the device is connected to</span>
+measurement = <span class="string">'Position'</span>; <span class="comment">% The measurement type, i.e. 'volts', 'pos', 'edge'</span>
+timeline.addInput(name, channel, measurement)
+</pre><p><tt>Timeline input 'rotary encoder' successfully added.</tt></p><p>Extra parameters include terminal configuration (Differential or SingleEnded, otherwise the channel default is used), axes scale, and a flag indicating whether to use the input (true by default):</p><pre class="codeinput">timeline.addInput(<span class="string">'lick detecter'</span>, <span class="string">'ctr1'</span>, <span class="string">'EdgeCount'</span>, [], 2, false)
+</pre><p>The axes scale (set to 2 above) sets the vertical plot scale when the Timeline property LivePlot is set to true (more on this later).</p><h2 id="11">Activating Inputs</h2><p>The 'UseInputs' property contains a cellstring of the input names to be acquired.  This allows one to set up mutiple inputs that aren't necessarily acquired every experiment.  The 'use' flag of <tt>addInput</tt> can set whether an input is added to UseInputs upon adding.  The default is true.</p><pre class="codeinput">timeline.UseInputs <span class="comment">% 'lick detecter' missing as we set the use arg to false above</span>
+<span class="comment">% To activate an input again simply add it to UseInputs again:</span>
+timeline.UseInputs{end+1} = <span class="string">'lick detecter'</span>;
+</pre><p><b>Note</b> that the order of channels in the UseInputs array determines the order in which the channels are added to the DAQ session and thus the order in which they are scanned during acquisition (see next section).</p><h2 id="13">Dealing with ghosting</h2><p>Multiplexing NI DAQ boards (as opposed simultaneously sampling boards) can be susceptible to 'ghosting', whereby weak differential channels (those with a small current source) are corrupted by neighbouring channels. A solution to this is to isolate the channel of interest by adding one dummy channel either side of it. This is a page on NI website explaining how to avoid ghosting: <a href="https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE">https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE</a></p><p>For instance consider that we want to acquire the p.d. of a passive piezo:</p><pre class="codeinput">timeline.addInput(<span class="string">'piezoLickDetector'</span>, <span class="string">'ai5'</span>, <span class="string">'Volts'</span>, <span class="string">'Differential'</span>,1,0)
+<span class="comment">% Now we can isolate this channel to prevent bleed-through by adding a</span>
+<span class="comment">% couple of 'dummy' channels that are scanned before and after our channel:</span>
+timeline.addInput(<span class="string">'dummy1'</span>, <span class="string">'ai4'</span>, <span class="string">'Volts'</span>,[],1,0)
+timeline.addInput(<span class="string">'dummy2'</span>, <span class="string">'ai12'</span>, <span class="string">'Volts'</span>,[],1,0)
+
+<span class="comment">% Add them to UseInputs in the following order:</span>
+use = [timeline.UseInputs {<span class="string">'dummy1'</span>, <span class="string">'piezoLickDetector'</span>, <span class="string">'dummy2'</span>}]
+timeline.UseInputs = use;
+</pre><p><b>NB</b> : Channel names beginning with the word 'dummy' are not extracted as <a href="https://github.com/cortex-lab/ALF">ALF files</a> .  For more info see <a href="./AlyxMatlabPrimer.html">alyx-matlab</a>:</p><pre class="codeinput">open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
+  <span class="string">'alyx-matlab'</span>, <span class="string">'docs'</span>, <span class="string">'AlyxMatlabPrimer.m'</span>))
+web(<span class="string">'https://github.com/cortex-lab/ALF'</span>)
+</pre><h2 id="15">Wiring information</h2><p>Once an input is added you can view the wiring information with the <tt>wiringInfo</tt> method:</p><pre class="codeinput">name = <span class="string">'rotary encoder'</span>;
+timeline.wiringInfo(name)
+</pre><p><tt>Connect rotary encoder to terminal ctr0 of the DAQ</tt></p><h2 id="17">Outputs</h2><p>Timeline outputs are for setting up pulses for triggering external hadware acquisition devices.  The main output class for timeline is <tt>hw.TLOutput</tt></p><pre class="codeinput">doc <span class="string">hw.TLOutput</span>
+
+<span class="comment">% An array of configured outputs are stored in the Outputs property of</span>
+<span class="comment">% timeline:</span>
+timeline.Outputs
+
+<span class="comment">% By default there is one output, chrono.  This is the generator for the</span>
+<span class="comment">% clocking pulse that Timeline itself uses and therefore is required.</span>
+<span class="comment">%   _   _   _   _   _   _   _</span>
+<span class="comment">% _| |_| |_| |_| |_| |_| |_| |__</span>
+<span class="comment">% ^ start()                  ^ stop()</span>
+
+<span class="comment">% All output objects have Enable and Verbose switches.  To disable an</span>
+<span class="comment">% output for a particular experiment, simply set the Enable to 'off'</span>
+<span class="comment">% (equivalent to UseInputs for the inputs):</span>
+timeline.Outputs(1).Enable = false;
+
+<span class="comment">% The Verbose switch when 'on' will print extra information to the command</span>
+<span class="comment">% window during the experiment:</span>
+timeline.Outputs(1).Verbose = true;
+</pre><h2 id="18">Acquire Live</h2><pre class="codeinput"><span class="comment">% Let's add another output:</span>
+timeline.Outputs(2) = hw.TLOutputAcqLive;
+
+<span class="comment">% The Acquire Live output by default outputs HIGH for the entire time an</span>
+<span class="comment">% experiment is running (that is, after calling HW.TIMELINE/START).  When</span>
+<span class="comment">% the session ends (by calling HW.TIMELINE/STOP) the signal goes LOW.  This</span>
+<span class="comment">% can be used to trigger imaging software to begin acquisition:</span>
+<span class="comment">%   ____________..._____________</span>
+<span class="comment">% _|                            |_</span>
+<span class="comment">% ^ start()                     ^ stop()</span>
+
+<span class="comment">% As with the main Timeline constructor, the outputs may be called with the</span>
+<span class="comment">% timeline hardware struct from a previous experiment.</span>
+timeline.Outputs(2).Name = <span class="string">'Instra-Triggar'</span>; <span class="comment">% Can be anything</span>
+timeline.Outputs(2).DaqChannelID = <span class="string">'PFI4'</span>; <span class="comment">% Set the channel to output on</span>
+
+<span class="comment">% The toStr method will print the object's information:</span>
+timeline.Outputs(2).toStr
+
+<span class="comment">% By setting the PulseDuration property to a value &lt; Inf turns this into a</span>
+<span class="comment">% pulse at the beginning and end of the experiment:</span>
+<span class="comment">%   _                         _</span>
+<span class="comment">% _| |__________...__________| |_</span>
+<span class="comment">% ^ start()                  ^ stop()</span>
+</pre><h2 id="19">Output Clock</h2><pre class="codeinput">timeline.Outputs(end+1) = hw.TLOutputClock;
+
+<span class="comment">% The output clock object will produce a regular pulse troughout the</span>
+<span class="comment">% experiment, useful for triggaring frame acquisitions of a camera:</span>
+<span class="comment">%   _      _        _      _</span>
+<span class="comment">% _| |____| |__..._| |____| |___</span>
+<span class="comment">% ^ start()                  ^ stop()</span>
+
+<span class="comment">% For more info on the Frequency and DutyCycle properties, see their</span>
+<span class="comment">% corresponding doc pages:</span>
+web(fullfile(matlabroot,<span class="string">'help'</span>,<span class="string">'daq'</span>,<span class="string">'ref'</span>,<span class="string">'dutycycle.html'</span>))
+web(fullfile(matlabroot,<span class="string">'help'</span>,<span class="string">'daq'</span>,<span class="string">'ref'</span>,<span class="string">'frequency.html'</span>))
+
+<span class="comment">% Delays can be added to these output classes using the InitialDelay</span>
+<span class="comment">% property:</span>
+timeline.Outputs(end).InitialDelay = 3;
+<span class="comment">%            _      _        _      _</span>
+<span class="comment">% __________| |____| |__..._| |____| |___</span>
+<span class="comment">% ^ start()                          ^ stop()</span>
+
+<span class="comment">% For custom output signals that are not configurable with the current</span>
+<span class="comment">% TLOutput classes, simply create a new subclass with your desired</span>
+<span class="comment">% implementation.</span>
+</pre><h2 id="20">Acquisitions</h2><p>Timeline may be run automatically on the stimulus computer, or on a separate computer that's triggred by the stimulus computer via UDPs (for more info see <a href="./using_services.html">using_services</a>):</p><pre class="codeinput"><span class="comment">% Open the 'Using Services' script</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_services.m'</span>))
+
+<span class="comment">% You can also start Timeline manually from the command prompt with</span>
+<span class="comment">% HW.TIMELINE/START.  An experiment reference string is required:</span>
+ref = dat.newExp(<span class="string">'default'</span>); <span class="comment">% Create an experiment for subject 'default'</span>
+timeline.start(ref, Alyx(<span class="string">''</span>,<span class="string">''</span>)) <span class="comment">% Start acquisition</span>
+timeline.IsRunning <span class="comment">% true</span>
+
+<span class="comment">% In order to register Timeline file to the alyx database, an alyx object</span>
+<span class="comment">% may also be passed to timeline:</span>
+ai = Alyx(<span class="string">''</span>,<span class="string">''</span>); <span class="comment">% Not logged in in this example</span>
+ref = ai.newExp(<span class="string">'default'</span>) <span class="comment">% Note we create the experiment with ALYX/NEWEXP</span>
+timeline.start(ref, ai)
+<span class="comment">% For more info see alyx-matlab:</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
+  <span class="string">'alyx-matlab'</span>, <span class="string">'docs'</span>, <span class="string">'AlyxMatlabPrimer.m'</span>))
+
+<span class="comment">% Once timeline is started, you can log software events using RECORD:</span>
+name = <span class="string">'udp'</span>; <span class="comment">% Imagine logged each time a UDP is received</span>
+data = <span class="string">'coordinates: 12.4, 32.0, 23.9'</span>; <span class="comment">% Some data to record</span>
+timeline.record(name, data)
+<span class="comment">% This data will be recorded in saved data structure</span>
+
+<span class="comment">% To stop Timeline, call the STOP method:</span>
+timeline.stop()
+
+<span class="comment">% The output channels are immediately stopped, followed by the input</span>
+<span class="comment">% channel acquisition after the delay set by the StopDelay property.  The</span>
+<span class="comment">% minimum delay is 2 seconds in order to allow time for the final samples</span>
+<span class="comment">% to be collected. The data are then saved to file.</span>
+hwPath = dat.expFilePath(ref, <span class="string">'timeline'</span>, <span class="string">'master'</span>);
+hw = loadVar(hwPath, <span class="string">'hw'</span>); <span class="comment">% Load our data</span>
+<span class="comment">% Note the 'udpTimes', 'udpEvents' and 'udpCount' fields from above</span>
+
+<span class="comment">% If the WriteBufferToDisk switch is set to 'on', the data are saved to</span>
+<span class="comment">% binary files during acquisition.  This ensures that data aren't lost in</span>
+<span class="comment">% the even of MATLAB crashes.</span>
+timeline.WriteBufferToDisk = true; <span class="comment">% Save data as they're collected</span>
+</pre><h2 id="21">Live plotting</h2><p>During acquisition you can plot the inputs live by setting the 'LivePlot' property to true / 'on'.  The default plot figure position(1) can be set using the 'FigureScale' property.  The values are in normalized units and is set as fullscreen by default. <b>NB:</b> This must be set before calling <tt>start</tt>.</p><pre class="codeinput">timeline.LivePlot = <span class="string">'on'</span>; <span class="comment">% Plot input data during acquisition</span>
+timeline.FigureScale = [0 0 0.5 1]; <span class="comment">% Take up half screen width and full height</span>
+</pre><p>The axes scale for individual inputs can be set be changing the 'axesScale' of the Inputs struct.  This field controls the vertical scaling of each trace (multiplicative) and can be set when adding an input with the <tt>addInput</tt> method (see Inputs section).  Below we change it manually:</p><pre class="codeinput">I = strcmp(<span class="string">'rotary encoder'</span>, {timeline.Inputs.name})
+timeline.Inputs(I).axesScale = 2; <span class="comment">% 2x vertical scaling</span>
+</pre><h2 id="23">Clocks</h2><pre class="codeinput">doc <span class="string">hw.Clock</span>
+
+<span class="comment">% While timeline is running, timestampts can be returned using the TIME</span>
+<span class="comment">% method:</span>
+timeline.time()
+<span class="comment">% If called with false, a system timestamp is returned when timeline is not</span>
+<span class="comment">% running:</span>
+strict = false; <span class="comment">% Return a time even when not running</span>
+timeline.time(strict)
+
+<span class="comment">% In order for other classes and functions to operate on the same time</span>
+<span class="comment">% scale, a clock object may be passed around.  For example, EXP.SIGNALSEXP</span>
+<span class="comment">% and HW.DAQCONTROLLER.</span>
+
+<span class="comment">% When running timeline, all signals and hardware logs are time aligned.</span>
+<span class="comment">% The timeline clock object is instantiated with HW.TIMELINECLOCK</span>
+clock = hw.TimelineClock(timeline)
+clock.now()
+
+<span class="comment">% When timeline is disabled during an experiment, all event times are</span>
+<span class="comment">% system times using the PsychToolbox function GETSECS:</span>
+clock = hw.ptb.Clock;
+clock.now()
+
+<span class="comment">% Clocks can be zeroed, whereby all times are returned relative to some</span>
+<span class="comment">% reference time:</span>
+clock.zero()
+clock.now()
+</pre><h2 id="24">Notes</h2><p>(1) For information on the MATLAB figure properties Position and Units, see <a href="https://uk.mathworks.com/help/matlab/ref/matlab.ui.figure-properties.html#prop_Position">their documentation page</a>.</p><h2 id="25">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><pre class="codeinput"><span class="comment">% INTERNAL</span>
+<span class="comment">% Image after Intro header:</span>
+<span class="comment">% &lt;img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt=""&gt;</span>
+<span class="comment">% execute off</span>
+
+<span class="comment">%#ok&lt;*NOPTS,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Timeline
+% Timeline manages the acquisition and generation of experimental timing
+% data using a NI-DAQ. The main timing signal, 'chrono', is a digital
+% square wave that flips each time a new chunk of data is available from
+% the DAQ. A callback function to this flip event collects the DAQ
+% timestamp of the scan where each flip occured. The difference between
+% this timestamp and the system time recorded when the flip command was
+% given is recorded as the offset time and can be used to unify all
+% timestamps across computers during an experiment. Thus, all event
+% timestamps across all computers for a given experiment are recorded in
+% times relative to the DAQ's clock.  These timestamps can be interchanged
+% with MATLAB and system times during an experiment.  Timeline can acquire
+% any number of hardware events and record their values with respect to
+% this offset; for example, Timeline can use a photodiode to record the
+% times at which the screen updates.
+%
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
+
+%% Using Timeline
+% For more details on setting up Timeline, see <./hardware_config.html
+% hardware_config>:
+opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
+  'docs', 'setup', 'hardware_config.m'), 58)
+
+%%
+% *NB* : Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
+
+% Let's set up a timeline object:
+timeline = hw.Timeline; 
+
+%% Using settings from a previous experiment
+% To set up a new timeline object using setting from a previous experiment,
+% call the constructor with the variable saved in |*_Timeline.mat| for that
+% experiment:
+ref = dat.constructExpRef('example', now - 10, 2); % Example experiment
+hwPath = dat.expFilePath(ref, 'timeline', 'master'); % Path to timeline MAT
+timeline = hw.Timeline(loadVar(hwPath, 'hw')); % Load and instantiate
+
+%%
+% A JSON file is also saved after each experiment, currently with the name
+% |TimelineHW.json|:
+hwPath = fullfile(dat.expPath(ref,'main','master'), 'TimelineHW.json');
+timeline = hw.Timeline(jsondecode(fileread(hwPath))); % Load from JSON copy
+
+%% Inputs
+% The Inputs property contains a structure for configuring which channels
+% to aquire data from.  
+timeline.Inputs
+
+%%
+%   ans = 
+% 
+%     struct with fields:
+% 
+%                 name: 'chrono'
+%          arrayColumn: -1
+%         daqChannelID: 'ai0'
+%          measurement: 'Voltage'
+%       terminalConfig: 'SingleEnded'
+%            axesScale: 1
+%%
+% You can add a channel by adding directly to the Inputs property or by
+% using |addInput|:
+name = 'rotary encoder'; % Name of the device or signal you're acquiring
+channel = 'ctr0'; % The channel the device is connected to
+measurement = 'Position'; % The measurement type, i.e. 'volts', 'pos', 'edge'
+timeline.addInput(name, channel, measurement)
+
+%%
+% |Timeline input 'rotary encoder' successfully added.|
+
+%%
+% Extra parameters include terminal configuration (Differential or
+% SingleEnded, otherwise the channel default is used), axes scale, and a
+% flag indicating whether to use the input (true by default):
+timeline.addInput('lick detecter', 'ctr1', 'EdgeCount', [], 2, false)
+
+%%
+% The axes scale (set to 2 above) sets the vertical plot scale when the
+% Timeline property LivePlot is set to true (more on this later).
+
+%% Activating Inputs
+% The 'UseInputs' property contains a cellstring of the input names to be
+% acquired.  This allows one to set up mutiple inputs that aren't
+% necessarily acquired every experiment.  The 'use' flag of |addInput| can
+% set whether an input is added to UseInputs upon adding.  The default is
+% true.  
+timeline.UseInputs % 'lick detecter' missing as we set the use arg to false above
+% To activate an input again simply add it to UseInputs again:
+timeline.UseInputs{end+1} = 'lick detecter';
+
+%%
+% *Note* that the order of channels in the UseInputs array determines the
+% order in which the channels are added to the DAQ session and thus the
+% order in which they are scanned during acquisition (see next section).
+
+%% Dealing with ghosting
+% Multiplexing NI DAQ boards (as opposed simultaneously sampling boards)
+% can be susceptible to 'ghosting', whereby weak differential channels
+% (those with a small current source) are corrupted by neighbouring
+% channels. A solution to this is to isolate the channel of interest by
+% adding one dummy channel either side of it. This is a page on NI website
+% explaining how to avoid ghosting:
+% <https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE
+% https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KzzSAE>
+%
+% For instance consider that we want to acquire the p.d. of a passive
+% piezo:
+
+timeline.addInput('piezoLickDetector', 'ai5', 'Volts', 'Differential',1,0)
+% Now we can isolate this channel to prevent bleed-through by adding a
+% couple of 'dummy' channels that are scanned before and after our channel:
+timeline.addInput('dummy1', 'ai4', 'Volts',[],1,0)
+timeline.addInput('dummy2', 'ai12', 'Volts',[],1,0)
+
+% Add them to UseInputs in the following order:
+use = [timeline.UseInputs {'dummy1', 'piezoLickDetector', 'dummy2'}]
+timeline.UseInputs = use;
+
+%%
+% *NB* : Channel names beginning with the word 'dummy' are not extracted as
+% <https://github.com/cortex-lab/ALF ALF files> .  For more info see
+% <./AlyxMatlabPrimer.html alyx-matlab>:
+open(fullfile(getOr(dat.paths,'rigbox'), ...
+  'alyx-matlab', 'docs', 'AlyxMatlabPrimer.m'))
+web('https://github.com/cortex-lab/ALF')
+
+%% Wiring information
+% Once an input is added you can view the wiring information with the
+% |wiringInfo| method:
+name = 'rotary encoder';
+timeline.wiringInfo(name)
+
+%%
+% |Connect rotary encoder to terminal ctr0 of the DAQ|
+
+%% Outputs
+% Timeline outputs are for setting up pulses for triggering external
+% hadware acquisition devices.  The main output class for timeline is
+% |hw.TLOutput|
+doc hw.TLOutput
+
+% An array of configured outputs are stored in the Outputs property of
+% timeline:
+timeline.Outputs
+
+% By default there is one output, chrono.  This is the generator for the
+% clocking pulse that Timeline itself uses and therefore is required.
+%   _   _   _   _   _   _   _ 
+% _| |_| |_| |_| |_| |_| |_| |__
+% ^ start()                  ^ stop()
+
+% All output objects have Enable and Verbose switches.  To disable an
+% output for a particular experiment, simply set the Enable to 'off'
+% (equivalent to UseInputs for the inputs):
+timeline.Outputs(1).Enable = false;
+
+% The Verbose switch when 'on' will print extra information to the command
+% window during the experiment:
+timeline.Outputs(1).Verbose = true;
+
+
+%%% Acquire Live
+
+% Let's add another output:
+timeline.Outputs(2) = hw.TLOutputAcqLive;
+
+% The Acquire Live output by default outputs HIGH for the entire time an
+% experiment is running (that is, after calling HW.TIMELINE/START).  When
+% the session ends (by calling HW.TIMELINE/STOP) the signal goes LOW.  This
+% can be used to trigger imaging software to begin acquisition:
+%   ____________..._____________
+% _|                            |_
+% ^ start()                     ^ stop()
+
+% As with the main Timeline constructor, the outputs may be called with the
+% timeline hardware struct from a previous experiment.
+timeline.Outputs(2).Name = 'Instra-Triggar'; % Can be anything
+timeline.Outputs(2).DaqChannelID = 'PFI4'; % Set the channel to output on
+
+% The toStr method will print the object's information:
+timeline.Outputs(2).toStr
+
+% By setting the PulseDuration property to a value < Inf turns this into a
+% pulse at the beginning and end of the experiment:
+%   _                         _
+% _| |__________...__________| |_
+% ^ start()                  ^ stop()
+
+
+%%% Output Clock
+timeline.Outputs(end+1) = hw.TLOutputClock;
+
+% The output clock object will produce a regular pulse troughout the
+% experiment, useful for triggaring frame acquisitions of a camera:
+%   _      _        _      _   
+% _| |____| |__..._| |____| |___
+% ^ start()                  ^ stop()
+
+% For more info on the Frequency and DutyCycle properties, see their
+% corresponding doc pages:
+web(fullfile(matlabroot,'help','daq','ref','dutycycle.html'))
+web(fullfile(matlabroot,'help','daq','ref','frequency.html'))
+
+% Delays can be added to these output classes using the InitialDelay
+% property:
+timeline.Outputs(end).InitialDelay = 3;
+%            _      _        _      _   
+% __________| |____| |__..._| |____| |___
+% ^ start()                          ^ stop()
+
+% For custom output signals that are not configurable with the current
+% TLOutput classes, simply create a new subclass with your desired
+% implementation.
+
+%% Acquisitions
+% Timeline may be run automatically on the stimulus computer, or on a
+% separate computer that's triggred by the stimulus computer via UDPs (for
+% more info see <./using_services.html using_services>):
+
+% Open the 'Using Services' script
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_services.m'))
+
+% You can also start Timeline manually from the command prompt with
+% HW.TIMELINE/START.  An experiment reference string is required:
+ref = dat.newExp('default'); % Create an experiment for subject 'default'
+timeline.start(ref, Alyx('','')) % Start acquisition
+timeline.IsRunning % true
+
+% In order to register Timeline file to the alyx database, an alyx object
+% may also be passed to timeline:
+ai = Alyx('',''); % Not logged in in this example
+ref = ai.newExp('default') % Note we create the experiment with ALYX/NEWEXP
+timeline.start(ref, ai)
+% For more info see alyx-matlab:
+open(fullfile(getOr(dat.paths,'rigbox'), ...
+  'alyx-matlab', 'docs', 'AlyxMatlabPrimer.m'))
+
+% Once timeline is started, you can log software events using RECORD:
+name = 'udp'; % Imagine logged each time a UDP is received
+data = 'coordinates: 12.4, 32.0, 23.9'; % Some data to record
+timeline.record(name, data)
+% This data will be recorded in saved data structure
+
+% To stop Timeline, call the STOP method:
+timeline.stop()
+
+% The output channels are immediately stopped, followed by the input
+% channel acquisition after the delay set by the StopDelay property.  The
+% minimum delay is 2 seconds in order to allow time for the final samples
+% to be collected. The data are then saved to file.
+hwPath = dat.expFilePath(ref, 'timeline', 'master');
+hw = loadVar(hwPath, 'hw'); % Load our data
+% Note the 'udpTimes', 'udpEvents' and 'udpCount' fields from above
+
+% If the WriteBufferToDisk switch is set to 'on', the data are saved to
+% binary files during acquisition.  This ensures that data aren't lost in
+% the even of MATLAB crashes.
+timeline.WriteBufferToDisk = true; % Save data as they're collected
+
+%% Live plotting
+% During acquisition you can plot the inputs live by setting the 'LivePlot'
+% property to true / 'on'.  The default plot figure position(1) can be set
+% using the 'FigureScale' property.  The values are in normalized units and
+% is set as fullscreen by default. *NB:* This must be set before calling
+% |start|.
+timeline.LivePlot = 'on'; % Plot input data during acquisition
+timeline.FigureScale = [0 0 0.5 1]; % Take up half screen width and full height
+
+%%
+% The axes scale for individual inputs can be set be changing the
+% 'axesScale' of the Inputs struct.  This field controls the vertical
+% scaling of each trace (multiplicative) and can be set when adding an
+% input with the |addInput| method (see Inputs section).  Below we change
+% it manually:
+I = strcmp('rotary encoder', {timeline.Inputs.name})
+timeline.Inputs(I).axesScale = 2; % 2x vertical scaling
+
+%% Clocks
+doc hw.Clock
+
+% While timeline is running, timestampts can be returned using the TIME
+% method:
+timeline.time()
+% If called with false, a system timestamp is returned when timeline is not
+% running:
+strict = false; % Return a time even when not running
+timeline.time(strict)
+
+% In order for other classes and functions to operate on the same time
+% scale, a clock object may be passed around.  For example, EXP.SIGNALSEXP
+% and HW.DAQCONTROLLER.
+
+% When running timeline, all signals and hardware logs are time aligned.
+% The timeline clock object is instantiated with HW.TIMELINECLOCK
+clock = hw.TimelineClock(timeline)
+clock.now() 
+
+% When timeline is disabled during an experiment, all event times are
+% system times using the PsychToolbox function GETSECS:
+clock = hw.ptb.Clock;
+clock.now()
+
+% Clocks can be zeroed, whereby all times are returned relative to some
+% reference time:
+clock.zero()
+clock.now()
+
+%% Notes
+% (1) For information on the MATLAB figure properties Position and Units,
+% see
+% <https://uk.mathworks.com/help/matlab/ref/matlab.ui.figure-properties.html#prop_Position
+% their documentation page>.
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.1.0
+%
+
+% INTERNAL
+% Image after Intro header:
+% <img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt="">
+% execute off
+
+%#ok<*NOPTS,*NASGU>
+##### SOURCE END #####
+--></body></html>

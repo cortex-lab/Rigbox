@@ -1,123 +1,100 @@
 %% Rigging Toolbox Documentation
+% Welcome to the main Rigging Toolbox (Rigbox) documentation.  Here you can
+% find detailed documentation and guides on how to set up Rigbox, including
+% writing new experiments, setting up recording devices, running
+% experiments and processing the resulting data.
+%
+% 
+
+%% Installing Rigbox
+% Below are some instructions for installing Rigbox. There are two guides,
+% the first is for users unfarmilliar with MATLAB and Git.
+% The second is for 'power users' who have a basic understanding of these
+% things.
+% 
+% # Installing for dummies
+% # Installing for power users
+% 
+
+%% Setting up experiments
+% Below is a set of steps for setting up a full experiment in Rigbox.  A
+% full experiment being one where you record quality, reliable data that
+% gets saved into the <./glossary.html main experiment repository>.
+% 
+% Briefly, before you can run a full experiment you must 1) set up your
+% paths so that Rigbox knows from where to load rig settings and
+% parameters, 2) save a hardware configuration file so that Rigbox can
+% properly initialize its hardware, and 3) locate or create an experiment
+% definition function to define your experiment.
+
+%% Running full experiments
+% Before you can run a complete experiment, you must set up Rigbox (see
+% above section).  Once this is done there you can follow on of the below
+% sections to run a full experiment.
+
+%% Creating experiments
+% The principle way to create a new is experiment (i.e. passive stimulation
+% or behaviour task) is write an <./glossary.html expDef>.  Below will be a
+% set of guides for how to write an expDef, and how to test it.
+% 
+% * <./using_test_gui.html Playing around with Signals Experiment
+% Definitions>
+% 
+
+%% Working with Rigbox Experiment data
+% Below are some guides on how to work with the experimental data saved by
+% Rigbox.  These guides instruduce some functions for loading and
+% processing these data, and explain the forms in which data are saved.
+% 
+% * <using_wheel.html Working with wheel data>
+% * Working with block files
+% * Working with ALF files
+% 
+
+%% Troubleshooting
+% Rigbox is a mountain of code and there are many things that can go wrong
+% when using it.  Below are a few guides for how to fix problems that arise
+% in Rigbox.  
+% 
+% * Basic MATLAB troubleshooting - this guide is for users that are
+% unfamiliar with MATLAB.
+% * <troubleshooting.html General troubleshooting> - this guide gives a
+% list of steps to follow when an error is encountered.
+% * <./id_index.html ID index> - A list of Rigbox error/warning IDs along
+% with the a detailed description of what they mean and an exhastive list
+% of causes and solutions.
+% * FAQ - A list of frequently asked questions regarding problems and
+% pointers to the solutions.
+
+%% User guides
+% Below is a list of in-depth guides for users who want to learn the
+% ins-and-outs of various packages and classes in Rigbox.
+% 
+% * <./using_dat_package.html The Data Package> - How to query data locations
+% and log experiments using the |+dat| package.
+% * <./SignalsPrimer.html How Signals works> - An in-depth guide to how
+% Signals works.  This shows you how to work with Signals outside of the
+% <Glossary.html Experiment Framework> and gives demonstrations of all
+% Signals methods ( |scan|, etc.)  
+% * <./using_parameters.html Parameters> - How to create and edit
+% experiment parameters.
+% * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
+%
+%
+%% Miscellaneous
 % Below is a list of useful topics:
 %
 % * <./paths_config.html Setting up dat.paths>
 % * <./hardware_config.html How to configure hardware on the stimulus computer>
-% * <./using_dat_package.html How to query data locations and log experiments>
 % * <./websocket_config.html Setting up communication between the stimulus computer and MC>
-% * <./using_test_gui.html Playing around with Signals Experiment Definitions>
-% * <./SignalsPrimer.html How to create experiments in signals>
-% * <./using_parameters.html How to create and edit experiment parameters>
-% * <./using_timeline.html Using Timeline for time alignment>
+% * <./Timeline.html Using Timeline for time alignment>
 % * <./using_services.html Setting up auxiliary services>
-% * <./AlyxMatlabPrimer.html How to interact with an Alyx database>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
 % * <./troubleshooting.html Troubleshooting Rigbox errors>
+% * <./glossary.html Glossary of Rigbox terminology>
 %
-% @todo Further files to add to docs
-% @body Burgess config, setting up shared paths 
-
-%% Code organization
-% Below is a list of Rigbox's subdirectories and an overview of their
-% respective contents.  For more details, see the REAME.md and Contents.m
-% files for each package folder.
-
-%%% +dat
-% The 'data' package contains code pertaining to the organization and
-% logging of data. It contains functions that generate and parse unique
-% experiment reference ids, and return file paths where subject data and
-% rig configuration information is stored. Other functions include those
-% that manage experimental log entries and parameter profiles. A nice
-% metaphor for this package is a lab notebook.
-doc +dat
-
-%%% +eui
-% The 'experiment user interface' package contains code pertaining to the
-% Rigbox user interface. It contains code for constructing the mc GUI
-% (MControl.m), and for plotting live experiment data or generating tables
-% for viewing experiment parameters and subject logs.
-%
-% This package is exclusively used by the master computer.
-doc +eui
-
-%%% +exp
-% The 'experiment' package is for the initialization and running of
-% behavioural experiments. It contains code that define a framework for
-% event- and state-based experiments. Actions such as visual stimulus
-% presentation or reward delivery can be controlled by experiment phases,
-% and experiment phases are managed by an event-handling system (e.g.
-% ResponseEventInfo).
-%
-% The package also triggers auxiliary services (e.g. starting remote
-% acquisition software), and loads parameters for presentation for each
-% trial. The principle two base classes that control these experiments are
-% 'Experiment' and its 'signals package' counterpart, 'SignalsExp'.
-helpwin +exp
-
-%%% +hw
-% The 'hardware' package is for configuring, and interfacing with, hardware
-% (such as screens, DAQ devices, weighing scales and lick detectors).
-% Within this is the '+ptb' package which contains classes for interacting
-% with PsychToolbox.
-%
-% |hw.devices| loads and initializes all the hardware for a specific
-% experimental rig. There are also classes for unifying system and hardware
-% clocks.
-doc hw
-
-%%% +psy
-% The 'psychometrics' package contains simple functions for processing and
-% plotting psychometric data.
-doc psy
-
-%%% +srv
-% The 'stim server' package contains the 'expServer' function as well as
-% classes that manage communications between rig computers.
-%
-% The 'Service' base class allows the stimulus computer to start and stop
-% auxiliary acquisition systems at the beginning and end of experiments.
-%
-% The 'StimulusControl' class is used by the master computer to manage the
-% stimulus computer.
-%
-% *Note*: Lower-level communication protocol code is found in the
-% 'cortexlab/+io' package.
-doc +srv
-
-%%% cb-tools/burgbox
-% 'Burgbox' contains many simple helper functions that are used by the main
-% packages. Within this directory are additional packages:
-% 
-% * +bui --- Classes for managing graphics objects such as axes
-% * +aud --- Functions for interacting with PsychoPortAudio
-% * +file --- Functions for simplifying directory and file management, for instance returning the modified dates for specified folders or filtering an array of directories by those that exist
-% * +fun --- Convenience functions for working with function handles in MATLAB, e.g. functions similar cellfun that are agnostic of input type, or ones that cache function outputs
-% * +img --- Classes that deal with image and frame data (DEPRECATED)
-% * +io --- Lower-level communications classes for managing UDP and TCP/IP Web sockets
-% * +plt --- A few small plotting functions (DEPRECATED)
-% * +vis --- Functions for returning various windowed visual stimuli (i.g. gabor gratings)
-% * +ws --- An early Web socket package using SuperWebSocket (DEPRECATED)
-
-%%% cortexlab
-% The 'cortexlab' directory is intended for functions and classes that are
-% rig or CortexLab specific, for example, code that allows compatibility
-% with other stimulus presentation packages used by CortexLab (e.g. MPEP)
-
-%%% tests
-% The 'tests' directory contains code for running unit tests within Rigbox.
-
-%%% docs
-% Contains various guides for how to configure and use Rigbox.
-
-%%% submodules
-% Additional information on the
-% <https://github.com/cortex-lab/alyx-matlab alyx-matlab>, 
-% <https://github.com/kwikteam/npy-matlab npy-matlab>, 
-% <https://github.com/cortex-lab/signals signals> and 
-% <https://github.com/cortex-lab/wheelAnalysis wheelAnalysis> submodules
-% can be found in their respective github repositories.
 
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.0
+% v0.1.1
