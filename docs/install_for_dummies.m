@@ -1,4 +1,4 @@
-%% Installing for dummmies
+%% Installing Rigbox for dummmies
 % Below are some easy step-by-step instructions for installing Rigbox
 % without any prior knowledge of Git or MATLAB.  For more succinct
 % installation instructions, see the Rigbox
@@ -30,10 +30,9 @@
 % 
 % Below are a few minimum hardware requirements for both PCs. 
 % 
-% * *Processor*: Intel Core i3 7100, 3.9 GHz
-% * *Graphics*: NVIDIA NVS 510 (for three screen support)
-% * *Memory*: 16 GB 2133MHz DDR4 RAM, 1.2 V
-% * *Storage*: 1TB HD, 7200rpm, 64MB Cache
+% * *Processor*: Intel Core i5-6500 @ 3.0 GHz (or similar)
+% * *Graphics*: NVIDIA Quadro P400 (or similar)
+% * *Memory*: DDR4 16 GB @ 2133 MHz (e.g. Corsair Vengeance 16 GB) 
 %
 %
 %% Install steps
