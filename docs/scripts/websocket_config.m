@@ -12,7 +12,10 @@
 % 
 
 %% Configuring WebSockets
-% In order for the two computers to communicate...
+% This section demonstrates how to configure WebSockets so that MC can
+% connect to the Stimulus computer.  See <./using_single_rig.html#3 this
+% guide> if you wish to configure things for running |mc| and
+% |srv.expServer| on the same computer (not recommended).
 
 % The stimulus controllers are loaded from a MAT file with the name
 % 'remote' in the globalConfig directory, defined in dat.paths:
@@ -42,6 +45,22 @@ stimulusControllers(end).Uri % 'ws://ZSCOPE:4820'
 rig2 = strcmp('rig2', {stimulusControllers.Name});
 stimulusControllers(rig2).DefaultPort % *2014
 stimulusControllers(rig2).Uri % 'ws://192.168.0.1:5000'
+
+%%
+% The port set in the URI of a rig's StrimulusControl object must be the
+% same as the port used by that rig's |srv.expServer|.  When expServer is
+% started it listens on the default port (normally |2014|).  If you wish to
+% set a port that is different to the default port, you must save a
+% Communicator object into the rig's hardware file and set it there.  Below
+% is some code for setting the default port to |3000| on a Stimulus
+% Computer:
+
+% Create a communicator object (var name must be 'communicator')
+communicator = io.WSJCommunicator.server(3000);
+
+% Save into the hardware file
+hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
+save(hardware, 'communicator', '-append') % append to the hardware file
 
 %%% Experiment delays
 % Setting default delays is sometimes useful.  These can also be changed in
@@ -326,6 +345,6 @@ close(com); delete(com); clear all; clear java
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1
 
 %#ok<*NOPTS,*ASGLU,*NASGU,*CLJAVA,*CLALL>

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>hardware_config</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-15"><meta name="DC.source" content="hardware_config.m"><style type="text/css">
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="hardware_config.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,15 +66,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Configuring hardware devices</a></li><li><a href="#2">Retrieving hardware file path</a></li><li><a href="#3">Configuring the stimulus window</a></li><li><a href="#4">ScreenNum</a></li><li><a href="#5">SyncBounds</a></li><li><a href="#6">SyncColourCycle</a></li><li><a href="#7">PxDepth</a></li><li><a href="#8">OpenBounds</a></li><li><a href="#9">DaqSyncEchoPort</a></li><li><a href="#10">BackgroundColour</a></li><li><a href="#11">MonitorId</a></li><li><a href="#12">PtbSyncTests</a></li><li><a href="#13">PtbVerbosity</a></li><li><a href="#14">ColourRange, White, Black, etc.</a></li><li><a href="#15">- Performing gamma calibration from command window</a></li><li><a href="#16">Calibration</a></li><li><a href="#17">Using the Window object</a></li><li><a href="#18">- Setting the background colour</a></li><li><a href="#19">- Displaying a Gabor patch</a></li><li><a href="#20">- Clearing the window</a></li><li><a href="#21">- Drawing text to the screen</a></li><li><a href="#22">- Closing a window</a></li><li><a href="#23">Viewing models</a></li><li><a href="#24">- Basic screen viewing model</a></li><li><a href="#25">-- Using the model</a></li><li><a href="#26">- Pseudo-Circular screen viewing model</a></li><li><a href="#27">- Signals viewing model</a></li><li><a href="#28">Hardware inputs</a></li><li><a href="#29">- DAQ rotary encoder</a></li><li><a href="#30">- Lick detector</a></li><li><a href="#31">Hardware outputs</a></li><li><a href="#32">Timeline</a></li><li><a href="#33">Weigh scale</a></li><li><a href="#34">- Using the scale</a></li><li><a href="#35">Audio devices</a></li><li><a href="#36">Loading your hardware file</a></li><li><a href="#37">FAQ</a></li><li><a href="#38">I tried loading an old hardware file but the variables are not objects.</a></li><li><a href="#39">I'm missing the time of the first flip only, why?</a></li><li><a href="#40">The PsychToolbox window covers the wrong monitors when I run the experiment server</a></li><li><a href="#41">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</a></li><li><a href="#42">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</a></li><li><a href="#43">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</a></li><li><a href="#44">My rotary encoder has a different resolution, how do I change the hardware config?</a></li><li><a href="#45">Notes</a></li><li><a href="#46">Etc.</a></li></ul></div><h2 id="1">Configuring hardware devices</h2><p>When running <a href="../../../+srv/expServer.m">SRV.EXPSERVER</a> the hardware settings are loaded from a MAT file and initialized before an experiment.  The MC computer may also have a hardware file, though this isn't essential.  The below script is a guide for setting up a new hardware file, with examples mostly pertaining to replicating the Burgess steering wheel task(1).  Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><p>It is recommended that you copy this file and keep it as a way of versioning your hardware configurations.  In this way the script can easily be re-run when after any unintended changes are made to your hardware file.  If you do this, make sure you save a copy of the calibration strutures or re-run the calibrations.</p><p>Note that the variable names saved to the hardware file must be the same as those below in order for various Rigbox functions to recognize them, namely these variables:</p><div><ul><li><tt>stimWindow</tt> - The hw.Window object for PsychToolbox parameters</li><li><tt>stimViewingModel</tt> - A viewing model used by legacy experiments</li><li><tt>mouseInput</tt> - The rotary encoder device</li><li><tt>lickDetector</tt> - A lick detector device</li><li><tt>timeline</tt> - The Timeline object</li><li><tt>daqController</tt> - NI DAQ output settings for use during an experiment</li><li><tt>scale</tt> - A weighing scale device for use by the MC computer</li><li><tt>screens</tt> - Parameters for the Signals viewing model</li><li><tt>audioDevices</tt> - Struct of parameters for each audio device</li></ul></div><pre class="codeinput"><span class="comment">% Many of these classes for are found in the HW package:</span>
-doc <span class="string">hw</span>
-</pre><h2 id="2">Retrieving hardware file path</h2><p>The location of the configuration file is set in DAT.PATHS.  If running this on the stimulus computer you can use the following syntax:</p><pre class="codeinput">hardware = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
+  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>When running <tt>srv.expServer</tt> the hardware settings are loaded from a MAT file and initialized before an experiment. The MC computer may also have a hardware file, though this isn't essential.  The below script is a guide for setting up a new hardware file, with examples mostly pertaining to replicating the Burgess steering wheel task(1).  Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><p>It is recommended that you copy this file and keep it as a way of versioning your hardware configurations.  In this way the script can easily be re-run when after any unintended changes are made to your hardware file.  If you do this, make sure you save a copy of the calibration strutures or re-run the calibrations.</p><p>Note that the variable names saved to the hardware file must be the same as those below in order for various Rigbox functions to recognize them, namely these variables:</p><div><ul><li><tt>stimWindow</tt> - The hw.Window object for PsychToolbox parameters</li><li><tt>stimViewingModel</tt> - A viewing model used by legacy experiments</li><li><tt>mouseInput</tt> - The rotary encoder device</li><li><tt>lickDetector</tt> - A lick detector device</li><li><tt>timeline</tt> - The Timeline object</li><li><tt>daqController</tt> - NI DAQ output settings for use during an experiment</li><li><tt>scale</tt> - A weighing scale device for use by the MC computer</li><li><tt>screens</tt> - Parameters for the Signals viewing model</li><li><tt>audioDevices</tt> - Struct of parameters for each audio device</li></ul></div><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The +hw packages</a></li><li><a href="#2">Retrieving hardware file path</a></li><li><a href="#3">Configuring the stimulus window</a></li><li><a href="#4">ScreenNum</a></li><li><a href="#5">SyncBounds</a></li><li><a href="#6">SyncColourCycle</a></li><li><a href="#7">PxDepth</a></li><li><a href="#8">OpenBounds</a></li><li><a href="#9">DaqSyncEchoPort</a></li><li><a href="#10">BackgroundColour</a></li><li><a href="#11">MonitorId</a></li><li><a href="#12">PtbSyncTests</a></li><li><a href="#13">PtbVerbosity</a></li><li><a href="#14">ColourRange, White, Black, etc.</a></li><li><a href="#15">Calibration (performing gamma calibration from command window)</a></li><li><a href="#16">Using the Window object</a></li><li><a href="#17">- Setting the background colour</a></li><li><a href="#18">- Displaying a Gabor patch</a></li><li><a href="#19">- Clearing the window</a></li><li><a href="#20">- Drawing text to the screen</a></li><li><a href="#21">- Closing a window</a></li><li><a href="#22">Viewing models</a></li><li><a href="#23">Basic screen viewing model</a></li><li><a href="#24">Using the model</a></li><li><a href="#25">Pseudo-Circular screen viewing model</a></li><li><a href="#26">Signals viewing model</a></li><li><a href="#27">Hardware inputs</a></li><li><a href="#28">DAQ rotary encoder</a></li><li><a href="#29">Lick detector</a></li><li><a href="#30">Hardware outputs</a></li><li><a href="#31">Timeline</a></li><li><a href="#32">Inputs</a></li><li><a href="#33">Outputs</a></li><li><a href="#34">Weigh scale</a></li><li><a href="#35">Using the scale</a></li><li><a href="#36">Audio devices</a></li><li><a href="#37">Loading your hardware file</a></li><li><a href="#38">FAQ</a></li><li><a href="#39">I tried loading an old hardware file but the variables are not objects.</a></li><li><a href="#40">I'm missing the time of the first flip only, why?</a></li><li><a href="#41">The PsychToolbox window covers the wrong monitors when I run the experiment server</a></li><li><a href="#42">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</a></li><li><a href="#43">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</a></li><li><a href="#44">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</a></li><li><a href="#45">My rotary encoder has a different resolution, how do I change the hardware config?</a></li><li><a href="#46">Notes</a></li><li><a href="#47">Etc.</a></li></ul></div><h2 id="1">The +hw packages</h2><p>Many of these classes for are found in the HW package.  This package contains all of the code that interfaces with lower-level hardware code (e.g. PsychToolbox's OpenGL functions, the NI +daq package):</p><pre class="codeinput">doc <span class="string">hw</span>
+</pre><h2 id="2">Retrieving hardware file path</h2><p>The location of the configuration file is set in <a href="./using_dat_package.html">DAT.PATHS</a>.  If running this on the stimulus computer you can use the following syntax:</p><pre class="codeinput">hardware = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
 
 <span class="comment">% For more info on setting the paths and using the DAT package:</span>
 rigbox = getOr(dat.paths, <span class="string">'rigbox'</span>); <span class="comment">% Location of Rigbox code</span>
-open(fullfile(rigbox, <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'paths_config.m'</span>))
-open(fullfile(rigbox, <span class="string">'docs'</span>, <span class="string">'using_dat_package.m'</span>))
-</pre><h2 id="3">Configuring the stimulus window</h2><p>The +hw Window class is the main class for configuring the visual stimulus window.  It contains the attributes and methods for interacting with the lower level functions that interact with the graphics drivers. Currently the only concrete implementation is support for the Psychophysics Toolbox, the HW.PTB.WINDOW class.</p><pre class="codeinput">doc <span class="string">hw.ptb.Window</span>
+open(fullfile(rigbox, <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'paths_config.m'</span>))
+open(fullfile(rigbox, <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'using_dat_package.m'</span>))
+</pre><h2 id="3">Configuring the stimulus window</h2><p>The +hw Window class is the main class for configuring the visual stimulus window.  It contains the attributes and methods for interacting with the lower level functions that interact with the graphics drivers. Currently the only concrete implementation is support for the Psychophysics Toolbox, the <tt>hw.ptb.Window</tt> class.</p><pre class="codeinput">doc <span class="string">hw.ptb.Window</span>
 stimWindow = hw.ptb.Window;
 
 <span class="comment">% Most of the properties directly mirror PsychToolbox parameters, therefore</span>
@@ -133,21 +132,21 @@ stimWindow.PtbSyncTests = true;
 stimWindow.PtbVerbosity = 2;
 </pre><h2 id="14">ColourRange, White, Black, etc.</h2><p>These properties are set by the object iteself after running OPEN, based on the colour depth of the screen.  For more info see these docs:</p><pre class="codeinput">help <span class="string">WhiteIndex</span>
 help <span class="string">BlackIndex</span>
-</pre><h2 id="15">- Performing gamma calibration from command window</h2><h2 id="16">Calibration</h2><p>This stores the gamma correction tables (See Below) The simplist way to to run the calibration is through SRV.EXPSEERVER once the rest of the hardware is configures, however it can also be done via the command window, assuming you have an NI DAQ installed:</p><pre class="codeinput">lightIn = <span class="string">'ai0'</span>; <span class="comment">% The input channel of the photodiode used to measure screen</span>
+</pre><h2 id="15">Calibration (performing gamma calibration from command window)</h2><p>This stores the gamma correction tables (See Below) The simplist way to to run the calibration is through <tt>srv.expServer</tt> once the rest of the hardware is configured, however it can also be done via the command window, assuming you have an NI DAQ installed:</p><pre class="codeinput">lightIn = <span class="string">'ai0'</span>; <span class="comment">% The input channel of the photodiode used to measure screen</span>
 clockIn = <span class="string">'ai1'</span>; <span class="comment">% The clocking pulse input channel</span>
 clockOut = <span class="string">'port1/line0 (PFI4)'</span>; <span class="comment">% The clocking pulse output channel</span>
 <span class="comment">% Connect the photodiode to `lightIn` and user a jumper to bridge a</span>
 <span class="comment">% connection between `clockIn` and `clockOut`.</span>
 
 <span class="comment">% Make sure the photodiode is placed against the screen before running</span>
-stimWindow.Calibration = stimWindow.calibration(DaqDev); <span class="comment">% calibration</span>
-
+stimWindow.Calibration = <span class="keyword">...</span>
+  stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
 
 save(hardware, <span class="string">'stimWindow'</span>, <span class="string">'-append'</span>) <span class="comment">% Save the stimWindow to file</span>
-</pre><h2 id="17">Using the Window object</h2><p>Let's check the Window object is set up correctly and explore some of the methods...</p><h2 id="18">- Setting the background colour</h2><pre class="codeinput">stimWindow.open() <span class="comment">% Open the window</span>
+</pre><h2 id="16">Using the Window object</h2><p>Let's check the Window object is set up correctly and explore some of the methods...</p><h2 id="17">- Setting the background colour</h2><pre class="codeinput">stimWindow.open() <span class="comment">% Open the window</span>
 stimWindow.BackgroundColour = stimWindow.Green; <span class="comment">% Change the background</span>
 stimWindow.flip(); <span class="comment">% Whoa!</span>
-</pre><h2 id="19">- Displaying a Gabor patch</h2><p>Make a texture and draw it to the screen with MAKETEXTURE and DRAWTEXTURE Let's make a Gabor patch as an example:</p><pre class="codeinput">sz = 1000; <span class="comment">% size of texture matrix</span>
+</pre><h2 id="18">- Displaying a Gabor patch</h2><p>Make a texture and draw it to the screen with <tt>makeTexture</tt> and <tt>drawTexture</tt> Let's make a Gabor patch as an example:</p><pre class="codeinput">sz = 1000; <span class="comment">% size of texture matrix</span>
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; <span class="comment">% randomised cosine phase</span>
 sigma = 100; <span class="comment">% size of Gaussian window</span>
@@ -166,9 +165,9 @@ tex = stimWindow.makeTexture(round(targetImg));
 stimWindow.drawTexture(tex)
 <span class="comment">% Flip the buffer:</span>
 stimWindow.flip;
-</pre><h2 id="20">- Clearing the window</h2><p>To clear the window, the use CLEAR method:</p><pre class="codeinput">stimWindow.clear <span class="comment">% Re-draw background colour</span>
+</pre><h2 id="19">- Clearing the window</h2><p>To clear the window, the use the <tt>clear</tt> method:</p><pre class="codeinput">stimWindow.clear <span class="comment">% Re-draw background colour</span>
 stimWindow.flip; <span class="comment">% Flip to screen</span>
-</pre><h2 id="21">- Drawing text to the screen</h2><p>Drawing text to the screen can be done with the DRAWTEXT method:</p><pre class="codeinput">[x, y] = deal(<span class="string">'center'</span>); <span class="comment">% Render the text to the center</span>
+</pre><h2 id="20">- Drawing text to the screen</h2><p>Drawing text to the screen can be done with the <tt>drawText</tt> method:</p><pre class="codeinput">[x, y] = deal(<span class="string">'center'</span>); <span class="comment">% Render the text to the center</span>
 [nx, ny] = stimWindow.drawText(<span class="string">'Hello World'</span>, x, y, stimWindow.Red);
 stimWindow.flip;
 
@@ -176,9 +175,9 @@ stimWindow.flip;
 [nx, ny] = stimWindow.drawText(<span class="string">'Hello World'</span>, x, y, stimWindow.Red);
 stimWindow.drawText(<span class="string">'! What''s up?'</span>, nx, ny, stimWindow.Red);
 stimWindow.flip;
-</pre><h2 id="22">- Closing a window</h2><p>Finally lets clear and close the window:</p><pre class="codeinput">stimWindow.clear
+</pre><h2 id="21">- Closing a window</h2><p>Finally lets clear and close the window:</p><pre class="codeinput">stimWindow.clear
 stimWindow.close
-</pre><h2 id="23">Viewing models</h2><p>The viewing model classes allow one to configure the relationship between physical dimentions and pixel space.  The viewing model classes contain methods for converting between visual degrees, pixels and physical dimentions.  Note: The viewing model classes are currently only implemented in legacy experiments such as ChoiceWorld.  See below section for configuring the viewing model in Signals.</p><p>There are currently two viewing model classes to choose from...</p><h2 id="24">- Basic screen viewing model</h2><p>The basic viewing model class deals with single screens positioned straight in front of an observer (^):| ___ |                                        ^</p><pre class="codeinput">doc <span class="string">hw.BasicScreenViewingModel</span>
+</pre><h2 id="22">Viewing models</h2><p>The viewing model classes allow one to configure the relationship between physical dimentions and pixel space.  The viewing model classes contain methods for converting between visual degrees, pixels and physical dimentions.  Note: The viewing model classes are currently only implemented in legacy experiments such as ChoiceWorld.  See below section for configuring the viewing model in Signals.</p><p>There are currently two viewing model classes to choose from...</p><h2 id="23">Basic screen viewing model</h2><p>The basic viewing model class deals with single screens positioned straight in front of an observer (^):| ___ |                                        ^</p><pre class="codeinput">doc <span class="string">hw.BasicScreenViewingModel</span>
 
 <span class="comment">% Let's set this up:</span>
 stimViewingModel = hw.BasicScreenViewingModel;
@@ -200,7 +199,7 @@ stimViewingModel.ScreenWidthPixels <span class="comment">% e.g. 1900 px</span>
 stimViewingModel.ScreenWidthMetres = 0.4750;
 
 save(hardware, <span class="string">'stimViewingModel'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="25">-- Using the model</h2><p>The object contains useful methods for converting between visual and graphics space:</p><pre class="codeinput"><span class="comment">% Visual field coordinates of a specified pixel.  The presumed</span>
+</pre><h2 id="24">Using the model</h2><p>The object contains useful methods for converting between visual and graphics space:</p><pre class="codeinput"><span class="comment">% Visual field coordinates of a specified pixel.  The presumed</span>
 <span class="comment">% 'straight-ahead' view pixel should map to the centre of the visual field</span>
 <span class="comment">% (zero polar and visual angles)</span>
 x = 0; y = 100; <span class="comment">% Convert this pixel coordinate to visual angle</span>
@@ -229,10 +228,10 @@ pxPerRad = stimViewingModel.visualPixelDensity(x, y)
 <span class="comment">% d(t) = zPx*tan(t)</span>
 <span class="comment">% Derivative w.r.t. t yields pixel density at a given visual angle:</span>
 <span class="comment">% d'(t) = zPx*sec(t)^2</span>
-</pre><h2 id="26">- Pseudo-Circular screen viewing model</h2><pre class="codeinput">doc <span class="string">hw.PseudoCircularScreenViewingModel</span>
+</pre><h2 id="25">Pseudo-Circular screen viewing model</h2><pre class="codeinput">doc <span class="string">hw.PseudoCircularScreenViewingModel</span>
 
 stimViewingModel = hw.PseudoCircularScreenViewingModel
-</pre><h2 id="27">- Signals viewing model</h2><p>Signals currently only supports a single viewing odel.  For now the function VIS.SCREEN is used to configure this.  Below is an example of configuring the viewing model for the Burgess wheel task, where there are three small screens located at right-angles to one another:</p><pre class="codeinput">help <span class="string">vis.screen</span>
+</pre><h2 id="26">Signals viewing model</h2><p>Signals currently only supports a single viewing odel.  For now the function VIS.SCREEN is used to configure this.  Below is an example of configuring the viewing model for the Burgess wheel task, where there are three small screens located at right-angles to one another:</p><pre class="codeinput">help <span class="string">vis.screen</span>
 <span class="comment">% Below is a schematic of the screen configuration (top-down view).</span>
 <span class="comment">% ^ represents the observer:</span>
 <span class="comment">%   _____</span>
@@ -257,7 +256,7 @@ screens(2) = vis.screen(centerPt(2,:), angle(2), screenDimsCm, [pxW 0 2*pxW pxH]
 screens(3) = vis.screen(centerPt(3,:), angle(3), screenDimsCm, [2*pxW  0 3*pxW pxH]); <span class="comment">% right screen</span>
 
 save(hardware, <span class="string">'screens'</span>, <span class="string">'-append'</span>);
-</pre><h2 id="28">Hardware inputs</h2><p>In this example we will add two inputs, a DAQ rotatary encoder and a beam lick detector.</p><h2 id="29">- DAQ rotary encoder</h2><p>Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER class:</p><pre class="codeinput">doc <span class="string">hw.DaqRotaryEncoder</span> <span class="comment">% More details for this class</span>
+</pre><h2 id="27">Hardware inputs</h2><p>In this example we will add two inputs, a DAQ rotatary encoder and a beam lick detector.</p><h2 id="28">DAQ rotary encoder</h2><p>Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER class:</p><pre class="codeinput">doc <span class="string">hw.DaqRotaryEncoder</span> <span class="comment">% More details for this class</span>
 mouseInput = hw.DaqRotaryEncoder;
 
 <span class="comment">% To deteremine what devices you have installed and their IDs:</span>
@@ -280,7 +279,7 @@ mouseInput.DaqCounterPeriod = 2^32;
 mouseInput.EncoderResolution = 1024
 <span class="comment">% Diameter of the wheel in mm</span>
 mouseInput.WheelDiameter = 62
-</pre><h2 id="30">- Lick detector</h2><p>A beam lick detector may be configured to work with an edge counter channel.  We can use the HW.DAQEDGECOUNTER class for this:</p><pre class="codeinput">lickDetector = hw.DaqEdgeCounter;
+</pre><h2 id="29">Lick detector</h2><p>A beam lick detector may be configured to work with an edge counter channel.  We can use the HW.DAQEDGECOUNTER class for this:</p><pre class="codeinput">lickDetector = hw.DaqEdgeCounter;
 
 <span class="comment">% This is actually a subclass of the HW.DAQROTARYENCODER class, and</span>
 <span class="comment">% therefore has a few irrelevant properties such as WheelDiameter.  These</span>
@@ -294,7 +293,7 @@ lickDetector.DaqChannelId = <span class="string">'ctr1'</span>;
 
 <span class="comment">% Save these two into our hardware file</span>
 save(hardware, <span class="string">'stimWindow'</span>, <span class="string">'lickDetector'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="31">Hardware outputs</h2><p>HW.DAQCONTROLLER</p><pre class="codeinput">doc <span class="string">hw.DaqController</span>
+</pre><h2 id="30">Hardware outputs</h2><p>HW.DAQCONTROLLER</p><pre class="codeinput">doc <span class="string">hw.DaqController</span>
 daqController = hw.DaqController;
 
 <span class="comment">% This class deals with creating DAQ sessions, assigning output</span>
@@ -324,7 +323,7 @@ valveDeliveryCalibration(openTimeRange, scalesPort, openValue,<span class="keywo
 
 <span class="comment">% Save your hardware file</span>
 save(hardware, <span class="string">'daqController'</span>, <span class="string">'-append'</span>);
-</pre><h2 id="32">Timeline</h2><p>Timeline unifies various hardware and software times using a DAQ device.</p><pre class="codeinput">doc <span class="string">hw.Timeline</span>
+</pre><h2 id="31">Timeline</h2><p>Timeline unifies various hardware and software times using a DAQ device. There is a separate guide for Timeline <a href="./Timeline.html">here</a>.</p><pre class="codeinput">doc <span class="string">hw.Timeline</span>
 
 <span class="comment">% Let's create a new object and configure some channels</span>
 timeline = hw.Timeline
@@ -345,18 +344,12 @@ timeline.wiringInfo(<span class="string">'chrono'</span>);
 <span class="comment">% They may be changed by setting the above fields, e.g.</span>
 timeline.Outputs(1).DaqChannelID = <span class="string">'port1/line1'</span>;
 timeline.wiringInfo(<span class="string">'chrono'</span>); <span class="comment">% New port # displayed</span>
-
-<span class="comment">% INPUTS</span>
-<span class="comment">% Add the rotary encoder</span>
-timeline.addInput(<span class="string">'rotaryEncoder'</span>, <span class="string">'ctr0'</span>, <span class="string">'Position'</span>);
+</pre><h2 id="32">Inputs</h2><p>Add the rotary encoder</p><pre class="codeinput">timeline.addInput(<span class="string">'rotaryEncoder'</span>, <span class="string">'ctr0'</span>, <span class="string">'Position'</span>);
 <span class="comment">% For a lick detector</span>
 timeline.addInput(<span class="string">'lickDetector'</span>, <span class="string">'ctr1'</span>, <span class="string">'EdgeCount'</span>);
 <span class="comment">% For a photodiode (see 'Configuring the visual stimuli' above)</span>
 timeline.addInput(<span class="string">'photoDiode'</span>, <span class="string">'ai2'</span>, <span class="string">'Voltage'</span>, <span class="string">'SingleEnded'</span>);
-
-<span class="comment">% OUTPUTS</span>
-<span class="comment">% Say we wanted to trigger camera aquisition at a given frame rate:</span>
-clockOut = hw.TLOutputClock;
+</pre><h2 id="33">Outputs</h2><p>Say we wanted to trigger camera aquisition at a given frame rate:</p><pre class="codeinput">clockOut = hw.TLOutputClock;
 clockOut.DaqChannelID = <span class="string">'ctr2'</span>; <span class="comment">% Set channal</span>
 clockOut.Name = <span class="string">'Cam-Trigger'</span>; <span class="comment">% A memorable name</span>
 clockOut.Frequency = 180; <span class="comment">% Hz</span>
@@ -367,9 +360,9 @@ timeline.Outputs(end+1) = clockOut; <span class="comment">% Assign to outputs</s
 save(hardware, <span class="string">'timeline'</span>, <span class="string">'-append'</span>)
 
 <span class="comment">% For more information on configuring and using Timeline, see</span>
-<span class="comment">% USING_TIMELINE:</span>
-open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_timeline.m'</span>))
-</pre><h2 id="33">Weigh scale</h2><p>MC allows you to log weights through the GUI by interfacing with a digital scale connected via a COM port. This is the only object of use in the MC computer's hardware file.</p><pre class="codeinput">scale = hw.WeighingScale
+<span class="comment">% TIMELINE:</span>
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'Timeline.m'</span>))
+</pre><h2 id="34">Weigh scale</h2><p>MC allows you to log weights through the GUI by interfacing with a digital scale connected via a COM port. This is the only object of use in the MC computer's hardware file.</p><pre class="codeinput">scale = hw.WeighingScale
 
 <span class="comment">% The Name field should be set to the name or product code of the scale you</span>
 <span class="comment">% connect.</span>
@@ -379,7 +372,8 @@ scale.Name = <span class="string">'SPX222'</span>;
 <span class="comment">% Device Manager (Win + X, then M).  Under Universal Serial Bus, you can</span>
 <span class="comment">% see all current USB and serial ports.  If you right-click and select</span>
 <span class="comment">% 'Properties' you can view the port number and even reassign them (under</span>
-<span class="comment">% Advanced)</span>
+<span class="comment">% Advanced).  You can also list all available ports by running |seriallist|</span>
+<span class="comment">% (|serialportlistt("available")| for &gt;2019b).</span>
 scaleComPort = <span class="string">'COM4'</span>; <span class="comment">% Set to a different port</span>
 <span class="comment">% The TareCommand and FormatSpec fields should be set based on your scale's</span>
 <span class="comment">% input and output configurations.  Check the manual.</span>
@@ -391,7 +385,7 @@ FormatSpec = <span class="string">'%f'</span>
 
 <span class="comment">%Save your hardware.mat file</span>
 save(hardware, <span class="string">'scale'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="34">- Using the scale</h2><p>The methods are rather self-explanatory.  To use the scale the port must first be opened using the INIT method:</p><pre class="codeinput">scale.init()
+</pre><h2 id="35">Using the scale</h2><p>The methods are rather self-explanatory.  To use the scale the port must first be opened using the INIT method:</p><pre class="codeinput">scale.init()
 
 <span class="comment">% To tare (zero) the scale, use the TARE method:</span>
 scale.tare()
@@ -406,8 +400,9 @@ lh = event.listener(scale, <span class="string">'NewReading'</span>, callback);
 
 <span class="comment">% To clean up you can simply clear the object from the workspace:</span>
 clear <span class="string">scale</span> <span class="string">lh</span>
-</pre><h2 id="35">Audio devices</h2><pre class="codeinput">InitializePsychSound
+</pre><h2 id="36">Audio devices</h2><p>On MS-Windows you'll have the choice between up to 5 different audio subsystems: WASAPI (on Windows-Vista and later), or WDMKS (on Windows-2000/XP) should provide ok latency. DirectSound is the next worst choice if you have hardware with DirectSound support. If everything else fails, you'll be left with MME, a completely unusable API for precise or low latency timing.</p><pre class="codeinput">InitializePsychSound
 devs = PsychPortAudio(<span class="string">'GetDevices'</span>)
+
 <span class="comment">% Sanitize the names</span>
 names = matlab.lang.makeValidName({devs.DeviceName}, <span class="string">'ReplacementStyle'</span>, <span class="string">'delete'</span>);
 names = iff(ismember(<span class="string">'default'</span>, names), names, @()[{<span class="string">'default'</span>} names(2:end)]);
@@ -415,7 +410,11 @@ names = iff(ismember(<span class="string">'default'</span>, names), names, @()[{
 audioDevices = devs;
 
 save(hardware, <span class="string">'audioDevices'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="36">Loading your hardware file</h2><p>To load your rig hardware objects for testing at a rig, you can use HW.DEVICES:</p><pre class="codeinput">rig = hw.devices;
+
+<span class="comment">% @TODO Substantiate</span>
+<span class="comment">% @body Info on PTB support, mention the helper for testing devices,</span>
+<span class="comment">% mention how audio device naming works</span>
+</pre><h2 id="37">Loading your hardware file</h2><p>To load your rig hardware objects for testing at a rig, you can use <tt>hw.devices</tt>:</p><pre class="codeinput">rig = hw.devices;
 
 <span class="comment">% To load the hardware file or a different rig, you can input the rig name.</span>
 <span class="comment">% Note HW.DEVICES initializes some of the hardware by default, including</span>
@@ -424,7 +423,7 @@ save(hardware, <span class="string">'audioDevices'</span>, <span class="string">
 rigName = <span class="string">'ZREDONE'</span>;
 initialize = false;
 rig = hw.devices(rigName, initialize);
-</pre><h2 id="37">FAQ</h2><h2 id="38">I tried loading an old hardware file but the variables are not objects.</h2><p>This was probably accompanied with an error such as: * <tt>% Warning: Variable 'rewardController' originally saved as a hw.DaqRewardValve cannot be instantiated as an object and will be read in as a uint32.</tt> *</p><pre class="codeinput"><span class="comment">% This usually means that there has been a substantial change in the code</span>
+</pre><h2 id="38">FAQ</h2><h2 id="39">I tried loading an old hardware file but the variables are not objects.</h2><p>This was probably accompanied with an error such as: * <tt>% Warning: Variable 'rewardController' originally saved as a hw.DaqRewardValve cannot be instantiated as an object and will be read in as a uint32.</tt> *</p><pre class="codeinput"><span class="comment">% This usually means that there has been a substantial change in the code</span>
 <span class="comment">% since the object was last saved and MATLAB can no longer load it into the</span>
 <span class="comment">% workspace.  One solution is to revert your code to a release dated around</span>
 <span class="comment">% the time of the hardware file's modified date:</span>
@@ -433,10 +432,10 @@ datestr(file.modDate(hwPath)) <span class="comment">% Find the time file was las
 
 <span class="comment">% Once you have the previous parameters, create a new object with the</span>
 <span class="comment">% current code version, assign the parameters and resave.</span>
-</pre><h2 id="39">I'm missing the time of the first flip only, why?</h2><p>Perhaps the first flip is always too dark a colour.  Try reversing the order stimWindow.SyncColourCycle:</p><pre class="codeinput">scc = stimWindow.SyncColourCycle;
+</pre><h2 id="40">I'm missing the time of the first flip only, why?</h2><p>Perhaps the first flip is always too dark a colour.  Try reversing the order stimWindow.SyncColourCycle:</p><pre class="codeinput">scc = stimWindow.SyncColourCycle;
 scc = iff(size(scc,1) &gt; size(scc,2), @() flipud(scc), @() fliplr(scc));
 stimWindow.SyncColourCycle = scc;
-</pre><h2 id="40">The PsychToolbox window covers the wrong monitors when I run the experiment server</h2><p>Make sure Mosaic is still running (sometimes if the computer loses a monitor input the graphics card disables Mosaic). One indication of this is that the task bar should stretch across all three of the stimulus screens. Also check that the stimWindow.ScreenNum is correct in the hardware.mat file. When set to 0, PsychToolbox uses all screens available to Windows; 1 means Windows&#8217; primary screen (see the Display Settings); 2 means Windows&#8217; secondary screen, etc.</p><h2 id="41">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</h2><p>This happens from time-to-time. When a PsychToolbox window is opened it runs some synchronization to retrace tests, checking whether buffer flips are properly synchronized to the vertical retrace signal of your display. Synchronization failiures indicate that there tareing or flickering may occur during stimulus presentation.  More info on this may be found <a href="http://psychtoolbox.org/docs/SyncTrouble">here</a> :</p><pre class="codeinput">web(<span class="string">'http://psychtoolbox.org/docs/SyncTrouble'</span>)
+</pre><h2 id="41">The PsychToolbox window covers the wrong monitors when I run the experiment server</h2><p>Make sure Mosaic is still running (sometimes if the computer loses a monitor input the graphics card disables Mosaic). One indication of this is that the task bar should stretch across all three of the stimulus screens. Also check that the stimWindow.ScreenNum is correct in the hardware.mat file. When set to 0, PsychToolbox uses all screens available to Windows; 1 means Windows' primary screen (see the Display Settings); 2 means Windows' secondary screen, etc.</p><h2 id="42">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</h2><p>This happens from time-to-time. When a PsychToolbox window is opened it runs some synchronization to retrace tests, checking whether buffer flips are properly synchronized to the vertical retrace signal of your display. Synchronization failiures indicate that there tareing or flickering may occur during stimulus presentation.  More info on this may be found <a href="http://psychtoolbox.org/docs/SyncTrouble">here</a> :</p><pre class="codeinput">web(<span class="string">'http://psychtoolbox.org/docs/SyncTrouble'</span>)
 <span class="comment">% The problem may be exacerbated if you're running other programs that</span>
 <span class="comment">% interfere with the graphics, such as remote window viewers (VNC, Remote</span>
 <span class="comment">% Desktpo, etc.), or if you are running multiple monitors that do not have</span>
@@ -444,19 +443,17 @@ stimWindow.SyncColourCycle = scc;
 <span class="comment">% If you know what you're doing and are confident that things are working,</span>
 <span class="comment">% you can skip the tests by setting the following property:</span>
 stimWindow.PtbSyncTests = false;
-</pre><h2 id="42">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</h2><p>NI Error -88709 ?or Error using hw.DaqRotaryEncoder/createDaqChannel (line 81): The requested subsystem 'CounterInput' does not exist on this device.</p><pre class="codeinput"><span class="comment">% This happens from time to time, particularly after the computer has gone</span>
+</pre><h2 id="43">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</h2><p>NI Error -88709 ?or Error using hw.DaqRotaryEncoder/createDaqChannel (line 81): The requested subsystem 'CounterInput' does not exist on this device.</p><pre class="codeinput"><span class="comment">% This happens from time to time, particularly after the computer has gone</span>
 <span class="comment">% to sleep. Unplugging the DAQ USB cable and plugging it back in helps.</span>
 <span class="comment">% Restart MATLAB. If the error persists, restart the computer with the DAQ</span>
 <span class="comment">% unplugged.</span>
-</pre><h2 id="43">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</h2><p>If you have multiple NI devices on this computer, set the DaqIds properties to the correct id in your hardware.mat file, i.e. daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId</p><pre class="codeinput">d = daq.getDevices <span class="comment">% Availiable devices and their info</span>
-</pre><h2 id="44">My rotary encoder has a different resolution, how do I change the hardware config?</h2><p>Change the mouseInput.EncoderResolution peroperty to the value found at the end of your rotary encoder&#8217;s product number: e.g. 05.2400.1122.1024 means EncoderResolution = 1024.</p><h2 id="45">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="46">Etc.</h2><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS&gt;</span>
-<span class="comment">%#ok&lt;*NASGU&gt;</span>
-<span class="comment">%#ok&lt;*ASGLU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><h2 id="44">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</h2><p>If you have multiple NI devices on this computer, set the DaqIds properties to the correct id in your hardware.mat file, i.e. daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId</p><pre class="codeinput">d = daq.getDevices <span class="comment">% Availiable devices and their info</span>
+</pre><h2 id="45">My rotary encoder has a different resolution, how do I change the hardware config?</h2><p>Change the mouseInput.EncoderResolution peroperty to the value found at the end of your rotary encoder&#8217;s product number: e.g. 05.2400.1122.1024 means EncoderResolution = 1024.</p><h2 id="46">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="47">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Configuring hardware devices 
-% When running <../../../+srv/expServer.m SRV.EXPSERVER> the hardware settings are loaded from a MAT
-% file and initialized before an experiment.  The MC computer may also have
+%% Introduction 
+% When running |srv.expServer| the hardware settings are loaded from a MAT
+% file and initialized before an experiment. The MC computer may also have
 % a hardware file, though this isn't essential.  The below script is a
 % guide for setting up a new hardware file, with examples mostly pertaining
 % to replicating the Burgess steering wheel task(1).  Not all uncommented
@@ -483,26 +480,34 @@ stimWindow.PtbSyncTests = false;
 % * |scale| - A weighing scale device for use by the MC computer
 % * |screens| - Parameters for the Signals viewing model
 % * |audioDevices| - Struct of parameters for each audio device
+%
+% NB: Not all uncommented lines will run without error, particularly when a
+% specific hardware configuration is required.  Always read the preceeding
+% text before running each line.
 
-% Many of these classes for are found in the HW package:
+%% The +hw packages
+% Many of these classes for are found in the HW package.  This package
+% contains all of the code that interfaces with lower-level hardware code
+% (e.g. PsychToolbox's OpenGL functions, the NI +daq package):
 doc hw
 
 %% Retrieving hardware file path
-% The location of the configuration file is set in DAT.PATHS.  If running
-% this on the stimulus computer you can use the following syntax:
+% The location of the configuration file is set in
+% <./using_dat_package.html DAT.PATHS>.  If running this on the stimulus
+% computer you can use the following syntax:
 hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
 
 % For more info on setting the paths and using the DAT package:
 rigbox = getOr(dat.paths, 'rigbox'); % Location of Rigbox code
-open(fullfile(rigbox, 'docs', 'setup', 'paths_config.m'))
-open(fullfile(rigbox, 'docs', 'using_dat_package.m'))
+open(fullfile(rigbox, 'docs', 'scripts', 'paths_config.m'))
+open(fullfile(rigbox, 'docs', 'scripts', 'using_dat_package.m'))
 
 %% Configuring the stimulus window
 % The +hw Window class is the main class for configuring the visual
 % stimulus window.  It contains the attributes and methods for interacting
 % with the lower level functions that interact with the graphics drivers.
 % Currently the only concrete implementation is support for the
-% Psychophysics Toolbox, the HW.PTB.WINDOW class.
+% Psychophysics Toolbox, the |hw.ptb.Window| class.
 
 doc hw.ptb.Window
 stimWindow = hw.ptb.Window;
@@ -641,11 +646,10 @@ stimWindow.PtbVerbosity = 2;
 help WhiteIndex
 help BlackIndex
 
-%% - Performing gamma calibration from command window
-%%% Calibration 
+%%% Calibration (performing gamma calibration from command window)
 % This stores the gamma correction tables (See Below) The simplist way to
-% to run the calibration is through SRV.EXPSEERVER once the rest of the
-% hardware is configures, however it can also be done via the command
+% to run the calibration is through |srv.expServer| once the rest of the
+% hardware is configured, however it can also be done via the command
 % window, assuming you have an NI DAQ installed:
 lightIn = 'ai0'; % The input channel of the photodiode used to measure screen
 clockIn = 'ai1'; % The clocking pulse input channel
@@ -654,8 +658,8 @@ clockOut = 'port1/line0 (PFI4)'; % The clocking pulse output channel
 % connection between `clockIn` and `clockOut`.
 
 % Make sure the photodiode is placed against the screen before running
-stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
-
+stimWindow.Calibration = ...
+  stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
 
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
@@ -669,8 +673,8 @@ stimWindow.BackgroundColour = stimWindow.Green; % Change the background
 stimWindow.flip(); % Whoa!
 
 %% - Displaying a Gabor patch
-% Make a texture and draw it to the screen with MAKETEXTURE and DRAWTEXTURE
-% Let's make a Gabor patch as an example:
+% Make a texture and draw it to the screen with |makeTexture| and
+% |drawTexture| Let's make a Gabor patch as an example:
 sz = 1000; % size of texture matrix
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; % randomised cosine phase
@@ -692,12 +696,12 @@ stimWindow.drawTexture(tex)
 stimWindow.flip;
 
 %% - Clearing the window
-% To clear the window, the use CLEAR method:
+% To clear the window, the use the |clear| method:
 stimWindow.clear % Re-draw background colour
 stimWindow.flip; % Flip to screen
 
 %% - Drawing text to the screen
-% Drawing text to the screen can be done with the DRAWTEXT method:
+% Drawing text to the screen can be done with the |drawText| method:
 [x, y] = deal('center'); % Render the text to the center
 [nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
 stimWindow.flip;
@@ -722,7 +726,7 @@ stimWindow.close
 %
 % There are currently two viewing model classes to choose from...
 
-%% - Basic screen viewing model
+%%% Basic screen viewing model
 % The basic viewing model class deals with single screens positioned
 % straight in front of an observer (^):| _____
 % |                                        ^  
@@ -749,7 +753,7 @@ stimViewingModel.ScreenWidthMetres = 0.4750;
 
 save(hardware, 'stimViewingModel', '-append')
 
-%% REPLACE_WITH_DASH_DASH Using the model
+%%% Using the model
 % The object contains useful methods for converting between visual and
 % graphics space:
 
@@ -784,12 +788,12 @@ pxPerRad = stimViewingModel.visualPixelDensity(x, y)
 % d'(t) = zPx*sec(t)^2
 
 
-%% - Pseudo-Circular screen viewing model
+%%% Pseudo-Circular screen viewing model
 doc hw.PseudoCircularScreenViewingModel
 
 stimViewingModel = hw.PseudoCircularScreenViewingModel
 
-%% - Signals viewing model
+%%% Signals viewing model
 % Signals currently only supports a single viewing odel.  For now the
 % function VIS.SCREEN is used to configure this.  Below is an example of
 % configuring the viewing model for the Burgess wheel task, where there are
@@ -824,7 +828,7 @@ save(hardware, 'screens', '-append');
 % In this example we will add two inputs, a DAQ rotatary encoder and a beam
 % lick detector.
 
-%% - DAQ rotary encoder
+%%% DAQ rotary encoder
 % Create a input for the Burgess LEGO wheel using the HW.DAQROTARYENCODER
 % class:
 doc hw.DaqRotaryEncoder % More details for this class
@@ -851,7 +855,7 @@ mouseInput.EncoderResolution = 1024
 % Diameter of the wheel in mm
 mouseInput.WheelDiameter = 62
 
-%% - Lick detector
+%%% Lick detector
 % A beam lick detector may be configured to work with an edge counter
 % channel.  We can use the HW.DAQEDGECOUNTER class for this:
 lickDetector = hw.DaqEdgeCounter;
@@ -904,6 +908,7 @@ save(hardware, 'daqController', '-append');
 
 %% Timeline
 % Timeline unifies various hardware and software times using a DAQ device.
+% There is a separate guide for Timeline <./Timeline.html here>.
 doc hw.Timeline
 
 % Let's create a new object and configure some channels
@@ -926,7 +931,7 @@ timeline.wiringInfo('chrono');
 timeline.Outputs(1).DaqChannelID = 'port1/line1';
 timeline.wiringInfo('chrono'); % New port # displayed
 
-% INPUTS
+%%% Inputs
 % Add the rotary encoder
 timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
 % For a lick detector
@@ -934,7 +939,7 @@ timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
 % For a photodiode (see 'Configuring the visual stimuli' above)
 timeline.addInput('photoDiode', 'ai2', 'Voltage', 'SingleEnded');
 
-% OUTPUTS
+%%% Outputs
 % Say we wanted to trigger camera aquisition at a given frame rate:
 clockOut = hw.TLOutputClock;
 clockOut.DaqChannelID = 'ctr2'; % Set channal
@@ -947,8 +952,8 @@ timeline.Outputs(end+1) = clockOut; % Assign to outputs
 save(hardware, 'timeline', '-append')
 
 % For more information on configuring and using Timeline, see
-% USING_TIMELINE:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_timeline.m'))
+% TIMELINE:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'scripts', 'Timeline.m'))
 
 %% Weigh scale
 % MC allows you to log weights through the GUI by interfacing with a
@@ -964,7 +969,8 @@ scale.Name = 'SPX222';
 % Device Manager (Win + X, then M).  Under Universal Serial Bus, you can
 % see all current USB and serial ports.  If you right-click and select
 % 'Properties' you can view the port number and even reassign them (under
-% Advanced)
+% Advanced).  You can also list all available ports by running |seriallist|
+% (|serialportlistt("available")| for >2019b).
 scaleComPort = 'COM4'; % Set to a different port
 % The TareCommand and FormatSpec fields should be set based on your scale's
 % input and output configurations.  Check the manual.
@@ -977,7 +983,7 @@ FormatSpec = '%f'
 %Save your hardware.mat file
 save(hardware, 'scale', '-append')
 
-%% - Using the scale
+%%% Using the scale
 % The methods are rather self-explanatory.  To use the scale the port must
 % first be opened using the INIT method:
 scale.init() 
@@ -997,8 +1003,16 @@ lh = event.listener(scale, 'NewReading', callback);
 clear scale lh
 
 %% Audio devices
+% On MS-Windows you'll have the choice between up to 5 different audio
+% subsystems: WASAPI (on Windows-Vista and later), or WDMKS (on
+% Windows-2000/XP) should provide ok latency. DirectSound is the next worst
+% choice if you have hardware with DirectSound support. If everything else
+% fails, you'll be left with MME, a completely unusable API for precise or
+% low latency timing. 
+
 InitializePsychSound
 devs = PsychPortAudio('GetDevices')
+
 % Sanitize the names
 names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
 names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
@@ -1007,9 +1021,13 @@ audioDevices = devs;
 
 save(hardware, 'audioDevices', '-append')
 
+% @TODO Substantiate
+% @body Info on PTB support, mention the helper for testing devices,
+% mention how audio device naming works
+
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
-% HW.DEVICES:
+% |hw.devices|:
 rig = hw.devices; 
 
 % To load the hardware file or a different rig, you can input the rig name.
@@ -1050,8 +1068,8 @@ stimWindow.SyncColourCycle = scc;
 % is that the task bar should stretch across all three of the stimulus
 % screens. Also check that the stimWindow.ScreenNum is correct in the
 % hardware.mat file. When set to 0, PsychToolbox uses all screens available
-% to Windows; 1 means Windows’ primary screen (see the Display Settings); 2
-% means Windows’ secondary screen, etc.
+% to Windows; 1 means Windows' primary screen (see the Display Settings); 2
+% means Windows' secondary screen, etc.
 
 %%% I get a ‘PTB synchronization error’ when I run the experiment server.
 % This happens from time-to-time. When a PsychToolbox window is opened it
@@ -1094,8 +1112,11 @@ d = daq.getDevices % Availiable devices and their info
 % (1) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
 
 %% Etc.
-%#ok<*NOPTS>
-%#ok<*NASGU>
-%#ok<*ASGLU>
+% Author: Miles Wells
+%
+% v1.1.1
+
+%#ok<*NOPTS,*NASGU,*ASGLU>
+
 ##### SOURCE END #####
 --></body></html>

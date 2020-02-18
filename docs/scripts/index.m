@@ -3,7 +3,6 @@
 % find detailed documentation and guides on how to set up Rigbox, including
 % writing new experiments, setting up recording devices, running
 % experiments and processing the resulting data.
-%
 % 
 
 %% Installing Rigbox
@@ -27,6 +26,12 @@
 % parameters, 2) save a hardware configuration file so that Rigbox can
 % properly initialize its hardware, and 3) locate or create an experiment
 % definition function to define your experiment.
+%
+% # <./paths_config.html Setting up dat.paths>
+% # <./hardware_config.html How to configure hardware on the stimulus computer>
+% # <./websocket_config.html Setting up communication between the stimulus computer and MC>
+% # <./using_single_rig.html Setting up |mc| and |srv.expServer| on the
+% same computer>
 
 %% Running full experiments
 % Before you can run a complete experiment, you must set up Rigbox (see
@@ -38,8 +43,7 @@
 % or behaviour task) is write an <./glossary.html expDef>.  Below will be a
 % set of guides for how to write an expDef, and how to test it.
 % 
-% * <./using_test_gui.html Playing around with Signals Experiment
-% Definitions>
+% * <./using_test_gui.html Playing around with Signals Experiment Definitions>
 % 
 
 %% Working with Rigbox Experiment data
@@ -77,21 +81,17 @@
 % Signals works.  This shows you how to work with Signals outside of the
 % <Glossary.html Experiment Framework> and gives demonstrations of all
 % Signals methods ( |scan|, etc.)  
-% * <./using_parameters.html Parameters> - How to create and edit
+% * <./Parameters.html Parameters> - How to create and edit
 % experiment parameters.
 % * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
+% * <./Timeline.html Timeline> - Using Timeline for time alignment
 %
 %
 %% Miscellaneous
 % Below is a list of useful topics:
 %
-% * <./paths_config.html Setting up dat.paths>
-% * <./hardware_config.html How to configure hardware on the stimulus computer>
-% * <./websocket_config.html Setting up communication between the stimulus computer and MC>
-% * <./Timeline.html Using Timeline for time alignment>
 % * <./using_services.html Setting up auxiliary services>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
-% * <./troubleshooting.html Troubleshooting Rigbox errors>
 % * <./glossary.html Glossary of Rigbox terminology>
 %
 
