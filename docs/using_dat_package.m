@@ -1,4 +1,4 @@
-%% Introduction
+%% The Data Package
 % The 'data' package contains code pertaining to the organization and
 % logging of data. It contains functions that generate and parse unique
 % experiment reference ids, and return file paths where subject data and

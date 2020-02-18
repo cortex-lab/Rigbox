@@ -455,7 +455,7 @@ save(hardware, 'daqController', '-append');
 
 %% Timeline
 % Timeline unifies various hardware and software times using a DAQ device.
-% There is a separate guide for Timeline <./using_timeline.html here>.
+% There is a separate guide for Timeline <./Timeline.html here>.
 doc hw.Timeline
 
 % Let's create a new object and configure some channels
@@ -499,8 +499,8 @@ timeline.Outputs(end+1) = clockOut; % Assign to outputs
 save(hardware, 'timeline', '-append')
 
 % For more information on configuring and using Timeline, see
-% USING_TIMELINE:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_timeline.m'))
+% TIMELINE:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'Timeline.m'))
 
 %% Weigh scale
 % MC allows you to log weights through the GUI by interfacing with a
