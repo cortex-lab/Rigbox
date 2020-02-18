@@ -1,12 +1,12 @@
 function expServer(varargin)
 %SRV.EXPSERVER Start the presentation server
-%   SRV.EXPSERVER(NAME, VALUE)
-%   SRV.EXPSERVER(REF[, PREDELAY, POSTDELAY, ALYX])
-%   Principle function for running experiments.  ExpServer listens for
+%   The principle function for running experiments.  expServer listens for
 %   commands via TCP/IP Web sockets to start, stop and pause stimulus
-%   presentation experiments.  
+%   presentation experiments.  expServer can also be called with an expRef
+%   for running a specific experiment.
+%   
 %
-%   Inputs:
+%   Inputs (Optional Name-Value Parameters):
 %     useTimelineOverride (logical) - Flag indicating whether to start
 %       Timeline.  If empty the default is the UseTimeline flag in the
 %       hardware file.  Timeline may still be toggled by pressing the 't'
@@ -14,6 +14,16 @@ function expServer(varargin)
 %     bgColour (1-by-3 double) - The background colour of the stimulus
 %       window.  If not specified the background colour specified in the
 %       harware file is used.
+%     expRef (char) - An experiment reference string for starting an
+%       experiment in 'single-shot mode'.
+%     preDelay (double) - The delay between initialization and experiment
+%       start.  This parameter is only used with the 'expRef' parameter.
+%       Default is 0.
+%     postDelay (double) - The delay between stop signal and experiment
+%       cleanup.  This parameter is only used with the 'expRef' parameter.
+%       Default is 0.
+%     alyx (Alyx) - An instance of Alyx for communicating with the
+%       database.  This parameter is only used with the 'expRef' parameter.
 %
 %   Key bindings:
 %     t - Toggle Timeline on and off.  The default state is defined in the
