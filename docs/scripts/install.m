@@ -7,12 +7,16 @@
 % carefully before attempting to install anything.
 
 %% Requirements
-% For running full experiments Rigbox requires two PCs: one for presenting
-% stimuli and one for monitoring the experiment. Currently only
+% For exploring Rigbox's features and running test experiments,
+% Rigbox only needs to be installed on a single computer.
+%
+% For running full experiments, we recommend running Rigbox on two PCs: one
+% is used for presenting stimuli and communicating with rig hardware, and
+% the other runs a GUI which the user interacts with to monitor the
+% experiment. Currently only
 % <https://www.ni.com/en-us/innovations/academic-research/teaching-measurements-instrumentation.html
 % National Instruments DAQs> are supported for acquiring data from hardware
-% devices. For testing, Rigbox can be run on one PC, without installing
-% anything that has 'NI' in the name. 
+% devices.
 % 
 %%% Software
 % Rigbox reqquires the following software to work properly:
@@ -36,26 +40,28 @@
 %
 %
 %% Install steps
-% Below are detailed steps on installing all software required to run a
-% Rigbox test experiment.  If you already have a bit of software installed
-% that's mentioned in a step, feel free to skip that step.
+% Below are detailed steps on installing all required software. If you 
+% already have software installed for a particular step, feel free to skip
+% that step. Unless you are installing Rigbox on a computer which will use
+% a NI-DAQ for data acquistion, you can skip step 5.
 %
-% # Install Windows 7 or later (Windows 10 is recommended).  You version
-% must be 64-bit (sometimes called x64, x86_64, AMD64 or Intel 64).
+% # Install Windows 7 or later (Windows 10 is recommended).  Windows must
+% be must be 64-bit (sometimes called x64, x86_64, AMD64 or Intel 64).
 % # Download and install https://uk.mathworks.com/downloads/ MATLAB> by
 % following their
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html
 % installation guide> (see note 1).  At
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html#brhzmcm-1
-% step 9>, check the Data Acquisition Toolbox.  It doesn't matter whether
-% the other products are checked or not (see note 2).  NB: This step may
-% take a while.
+% step 9>, make sure to check the box for the Data Acquisition Toolbox,
+% along with any other MATLAB Mathworks toolboxes you want, though for
+% testing Rigbox, no other toolboxes are required (See note 2).  NB: This
+% step may take a while.
 % # Once downloaded, open MATLAB by double-clicking on the MATLAB icon in
 % the start menu.
 % # Within MATLAB, install the GUI Layout Toolbox (See note 2).  Make sure
 % the version number is greater than 2.  
-% # Install the NI-DAQmx Support Package in the same way you installed the
-% previous toolbox (See note 2). NB: This step may take a while.
+% # Within MATLAB, install the NI-DAQmx Support Package (See note 2).  NB:
+% This step may take a while.
 % # Download and install the Microsoft
 % <https://www.microsoft.com/en-us/download/details.aspx?id=40784 Visual
 % C++ Redistributable Packages for Visual Studio 2013> installer (See note
@@ -103,10 +109,10 @@
 % get MATLAB for free.  If in doubt ask your lab supervisor or institute IT
 % department.   For more information see
 % <https://uk.mathworks.com/help/install/ MATLAB's install guide>. 
-% # Once MATLAB is installed, all toolboxes can all be downloaded and
-% installed directly within MATLAB via the "Add-Ons" button in the "Home"
-% top toolstrip.  This opens the MATLAB 'AddOn Explorer' where you can
-% search and install toolboxes.
+% # Once MATLAB is installed, toolboxes can be downloaded and installed
+% directly within MATLAB via the "Add-Ons" button in the "Home" top
+% toolstrip.  This opens the MATLAB 'AddOn Explorer' where you can search
+% and install toolboxes.
 % # To install download and install, follow the link and click the orange
 % 'Download' button.  A 'Choose the download you want' window will come up.
 %  Select 'vcredist_x64.exe' and click 'Next'.  A download window will pop
