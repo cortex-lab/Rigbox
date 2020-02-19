@@ -265,8 +265,8 @@ timeline.Outputs(end+1) = clockOut; % Assign to outputs
 save(hardware, 'timeline', '-append')
 
 % For more information on configuring and using Timeline, see
-% USING_TIMELINE:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_timeline.m'))
+% TIMELINE doc:
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'Timeline.m'))
 
 %% Weigh scale
 % MC allows you to log weights through the GUI by interfacing with a

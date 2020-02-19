@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_services.m"><style type="text/css">
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-19"><meta name="DC.source" content="using_services.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -216,10 +216,10 @@ save(fullfile(p.globalConfig, <span class="string">'remote.mat'</span>), <span c
 
 <span class="comment">% More information can be found in the &lt;./websocket_config.html</span>
 <span class="comment">% websocket_config&gt; script:</span>
-open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
-  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'websocket_config.m'</span>))
-</pre><h2 id="8">Conclusion</h2><p>Ultimately the way you configure your services will be idiosyncratic as it depends on what devices you need to trigger and what information they require from the experiment.  Hopefully the above gives you a good enough idea of the ways in which you can integrate other equipment and devices into Rigbox.</p><h2 id="9">Notes</h2><p>(1) MPEP is another, passive stimulus presentation toolbox that predates Rigbox.  The functions <tt>io.MpepUDPDataHosts</tt> and <tt>tl.mpepListener</tt> / <tt>tl.bindMpepServer</tt> were designed to work with both Rigbox and MPEP.  The latter is the function we run on the receiving end.</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*FINS,*NASGU,*NOPTS&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+root = getOr(dat.paths, <span class="string">'rigbox'</span>);
+open(fullfile(root, <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'websocket_config.m'</span>))
+</pre><h2 id="8">Conclusion</h2><p>Ultimately the way you configure your services will be idiosyncratic as it depends on what devices you need to trigger and what information they require from the experiment.  Hopefully the above gives you a good enough idea of the ways in which you can integrate other equipment and devices into Rigbox.</p><h2 id="9">Notes</h2><p>(1) MPEP is another, passive stimulus presentation toolbox that predates Rigbox.  The functions <tt>io.MpepUDPDataHosts</tt> and <tt>tl.mpepListener</tt> / <tt>tl.bindMpepServer</tt> were designed to work with both Rigbox and MPEP.  The latter is the function we run on the receiving end.</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*FINS,*NASGU,*NOPTS&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Introduction
 % Timeline outputs are useful for triggering external hardware, but what
@@ -455,8 +455,8 @@ save(fullfile(p.globalConfig, 'remote.mat'), 'stimulusControllers')
 
 % More information can be found in the <./websocket_config.html
 % websocket_config> script:
-open(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'websocket_config.m'))
+root = getOr(dat.paths, 'rigbox');
+open(fullfile(root, 'docs', 'scripts', 'websocket_config.m'))
 
 %% Conclusion
 % Ultimately the way you configure your services will be idiosyncratic as
@@ -474,7 +474,7 @@ open(fullfile(getOr(dat.paths,'rigbox'), ...
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.0
+% v1.1.1
 
 %#ok<*FINS,*NASGU,*NOPTS>
 ##### SOURCE END #####

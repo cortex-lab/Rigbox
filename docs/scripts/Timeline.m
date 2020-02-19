@@ -1,4 +1,4 @@
-%% Introduction
+%% Timeline
 % Timeline manages the acquisition and generation of experimental timing
 % data using a NI-DAQ. The main timing signal, 'chrono', is a digital
 % square wave that flips each time a new chunk of data is available from
@@ -22,60 +22,79 @@
 % For more details on setting up Timeline, see <./hardware_config.html
 % hardware_config>:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'hardware_config.m'), 58)
+  'docs', 'scripts', 'hardware_config.m'), 58)
 
-% NB: Not all uncommented lines will run without error, particularly when a
+%%
+% *NB* : Not all uncommented lines will run without error, particularly when a
 % specific hardware configuration is required.  Always read the preceeding
 % text before running each line.
 
 % Let's set up a timeline object:
-timeline = hw.Timeline;
+timeline = hw.Timeline; 
 
+%% Using settings from a previous experiment
 % To set up a new timeline object using setting from a previous experiment,
-% call the constructor with the variable saved in *_Timeline.mat for that
+% call the constructor with the variable saved in |*_Timeline.mat| for that
 % experiment:
-%   ref = dat.constructExpRef('example', now - 10, 2); % Example experiment
-%   hwPath = dat.expFilePath(ref, 'timeline', 'master');
-%   timeline = hw.Timeline(loadVar(hwPath, 'hw')); % Load and instantiate
+ref = dat.constructExpRef('example', now - 10, 2); % Example experiment
+hwPath = dat.expFilePath(ref, 'timeline', 'master'); % Path to timeline MAT
+timeline = hw.Timeline(loadVar(hwPath, 'hw')); % Load and instantiate
 
+%%
 % A JSON file is also saved after each experiment, currently with the name
-% TimelineHW.json:
-%   hwPath = fullfile(dat.expPath(ref,'main','master'), 'TimelineHW.json');
-%   timeline = hw.Timeline(jsondecode(fileread(hwPath)));
+% |TimelineHW.json|:
+hwPath = fullfile(dat.expPath(ref,'main','master'), 'TimelineHW.json');
+timeline = hw.Timeline(jsondecode(fileread(hwPath))); % Load from JSON copy
 
 %% Inputs
 % The Inputs property contains a structure for configuring which channels
 % to aquire data from.  
 timeline.Inputs
 
+%%
+%   ans = 
+% 
+%     struct with fields:
+% 
+%                 name: 'chrono'
+%          arrayColumn: -1
+%         daqChannelID: 'ai0'
+%          measurement: 'Voltage'
+%       terminalConfig: 'SingleEnded'
+%            axesScale: 1
+%%
 % You can add a channel by adding directly to the Inputs property or by
-% using ADDINPUT:
+% using |addInput|:
 name = 'rotary encoder'; % Name of the device or signal you're acquiring
 channel = 'ctr0'; % The channel the device is connected to
 measurement = 'Position'; % The measurement type, i.e. 'volts', 'pos', 'edge'
 timeline.addInput(name, channel, measurement)
 
-% Once an input is added you can view the wiring information with
-% WIRINGINFO:
-timeline.wiringInfo(name)
+%%
+% |Timeline input 'rotary encoder' successfully added.|
 
+%%
 % Extra parameters include terminal configuration (Differential or
 % SingleEnded, otherwise the channel default is used), axes scale, and a
 % flag indicating whether to use the input (true by default):
 timeline.addInput('lick detecter', 'ctr1', 'EdgeCount', [], 2, false)
 
-% The axes scale (set to 2 above) sets the plot scale when the Timeline
-% property LivePlot is set to true.
-timeline.LivePlot = 'on'; % Plot input data during acquisition
+%%
+% The axes scale (set to 2 above) sets the vertical plot scale when the
+% Timeline property LivePlot is set to true (more on this later).
 
-% The UseInputs property contains a cellstring of the input names to be
+%% Activating Inputs
+% The 'UseInputs' property contains a cellstring of the input names to be
 % acquired.  This allows one to set up mutiple inputs that aren't
-% necessarily acquired every experiment.
-timeline.UseInputs % 'lick detecter' missing as we set the use arg to false
+% necessarily acquired every experiment.  The 'use' flag of |addInput| can
+% set whether an input is added to UseInputs upon adding.  The default is
+% true.  
+timeline.UseInputs % 'lick detecter' missing as we set the use arg to false above
 % To activate an input again simply add it to UseInputs again:
 timeline.UseInputs{end+1} = 'lick detecter';
 
-% Note that the order of channels in the UseInputs array determines the
+%%
+% *Note* that the order of channels in the UseInputs array determines the
 % order in which the channels are added to the DAQ session and thus the
 % order in which they are scanned during acquisition (see next section).
 
@@ -102,16 +121,27 @@ timeline.addInput('dummy2', 'ai12', 'Volts',[],1,0)
 use = [timeline.UseInputs {'dummy1', 'piezoLickDetector', 'dummy2'}]
 timeline.UseInputs = use;
 
-% NB: Channel names beginning with the word 'dummy' are not extracted as
-% ALF files.  For more info see alyx-matlab:
+%%
+% *NB* : Channel names beginning with the word 'dummy' are not extracted as
+% <https://github.com/cortex-lab/ALF ALF files> .  For more info see
+% <./AlyxMatlabPrimer.html alyx-matlab>:
 open(fullfile(getOr(dat.paths,'rigbox'), ...
   'alyx-matlab', 'docs', 'AlyxMatlabPrimer.m'))
 web('https://github.com/cortex-lab/ALF')
 
+%% Wiring information
+% Once an input is added you can view the wiring information with the
+% |wiringInfo| method:
+name = 'rotary encoder';
+timeline.wiringInfo(name)
+
+%%
+% |Connect rotary encoder to terminal ctr0 of the DAQ|
+
 %% Outputs
 % Timeline outputs are for setting up pulses for triggering external
 % hadware acquisition devices.  The main output class for timeline is
-% HW.TLOUTPUT
+% |hw.TLOutput|
 doc hw.TLOutput
 
 % An array of configured outputs are stored in the Outputs property of
@@ -190,13 +220,15 @@ timeline.Outputs(end).InitialDelay = 3;
 %% Acquisitions
 % Timeline may be run automatically on the stimulus computer, or on a
 % separate computer that's triggred by the stimulus computer via UDPs (for
-% more info see <./using_services.html using_services>:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_services.m'))
+% more info see <./using_services.html using_services>):
+
+% Open the 'Using Services' script
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'sctripts', 'using_services.m'))
 
 % You can also start Timeline manually from the command prompt with
 % HW.TIMELINE/START.  An experiment reference string is required:
 ref = dat.newExp('default'); % Create an experiment for subject 'default'
-timeline.start(ref) % Start acquisition
+timeline.start(ref, Alyx('','')) % Start acquisition
 timeline.IsRunning % true
 
 % In order to register Timeline file to the alyx database, an alyx object
@@ -230,6 +262,24 @@ hw = loadVar(hwPath, 'hw'); % Load our data
 % the even of MATLAB crashes.
 timeline.WriteBufferToDisk = true; % Save data as they're collected
 
+%% Live plotting
+% During acquisition you can plot the inputs live by setting the 'LivePlot'
+% property to true / 'on'.  The default plot figure position(1) can be set
+% using the 'FigureScale' property.  The values are in normalized units and
+% is set as fullscreen by default. *NB:* This must be set before calling
+% |start|.
+timeline.LivePlot = 'on'; % Plot input data during acquisition
+timeline.FigureScale = [0 0 0.5 1]; % Take up half screen width and full height
+
+%%
+% The axes scale for individual inputs can be set be changing the
+% 'axesScale' of the Inputs struct.  This field controls the vertical
+% scaling of each trace (multiplicative) and can be set when adding an
+% input with the |addInput| method (see Inputs section).  Below we change
+% it manually:
+I = strcmp('rotary encoder', {timeline.Inputs.name})
+timeline.Inputs(I).axesScale = 2; % 2x vertical scaling
+
 %% Clocks
 doc hw.Clock
 
@@ -260,9 +310,19 @@ clock.now()
 clock.zero()
 clock.now()
 
+%% Notes
+% (1) For information on the MATLAB figure properties Position and Units,
+% see
+% <https://uk.mathworks.com/help/matlab/ref/matlab.ui.figure-properties.html#prop_Position
+% their documentation page>.
+
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.1.0
+%
 
-%#ok<*NOPTS>
+% INTERNAL
+% execute off
+
+%#ok<*NOPTS,*NASGU>

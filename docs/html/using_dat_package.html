@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="using_dat_package.m"><style type="text/css">
+      --><title>The Data Package</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="using_dat_package.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,17 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>The 'data' package contains code pertaining to the organization and logging of data. It contains functions that generate and parse unique experiment reference ids, and return file paths where subject data and rig configuration information is stored. Other functions include those that manage experimental log entries and parameter profiles. A nice metaphor for this package is a lab notebook.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setting up the paths</a></li><li><a href="#2">Using expRefs</a></li><li><a href="#3">Loading experiments</a></li><li><a href="#4">Manually creating experiments</a></li><li><a href="#5">Loading parameters</a></li><li><a href="#6">Using the log</a></li><li><a href="#7">Setting custom paths</a></li><li><a href="#8">Etc.</a></li></ul></div><h2 id="1">Setting up the paths</h2><p>In order to use Rigbox, a 'paths' file must be placed in a <tt>+dat</tt> folder somewhere in the MATLAB path. You can copy <tt>docs/setup/paths_template.m</tt> to <tt>+dat/paths.m</tt>, then customise the file according to your setup. The paths used by the wider Rigbox code are found in the 'essential paths' section of the <tt>paths_template.m</tt> file. These paths are required to run experiments. Any number of custom repositories may be set, allowing them to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see below).</p><h2 id="2">Using expRefs</h2><p>Experiment reference strings are human-readable labels constructed from the subject name, date and sequence (i.e. session number).  Many of the following functions take one or experiment references as inputs and an experiment reference is constructed each time your create an experiment.</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'subject'</span>, now, 2); <span class="comment">% subject's 2nd session today</span>
+  </style></head><body><div class="content"><h1>The Data Package</h1><!--introduction--><p>The 'data' package contains code pertaining to the organization and logging of data. It contains functions that generate and parse unique experiment reference ids, and return file paths where subject data and rig configuration information is stored. Other functions include those that manage experimental log entries and parameter profiles. A nice metaphor for this package is a lab notebook.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Setting up the paths</a></li><li><a href="#2">Using expRefs</a></li><li><a href="#3">Loading experiments</a></li><li><a href="#4">Manually creating experiments</a></li><li><a href="#5">Loading parameters</a></li><li><a href="#6">Using the log</a></li><li><a href="#7">Setting custom paths</a></li><li><a href="#8">Etc.</a></li></ul></div><h2 id="1">Setting up the paths</h2><p>In order to use Rigbox, a 'paths' file must be placed in a <tt>+dat</tt> folder somewhere in the MATLAB path. You can copy <tt>docs/setup/paths_template.m</tt> to <tt>+dat/paths.m</tt>, then customise the file according to your setup. The paths used by the wider Rigbox code are found in the 'essential paths' section of the <tt>paths_template.m</tt> file. These paths are required to run experiments. Any number of custom repositories may be set, allowing them to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see below).</p><p>It may be prefereable to keep the paths file in a shared network drive where all rigs can access it.  This way only one file needs updating when a path gets changed.  You can also override and add to the fields set by the paths file in a rig specific manner.  To do this, create your paths as a struct with the name `paths` and save this to a MAT file called `paths` in your rig specific config folder:</p><pre class="codeinput">rigConfig = getOr(dat.paths(<span class="string">'exampleRig'</span>), <span class="string">'rigConfig'</span>);
+customPathsFile = fullfile(rigConfig, <span class="string">'paths.mat'</span>);
+paths.mainRepository = <span class="string">'overide/path'</span>; <span class="comment">% Overide main repo for `exampleRig`</span>
+paths.addedRepository = <span class="string">'new/custom/path'</span>; <span class="comment">% Add novel repo</span>
+
+save(customPathsFile, <span class="string">'paths'</span>) <span class="comment">% Save your new custom paths file.</span>
+
+<span class="comment">% More info in the paths template:</span>
+root = getOr(dat.paths, <span class="string">'rigbox'</span>);
+opentoline(fullfile(root, <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'paths_template.m'</span>), 75)
+</pre><h2 id="2">Using expRefs</h2><p>Experiment reference strings are human-readable labels constructed from the subject name, date and sequence (i.e. session number).  Many of the following functions take one or experiment references as inputs and an experiment reference is constructed each time your create an experiment.</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'subject'</span>, now, 2); <span class="comment">% subject's 2nd session today</span>
 [subjectRef, expDate, expSequence] = dat.parseExpRef(ref);
 </pre><h2 id="3">Loading experiments</h2><p>Below are some common ways to query data and paths.</p><pre class="codeinput"><span class="comment">% Listing all subjects</span>
 subjects = dat.listSubjects;
@@ -114,13 +124,13 @@ dat.saveParamProfile(expType, profileName, params);
 dat.delParamProfile(expType, profileName);
 
 <span class="comment">% More info on how parameters work can be found in USING_PARAMETERS:</span>
-open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_parameters.m'</span>))
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'using_parameters.m'</span>))
 </pre><h2 id="6">Using the log</h2><p>The log object, is primarily dealt with through MC, however you can also use it from the command line:</p><pre class="codeinput">e = dat.addLogEntry(subject, timestamp, type, value, comments, AlyxInstance);
 p = dat.logPath(subject, <span class="string">'all'</span>);
 e = dat.logEntries(subject);
 e = dat.updateLogEntry(subject, id, newEntry);
 </pre><h2 id="7">Setting custom paths</h2><p>Some people keep the paths file in a shared remote location that all rigs can access.  This reduces the number of files to change when a repository path needs updating to one.  In this case, rig-specific paths may be set using a custom paths file that overrides any paths set in DAT.PATHS:</p><pre class="codeinput">opentoline(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
-  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'paths_template.m'</span>), 78, 1)
+  <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'paths_template.m'</span>), 78, 1)
 
 <span class="comment">% The paths file, 'paths.mat', must contain a variable `paths` that is a</span>
 <span class="comment">% struct of custom paths.  The file should be located in the location set</span>
@@ -133,10 +143,10 @@ clear <span class="string">paths</span>
 paths.expDefinitions = <span class="string">'C:\ExpDefinitions'</span>;
 customPathsFile = fullfile(getOr(dat.paths(<span class="string">'ZREDONE'</span>), <span class="string">'rigConfig'</span>), <span class="string">'paths'</span>);
 save(customPathsFile, <span class="string">'paths'</span>, <span class="string">'-mat'</span>)
-</pre><h2 id="8">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*ASGLU,*ASGLU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><h2 id="8">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*ASGLU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Introduction
+%% The Data Package
 % The 'data' package contains code pertaining to the organization and
 % logging of data. It contains functions that generate and parse unique
 % experiment reference ids, and return file paths where subject data and
@@ -153,6 +163,23 @@ save(customPathsFile, <span class="string">'paths'</span>, <span class="string">
 % experiments. Any number of custom repositories may be set, allowing them
 % to be queried using functions such as DAT.REPOSPATH and DAT.EXPPATH (see
 % below).
+%
+% It may be prefereable to keep the paths file in a shared network drive
+% where all rigs can access it.  This way only one file needs updating when
+% a path gets changed.  You can also override and add to the fields set by
+% the paths file in a rig specific manner.  To do this, create your paths
+% as a struct with the name `paths` and save this to a MAT file called
+% `paths` in your rig specific config folder:
+rigConfig = getOr(dat.paths('exampleRig'), 'rigConfig');
+customPathsFile = fullfile(rigConfig, 'paths.mat');
+paths.mainRepository = 'overide/path'; % Overide main repo for `exampleRig`
+paths.addedRepository = 'new/custom/path'; % Add novel repo
+
+save(customPathsFile, 'paths') % Save your new custom paths file.
+
+% More info in the paths template:
+root = getOr(dat.paths, 'rigbox');
+opentoline(fullfile(root, 'docs', 'scripts', 'paths_template.m'), 75)
 
 %% Using expRefs
 % Experiment reference strings are human-readable labels constructed from
@@ -220,7 +247,7 @@ dat.saveParamProfile(expType, profileName, params);
 dat.delParamProfile(expType, profileName);
 
 % More info on how parameters work can be found in USING_PARAMETERS:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_parameters.m'))
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'scripts', 'using_parameters.m'))
 
 %% Using the log
 % The log object, is primarily dealt with through MC, however you can also
@@ -236,7 +263,7 @@ e = dat.updateLogEntry(subject, id, newEntry);
 % path needs updating to one.  In this case, rig-specific paths may be set
 % using a custom paths file that overrides any paths set in DAT.PATHS:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'paths_template.m'), 78, 1)
+  'docs', 'scripts', 'paths_template.m'), 78, 1)
 
 % The paths file, 'paths.mat', must contain a variable `paths` that is a
 % struct of custom paths.  The file should be located in the location set
@@ -253,8 +280,9 @@ save(customPathsFile, 'paths', '-mat')
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1
 
 %#ok<*NASGU,*ASGLU,*ASGLU>
+
 ##### SOURCE END #####
 --></body></html>

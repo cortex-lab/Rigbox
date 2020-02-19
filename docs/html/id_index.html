@@ -1,0 +1,453 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Error and warning IDs</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="id_index.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Error and warning IDs</h1><!--introduction--><p>Below is a list of Rigbox error &amp; warning IDs.  This list is currently incomplete and there aren't yet very standard.  Typically the ID has the following structure: module:package:function:error</p><p>These are here for search convenience and may soon contain more detailed troubleshooting information.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">copyPaths</a></li><li><a href="#2">noRemoteFile</a></li><li><a href="#3">notInTest</a></li><li><a href="#7">behaviourNotSet</a></li><li><a href="#9">mkdirFailed</a></li><li><a href="#10">newExp:expFoldersAlreadyExist</a></li><li><a href="#12">----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----</a></li><li><a href="#13">Undocumented IDs</a></li></ul></div><h2 id="1">copyPaths</h2><p><b>Problem</b>:</p><p>In order to load various essential configuration files, and to load and save experimental data, user specific paths must be retrieved via calls to <tt>dat.paths</tt>.  This error means the function is not on MATLAB's search path.</p><p><b>Solution</b>:</p><p>Add your <tt>+dat\paths.m</tt> file to MATLAB's search path.  A template is present in <tt>docs\setup\paths_template.m</tt>.  This file is automatically copied by addRigboxPaths to <tt>+dat\</tt>.  If you haven't already done so, run <tt>addRigboxPaths</tt> to ensure all other paths have been correctly set.</p><p>See also README.md for further setup information.</p><p><b>IDs</b></p><pre>Rigbox:git:update:copyPaths
+signals:test:copyPaths</pre><h2 id="2">noRemoteFile</h2><p><b>Problem</b>:  % TODO Add problem &amp; solution for noRemoteFile error</p><p><b>Solution</b>:</p><p><b>IDs</b></p><pre>Rigbox:mc:noRemoteFile</pre><h2 id="3">notInTest</h2><p><b>Problem</b>:</p><p>This occurs when a mock function is called when the INTEST global variable is not set.  These mock functions shadow Rigbox and builtin functions, meaning they have the same name.</p><p><b>Solution</b>:</p><p>If this function was called during a test, add the following to the top of your test or in the constructor:</p><pre class="language-matlab"><span class="keyword">global</span> INTEST
+INTEST = true
+</pre><p>Ensure that this is cleared during the teardown:</p><pre class="language-matlab">addteardown(@clear, INTEST) <span class="comment">% If in a class</span>
+mess = onCleanup(@clear, INTEST) <span class="comment">% If in a function</span>
+</pre><p>If the mock in question is a class, set the InTest flag instead of the global variable:</p><pre class="language-matlab">mock = MockDialog; <span class="comment">% An example using MockDialog class</span>
+mock.InTest = true;
+addteardown(@clear, MockDialog) <span class="comment">% Clear mock class when done</span>
+mess = onCleanup(@clear, MockDialog) <span class="comment">% If in a function</span>
+</pre><p>If you are in not running tests, ensure that tests/fixtures is not in your MATLAB path and that you are in a different working directory.  It is best to remove all Rigbox paths and readd them using `addRigboxPaths`</p><p><b>IDs</b></p><pre>Rigbox:tests:system:notInTest
+Rigbox:tests:modDate:notInTest
+Rigbox:tests:paths:notInTest
+Rigbox:tests:pnet:notInTest
+Rigbox:tests:modDate:notInTest
+Rigbox:MockDialog:newCall:notInTest</pre><h2 id="7">behaviourNotSet</h2><p><b>Problem</b>:</p><p>A mock function was called while in a test, however the behaviour for this particular input has not been defined.</p><p><b>Solution</b>:</p><p>If not testing a specific behavior for this function's output, simply supress the warning in your test, remembering to restore the warning state:</p><pre class="language-matlab">origState = warning;
+addteardown(@warning, origState) <span class="comment">% If in a class</span>
+mess = onCleanup(@warning, origState) <span class="comment">% If in a function</span>
+warning(<span class="string">'Rigbox:MockDialog:newCall:behaviourNotSet'</span>, <span class="string">'off'</span>)
+</pre><p>If you're specifically testing the behavior when the mock returns a particular output then check that you've set the input-output map correctly: usually this is done by first calling the mock with input identical to function under test as well as the output you want to see. Check the input is formatted correctly.  For more information see the help of the particular mock you are using.</p><p><b>IDs</b></p><pre>Rigbox:tests:system:valueNotSet % TODO change name
+Rigbox:MockDialog:newCall:behaviourNotSet</pre><h2 id="9">mkdirFailed</h2><p><b>Problem</b>:</p><p>MATLAB was unable to create a new folder on the system.</p><p><b>Solution</b>:</p><p>In general Rigbox code only creates new folders when a new experiment is created.  The folders are usually created in the localRepository and mainRepository locations that are set in your paths file.  If either of these are remote (e.g. a server accessed via SMB) check that you can navigate to the location in Windows' File Explorer (sometimes the access credentials need setting first).  If you can, next check the permissions of these locations.  If the folders are read-only, MATLAB will not be able to create a new experiment folder there.  Either change the permissions or set a different path in <tt>dat.paths</tt>.  One final thing to check is that the folder names are valid: the presence of a folder that is not correctly numbered in the subject's date folder may lead to an invalid expRef.  Withtin a date folder there should only be folders name '1', '2', '3', etc.</p><p><b>IDs</b></p><pre>Alyx:newExp:mkdirFailed
+Rigbox:dat:newExp:mkdirFailed</pre><h2 id="10">newExp:expFoldersAlreadyExist</h2><p><b>Problem</b>:</p><p>The folder structure for a newly generated experiment reference is already in place.</p><p>Experiment references are generated based on subject name, today's date and the experiment number, which is found by looking at the folder structure of the main repository.  In a subject's experiment folder for a given date there are numbered folders.  When running a new experiment, the code takes the folder name with the largest number and adds 1.  It then checks that this numbered folder doesn't exist in the other repositories.  If it does, an error is thrown so that no previous experiment data is overwritten.</p><p><b>Solution</b>:</p><p>Check the folder structure for all your repositories (namely the localRepository and mainRepository set in <tt>dat.paths</tt>).  It may be that there is an empty experiment folder in the localRepository but not the mainRepository, in which case you can delete it.  Alternatively, if you find a full experiment folder in the local but not the main, copy it over so that the two match.  This will avoid a duplicate expRef being created (remember, new expRefs are created based on the folder structure of the mainRepository only).</p><p><b>IDs</b></p><pre>Alyx:newExp:expFoldersAlreadyExist
+Rigbox:dat:newExp:expFoldersAlreadyExist</pre><pre class="codeinput"><span class="comment">% ..:..:expRefNotFound</span>
+<span class="comment">% *Problem*:</span>
+<span class="comment">%</span>
+<span class="comment">% The experiment reference string does not correspond to the folder</span>
+<span class="comment">% structure in your mainRepository path.  Usually determined via a call to</span>
+<span class="comment">% |dat.expExists|.</span>
+<span class="comment">%</span>
+<span class="comment">% *Solution*:</span>
+<span class="comment">%</span>
+<span class="comment">% Check that the mainRepository paths are the same on both the computer</span>
+<span class="comment">% that creates the experiment (e.g. MC) and the one that loads the</span>
+<span class="comment">% experiment (e.g. the one that runs |srv.expServer|).  For an experiment</span>
+<span class="comment">% to exist, the subject &gt; date &gt; sequence folder structure should exist in</span>
+<span class="comment">% the mainRepository.  To see the mainRepository location, run the</span>
+<span class="comment">% following:</span>
+<span class="comment">%</span>
+<span class="comment">%   getOr(dat.paths, 'mainRepository')</span>
+<span class="comment">%</span>
+</pre><p>For example if the output is <tt>\\server\Subjects\</tt> then for the expRef '2019-11-25_1_test' to exist, the following folder should exist: <tt>\\server\Subjects\test\2019-11-25\1</tt></p><p><b>IDs</b></p><pre>Rigbox:srv:expServer:expRefNotFound</pre><h2 id="12">----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----</h2><p><b>Problem</b>:</p><p>To quote PsychToolbox: One or more internal checks indicate that synchronization of Psychtoolbox to the vertical retrace (VBL) is not working on your setup.This will seriously impair proper stimulus presentation and stimulus presentation timing!</p><p><b>Solution</b>:</p><p>There are many, many reasons for this error.  Here's a quick list of things to try, in order:</p><div><ol><li>Simply re-trying a couple of times.  Sometimes it happens sporadically.</li><li>Check the monitor(s) are on and plugged in.  If you're using multiple monitors they should be of the same make and model.  If they aren't, try with just one monitor first.</li><li>If you're using multiple screens in NVIDEA's 'Mosaic' mode, the settings may have changed: sometimes Mosiac becomes deactivated and you should set it up again.</li><li>If you're using a remote connection for that computer it may be interfering with the graphics settings.  Examples of a remote connection include VNC servers, TeamViewer and Windows Remote Desktop. Try opening the PTB Window without any of these remote services.</li><li>Update the graphics card drivers and firmware.  This often helps.</li><li>Read the PTB docs carefully and follow their suggestions.  The docs can be found at <a href="http://psychtoolbox.org/docs/SyncTrouble">http://psychtoolbox.org/docs/SyncTrouble</a>.</li><li>If all else fails.  You can skip these tests and check that there is no taring manually.  This is not recommended but can be done by setting your stimWindow object's PtbSyncTests property to false:</li></ol></div><pre class="codeinput">stimWindow = getOr(hw.devices([],false), <span class="string">'stimWindow'</span>);
+stimWindow.PtbSyncTests = false;
+hwPath = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
+save(hwPath, <span class="string">'stimWindow'</span>, <span class="string">'-append'</span>)
+</pre><h2 id="13">Undocumented IDs</h2><pre>Below is a list of all other error and warning ids.</pre><pre class="codeinput"><span class="comment">% Rigbox:git:runCmd:nameValueArgs</span>
+<span class="comment">% Rigbox:git:runCmd:gitNotFound</span>
+<span class="comment">% Rigbox:git:update:valueError</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:hw:calibrate:noscales</span>
+<span class="comment">% Rigbox:hw:calibrate:deadscale</span>
+<span class="comment">% Rigbox:hw:calibrate:partialPVpair</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:srv:unexpectedUDPResponse</span>
+<span class="comment">% Rigbox:srv:unexpectedUDP</span>
+<span class="comment">% Rigbox:srv:expServer:noHardwareConfig</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:dat:expPath:NotEnoughInputs</span>
+<span class="comment">% Rigbox:exp:SignalsExp:NoScreenConfig</span>
+<span class="comment">% Rigbox:exp:Parameters:wrongNumberOfColumns</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:dat:expFilePath:NotEnoughInputs</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:MockDialog:newCall:EmptySeq</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:exp:SignalsExp:noTokenSet</span>
+<span class="comment">%</span>
+<span class="comment">% Rigbox:eui:choiceExpPanel:toolboxRequired</span>
+<span class="comment">% Rigbox:setup:toolboxRequired</span>
+<span class="comment">%</span>
+<span class="comment">% Alyx:newExp:subjectNotFound</span>
+<span class="comment">% Alyx:registerFile:InvalidPath</span>
+<span class="comment">% Alyx:registerFile:UnableToValidate</span>
+<span class="comment">% Alyx:registerFile:EmptyDNSField</span>
+<span class="comment">% Alyx:registerFile:InvalidRepoPath</span>
+<span class="comment">% Alyx:registerFile:InvalidFileType</span>
+<span class="comment">% Alyx:registerFile:InvalidFileName</span>
+<span class="comment">% Alyx:registerFile:NoValidPaths</span>
+<span class="comment">% Alyx:updateNarrative:UploadFailed</span>
+<span class="comment">%</span>
+<span class="comment">% Alyx:getFile:InvalidID</span>
+<span class="comment">% Alyx:getExpRef:InvalidID</span>
+<span class="comment">% Alyx:getFile:InvalidType</span>
+<span class="comment">% Alyx:expFilePath:InvalidType</span>
+<span class="comment">% Alyx:url2Eid:InvalidURL</span>
+<span class="comment">%</span>
+<span class="comment">% toStr:isstruct:Unfinished</span>
+<span class="comment">%</span>
+<span class="comment">% squeak.hw</span>
+<span class="comment">% shape:error</span>
+<span class="comment">% window:error</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Error and warning IDs
+% Below is a list of Rigbox error & warning IDs.  This list is currently
+% incomplete and there aren't yet very standard.  Typically the ID has the
+% following structure: module:package:function:error
+%
+% These are here for search convenience and may soon contain more detailed
+% troubleshooting information.
+
+%% copyPaths
+%
+% *Problem*:
+%
+% In order to load various essential configuration files, and to load and
+% save experimental data, user specific paths must be retrieved via calls
+% to |dat.paths|.  This error means the function is not on MATLAB's search
+% path.
+%
+% *Solution*:
+%
+% Add your |+dat\paths.m| file to MATLAB's search path.  A template is
+% present in |docs\setup\paths_template.m|.  This file is automatically
+% copied by addRigboxPaths to |+dat\|.  If you haven't already done so, run
+% |addRigboxPaths| to ensure all other paths have been correctly set.
+%
+% See also README.md for further setup information.
+%
+% *IDs*
+% 
+%  Rigbox:git:update:copyPaths
+%  signals:test:copyPaths
+% 
+
+
+%% noRemoteFile
+% *Problem*:
+%  % TODO Add problem & solution for noRemoteFile error
+%
+% *Solution*:
+%  
+%
+% *IDs*
+% 
+%  Rigbox:mc:noRemoteFile
+
+%% notInTest
+% *Problem*:
+%
+% This occurs when a mock function is called when the INTEST global
+% variable is not set.  These mock functions shadow Rigbox and builtin
+% functions, meaning they have the same name.
+%
+% *Solution*:
+%
+% If this function was called during a test, add the following to the top
+% of your test or in the constructor:
+% 
+%   global INTEST
+%   INTEST = true
+%
+%%
+% Ensure that this is cleared during the teardown:
+%
+%   addteardown(@clear, INTEST) % If in a class
+%   mess = onCleanup(@clear, INTEST) % If in a function
+%
+%%
+% If the mock in question is a class, set the InTest flag instead of the
+% global variable:
+%
+%   mock = MockDialog; % An example using MockDialog class
+%   mock.InTest = true;
+%   addteardown(@clear, MockDialog) % Clear mock class when done
+%   mess = onCleanup(@clear, MockDialog) % If in a function
+%
+%%
+% If you are in not running tests, ensure that tests/fixtures is not in
+% your MATLAB path and that you are in a different working directory.  It
+% is best to remove all Rigbox paths and readd them using `addRigboxPaths`
+%
+% *IDs*
+% 
+%  Rigbox:tests:system:notInTest
+%  Rigbox:tests:modDate:notInTest
+%  Rigbox:tests:paths:notInTest
+%  Rigbox:tests:pnet:notInTest
+%  Rigbox:tests:modDate:notInTest
+%  Rigbox:MockDialog:newCall:notInTest
+
+%% behaviourNotSet
+% *Problem*:
+%
+% A mock function was called while in a test, however the behaviour for
+% this particular input has not been defined.
+%
+% *Solution*:
+%
+% If not testing a specific behavior for this function's output, simply
+% supress the warning in your test, remembering to restore the warning
+% state:
+%
+%   origState = warning;
+%   addteardown(@warning, origState) % If in a class
+%   mess = onCleanup(@warning, origState) % If in a function
+%   warning('Rigbox:MockDialog:newCall:behaviourNotSet', 'off')
+%
+%%
+% If you're specifically testing the behavior when the mock returns a
+% particular output then check that you've set the input-output map
+% correctly: usually this is done by first calling the mock with input
+% identical to function under test as well as the output you want to see.
+% Check the input is formatted correctly.  For more information see the
+% help of the particular mock you are using.
+%    
+% *IDs*
+% 
+%  Rigbox:tests:system:valueNotSet % TODO change name
+%  Rigbox:MockDialog:newCall:behaviourNotSet
+%  
+
+%% mkdirFailed
+% *Problem*:
+%
+% MATLAB was unable to create a new folder on the system.
+%
+% *Solution*:
+%
+% In general Rigbox code only creates new folders when a new experiment is
+% created.  The folders are usually created in the localRepository and
+% mainRepository locations that are set in your paths file.  If either of
+% these are remote (e.g. a server accessed via SMB) check that you can
+% navigate to the location in Windows' File Explorer (sometimes the access
+% credentials need setting first).  If you can, next check the permissions
+% of these locations.  If the folders are read-only, MATLAB will not be
+% able to create a new experiment folder there.  Either change the
+% permissions or set a different path in |dat.paths|.  One final thing to
+% check is that the folder names are valid: the presence of a folder that
+% is not correctly numbered in the subject's date folder may lead to an
+% invalid expRef.  Withtin a date folder there should only be folders name
+% '1', '2', '3', etc.
+%
+% *IDs*
+% 
+%  Alyx:newExp:mkdirFailed
+%  Rigbox:dat:newExp:mkdirFailed
+%
+
+%% newExp:expFoldersAlreadyExist
+% *Problem*:
+%
+% The folder structure for a newly generated experiment reference is
+% already in place.
+%
+% Experiment references are generated based on subject name, today's date
+% and the experiment number, which is found by looking at the folder
+% structure of the main repository.  In a subject's experiment folder for
+% a given date there are numbered folders.  When running a new experiment,
+% the code takes the folder name with the largest number and adds 1.  It
+% then checks that this numbered folder doesn't exist in the other
+% repositories.  If it does, an error is thrown so that no previous
+% experiment data is overwritten.  
+%
+% *Solution*:
+%
+% Check the folder structure for all your repositories (namely the
+% localRepository and mainRepository set in |dat.paths|).  It may be that
+% there is an empty experiment folder in the localRepository but not the
+% mainRepository, in which case you can delete it.  Alternatively, if you
+% find a full experiment folder in the local but not the main, copy it
+% over so that the two match.  This will avoid a duplicate expRef being
+% created (remember, new expRefs are created based on the folder structure
+% of the mainRepository only).
+%
+% *IDs*
+% 
+%  Alyx:newExp:expFoldersAlreadyExist
+%  Rigbox:dat:newExp:expFoldersAlreadyExist
+%
+
+% ..:..:expRefNotFound
+% *Problem*:
+%
+% The experiment reference string does not correspond to the folder
+% structure in your mainRepository path.  Usually determined via a call to
+% |dat.expExists|.
+%
+% *Solution*:
+%
+% Check that the mainRepository paths are the same on both the computer
+% that creates the experiment (e.g. MC) and the one that loads the
+% experiment (e.g. the one that runs |srv.expServer|).  For an experiment
+% to exist, the subject > date > sequence folder structure should exist in
+% the mainRepository.  To see the mainRepository location, run the
+% following:
+%
+%   getOr(dat.paths, 'mainRepository')
+%
+%%
+% For example if the output is |\\server\Subjects\| then for the expRef
+% '2019-11-25_1_test' to exist, the following folder should exist:
+% |\\server\Subjects\test\2019-11-25\1|
+%
+% *IDs*
+% 
+%  Rigbox:srv:expServer:expRefNotFound
+
+%% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+% *Problem*:
+%
+% To quote PsychToolbox: One or more internal checks indicate that
+% synchronization of Psychtoolbox to the vertical retrace (VBL) is not
+% working on your setup.This will seriously impair proper stimulus
+% presentation and stimulus presentation timing!
+%
+% *Solution*:
+%
+% There are many, many reasons for this error.  Here's a quick list of
+% things to try, in order: 
+%
+% # Simply re-trying a couple of times.  Sometimes it happens
+% sporadically.
+% # Check the monitor(s) are on and plugged in.  If you're using
+% multiple monitors they should be of the same make and model.  If they
+% aren't, try with just one monitor first.
+% # If you're using multiple screens in NVIDEA's 'Mosaic' mode, the 
+% settings may have changed: sometimes Mosiac becomes deactivated and you
+% should set it up again.
+% # If you're using a remote connection for that computer it may be
+% interfering with the graphics settings.  Examples of a remote
+% connection include VNC servers, TeamViewer and Windows Remote Desktop.
+% Try opening the PTB Window without any of these remote services.
+% # Update the graphics card drivers and firmware.  This often helps.
+% # Read the PTB docs carefully and follow their suggestions.  The docs
+% can be found at http://psychtoolbox.org/docs/SyncTrouble.
+% # If all else fails.  You can skip these tests and check that there is
+% no taring manually.  This is not recommended but can be done by setting
+% your stimWindow object's PtbSyncTests property to false:
+ 
+stimWindow = getOr(hw.devices([],false), 'stimWindow');
+stimWindow.PtbSyncTests = false;
+hwPath = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
+save(hwPath, 'stimWindow', '-append')
+
+%% Undocumented IDs
+%  Below is a list of all other error and warning ids.  
+
+% Rigbox:git:runCmd:nameValueArgs
+% Rigbox:git:runCmd:gitNotFound
+% Rigbox:git:update:valueError
+%
+% Rigbox:hw:calibrate:noscales
+% Rigbox:hw:calibrate:deadscale
+% Rigbox:hw:calibrate:partialPVpair
+%
+% Rigbox:srv:unexpectedUDPResponse
+% Rigbox:srv:unexpectedUDP
+% Rigbox:srv:expServer:noHardwareConfig
+%
+% Rigbox:dat:expPath:NotEnoughInputs
+% Rigbox:exp:SignalsExp:NoScreenConfig
+% Rigbox:exp:Parameters:wrongNumberOfColumns
+%
+% Rigbox:dat:expFilePath:NotEnoughInputs
+%
+% Rigbox:MockDialog:newCall:EmptySeq
+%
+% Rigbox:exp:SignalsExp:noTokenSet
+%
+% Rigbox:eui:choiceExpPanel:toolboxRequired
+% Rigbox:setup:toolboxRequired
+%
+% Alyx:newExp:subjectNotFound
+% Alyx:registerFile:InvalidPath
+% Alyx:registerFile:UnableToValidate
+% Alyx:registerFile:EmptyDNSField
+% Alyx:registerFile:InvalidRepoPath
+% Alyx:registerFile:InvalidFileType
+% Alyx:registerFile:InvalidFileName
+% Alyx:registerFile:NoValidPaths
+% Alyx:updateNarrative:UploadFailed
+%
+% Alyx:getFile:InvalidID
+% Alyx:getExpRef:InvalidID
+% Alyx:getFile:InvalidType
+% Alyx:expFilePath:InvalidType
+% Alyx:url2Eid:InvalidURL
+%
+% toStr:isstruct:Unfinished
+%
+% squeak.hw
+% shape:error
+% window:error
+
+##### SOURCE END #####
+--></body></html>
