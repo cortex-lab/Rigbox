@@ -1,4 +1,4 @@
-%% Rigging Toolbox Documentation
+%% Rigbox Documentation
 % Below is a list of useful topics:
 %
 % * <./paths_config.html Setting up dat.paths>
