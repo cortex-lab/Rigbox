@@ -7,7 +7,7 @@
 
 %% Installing Rigbox
 % Below are some instructions for installing Rigbox. There are two guides,
-% the first is for users unfarmilliar with MATLAB and Git.
+% the first is a thorough guide for users unfarmilliar with MATLAB and Git.
 % The second is for 'power users' who have a basic understanding of these
 % things.
 % 
