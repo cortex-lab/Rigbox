@@ -36,6 +36,15 @@ for l = lines
 end
 writeFile(filename, T)
 
+%% paper_examples.html
+% Add width attribute to images
+filename = 'paper_examples.html';
+pattern = 'src="./images/Fig';
+subStr = 'width="500" ';
+
+T = readFile(filename);
+T = insert(T, subStr, pattern, 'before', 1);
+writeFile(filename, T)
 
 %% Helpers
 function T = readFile(filename)
@@ -58,6 +67,7 @@ end
 
 function T = insert(T, subStr, pattern, pos, n)
 % INSERT Insert text into one line
+%   Note: all occurances on a single line are replaced, regardless of `n`
 %   Inputs:
 %     T (cellstr): A cell array of lines from a file
 %     subStr (char): The str to insert
@@ -78,6 +88,7 @@ else
   assert(sum(cellfun(@numel,idx)) >= n)
 end
 ln = find(~cellfun('isempty', idx), n, 'first');
+
 
 % Modify
 switch pos

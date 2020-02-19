@@ -4,6 +4,9 @@
 % writing new experiments, setting up recording devices, running
 % experiments and processing the resulting data.
 % 
+% For instructions on how to run the examples from the
+% <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>, see
+% <./paper_examples.html this guide>.
 
 %% Installing Rigbox
 % Below are some instructions for installing Rigbox. There are two guides,
