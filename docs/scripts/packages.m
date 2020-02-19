@@ -1,26 +1,22 @@
-%% Rigbox Documentation
-% Below is a list of useful topics:
-%
-% * <./paths_config.html Setting up dat.paths>
-% * <./hardware_config.html How to configure hardware on the stimulus computer>
-% * <./using_dat_package.html How to query data locations and log experiments>
-% * <./websocket_config.html Setting up communication between the stimulus computer and MC>
-% * <./using_test_gui.html Playing around with Signals Experiment Definitions>
-% * <./SignalsPrimer.html How to create experiments in signals>
-% * <./using_parameters.html How to create and edit experiment parameters>
-% * <./using_timeline.html Using Timeline for time alignment>
-% * <./using_services.html Setting up auxiliary services>
-% * <./AlyxMatlabPrimer.html How to interact with an Alyx database>
-% * <./using_ExpPanel.html How to create a custom Experiment Panel>
-% * <./troubleshooting.html Troubleshooting Rigbox errors>
-%
-% @todo Further files to add to docs
-% @body Burgess config, setting up shared paths 
-
 %% Code organization
+% Rigbox is organized into various MATLAB packages(1).  Functions and
+% classes within a package have their own namespace.  We seperate our
+% functions based broadly on what part of Rigbox they're for.  For example
+% files in the |+eui| folder are part of the 'Experiment UI' package and
+% are all related to GUIs in Rigbox (e.g. the MC GUI or Parameter Editor
+% GUI).
+% 
+% <<Rigbox_packages.png>>
+%
+% _Fig. 1_ - An overview of the packages and their loose relationships to
+% one another
+%
 % Below is a list of Rigbox's subdirectories and an overview of their
-% respective contents.  For more details, see the REAME.md and Contents.m
-% files for each package folder.
+% general purpose. Shown is the command for viewing the package overview
+% doc, which lists the package contents.  For further details, see the
+% REAME.md and Contents.m files for each package folder.
+%
+
 
 %%% +dat
 % The 'data' package contains code pertaining to the organization and
@@ -117,7 +113,13 @@ doc +srv
 % <https://github.com/cortex-lab/wheelAnalysis wheelAnalysis> submodules
 % can be found in their respective github repositories.
 
+%% Notes
+% (1) For more information about using packages in MATLAB, see
+% <https://uk.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html
+% Scoping Classes With Packages>
+%
+
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.0
+% v0.0.2
