@@ -38,6 +38,28 @@ classdef Parameters < handle
     end
     
     function set(obj, name, value, description, units)
+      % SET Set a named parameter value
+      %  SET(OBJ, NAME, VALUE[, DESCRIPTION, UNITS]) sets the value of a
+      %  parameter.  If the parameter doesn't already exist, a new one is
+      %  added.  
+      %
+      %  Inputs:
+      %    name (char): The parameter name to set
+      %    value: The value of the parameter.  The number of columns must
+      %      be 1 or equal to numTrialConditions (or for chars the number
+      %      of rows)
+      %    description (char): Optional.  A description of the parameter
+      %    units (char): Optional.  The parameter units
+      %
+      %  Example 1: Add a new parameter called targetAltitude
+      %    description = 'Visual angle of target centre above horizon';
+      %    P.set('targetAltitude', 90, description,  '°')
+      %
+      %  Example 2: Set the values for a trial condition
+      %    values = randsample(0:45:135, P.numTrialConditions, true);
+      %    P.set('orientation', values)
+      %
+      % See also DESCRIPTION, NUMTRIALCONDITIONS
       
 %       if size(value, 2) > 1
 %         % Attempting to set a conditional parameter so it should match the 

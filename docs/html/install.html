@@ -1,0 +1,231 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Installing Rigbox</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-19"><meta name="DC.source" content="install.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Installing Rigbox</h1><!--introduction--><p>Below are some easy step-by-step instructions for installing Rigbox without any prior knowledge of Git or MATLAB.  For more succinct installation instructions, see the Rigbox <a href="https://github.com/cortex-lab/Rigbox/blob/master/README.md">README</a>.  The first section lists the requirements.  NB: Please read this section carefully before attempting to install anything.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Requirements</a></li><li><a href="#2">Software</a></li><li><a href="#3">Hardware</a></li><li><a href="#4">Install steps</a></li><li><a href="#5">Notes</a></li><li><a href="#6">Etc.</a></li></ul></div><h2 id="1">Requirements</h2><p>For exploring Rigbox's features and running test experiments, Rigbox only needs to be installed on a single computer.</p><p>For running full experiments, we recommend running Rigbox on two PCs: one is used for presenting stimuli and communicating with rig hardware, and the other runs a GUI which the user interacts with to monitor the experiment. Currently only <a href="https://www.ni.com/en-us/innovations/academic-research/teaching-measurements-instrumentation.html">National Instruments DAQs</a> are supported for acquiring data from hardware devices.</p><h2 id="2">Software</h2><p>Rigbox reqquires the following software to work properly:</p><div><ul><li>Windows Operating System (7 or later, 64-bit)</li><li>MATLAB (2018b or later, also known as version 9.5)</li><li>Visual C++ Redistributable Packages for Visual Studio 2013 &amp; 2015-2019 (<i>free</i>)</li><li>The MATLAB Data Acquisition Toolbox</li><li><i>If using an NI DAQ</i> the NI-DAQmx support package (<i>free</i>)</li><li>The GUI Layout Toolbox (v2 or later, <i>free</i>)</li><li>Psychophysics Toolbox (v3 or later, <i>free</i>)</li></ul></div><h2 id="3">Hardware</h2><p>Below are a few minimum hardware requirements for both PCs.</p><div><ul><li><b>Processor</b>: Intel Core i5-6500 @ 3.0 GHz (or similar)</li><li><b>Graphics</b>: NVIDIA Quadro P400 (or similar)</li><li><b>Memory</b>: DDR4 16 GB @ 2133 MHz (e.g. Corsair Vengeance 16 GB)</li></ul></div><h2 id="4">Install steps</h2><p>Below are detailed steps on installing all required software. If you already have software installed for a particular step, feel free to skip that step. Unless you are installing Rigbox on a computer which will use a NI-DAQ for data acquistion, you can skip step 5.</p><div><ol><li>Install Windows 7 or later (Windows 10 is recommended).  Windows must be must be 64-bit (sometimes called x64, x86_64, AMD64 or Intel 64).</li><li>Download and install https://uk.mathworks.com/downloads/ MATLAB&gt; by following their <a href="https://uk.mathworks.com/help/install/ug/install-mathworks-software.html">installation guide</a> (see note 1).  At <a href="https://uk.mathworks.com/help/install/ug/install-mathworks-software.html#brhzmcm-1">step 9</a>, make sure to check the box for the Data Acquisition Toolbox, along with any other MATLAB Mathworks toolboxes you want, though for testing Rigbox, no other toolboxes are required (See note 2).  NB: This step may take a while.</li><li>Once downloaded, open MATLAB by double-clicking on the MATLAB icon in the start menu.</li><li>Within MATLAB, install the GUI Layout Toolbox (See note 2).  Make sure the version number is greater than 2.</li><li>Within MATLAB, install the NI-DAQmx Support Package (See note 2).  NB: This step may take a while.</li><li>Download and install the Microsoft <a href="https://www.microsoft.com/en-us/download/details.aspx?id=40784">Visual C++ Redistributable Packages for Visual Studio 2013</a> installer (See note 3).</li><li>Download and install the Microsoft <a href="https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe">Visual C++ Redistributable Packages for Visual Studio 2015-2019</a> installer (See note 4).  NB: This is 2015-2019; the previous step was for 2013.  Both are required.</li><li>Download and install <a href="https://sliksvn.com/download/">SilkSVN</a> (See note 5).</li><li>Download and install the <a href="https://gstreamer.freedesktop.org/data/pkg/windows/1.16.0/gstreamer-1.0-msvc-x86_64-1.16.0.msi">64-Bit GStreamer-1.16.0 MSVC runtime</a>, making sure to install all offered packages (See note 6).</li><li>Download the <a href="https://raw.github.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m">PsychToolbox installer function</a> and save it into your <tt>Documents/MATLAB</tt> folder.</li><li>In the MATLAB Command Window (see note 7), type <tt>DownloadPsychtoolbox(userpath)</tt> (no quotes) and press enter.  This will download and install PsychToolbox to MATLAB folder.  At certain points in the installation it will print stuff to the Command Window and ask you to press any key to continue.  Do this until the two angled brackes ('|&gt;&gt;|') reappear.</li><li>Close MATLAB by pressing the '|X|' in the top right corner of the window.</li><li>Download and install <a href="https://git-scm.com/download/win">Git Bash for Windows</a> (See note 8).  Use all defaults.</li><li>Launch Git Bash (See note 9).  A black command line window should appear.</li><li>Type the following line into Git Bash (or copy/paste): <tt>cd ~/Documents/Github</tt></li><li>Copy this line and paste it into Git Bash (use right click for pasting): <tt>git clone --recurse-submodules https://github.com/cortex-lab/Rigbox</tt></li><li>Launch MATLAB and navigate to the following folder (See note 10): <tt>Documents\Github\Rigbox</tt></li><li>Type the following into the MATLAB Command Window and press enter (See note 11): <tt>addRigboxPaths</tt></li><li>You should be done now. To check this, type <tt>eui.SignalsTest;</tt> into the MATLAB Command Window and select <tt>signalsPong.m</tt>. Then click Start. Your mouse controls the right paddle.</li></ol></div><h2 id="5">Notes</h2><div><ol><li>MATLAB is not free and requires a MATLAB account in order to download.  If you are part of an academic institution you may be able to get MATLAB for free.  If in doubt ask your lab supervisor or institute IT department.   For more information see <a href="https://uk.mathworks.com/help/install/">MATLAB's install guide</a>.</li><li>Once MATLAB is installed, toolboxes can be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip.  This opens the MATLAB 'AddOn Explorer' where you can search and install toolboxes.</li><li>To install download and install, follow the link and click the orange 'Download' button.  A 'Choose the download you want' window will come up.  Select 'vcredist_x64.exe' and click 'Next'.  A download window will pop  up; click 'Save file'.  Once downloaded, double-click the installer and  follow the steps.</li><li>To download and install the <a href="https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe">MSVC 2015-2019</a> libraries, follow the link and click 'Save file'.  You can then run the file and follow the installation steps.</li><li>To download and install <a href="https://sliksvn.com/download/">SilkSVN</a>, follow the link and click the blue button that says 'SVN 1.12.0, 64 bit' on the left-hand side.  The numbers might be slightly different but the important thing is that you choose the one that says '64 bit'.  Click 'OK' in the pop-up window to save the installer zip file.  Once downloaded double-click the zip file and open the exe file contained. Follow all the steps in the installer.</li><li>To download and install the <a href="https://gstreamer.freedesktop.org/data/pkg/windows/1.16.0/gstreamer-1.0-msvc-x86_64-1.16.0.msi">64-Bit GStreamer-1.16.0 MSVC runtime</a>, follow the link and clock 'Save file'.  Then open the file and follow the installation steps.  Choose the full/complete installation with all packages selected.</li><li>The MATLAB Command Window is usually at the bottom of the MATLAB window and has a '|&gt;&gt;|' in it.  For more information, please read the <a href="https://uk.mathworks.com/help/matlab/ref/commandwindow.html">MATLAB documentation about the Command Window</a>.</li><li>To download and install <a href="https://git-scm.com/download/win">Git Bash for Windows</a>, follow the link and click 'Save file' when the download window pops up.  Open the installer file and click 'Next' repeatedly until the end, then click 'Finish'.</li><li>There might be more than one program installed that has 'Git' in the name.  Make sure the one you open is called 'Git Bash'.</li><li>To navigate to a folder in MATLAB, either use the <a href="https://uk.mathworks.com/help/matlab/matlab_env/files-and-folders-that-matlab-accesses.html">Address Field</a> or type the following into the MATLAB Command Window, replacing <tt>USER</tt> with the name of the Windows user that's currently logged in: <tt>cd('C:\Users\USER\Documents\Github\rigbox\')</tt></li><li>If you've followed the above steps you can safely ignore any warnings you may see for trying out Rigbox.</li></ol></div><h2 id="6">Etc.</h2><p>Authors: Jai Bhagat, Matteo Caranini, Miles Wells</p><p>v0.1.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Installing Rigbox
+% Below are some easy step-by-step instructions for installing Rigbox
+% without any prior knowledge of Git or MATLAB.  For more succinct
+% installation instructions, see the Rigbox
+% <https://github.com/cortex-lab/Rigbox/blob/master/README.md README>.  The
+% first section lists the requirements.  NB: Please read this section
+% carefully before attempting to install anything.
+
+%% Requirements
+% For exploring Rigbox's features and running test experiments,
+% Rigbox only needs to be installed on a single computer.
+%
+% For running full experiments, we recommend running Rigbox on two PCs: one
+% is used for presenting stimuli and communicating with rig hardware, and
+% the other runs a GUI which the user interacts with to monitor the
+% experiment. Currently only
+% <https://www.ni.com/en-us/innovations/academic-research/teaching-measurements-instrumentation.html
+% National Instruments DAQs> are supported for acquiring data from hardware
+% devices.
+% 
+%%% Software
+% Rigbox reqquires the following software to work properly:
+% 
+% * Windows Operating System (7 or later, 64-bit)
+% * MATLAB (2018b or later, also known as version 9.5)
+% * Visual C++ Redistributable Packages for Visual Studio 2013 & 2015-2019
+% (_free_)
+% * The MATLAB Data Acquisition Toolbox
+% * _If using an NI DAQ_ the NI-DAQmx support package (_free_)
+% * The GUI Layout Toolbox (v2 or later, _free_)
+% * Psychophysics Toolbox (v3 or later, _free_)
+% 
+%%% Hardware
+% 
+% Below are a few minimum hardware requirements for both PCs. 
+% 
+% * *Processor*: Intel Core i5-6500 @ 3.0 GHz (or similar)
+% * *Graphics*: NVIDIA Quadro P400 (or similar)
+% * *Memory*: DDR4 16 GB @ 2133 MHz (e.g. Corsair Vengeance 16 GB) 
+%
+%
+%% Install steps
+% Below are detailed steps on installing all required software. If you 
+% already have software installed for a particular step, feel free to skip
+% that step. Unless you are installing Rigbox on a computer which will use
+% a NI-DAQ for data acquistion, you can skip step 5.
+%
+% # Install Windows 7 or later (Windows 10 is recommended).  Windows must
+% be must be 64-bit (sometimes called x64, x86_64, AMD64 or Intel 64).
+% # Download and install https://uk.mathworks.com/downloads/ MATLAB> by
+% following their
+% <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html
+% installation guide> (see note 1).  At
+% <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html#brhzmcm-1
+% step 9>, make sure to check the box for the Data Acquisition Toolbox,
+% along with any other MATLAB Mathworks toolboxes you want, though for
+% testing Rigbox, no other toolboxes are required (See note 2).  NB: This
+% step may take a while.
+% # Once downloaded, open MATLAB by double-clicking on the MATLAB icon in
+% the start menu.
+% # Within MATLAB, install the GUI Layout Toolbox (See note 2).  Make sure
+% the version number is greater than 2.  
+% # Within MATLAB, install the NI-DAQmx Support Package (See note 2).  NB:
+% This step may take a while.
+% # Download and install the Microsoft
+% <https://www.microsoft.com/en-us/download/details.aspx?id=40784 Visual
+% C++ Redistributable Packages for Visual Studio 2013> installer (See note
+% 3).
+% # Download and install the Microsoft
+% <https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe
+% Visual C++ Redistributable Packages for Visual Studio 2015-2019>
+% installer (See note 4).  NB: This is 2015-2019; the previous step was for
+% 2013.  Both are required.
+% # Download and install <https://sliksvn.com/download/ SilkSVN> (See note
+% 5).
+% # Download and install the
+% <https://gstreamer.freedesktop.org/data/pkg/windows/1.16.0/gstreamer-1.0-msvc-x86_64-1.16.0.msi
+% 64-Bit GStreamer-1.16.0 MSVC runtime>, making sure to install all offered
+% packages (See note 6).
+% # Download the
+% <https://raw.github.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m
+% PsychToolbox installer function> and save it into your |Documents/MATLAB| folder.
+% # In the MATLAB Command Window (see note 7), type
+% |DownloadPsychtoolbox(userpath)| (no quotes) and press enter.  This will
+% download and install PsychToolbox to MATLAB folder.  At certain points in
+% the installation it will print stuff to the Command Window and ask you to
+% press any key to continue.  Do this until the two angled brackes ('|>>|')
+% reappear.
+% # Close MATLAB by pressing the '|X|' in the top right corner of the window.
+% # Download and install <https://git-scm.com/download/win Git Bash for
+% Windows> (See note 8).  Use all defaults.
+% # Launch Git Bash (See note 9).  A black command line window should appear.  
+% # Type the following line into Git Bash (or copy/paste): |cd
+% ~/Documents/Github|
+% # Copy this line and paste it into Git Bash (use right click for
+% pasting): |git clone REPLACE_WITH_DASH_DASHrecurse-submodules
+% https://github.com/cortex-lab/Rigbox|
+% # Launch MATLAB and navigate to the following folder (See note 10):
+% |Documents\Github\Rigbox|
+% # Type the following into the MATLAB Command Window and press enter (See
+% note 11): |addRigboxPaths|
+% # You should be done now. To check this, type |eui.SignalsTest;| into the
+% MATLAB Command Window and select |signalsPong.m|. Then click Start. Your
+% mouse controls the right paddle.
+
+%% Notes
+% # MATLAB is not free and requires a MATLAB account in order to
+% download.  If you are part of an academic institution you may be able to
+% get MATLAB for free.  If in doubt ask your lab supervisor or institute IT
+% department.   For more information see
+% <https://uk.mathworks.com/help/install/ MATLAB's install guide>. 
+% # Once MATLAB is installed, toolboxes can be downloaded and installed
+% directly within MATLAB via the "Add-Ons" button in the "Home" top
+% toolstrip.  This opens the MATLAB 'AddOn Explorer' where you can search
+% and install toolboxes.
+% # To install download and install, follow the link and click the orange
+% 'Download' button.  A 'Choose the download you want' window will come up.
+%  Select 'vcredist_x64.exe' and click 'Next'.  A download window will pop
+%  up; click 'Save file'.  Once downloaded, double-click the installer and
+%  follow the steps.
+% # To download and install the
+% <https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe
+% MSVC 2015-2019> libraries, follow the link and click 'Save file'.  You
+% can then run the file and follow the installation steps.
+% # To download and install <https://sliksvn.com/download/ SilkSVN>,
+% follow the link and click the blue button that says 'SVN 1.12.0, 64 bit'
+% on the left-hand side.  The numbers might be slightly different but the
+% important thing is that you choose the one that says '64 bit'.  Click
+% 'OK' in the pop-up window to save the installer zip file.  Once
+% downloaded double-click the zip file and open the exe file contained.
+% Follow all the steps in the installer.
+% # To download and install the <https://gstreamer.freedesktop.org/data/pkg/windows/1.16.0/gstreamer-1.0-msvc-x86_64-1.16.0.msi
+% 64-Bit GStreamer-1.16.0 MSVC runtime>, follow the link and clock 'Save
+% file'.  Then open the file and follow the installation steps.  Choose the
+% full/complete installation with all packages selected.
+% # The MATLAB Command Window is usually at the bottom of the MATLAB
+% window and has a '|>>|' in it.  For more information, please read the
+% <https://uk.mathworks.com/help/matlab/ref/commandwindow.html MATLAB
+% documentation about the Command Window>.
+% # To download and install <https://git-scm.com/download/win Git Bash for
+% Windows>, follow the link and click 'Save file' when the download window
+% pops up.  Open the installer file and click 'Next' repeatedly until the
+% end, then click 'Finish'.
+% # There might be more than one program installed that has 'Git' in the
+% name.  Make sure the one you open is called 'Git Bash'.
+% # To navigate to a folder in MATLAB, either use the
+% <https://uk.mathworks.com/help/matlab/matlab_env/files-and-folders-that-matlab-accesses.html
+% Address Field> or type the following into the MATLAB Command Window,
+% replacing |USER| with the name of the Windows user that's currently
+% logged in: |cd('C:\Users\USER\Documents\Github\rigbox\')|
+% # If you've followed the above steps you can safely ignore any warnings
+% you may see for trying out Rigbox.
+
+%% Etc.
+% Authors: Jai Bhagat, Matteo Caranini, Miles Wells
+%
+% v0.1.0
+%
+
+##### SOURCE END #####
+--></body></html>

@@ -232,8 +232,8 @@ save(fullfile(p.globalConfig, 'remote.mat'), 'stimulusControllers')
 
 % More information can be found in the <./websocket_config.html
 % websocket_config> script:
-open(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'websocket_config.m'))
+root = getOr(dat.paths, 'rigbox');
+open(fullfile(root, 'docs', 'scripts', 'websocket_config.m'))
 
 %% Conclusion
 % Ultimately the way you configure your services will be idiosyncratic as
@@ -251,6 +251,6 @@ open(fullfile(getOr(dat.paths,'rigbox'), ...
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.0
+% v1.1.1
 
 %#ok<*FINS,*NASGU,*NOPTS>

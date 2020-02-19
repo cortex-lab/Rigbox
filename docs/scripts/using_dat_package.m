@@ -1,4 +1,4 @@
-%% Introduction
+%% The Data Package
 % The 'data' package contains code pertaining to the organization and
 % logging of data. It contains functions that generate and parse unique
 % experiment reference ids, and return file paths where subject data and
@@ -31,7 +31,7 @@ save(customPathsFile, 'paths') % Save your new custom paths file.
 
 % More info in the paths template:
 root = getOr(dat.paths, 'rigbox');
-opentoline(fullfile(root, 'docs', 'setup', 'paths_template.m'), 75)
+opentoline(fullfile(root, 'docs', 'scripts', 'paths_template.m'), 75)
 
 %% Using expRefs
 % Experiment reference strings are human-readable labels constructed from
@@ -92,14 +92,14 @@ clearCBToolsCache % Clear the cached block file
 
 %% Loading parameters
 % The dat package allows you to load both session specific and experiment
-% specific <./using_parameters.html parameters> .
+% specific <./Parameters.html parameters> .
 expType = 'custom'; % signals experiments have the type 'custom'
 p = dat.loadParamProfiles(expType);
 dat.saveParamProfile(expType, profileName, params);
 dat.delParamProfile(expType, profileName);
 
 % More info on how parameters work can be found in USING_PARAMETERS:
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_parameters.m'))
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'scripts', 'Parameters.m'))
 
 %% Using the log
 % The log object, is primarily dealt with through MC, however you can also
@@ -115,7 +115,7 @@ e = dat.updateLogEntry(subject, id, newEntry);
 % path needs updating to one.  In this case, rig-specific paths may be set
 % using a custom paths file that overrides any paths set in DAT.PATHS:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'paths_template.m'), 78, 1)
+  'docs', 'scripts', 'paths_template.m'), 78, 1)
 
 % The paths file, 'paths.mat', must contain a variable `paths` that is a
 % struct of custom paths.  The file should be located in the location set
@@ -132,6 +132,6 @@ save(customPathsFile, 'paths', '-mat')
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1
 
 %#ok<*NASGU,*ASGLU,*ASGLU>
