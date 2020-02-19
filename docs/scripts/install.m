@@ -21,7 +21,7 @@
 % * MATLAB (2018b or later, also known as version 9.5)
 % * Visual C++ Redistributable Packages for Visual Studio 2013 & 2015-2019
 % (_free_)
-% * _If using an NI DAQ_ the MATLAB Data Acquisition Toolbox is required
+% * The MATLAB Data Acquisition Toolbox
 % * _If using an NI DAQ_ the NI-DAQmx support package (_free_)
 % * The GUI Layout Toolbox (v2 or later, _free_)
 % * Psychophysics Toolbox (v3 or later, _free_)
@@ -47,10 +47,9 @@
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html
 % installation guide> (see note 1).  At
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html#brhzmcm-1
-% step 9>, you can check the Data Acquisition Toolbox product if you wish
-% to use an NI DAQ device (not necessary for testing).  It doesn't matter
-% whether the other products are checked or not (see note 2).  NB: This
-% step may take a while.
+% step 9>, check the Data Acquisition Toolbox.  It doesn't matter whether
+% the other products are checked or not (see note 2).  NB: This step may
+% take a while.
 % # Once downloaded, open MATLAB by double-clicking on the MATLAB icon in
 % the start menu.
 % # Within MATLAB, install the GUI Layout Toolbox (See note 2).  Make sure
@@ -83,8 +82,8 @@
 % reappear.
 % # Close MATLAB by pressing the '|X|' in the top right corner of the window.
 % # Download and install <https://git-scm.com/download/win Git Bash for
-% Windows> (See note 8).  Use all defaults (i.e. keep clicking 'Next').
-% # Launch Git Bash (See note 9).  A black window should appear.  
+% Windows> (See note 8).  Use all defaults.
+% # Launch Git Bash (See note 9).  A black command line window should appear.  
 % # Type the following line into Git Bash (or copy/paste): |cd
 % ~/Documents/Github|
 % # Copy this line and paste it into Git Bash (use right click for
@@ -93,7 +92,7 @@
 % # Launch MATLAB and navigate to the following folder (See note 10):
 % |Documents\Github\Rigbox|
 % # Type the following into the MATLAB Command Window and press enter (See
-% note 11): |addRigboxPaths('Strict', 0)|
+% note 11): |addRigboxPaths|
 % # You should be done now. To check this, type |eui.SignalsTest;| into the
 % MATLAB Command Window and select |signalsPong.m|. Then click Start. Your
 % mouse controls the right paddle.
@@ -144,7 +143,7 @@
 % replacing |USER| with the name of the Windows user that's currently
 % logged in: |cd('C:\Users\USER\Documents\Github\rigbox\')|
 % # If you've followed the above steps you can safely ignore any warnings
-% you may see.
+% you may see for trying out Rigbox.
 
 %% Etc.
 % Authors: Jai Bhagat, Matteo Caranini, Miles Wells

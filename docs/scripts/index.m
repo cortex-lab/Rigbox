@@ -11,7 +11,7 @@
 % The second is for 'power users' who have a basic understanding of these
 % things.
 % 
-% # <./install_for_dummies.html Installing for dummies>
+% # <./install.html Full install instructions>
 % # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
 % for power users>
 % 
