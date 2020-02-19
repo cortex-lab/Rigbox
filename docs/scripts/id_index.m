@@ -266,6 +266,7 @@ save(hwPath, 'stimWindow', '-append')
 % Rigbox:exp:SignalsExp:noTokenSet
 %
 % Rigbox:eui:choiceExpPanel:toolboxRequired
+% signals:test:toolboxRequired
 % Rigbox:setup:toolboxRequired
 %
 % Alyx:newExp:subjectNotFound

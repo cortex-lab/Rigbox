@@ -139,7 +139,7 @@ cbtoolsInJavaPath = any(strcmpi(javaclasspaths, cbtoolsjavapath));
 
 %%% Remind user to copy paths file %%%
 if ~exist('+dat/paths','file')
-  template_paths = fullfile(root, 'docs', 'setup', 'paths_template.m');
+  template_paths = fullfile(root, 'docs', 'scripts', 'paths_template.m');
   new_loc = fullfile(root, '+dat', 'paths.m');
   copied = copyfile(template_paths, new_loc);
   % Check that the file was copied
