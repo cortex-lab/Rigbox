@@ -38,7 +38,8 @@ ringach98 % Run the experiment
 % signal which sets the player's paddle position is mapped to the optical
 % mouse. The epoch structure is set so that a trial ends on a score, and
 % the experiment ends when either the player or cpu reaches a target score.
-
+% 
+% <<./images/Fig6-pong.png>>
 
 %%% Run Example 2
 % To run Pong, simply call |eui.SignalsTest| in MATLAB and select

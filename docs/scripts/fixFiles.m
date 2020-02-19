@@ -39,11 +39,13 @@ writeFile(filename, T)
 %% paper_examples.html
 % Add width attribute to images
 filename = 'paper_examples.html';
-pattern = 'src="./images/Fig';
+pattern = strcat('src="./images/Fig', {'3','6'});
 subStr = 'width="500" ';
 
 T = readFile(filename);
-T = insert(T, subStr, pattern, 'before', 1);
+for s = pattern
+  T = insert(T, subStr, s, 'before', 1);
+end
 writeFile(filename, T)
 
 %% Helpers
