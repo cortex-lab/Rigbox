@@ -1,0 +1,272 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Working with wheel data</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="using_wheel.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Working with wheel data</h1><!--introduction--><p>In the Burgess wheel task a visual stimulus is yoked to LEGO wheel via a rotary encoder.  Below are some things to consider when designing or modifying a wheel task.  For information on setting up the rotary encoder, see <a href="./hardware_config.html#29">Hardware Configuration: DAQ rotary encoder</a>.  For information on wiring a rotary encoder for the Burgess steering wheel task, see the <a href="Burgess_hardware_setup.html">Burgess hardware setup instructions</a> .</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The wheel input in Signals</a></li><li><a href="#2">Load information about the wheel from the hardware file</a></li><li><a href="#3">Load the wheel data</a></li><li><a href="#4">Convert to linear displacement (cm)</a></li><li><a href="#5">Convert to angular displacement (rad)</a></li><li><a href="#6">Convert to angular displacement (RPM)</a></li><li><a href="#7">Convert to angular displacement (deg)</a></li><li><a href="#8">Convert to azimuth (visual degrees)</a></li><li><a href="#9">Notes</a></li><li><a href="#10">Etc.</a></li></ul></div><h2 id="1">The wheel input in Signals</h2><p>There are currently three wheel-related inputs used by the Signals Experiment class.  These can be accessed via a subscripted reference(1) to the 'inputs' argument of an <a href="./glossary.html">experiment definition function (expDef)</a> :</p><div><ol><li>wheel - the raw value of the rotary encoder, polled on every iteration of the main experiment loop.  Each time the rotary encoder moves suffeciently it sends out a pulse.  These are integrated by a counter channel and the output is seen in the wheel signal.  This Signal is zero'd at the beginning of the experiment.</li><li>wheelMM - the wheel movement in units of centimetres linear displacement.  That is the distance the wheel would have rolled along a flat surface. This Signal is zero'd at the beginning of the experiment.</li><li>wheelDeg - the wheel movement in degrees.  This Signal is zero'd at the beginning of the experiment.</li></ol></div><p>The <tt>wheelMM</tt> and <tt>wheelDeg</tt> signals simply map the values of <tt>wheel</tt> through a function based on information found in the hardware file's mouseInput object, namely the 'WheelDiameter' and 'EncoderResolution' properties.</p><h2 id="2">Load information about the wheel from the hardware file</h2><p>For a given experiment you may wish to load the hardware used, and to view the settings for the rotary encoder.  Each experiment, a JSON copy of the hardware file is saved to the <a href="./glossary.html">main repository</a>. This preserves the settings as they were at the time the experiment ran. The below code searches for this JSON file and tries to load it.  If it doesn't exist, the current hardware file is loaded instead.  Some information about the rotary encoder settings are the printed.</p><pre class="codeinput">expRef = <span class="string">'2019-03-28_1_default'</span>; <span class="comment">% Example experiment</span>
+jsonPath = dat.expFilePath(expRef, <span class="string">'hw-info'</span>, <span class="string">'master'</span>, <span class="string">'json'</span>);
+<span class="keyword">if</span> exist(jsonPath, <span class="string">'file'</span>) <span class="comment">% Check is hardware JSON exists</span>
+  <span class="comment">% If the JSON file exists load that as the wheel may have sinced changed</span>
+  rig = jsondecode(fileread(jsonPath));
+<span class="keyword">else</span>
+  <span class="comment">% Otherwise load the existing harware file</span>
+  rigName = <span class="string">'exampleRig'</span>;
+  rig = hw.devices(rigName, false);
+<span class="keyword">end</span>
+
+<span class="comment">% Print some info:</span>
+D = rig.mouseInput.WheelDiameter;
+res = rig.mouseInput.EncoderResolution;
+a = rig.mouseInput.MillimetresFactor;
+fprintf([<span class="string">'Details for experiment &lt;strong&gt;%s&lt;/strong&gt;:\n'</span><span class="keyword">...</span>
+  <span class="string">'Wheel diameter (mm): %.1f, '</span><span class="keyword">...</span>
+  <span class="string">'encoder resolution: %d, '</span><span class="keyword">...</span>
+  <span class="string">'calculated millimetres factor: %.4f\n'</span>], expRef, D, res, a)
+</pre><h2 id="3">Load the wheel data</h2><p>If availiable, load the auto-extracted ALF file as the data is quicker to load, in centimeters linear displacment units and resampled evenly at 1000Hz.</p><pre class="codeinput">expPath = dat.expPath(expRef, <span class="string">'main'</span>, <span class="string">'master'</span>);
+files = dir(expPath);
+Fs = 1000; <span class="comment">% Frequency to resample at</span>
+<span class="keyword">if</span> any(endsWith({files.name}, <span class="string">'wheel.position.npy'</span>))
+  fullFileFn = @(nm) readNPY(fullfile(expPath, endsWith({files.name}, nm)));
+  pos = fullFileFn(<span class="string">'wheel.position.npy'</span>); <span class="comment">% in cm</span>
+  rawT = fullFileFn(<span class="string">'wheel.timestamps.npy'</span>); <span class="comment">% in sec</span>
+  vel = fullFileFn(<span class="string">'wheel.velocity.npy'</span>); <span class="comment">% in cm/sec</span>
+  t = (rawT(1,2):1/Fs:rawT(2,2))';
+<span class="keyword">else</span> <span class="comment">% Otherwise load from block file and preprocess</span>
+  data = dat.loadBlock(expRef);
+  pos = data.inputs.wheelValues; <span class="comment">% in samples</span>
+  tRaw = data.inputs.wheelTimes; <span class="comment">% in sec</span>
+  <span class="comment">% Resample values</span>
+  t = 0:1/Fs:tRaw(end);
+  pos = interp1(tRaw, pos, t);
+  <span class="comment">% Correct for over-/underflow</span>
+  pos = wheel.correctCounterDiscont(pos);
+<span class="keyword">end</span>
+</pre><h2 id="4">Convert to linear displacement (cm)</h2><p>If the units are in samples (i.e. loaded from inputs.wheel or inputSensorPos), convert to units of centimetres linear displacement. That is the distance the wheel would have rolled along a flat surface.</p><pre class="codeinput">posCM = (rig.mouseInput.MillimetresFactor/10) .* pos; <span class="comment">%#ok&lt;*NASGU&gt;</span>
+<span class="comment">% or alternatively</span>
+res = rig.mouseInput.EncoderResolution*4; <span class="comment">% Resolution * 4 for '4X' encoders</span>
+D = rig.mouseInput.WheelDiameter/10; <span class="comment">% Converted to cm from mm</span>
+posCM = pos./res * pi * D;
+
+<span class="comment">% The velocity is the derivative of this, so it's the tangential velocity</span>
+<span class="comment">% in cm/sec</span>
+smoothSize = 0.03; <span class="comment">% Gaussian smoothing window</span>
+[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
+</pre><h2 id="5">Convert to angular displacement (rad)</h2><p>For angular displacement / velocity, just divide by the wheel radius</p><pre class="codeinput">posRad = posCM / 0.5*D; <span class="comment">% in radians</span>
+velAng = vel / 0.5*D; <span class="comment">% in rad/sec</span>
+</pre><h2 id="6">Convert to angular displacement (RPM)</h2><p>Convert this to the more intuitive revolutions per minute:</p><pre class="codeinput">RPM = velAng*60 / 2*pi;
+</pre><h2 id="7">Convert to angular displacement (deg)</h2><p>For displacement in degrees:</p><pre class="codeinput">posDeg = rad2deg(posRad);
+velDeg = rad2deg(velAng);
+<span class="comment">% or...</span>
+posDeg = pos / res*360;
+</pre><h2 id="8">Convert to azimuth (visual degrees)</h2><p>If you know the response threshold in visual degrees, you can convert this to visual degrees.</p><pre class="codeinput">thresh = 35; <span class="comment">% visual degrees azimuth</span>
+<span class="comment">% Position relative to interactive on</span>
+pos = pos - pos(1);
+<span class="comment">% Distance moved in whatever units</span>
+dist = diff([pos(1) pos(end)]);
+<span class="comment">% Convert to visual degrees moved, assuming correct is an element of [-1 0</span>
+<span class="comment">% 1]</span>
+posAzi = (pos/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
+velAzi = (vel/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
+</pre><h2 id="9">Notes</h2><p>(1) e.g. 'inputs.foo'.  This is know as dot notation.  More info <a href="https://uk.mathworks.com/help/matlab/ref/subsref.html">here</a> .</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Working with wheel data
+% In the Burgess wheel task a visual stimulus is yoked to LEGO wheel via
+% a rotary encoder.  Below are some things to consider when designing or
+% modifying a wheel task.  For information on setting up the rotary
+% encoder, see <./hardware_config.html#29 Hardware Configuration: DAQ
+% rotary encoder>.  For information on wiring a rotary encoder for the
+% Burgess steering wheel task, see the <Burgess_hardware_setup.html Burgess
+% hardware setup instructions> .
+
+%% The wheel input in Signals
+% There are currently three wheel-related inputs used by the Signals
+% Experiment class.  These can be accessed via a subscripted reference(1)
+% to the 'inputs' argument of an <./glossary.html experiment definition
+% function (expDef)> :
+% 
+% # wheel - the raw value of the rotary encoder, polled on every iteration
+% of the main experiment loop.  Each time the rotary encoder moves
+% suffeciently it sends out a pulse.  These are integrated by a counter
+% channel and the output is seen in the wheel signal.  This Signal is
+% zero'd at the beginning of the experiment.
+% # wheelMM - the wheel movement in units of centimetres linear
+% displacement.  That is the distance the wheel would have rolled along a
+% flat surface. This Signal is zero'd at the beginning of the experiment.
+% # wheelDeg - the wheel movement in degrees.  This Signal is zero'd at the
+% beginning of the experiment.
+% 
+% The |wheelMM| and |wheelDeg| signals simply map the values of |wheel|
+% through a function based on information found in the hardware file's
+% mouseInput object, namely the 'WheelDiameter' and 'EncoderResolution'
+% properties.  
+
+%% Load information about the wheel from the hardware file
+% For a given experiment you may wish to load the hardware used, and to
+% view the settings for the rotary encoder.  Each experiment, a JSON copy
+% of the hardware file is saved to the <./glossary.html main repository>.
+% This preserves the settings as they were at the time the experiment ran.
+% The below code searches for this JSON file and tries to load it.  If it
+% doesn't exist, the current hardware file is loaded instead.  Some
+% information about the rotary encoder settings are the printed.
+expRef = '2019-03-28_1_default'; % Example experiment
+jsonPath = dat.expFilePath(expRef, 'hw-info', 'master', 'json');
+if exist(jsonPath, 'file') % Check is hardware JSON exists
+  % If the JSON file exists load that as the wheel may have sinced changed
+  rig = jsondecode(fileread(jsonPath));
+else
+  % Otherwise load the existing harware file
+  rigName = 'exampleRig';
+  rig = hw.devices(rigName, false);
+end
+
+% Print some info:
+D = rig.mouseInput.WheelDiameter;
+res = rig.mouseInput.EncoderResolution;
+a = rig.mouseInput.MillimetresFactor;
+fprintf(['Details for experiment <strong>%s</strong>:\n'...
+  'Wheel diameter (mm): %.1f, '...
+  'encoder resolution: %d, '...
+  'calculated millimetres factor: %.4f\n'], expRef, D, res, a)
+
+%% Load the wheel data
+% If availiable, load the auto-extracted ALF file as the data is quicker to
+% load, in centimeters linear displacment units and resampled evenly at
+% 1000Hz.
+expPath = dat.expPath(expRef, 'main', 'master');
+files = dir(expPath);
+Fs = 1000; % Frequency to resample at
+if any(endsWith({files.name}, 'wheel.position.npy'))
+  fullFileFn = @(nm) readNPY(fullfile(expPath, endsWith({files.name}, nm)));
+  pos = fullFileFn('wheel.position.npy'); % in cm
+  rawT = fullFileFn('wheel.timestamps.npy'); % in sec
+  vel = fullFileFn('wheel.velocity.npy'); % in cm/sec
+  t = (rawT(1,2):1/Fs:rawT(2,2))';
+else % Otherwise load from block file and preprocess
+  data = dat.loadBlock(expRef);
+  pos = data.inputs.wheelValues; % in samples
+  tRaw = data.inputs.wheelTimes; % in sec
+  % Resample values
+  t = 0:1/Fs:tRaw(end);
+  pos = interp1(tRaw, pos, t); 
+  % Correct for over-/underflow
+  pos = wheel.correctCounterDiscont(pos);
+end
+
+%% Convert to linear displacement (cm)
+% If the units are in samples (i.e. loaded from inputs.wheel or
+% inputSensorPos), convert to units of centimetres linear displacement.
+% That is the distance the wheel would have rolled along a flat surface.
+posCM = (rig.mouseInput.MillimetresFactor/10) .* pos; %#ok<*NASGU>
+% or alternatively
+res = rig.mouseInput.EncoderResolution*4; % Resolution * 4 for '4X' encoders
+D = rig.mouseInput.WheelDiameter/10; % Converted to cm from mm
+posCM = pos./res * pi * D;
+
+% The velocity is the derivative of this, so it's the tangential velocity
+% in cm/sec
+smoothSize = 0.03; % Gaussian smoothing window
+[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
+
+%% Convert to angular displacement (rad)
+% For angular displacement / velocity, just divide by the wheel radius
+posRad = posCM / 0.5*D; % in radians 
+velAng = vel / 0.5*D; % in rad/sec
+
+%% Convert to angular displacement (RPM)
+% Convert this to the more intuitive revolutions per minute:
+RPM = velAng*60 / 2*pi;
+
+%% Convert to angular displacement (deg)
+% For displacement in degrees:
+posDeg = rad2deg(posRad);
+velDeg = rad2deg(velAng);
+% or...
+posDeg = pos / res*360;
+
+%% Convert to azimuth (visual degrees)
+% If you know the response threshold in visual degrees, you can convert
+% this to visual degrees. 
+thresh = 35; % visual degrees azimuth
+% Position relative to interactive on
+pos = pos - pos(1);
+% Distance moved in whatever units
+dist = diff([pos(1) pos(end)]);
+% Convert to visual degrees moved, assuming correct is an element of [-1 0
+% 1]
+posAzi = (pos/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
+velAzi = (vel/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
+
+%% Notes
+% (1) e.g. 'inputs.foo'.  This is know as dot notation.  More info
+% <https://uk.mathworks.com/help/matlab/ref/subsref.html here> .
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.0.0
+
+##### SOURCE END #####
+--></body></html>
