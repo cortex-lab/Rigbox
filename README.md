@@ -3,8 +3,7 @@
 ![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fcoverage%2Frigbox%2Fmaster)
 ![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fstatus%2Frigbox%2Fmaster)
 
-Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. Initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel), Rigbox is under active, test-driven development to encompass running experiments across a variety of experimental paradigms in behavioral neuroscience.
-
+Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. 
 Rigbox's main goals are to simplify hardware/software interfacing, behavioral task design, and visual and auditory stimuli presentation. Additionally, Rigbox can time-align datastreams from multiple sources and communicate with a remote database to manage experiment data. Rigbox is mostly object-oriented and highly modular, which simplifies the process of designing experiments.
 
 ## Requirements
@@ -24,22 +23,14 @@ For most experiments, typical, contemporary, factory-built desktops running Wind
 
 ### Software
 
-Below are the **minimum** computer software dependencies which must be installed before installing Rigbox:
+Below are the **minimum** computer software dependencies that must be installed before installing Rigbox:
 
-* OS: 64 Bit Windows 7 (or later)
+* OS: 64 Bit Windows 7 or later
 * Libraries: Visual C++ Redistributable Packages for Visual Studio [2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
-* MATLAB: 2017b or later
+* MATLAB: 2017b or later, including the Data Acquisition Toolbox
 * Community MATLAB toolboxes:
 	* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
 	* [Psychophysics Toolbox](http://psychtoolbox.org/download.html#Windows) (v3 or later)
-	
-	The Psychophysics Toolbox is required for visual and auditory stimulus presentation. We recommend following their full installation instructions via the link above, but below we provide brief instructions:
-
-	1. Download and install a Subversion client. [SilkSVN](https://sliksvn.com/download/) is recommended.
-	2. Download and install [gstreamer](https://gstreamer.freedesktop.org/download/). (When the installer prompts you, select the complete installation.)
-	3. Download the Psychtoolbox MATLAB [installer function](https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/DownloadPsychtoolbox.m) from the PsychToolbox GitHub page.
-	4. Run the installer function in MATLAB with a target installation location as a string input argument, e.g. `DownloadPsychtoolbox('C:\')`, and follow the instructions that appear in the MATLAB command window.
-
 
 Similar to the hardware requirements, software requirements for a SC will depend on the experiment: if acquiring data through a NI-DAQ, the SC will require the MATLAB Data Acquisition Toolbox and MATLAB [NI-DAQmx support package](https://uk.mathworks.com/hardware-support/nidaqmx.html) 
 
@@ -47,7 +38,7 @@ Similar to the hardware requirements, software requirements for a SC will depend
 
 Before starting, ensure you have read and followed the above [requirements section](#requirements).
 
-Here we provide brief instructions for installing Rigbox via Git. (If not already installed, download and install [Git](https://git-scm.com/download/win), and if unsure which options to select during installation, accept the installer defaults).
+Below we provide brief instructions for installing Rigbox via Git. For a detailed installation guide, including installing Rigbox's software dependencies, see [here](https://cortex-lab.github.io/Rigbox/detailed_installation.html).
 
 1. Clone the repository from GitHub. In your git terminal, run:
 ```
@@ -81,7 +72,7 @@ If you experience a bug or have a feature request, please report them on the [Gi
 
 ## Authors & Accreditation
 
-Rigbox was created by [Chris Burgess](https://github.com/dendritic/) in 2013. It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
+Rigbox was created by [Chris Burgess](https://github.com/dendritic/) in 2013, initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel). It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
 
 For further information, see [our publication](https://www.biorxiv.org/content/10.1101/672204v3). Please cite this source appropriately in publications which use Rigbox to acquire data.
 
