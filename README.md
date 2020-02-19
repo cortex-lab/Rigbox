@@ -20,7 +20,7 @@ Rigbox has the following software dependencies:
 * MATLAB (2017b or later) 
 * [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015-2019](https://github.com/Psychtoolbox-3/Psychtoolbox-3/raw/master/Psychtoolbox/PsychContributed/vcredist_x64_2015-2019.exe) <for Signals>
 * The following MathWorks MATLAB toolboxes (note, these can all be downloaded and installed directly within MATLAB via the "Add-Ons" button in the "Home" top toolstrip):
-    * Data Acquisition Toolbox <For using an NI DAQ>
+    * Data Acquisition Toolbox
 * The following community MATLAB toolboxes:
     * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
     * [Psychophysics Toolbox](http://psychtoolbox.org/download.html) (v3 or later)
@@ -42,7 +42,7 @@ Below are a few minimum hardware requirements for both PCs.  These are more of a
 
 ## Installation
 
-Below are instructions for installing Rigbox for users familiar with Git and MATLAB.  If you are completely new to both of these, please see the [simple installation guide](https://cortex-lab.github.io/Rigbox/intall_for_dummies.html).
+Below are short instructions for installing Rigbox for users familiar with Git and MATLAB.  For detailed instructions, please see the [installation guide](https://cortex-lab.github.io/Rigbox/intall.html).
 
 Before starting, ensure the above toolboxes and packages are installed.  PsychToobox can not be installed via the MATLAB AddOns browser.  See [Installing PsychToobox](#Installing-PsychToolbox) for install instructions.  
 
