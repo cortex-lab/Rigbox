@@ -50,7 +50,7 @@
 % # Download and install https://uk.mathworks.com/downloads/ MATLAB> by
 % following their
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html
-% installation guide> (see note 1).  At
+% installation guide> (See note 1).  At
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html#brhzmcm-1
 % step 9>, make sure to check the box for the Data Acquisition Toolbox,
 % along with any other MATLAB Mathworks toolboxes you want, though for
@@ -80,7 +80,7 @@
 % # Download the
 % <https://raw.github.com/Psychtoolbox-3/Psychtoolbox-3/master/Psychtoolbox/DownloadPsychtoolbox.m
 % PsychToolbox installer function> and save it into your |Documents/MATLAB| folder.
-% # In the MATLAB Command Window (see note 7), type
+% # In the MATLAB Command Window (See note 7), type
 % |DownloadPsychtoolbox(userpath)| (no quotes) and press enter.  This will
 % download and install PsychToolbox to MATLAB folder.  At certain points in
 % the installation it will print stuff to the Command Window and ask you to

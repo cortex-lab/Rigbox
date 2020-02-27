@@ -48,6 +48,87 @@ for s = pattern
 end
 writeFile(filename, T)
 
+%% install.html
+%<p id="tooltip1"><a href="introduction.php">Introduction<span>Introduction to HTML and CSS: tooltip with extra text</span></a></p>
+filename = 'install.html';
+T = readFile(filename);
+iBody = contains(T, '<!--introduction-->');
+body = T{iBody};
+sections = split(string(body), '<h2');
+notesSection = sections(contains(sections, '>Notes</h2>'));
+notes = extractBetween(notesSection, '<li>', '</li>');
+
+tooltipCSS = [
+".tooltip {"
+"  position: relative;"
+"  display: inline-block;"
+"  border-bottom: 1px dotted black;"
+"}"
+
+".tooltip .tooltiptext {"
+"  visibility: hidden;"
+"  width: 300px;"
+"  background-color: #555;"
+"  color: #fff;"
+"  text-align: center;"
+"  border-radius: 6px;"
+"  padding: 5px;"
+"  position: absolute;"
+"  z-index: 1;"
+"  bottom: 125%;"
+"  left: 50%;"
+"  margin-left: -60px;"
+"  opacity: 0;"
+"  transition: opacity 0.3s;"
+"}"
+
+".tooltip .tooltiptext::after {"
+"  content: "";"
+"  position: absolute;"
+"  top: 100%;"
+"  left: 50%;"
+"  margin-left: -5px;"
+"  border-width: 5px;"
+"  border-style: solid;"
+"  border-color: #555 transparent transparent transparent;"
+"}"
+
+".tooltip:hover .tooltiptext {"
+"  visibility: visible;"
+"  opacity: 1;"
+"}"
+
+".tooltip:focus .tooltiptext {"
+"  visibility: visible;"
+"  opacity: 1;"
+"}"
+];
+
+% Find line after final CSS style def
+Ti = circshift(startsWith(T, 'table td '),1);
+assert(isempty(T{Ti}))
+T{Ti} = char(join(tooltipCSS, char(13))); % Insert CSS for tooltips
+
+% Add tooltip span
+[startIdx, endIdx] = regexp(body, 'See note \d');
+newBody = cell(2, length(startIdx)+1);
+newBody(1,:) = strsplit(body, 'See note \d+', 'DelimiterType', 'RegularExpression');
+for i = 1:length(startIdx)
+  bit = startIdx(i):endIdx(i); % 'See note x'
+  n = str2double(regexp(body(bit), '(\d+)', 'tokens', 'once')); % note number
+  preStr = ['<span class="tooltip" tabindex="' num2str(i) '">'];
+  postStr = ['<span class="tooltiptext">' char(notes(n)) '</span></span>'];
+  newBody{2,i} = [preStr body(bit) postStr]; % Wrap note as tooltip
+end
+% Assign altered text
+T{iBody} = horzcat(newBody{:});
+
+% Fix '|...|' parse fail
+T = cellfun(@(s) strrep(s, '''|', '''<tt>'), T, 'uni', 0);
+T = cellfun(@(s) strrep(s, '|''', '</tt>'''), T, 'uni', 0);
+
+writeFile(filename, T)
+
 %% Helpers
 function T = readFile(filename)
 % Load file
