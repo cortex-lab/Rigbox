@@ -19,7 +19,7 @@
 % devices.
 % 
 %%% Software
-% Rigbox reqquires the following software to work properly:
+% Rigbox requires the following software to work properly:
 % 
 % * Windows Operating System (7 or later, 64-bit)
 % * MATLAB (2018b or later, also known as version 9.5)
@@ -47,7 +47,7 @@
 %
 % # Install Windows 7 or later (Windows 10 is recommended).  Windows must
 % be must be 64-bit (sometimes called x64, x86_64, AMD64 or Intel 64).
-% # Download and install https://uk.mathworks.com/downloads/ MATLAB> by
+% # Download and install <https://uk.mathworks.com/downloads/ MATLAB> by
 % following their
 % <https://uk.mathworks.com/help/install/ug/install-mathworks-software.html
 % installation guide> (See note 1).  At
