@@ -107,7 +107,7 @@ tooltipCSS = [
 % Find line after final CSS style def
 Ti = circshift(startsWith(T, 'table td '),1);
 assert(isempty(T{Ti}))
-T{Ti} = char(join(tooltipCSS, char(13))); % Insert CSS for tooltips
+T{Ti} = char(join(tooltipCSS, [newline newline])); % Insert CSS for tooltips
 
 % Add tooltip span
 [startIdx, endIdx] = regexp(body, 'See note \d');
