@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Error and warning IDs</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="id_index.m"><style type="text/css">
+      --><title>Error and warning IDs</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-04"><meta name="DC.source" content="id_index.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Error and warning IDs</h1><!--introduction--><p>Below is a list of Rigbox error &amp; warning IDs.  This list is currently incomplete and there aren't yet very standard.  Typically the ID has the following structure: module:package:function:error</p><p>These are here for search convenience and may soon contain more detailed troubleshooting information.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">copyPaths</a></li><li><a href="#2">noRemoteFile</a></li><li><a href="#3">notInTest</a></li><li><a href="#7">behaviourNotSet</a></li><li><a href="#9">mkdirFailed</a></li><li><a href="#10">newExp:expFoldersAlreadyExist</a></li><li><a href="#12">----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----</a></li><li><a href="#13">Undocumented IDs</a></li></ul></div><h2 id="1">copyPaths</h2><p><b>Problem</b>:</p><p>In order to load various essential configuration files, and to load and save experimental data, user specific paths must be retrieved via calls to <tt>dat.paths</tt>.  This error means the function is not on MATLAB's search path.</p><p><b>Solution</b>:</p><p>Add your <tt>+dat\paths.m</tt> file to MATLAB's search path.  A template is present in <tt>docs\setup\paths_template.m</tt>.  This file is automatically copied by addRigboxPaths to <tt>+dat\</tt>.  If you haven't already done so, run <tt>addRigboxPaths</tt> to ensure all other paths have been correctly set.</p><p>See also README.md for further setup information.</p><p><b>IDs</b></p><pre>Rigbox:git:update:copyPaths
+  </style></head><body><div class="content"><h1>Error and warning IDs</h1><!--introduction--><p>Below is a list of Rigbox error &amp; warning IDs.  This list is currently incomplete and there aren't yet very standard.  Typically the ID has the following structure: module:package:function:error</p><p>These are here for search convenience and may soon contain more detailed troubleshooting information.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">copyPaths</a></li><li><a href="#2">noRemoteFile</a></li><li><a href="#3">notInTest</a></li><li><a href="#7">behaviourNotSet</a></li><li><a href="#9">mkdirFailed</a></li><li><a href="#10">newExp:expFoldersAlreadyExist</a></li><li><a href="#12">----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----</a></li><li><a href="#13">Undocumented IDs</a></li><li><a href="#14">Etc.</a></li></ul></div><h2 id="1">copyPaths</h2><p><b>Problem</b>:</p><p>In order to load various essential configuration files, and to load and save experimental data, user specific paths must be retrieved via calls to <tt>dat.paths</tt>.  This error means the function is not on MATLAB's search path.</p><p><b>Solution</b>:</p><p>Add your <tt>+dat\paths.m</tt> file to MATLAB's search path.  A template is present in <tt>docs\setup\paths_template.m</tt>.  This file is automatically copied by addRigboxPaths to <tt>+dat\</tt>.  If you haven't already done so, run <tt>addRigboxPaths</tt> to ensure all other paths have been correctly set.</p><p>See also README.md for further setup information.</p><p><b>IDs</b></p><pre>Rigbox:git:update:copyPaths
 signals:test:copyPaths</pre><h2 id="2">noRemoteFile</h2><p><b>Problem</b>:  % TODO Add problem &amp; solution for noRemoteFile error</p><p><b>Solution</b>:</p><p><b>IDs</b></p><pre>Rigbox:mc:noRemoteFile</pre><h2 id="3">notInTest</h2><p><b>Problem</b>:</p><p>This occurs when a mock function is called when the INTEST global variable is not set.  These mock functions shadow Rigbox and builtin functions, meaning they have the same name.</p><p><b>Solution</b>:</p><p>If this function was called during a test, add the following to the top of your test or in the constructor:</p><pre class="language-matlab"><span class="keyword">global</span> INTEST
 INTEST = true
 </pre><p>Ensure that this is cleared during the teardown:</p><pre class="language-matlab">addteardown(@clear, INTEST) <span class="comment">% If in a class</span>
@@ -109,7 +109,7 @@ Rigbox:dat:newExp:expFoldersAlreadyExist</pre><pre class="codeinput"><span class
 stimWindow.PtbSyncTests = false;
 hwPath = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
 save(hwPath, <span class="string">'stimWindow'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="13">Undocumented IDs</h2><pre>Below is a list of all other error and warning ids.</pre><pre class="codeinput"><span class="comment">% Rigbox:git:runCmd:nameValueArgs</span>
+</pre><h2 id="13">Undocumented IDs</h2><p>Below is a list of all other error and warning ids.</p><pre class="codeinput"><span class="comment">% Rigbox:git:runCmd:nameValueArgs</span>
 <span class="comment">% Rigbox:git:runCmd:gitNotFound</span>
 <span class="comment">% Rigbox:git:update:valueError</span>
 <span class="comment">%</span>
@@ -132,6 +132,7 @@ save(hwPath, <span class="string">'stimWindow'</span>, <span class="string">'-ap
 <span class="comment">% Rigbox:exp:SignalsExp:noTokenSet</span>
 <span class="comment">%</span>
 <span class="comment">% Rigbox:eui:choiceExpPanel:toolboxRequired</span>
+<span class="comment">% signals:test:toolboxRequired</span>
 <span class="comment">% Rigbox:setup:toolboxRequired</span>
 <span class="comment">%</span>
 <span class="comment">% Alyx:newExp:subjectNotFound</span>
@@ -155,6 +156,8 @@ save(hwPath, <span class="string">'stimWindow'</span>, <span class="string">'-ap
 <span class="comment">% squeak.hw</span>
 <span class="comment">% shape:error</span>
 <span class="comment">% window:error</span>
+</pre><h2 id="14">Etc.</h2><p>Author: Miles Wells</p><p>v0.1.1</p><pre class="codeinput"><span class="comment">% INTERNAL</span>
+<span class="comment">% execute off</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Error and warning IDs
@@ -400,7 +403,7 @@ hwPath = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
 save(hwPath, 'stimWindow', '-append')
 
 %% Undocumented IDs
-%  Below is a list of all other error and warning ids.  
+% Below is a list of all other error and warning ids.  
 
 % Rigbox:git:runCmd:nameValueArgs
 % Rigbox:git:runCmd:gitNotFound
@@ -425,6 +428,7 @@ save(hwPath, 'stimWindow', '-append')
 % Rigbox:exp:SignalsExp:noTokenSet
 %
 % Rigbox:eui:choiceExpPanel:toolboxRequired
+% signals:test:toolboxRequired
 % Rigbox:setup:toolboxRequired
 %
 % Alyx:newExp:subjectNotFound
@@ -449,5 +453,13 @@ save(hwPath, 'stimWindow', '-append')
 % shape:error
 % window:error
 
+%% Etc.
+% Author: Miles Wells
+%
+% v0.1.1
+%
+
+% INTERNAL
+% execute off
 ##### SOURCE END #####
 --></body></html>

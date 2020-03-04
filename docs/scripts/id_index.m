@@ -294,7 +294,7 @@ save(hwPath, 'stimWindow', '-append')
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.0
+% v0.1.1
 %
 
 % INTERNAL

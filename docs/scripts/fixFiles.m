@@ -49,7 +49,7 @@ end
 writeFile(filename, T)
 
 %% install.html
-%<p id="tooltip1"><a href="introduction.php">Introduction<span>Introduction to HTML and CSS: tooltip with extra text</span></a></p>
+% Add notes as popups
 filename = 'install.html';
 T = readFile(filename);
 iBody = contains(T, '<!--introduction-->');
@@ -129,6 +129,15 @@ T = cellfun(@(s) strrep(s, '|''', '</tt>'''), T, 'uni', 0);
 
 writeFile(filename, T)
 
+%% paths_conflicts.html
+% Remove <User> anchor
+filename = 'paths_conflicts.html';
+pattern = '<a href="User">User</a>';
+subStr = '&lt;User&gt;';
+T = readFile(filename);
+T = insert(T, subStr, pattern, 'replace', 1);
+writeFile(filename, T)
+
 %% Helpers
 function T = readFile(filename)
 % Load file
@@ -179,6 +188,8 @@ switch pos
     T{ln(n)} = insertBefore(T{ln(n)}, pattern, subStr);
   case 'after'
     T{ln(n)} = insertAfter(T{ln(n)}, pattern, subStr);
+  case 'replace'
+    T{ln(n)} = strrep(T{ln(n)}, pattern, subStr);
   otherwise
     startIdx = cell2mat(idx) + pos;
     T{ln(n)} = [T{ln(n)}(1:startIdx-1) subStr T{ln(n)}(startIdx:end)];

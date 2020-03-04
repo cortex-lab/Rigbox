@@ -73,6 +73,8 @@
 % of causes and solutions.
 % * FAQ - A list of frequently asked questions regarding problems and
 % pointers to the solutions.
+% * <./paths_conflicts.html Paths conflicts> - Some tips on avoiding errors
+% from conflicting paths.
 
 %% User guides
 % Below is a list of in-depth guides for users who want to learn the
@@ -101,4 +103,4 @@
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.1
+% v0.1.2
