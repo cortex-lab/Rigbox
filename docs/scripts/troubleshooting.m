@@ -91,6 +91,8 @@ git.runCmd('checkout master'); git.update(0);
 %   vis = 23;
 %   img = vis.image(t);
 %   Error: Reference to non-existent field 'image'.
+%
+% <./paths_conflicts.html Click here> for tips on avoiding paths conflicts.
 
 
 %%% Reverting
@@ -125,7 +127,7 @@ git.runCmd('checkout master'); git.update(0);
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.0
+% v0.1.1
 %
 
 % INTERNAL
