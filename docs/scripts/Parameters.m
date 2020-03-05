@@ -25,8 +25,8 @@ root = getOr(dat.paths,'rigbox');
 open(fullfile(root, 'docs', 'scripts', 'using_dat_package.m'))
 
 %% Parameter structures
-% In signals a set of parameters may be extracted using EXP.INFERPARAMETERS
-% (see note 1).
+% In signals a set of parameters may be extracted using
+% |exp.inferParameters| (see note 1).
 %
 % |defFunction| should be either an experiment definition function handle,
 % or if the function isn't on MATLAB's search path, a char of the full path
@@ -63,8 +63,9 @@ paramStruct.expPanelFun % (1,27)
 % numerical, string and char arrays.
 
 %% Special parameters
-% There are a few parameters added by EXP.INFERPARAMETERS, EXP.PARAMETERS
-% and EUI.PARAMEDITOR that should not be set in your experiment definition:
+% There are a few parameters added by |exp.inferParameters|,
+% |exp.Parameters| and |eui.ParamEditor| that should not be set in your
+% experiment definition:
 
 %%% numRepeats
 % The number of times each condition shall be repeated.  By default there
@@ -87,13 +88,13 @@ paramStruct.expPanelFun % (1,27)
 % A char or function handle of the experiment panel class to use for
 % visualization during the experiment in MC.  This allows users to display
 % custom plots, etc. for monitoring different experiments.  See
-% EUI.EXPPANEL, EUI.SIGNALSEXPPANEL (default) for more info.
+% <using_ExpPanel.html Using ExpPanel> for more info.
 
 %%% type
 % A legacy parameter that defines what experiment class to use. Options
 % include 'ChoiceWorld' and 'custom', where the latter indicates a signals
 % experiment.  For these two options the experiment classes are
-% EXP.CHOICEWORLD and EXP.SIGNALSEXP, respectively (see note 2). 
+% |exp.ChoiceWorld| and |exp.SignalsExp|, respectively (see note 2). 
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.
@@ -232,14 +233,14 @@ trialParams % (1,810) struct
 % by the |eui.ParamEditor| class.  A ParamEditor object is embedded into MC
 % and can also be instantiated via the Experiment Panels.
 %
-% To instantiate a standalone editor, call EUI.PARAMEDITOR with a
+% To instantiate a standalone editor, call |eui.ParamEditor| with a
 % Parameters object.  Additionally a parent figure handle may be provided.
 %
 % There are two panels that make up the editor.  On the left are the global
 % parameters and on the right is the trial conditions table, containing the
 % conditional parameters.  
 PE = eui.ParamEditor(parameters)
-%%
+%%%
 % 
 % <<ParamEditor.PNG>>
 % 
@@ -314,137 +315,138 @@ dat.saveParamProfile('custom', 'variant_2', PE.Parameters.Struct)
 % By default all conditions are presented in a random order n times, where
 % n is defined by the numRepeats parameter. If numRepeats is made a global
 % parameter, then all conditions are presented the same number of times.
-
+%
+%%%
 % Example 1: An illustration of how the trial order may turn out when
 % 'randomiseConditions' is false and 'numRepeats' is a conditional parameter:
-
-% +---+---+---+-------------+
-% | A | B | C | Num Repeats |
-% +---+---+---+-------------+
-% | 1 | 4 | 2 |           2 |
-% | 2 | 5 | 1 |           1 |
-% | 3 | 3 | 4 |           2 |
-% +---+---+---+-------------+
+%%%
+%  +---+---+---+-------------+
+%  | A | B | C | Num Repeats |
+%  +---+---+---+-------------+
+%  | 1 | 4 | 2 |           2 |
+%  | 2 | 5 | 1 |           1 |
+%  | 3 | 3 | 4 |           2 |
+%  +---+---+---+-------------+
 % 
-% [~, ~, trialParams] = parameters.toConditionServer;
-% trialParams = 
+%   [~, ~, trialParams] = parameters.toConditionServer;
+%   trialParams = 
 %
-% # | A | B | C |
-%   +---+---+---+
-% 1 | 3 | 3 | 4 |
-% 2 | 2 | 5 | 1 |
-% 3 | 3 | 3 | 4 |
-% 4 | 1 | 4 | 2 |
-% 5 | 1 | 4 | 2 |
-%   +---+---+---+
+%  # | A | B | C |
+%    +---+---+---+
+%  1 | 3 | 3 | 4 |
+%  2 | 2 | 5 | 1 |
+%  3 | 3 | 3 | 4 |
+%  4 | 1 | 4 | 2 |
+%  5 | 1 | 4 | 2 |
+%    +---+---+---+
 
-
+%%%
 % Example 2: What happens when we globalize 'numRepeats' and give it the
 % value of 2?
-
-% +---+---+---+
-% | A | B | C |
-% +---+---+---+
-% | 1 | 4 | 2 |
-% | 2 | 5 | 1 |
-% | 3 | 3 | 4 |
-% +---+---+---+
+%%%
+%  +---+---+---+
+%  | A | B | C |
+%  +---+---+---+
+%  | 1 | 4 | 2 |
+%  | 2 | 5 | 1 |
+%  | 3 | 3 | 4 |
+%  +---+---+---+
 % 
-% [~, ~, trialParams] = parameters.toConditionServer;
-% trialParams = 
+%   [~, ~, trialParams] = parameters.toConditionServer;
+%   trialParams = 
 %
-% # | A | B | C |
-%   +---+---+---+
-% 1 | 1 | 4 | 2 |
-% 2 | 3 | 3 | 4 |
-% 3 | 1 | 4 | 2 |
-% 4 | 2 | 5 | 1 |
-% 5 | 3 | 3 | 4 |
-% 6 | 2 | 5 | 1 |
-%   +---+---+---+
-
+%  # | A | B | C |
+%    +---+---+---+
+%  1 | 1 | 4 | 2 |
+%  2 | 3 | 3 | 4 |
+%  3 | 1 | 4 | 2 |
+%  4 | 2 | 5 | 1 |
+%  5 | 3 | 3 | 4 |
+%  6 | 2 | 5 | 1 |
+%    +---+---+---+
+%%%
 % Randomized trial conditions are useful for many behaviour protocols and
 % even for some passive stimulus mapping experiments, however sometimes you
 % require multiple repeats in a row of each conditon.
-
+%
 % Example 3: To present stimuli in a sequence, right click anywhere on the
 % conditions table and deselect 'randomise conditions' in the context menu.
 % Now each row will be numbered sequentially from 1 to the number of
 % conditions (see note 7 for an alternate solution):
-
-%     +---+---+---+-------------+
-%     | A | B | C | Num Repeats |
-% +---+---+---+---+-------------+
-% | 1 | 1 | 4 | 2 |           2 |
-% | 2 | 2 | 5 | 1 |           1 |
-% | 3 | 3 | 3 | 4 |           2 |
-% +---+---+---+---+-------------+
+%%%
+%      +---+---+---+-------------+
+%      | A | B | C | Num Repeats |
+%  +---+---+---+---+-------------+
+%  | 1 | 1 | 4 | 2 |           2 |
+%  | 2 | 2 | 5 | 1 |           1 |
+%  | 3 | 3 | 3 | 4 |           2 |
+%  +---+---+---+---+-------------+
 % 
-% # | A | B | C |
-%   +---+---+---+
-% 1 | 1 | 4 | 2 |
-% 2 | 1 | 4 | 2 |
-% 3 | 2 | 5 | 1 |
-% 4 | 3 | 3 | 4 |
-% 5 | 3 | 3 | 4 |
-%   +---+---+---+
+%  # | A | B | C |
+%    +---+---+---+
+%  1 | 1 | 4 | 2 |
+%  2 | 1 | 4 | 2 |
+%  3 | 2 | 5 | 1 |
+%  4 | 3 | 3 | 4 |
+%  5 | 3 | 3 | 4 |
+%    +---+---+---+
 
 %%% Using Set values
 % For more involved stimulus sets, we can use Set Values to conveniently
 % set the values of multiple cells at once. This is particularly useful for
 % experiments with many conditions.
-
+%%%
 % Example 4: Say you want to present each condition twice in a row, and the
 % entire set two times, e.g.
+%%% 
+%  #  | A | B | C |
+%     +---+---+---+
+%  1  | 1 | 4 | 2 |
+%  2  | 1 | 4 | 2 |
+%  3  | 2 | 5 | 1 |
+%  4  | 2 | 5 | 1 |
+%  5  | 3 | 3 | 4 |
+%  6  | 3 | 3 | 4 |
+%  7  | 1 | 4 | 2 |
+%  8  | 1 | 4 | 2 |
+%  9  | 2 | 5 | 1 |
+%  10 | 2 | 5 | 1 |
+%  11 | 3 | 3 | 4 |
+%  12 | 3 | 3 | 4 |
+%     +---+---+---+
 % 
-% #  | A | B | C |
-%    +---+---+---+
-% 1  | 1 | 4 | 2 |
-% 2  | 1 | 4 | 2 |
-% 3  | 2 | 5 | 1 |
-% 4  | 2 | 5 | 1 |
-% 5  | 3 | 3 | 4 |
-% 6  | 3 | 3 | 4 |
-% 7  | 1 | 4 | 2 |
-% 8  | 1 | 4 | 2 |
-% 9  | 2 | 5 | 1 |
-% 10 | 2 | 5 | 1 |
-% 11 | 3 | 3 | 4 |
-% 12 | 3 | 3 | 4 |
-%    +---+---+---+
-% 
-% 1) Add enough new conditions to the table so that there are 6 rows.
-% 2) Highlight all cells and select 'Set values'.
-% 3) An input dialog appears where you can input the values for each
-% parameter. For A, you can type repmat([1 2 3],1,2), for B the vector
-% would be [4 5 3], etc.
-% 4) Globalize the numRepeats parameter and set it to 2
-% 5) Ensure 'randomise conditions' is deselected
+% # Add enough new conditions to the table so that there are 6 rows.
+% # Highlight all cells and select 'Set values'.
+% # An input dialog appears where you can input the values for each
+% parameter. For A, you can type |repmat([1 2 3],1,2)|, for B the vector
+% would be |[4 5 3]|, etc.
+% # Globalize the numRepeats parameter and set it to 2
+% # Ensure 'randomise conditions' is deselected
 % 
 % Note that you can sequences of values using any MATLAB function this way,
-% for instance inputting 2:2:12 would set the conditions to be [2 4 6 8
-% 12].
-% 
+% for instance inputting |2:2:12| would set the conditions to be |[2 4 6 8
+% 12]|.
+%
 % Example 5: With set values you can also apply functions to the current
 % set of values, for instance to multiply every value of A from the
 % previous example by 2, we input @(v)v*2 and to set every value of B to a
 % random integer between 1 and 5, @(~)randi(5):
-% 
-% #  | A | B | C |
-%    +---+---+---+
-% 1  | 2 | 2 | 2 |
-% 2  | 2 | 4 | 2 |
-% 3  | 4 | 3 | 1 |
-% 4  | 4 | 3 | 1 |
-% 5  | 6 | 2 | 4 |
-% 6  | 6 | 5 | 4 |
-% 7  | 2 | 4 | 2 |
-% 8  | 2 | 1 | 2 |
-% 9  | 4 | 2 | 1 |
-% 10 | 4 | 2 | 1 |
-% 11 | 6 | 4 | 4 |
-% 12 | 6 | 1 | 4 |
-%    +---+---+---+
+%%%
+%  #  | A | B | C |
+%     +---+---+---+
+%  1  | 2 | 2 | 2 |
+%  2  | 2 | 4 | 2 |
+%  3  | 4 | 3 | 1 |
+%  4  | 4 | 3 | 1 |
+%  5  | 6 | 2 | 4 |
+%  6  | 6 | 5 | 4 |
+%  7  | 2 | 4 | 2 |
+%  8  | 2 | 1 | 2 |
+%  9  | 4 | 2 | 1 |
+%  10 | 4 | 2 | 1 |
+%  11 | 6 | 4 | 4 |
+%  12 | 6 | 1 | 4 |
+%     +---+---+---+
 
 %% Notes and warning suppressions
 % (1) To load default parameters for legacy experiments, there are simple
@@ -458,50 +460,56 @@ barMappingParams = exp.barMappingParams;
 gaborMappingParams = exp.gaborMappingParams; % Gabor patch mapping
 flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
+%%%
 % (2) The type parameter would be a useful way of implementing a new
 % experiment stucture, e.g. if you wanted to sub-class EXP.SIGNALSEXP in
 % order to implement an entirely differnt set of hardware, changing the
 % type parameter would cause the experiment server to call the correct
-% experiment class during setup. See also SRV.PREPAREEXP,
-% EXP.CONFIGURESIGNALSEXPERIMENT
+% experiment class during setup. See also |srv.prepareExp|,
+% |exp.configureSignalsExperiment|
 
+%%%
 % (3) Services may be set via the options interface in MC.  For more info
-% see SRV.PREPAREEXP, SRV.FINDSERVICE, EUI.MCONTROL/RIGOPTIONS and 
-% SRV.STIMULUSCONTROL.
+% see |srv.prepareExp|, |srv.findSevice|, |eui.MControl/rigOptions| and 
+% |srv.StimulusControl|.
 
+%%%
 % (4) The name originates from the fact that this behaviour is useful as a
 % means of anti-biasing during bahaviour training.  For instance in the
 % Burgess task the side of the stimulus will be repeated on high contrast
 % trials until the subject gived the correct response.  This parameter may
 % be used in other contexts, however. 
 
+%%%
 % (5) The condition server object is used in legacy experiments such as
-% ChoiceWorld, however EXP.SIGNALSEXP uses a different implementation.  For
-% more info see EXP.CONDITIONSERVER and EXP.TRIALCONDITIONS.
+% ChoiceWorld, however |exp.SignalsExp| uses a different implementation.
+% For more info see |exp.ConditionServer| and |exp.TrialConditions|.
 
+%%%
 % (6) Below is an example definition function:
-% function passiveStimWorld(t, evts, par, vs, in, out, audio)
-% [...]
-% elem.shape = p.A*sin(p.B) + p.C;
-% vs.stimulus = elem;
-% 
-% % parameters with more than one column are trial conditions, where each
-% % column corresponds to a condition.  All conditional parameters must have
-% % the same number of columns.
-% try
-%   p.A = [1 2 3];
-%   p.B = [4 5 3];
-%   p.C = [2 1 4];
-% catch
-% end
-% end
+%%%
+%   function passiveStimWorld(t, evts, par, vs, in, out, audio)
+%   [...]
+%   elem.shape = p.A*sin(p.B) + p.C;
+%   vs.stimulus = elem;
+%   % parameters with more than one column are trial conditions, where each
+%   % column corresponds to a condition.  All conditional parameters must have
+%   % the same number of columns.
+%   try
+%     p.A = [1 2 3];
+%     p.B = [4 5 3];
+%     p.C = [2 1 4];
+%   catch
+%   end
+%   end
 
+%%%
 % (7) Another way to achieve this is to use the events.endTrial signal:
 % when endTrial takes a value the current trial ends. If the value is 0
 % (false), then the same condition is repeated on the next trial, otherwise
 % the next condition is used. This allows you to present each condition n
 % times in a row but with the order of each condition block randomized:
-
+%%%
 %   function passiveStimWorld(t, evts, p, vs, in, out, audio)
 %   % First define a Signal that counts the repeat number of current condition
 %   repNum = events.newTrial.scan(@plus, p.skipRepeats().map(0));
@@ -510,30 +518,32 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 %   % Define trial end
 %   events.endTrial = events.newTrial.delay(10).then(nextCondition);
 %   [...]
+%%%
+% Produces...
+%%%
+%  +---+---+---+--------------------+
+%  | A | B | C | Num Condition Reps |
+%  +---+---+---+--------------------+
+%  | 1 | 4 | 2 |                  2 |
+%  | 2 | 5 | 1 |                  2 |
+%  | 3 | 3 | 4 |                  2 |
+%  +---+---+---+--------------------+
+%  Num Repeats = 1 (global)
 % 
-% +---+---+---+--------------------+
-% | A | B | C | Num Condition Reps |
-% +---+---+---+--------------------+
-% | 1 | 4 | 2 |                  2 |
-% | 2 | 5 | 1 |                  2 |
-% | 3 | 3 | 4 |                  2 |
-% +---+---+---+--------------------+
-% Num Repeats = 1 (global)
 % 
-% 
-% # | A | B | C |
-%   +---+---+---+
-% 1 | 2 | 5 | 1 |
-% 2 | 2 | 5 | 1 |
-% 3 | 3 | 3 | 4 |
-% 4 | 3 | 3 | 4 |
-% 5 | 1 | 4 | 2 |
-% 6 | 1 | 4 | 2 |
-%   +---+---+---+
-% (Note the blocks of repeated conditions are shuffled)
+%  # | A | B | C |
+%    +---+---+---+
+%  1 | 2 | 5 | 1 |
+%  2 | 2 | 5 | 1 |
+%  3 | 3 | 3 | 4 |
+%  4 | 3 | 3 | 4 |
+%  5 | 1 | 4 | 2 |
+%  6 | 1 | 4 | 2 |
+%    +---+---+---+
+%  (Note the blocks of repeated conditions are shuffled)
 
 % Author: Miles Wells
 %
-% v1.1.1
+% v1.1.2
 
 %#ok<*NOPTS,*ASGLU,*NASGU>

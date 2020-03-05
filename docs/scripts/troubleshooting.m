@@ -128,7 +128,3 @@ git.runCmd('checkout master'); git.update(0);
 % Author: Miles Wells
 %
 % v0.1.1
-%
-
-% INTERNAL
-% execute off

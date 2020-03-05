@@ -1,57 +1,124 @@
+function fixFiles(filenames)
+% This function will automatically publish all Rigbox documentation scripts
+% to html, the output folder being docs/html.  Scripts in the following
+% directories are published:
+%
+% docs\scripts
+% alyx-matlab\docs
+% 
+% Currently the Signals docs are kept in the main repo however this may
+% change in the future.  This file should be run whenever a change is made
+% to one of the scripts.
+%
+% Inputs:
+%   filenames can be list of script names (e.g. 'Parameters.m'), 'all'
+%   (default) or 'changed'.  If 'changed' is present, all scripts
+%   considered untracked/modified by Git are published.
+%
+% See also...
+%
+% https://uk.mathworks.com/help/matlab/matlab_prog/marking-up-matlab-comments-for-publishing.html
+% https://uk.mathworks.com/help/matlab/matlab_prog/specifying-output-preferences-for-publishing.html
+
 %% Setup
 origDir = pwd;
 mess = onCleanup(@()cd(origDir));
-root = fileparts(which('addRigboxPaths'));
-cd(fullfile(root, 'docs', 'html'))
+
+% Documentation locations
+rigbox = getOr(dat.paths, 'rigbox');
+outputDir = fullfile(rigbox, 'docs', 'html');
+scriptPaths = fullfile(rigbox, {'docs/scripts', 'alyx-matlab/docs'});
+exclude = ["fixFiles.m", "ReadMe.md"]; % Files to exclude
+% Files whose code should be evaluated
+evalOn = ["using_test_gui.m", "SignalsPrimer.m"];
+
+%% Files to publish
+% Find all doc files
+docFiles = cellflat(mapToCell(@(p) file.list(p, 'files'), scriptPaths));
+docFiles = setdiff(docFiles, exclude); % Remove excluded
+
+% Apply input restrictions
+if nargin > 0 && ~any(strcmp(filenames, 'all'))
+  filenames = convertStringsToChars(filenames);
+  if any(strcmp(filenames, 'changed'))
+    changedFiles = cellflat(changedViaGit(scriptPaths));
+    filenames = iff(iscell(filenames), ...
+      @() vertcat(filenames(:), changedFiles), changedFiles);
+  end
+  docFiles = intersect(docFiles, filenames);
+end
+
+%% Publish files
+options = {...
+  'format', 'html', ....
+  'outputDir', outputDir, ...
+  'maxWidth', 800};
+
+% Publish each file
+for f = docFiles'
+  fprintf('Publishing %s\n', f)
+  cd(first(scriptPaths(file.exists(fullfile(scriptPaths, f)))))
+  publish(f, 'evalCode', endsWith(f, evalOn), options{:});
+end
+
+%% Fix up our files
+toFix = @(f) ismember(strrep(f,'html','m'), docFiles);
 
 %% Timeline.html
 % Add image to Timeline.html
 filename = 'Timeline.html';
-subStr = '<img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt="">';
-pattern = '<h1>Timeline</h1><!--introduction-->';
-pos = 17;
-
-T = readFile(filename);
-T = insert(T, subStr, pattern, pos);
-writeFile(filename, T)
+if toFix(filename)
+  subStr = '<img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt="">';
+  pattern = '<h1>Timeline</h1><!--introduction-->';
+  pos = 17;
+  
+  T = readFile(fullfile(outputDir, filename));
+  T = insert(T, subStr, pattern, pos);
+  writeFile(fullfile(outputDir, filename), T)
+end
 
 %% using_test_gui.html
 % Colour error text
-filename = 'using_test_gui.html';
-pattern = '<p>Error using bombWorld/timeSampler';
-subStr = '<pre class="error">';
-
-T = readFile(filename);
-T = insert(T, subStr, pattern, 'before');
-T = insert(T, '</pre>', 'timeSampler)</p>', 'after');
-% Add breaks
-lines = {...
-  '<p>Caused by:'...
-  'mapping Node 61 to 62:'...
-  'input [0; 0.1; 0.09] produced an error:'...
-  '     Expected char; was double instead.'...
-  'examples\bombWorld.m (line 22)'};
-for l = lines
-  T = insert(T, '<br />', l, 'after', 1);
+filename = 'using_test_gui';
+if toFix(filename)
+  pattern = '<p>Error using bombWorld/timeSampler';
+  subStr = '<pre class="error">';
+  
+  T = readFile(fullfile(outputDir, filename));
+  T = insert(T, subStr, pattern, 'before');
+  T = insert(T, '</pre>', 'timeSampler)</p>', 'after');
+  % Add breaks
+  lines = {...
+    '<p>Caused by:'...
+    'mapping Node 61 to 62:'...
+    'input [0; 0.1; 0.09] produced an error:'...
+    '     Expected char; was double instead.'...
+    'examples\bombWorld.m (line 22)'};
+  for l = lines
+    T = insert(T, '<br />', l, 'after', 1);
+  end
+  writeFile(fullfile(outputDir, filename), T)
 end
-writeFile(filename, T)
 
 %% paper_examples.html
 % Add width attribute to images
 filename = 'paper_examples.html';
-pattern = strcat('src="./images/Fig', {'3','6'});
-subStr = 'width="500" ';
-
-T = readFile(filename);
-for s = pattern
-  T = insert(T, subStr, s, 'before', 1);
+if toFix(filename)
+  pattern = strcat('src="./images/Fig', {'3','6'});
+  subStr = 'width="500" ';
+  
+  T = readFile(fullfile(outputDir, filename));
+  for s = pattern
+    T = insert(T, subStr, s, 'before', 1);
+  end
+  writeFile(fullfile(outputDir, filename), T)
 end
-writeFile(filename, T)
 
 %% install.html
 % Add notes as popups
 filename = 'install.html';
-T = readFile(filename);
+if toFix(filename)
+T = readFile(fullfile(outputDir, filename));
 iBody = contains(T, '<!--introduction-->');
 body = T{iBody};
 sections = split(string(body), '<h2');
@@ -127,17 +194,21 @@ T{iBody} = horzcat(newBody{:});
 T = cellfun(@(s) strrep(s, '''|', '''<tt>'), T, 'uni', 0);
 T = cellfun(@(s) strrep(s, '|''', '</tt>'''), T, 'uni', 0);
 
-writeFile(filename, T)
+writeFile(fullfile(outputDir, filename), T)
+end
 
 %% paths_conflicts.html
 % Remove <User> anchor
 filename = 'paths_conflicts.html';
-pattern = '<a href="User">User</a>';
-subStr = '&lt;User&gt;';
-T = readFile(filename);
-T = insert(T, subStr, pattern, 'replace', 1);
-writeFile(filename, T)
+if toFix(filename)
+  pattern = '<a href="User">User</a>';
+  subStr = '&lt;User&gt;';
+  T = readFile(fullfile(outputDir, filename));
+  T = insert(T, subStr, pattern, 'replace', 1);
+  writeFile(fullfile(outputDir, filename), T)
+end
 
+end
 %% Helpers
 function T = readFile(filename)
 % Load file
@@ -207,5 +278,21 @@ for i = 1:numel(T)
   else
     fprintf(fid,'%s\n', T{i});
   end
+end
+end
+
+function changedFiles = changedViaGit(dirPaths)
+% Return all files that Git says have changed
+if iscell(dirPaths) || (isstring(dirPaths) && ~isStringScalar(dirPaths))
+  % Recurse on directories
+  changedFiles = mapToCell(@changedViaGit, dirPaths);
+  changedFiles = rmEmpty(cellflat(changedFiles));
+else
+  [exitCode, cmdOut] = git.runCmd('status', 'dir', dirPaths, 'echo', false);
+  assert(exitCode == 0)
+  cmdOut = strsplit(cmdOut{:}, newline);
+  findChanged = @(str) regexp(str, '(?<=^\t.*)\w*.m$', 'match');
+  changedFiles = mapToCell(findChanged, cmdOut);
+  changedFiles = rmEmpty(cellflat(changedFiles));
 end
 end
