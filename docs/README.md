@@ -18,7 +18,5 @@ The docs directory contains three things:
 ## Contributing
 If you wish to make changes to the documentation, please follow the below steps:
 1. Make your changes to the documentation scripts on the `documentation` branch.  
-2. Export all changed files to html using MATLAB's 'Publish' feature.  Code execution can be disabled in the Publish Options.
-3. Copy the files from `docs/scripts/html` to `docs/html`.
-4. Run the `fixFiles` script to perform any post processing on the html files.
-5. Once committed to the `documentation` branch, merge this branch onto the `gh-pages` branch and copy the files from `docs/scripts/html` to the repository's root directory.  Commit these changes to the `gh-pages` branch.  They will now show up on the documentation Website.
+2. Export your changed files by running the `fixFiles` function.
+3. Once committed to the `documentation` branch, merge this branch onto the `gh-pages` branch and copy the files from `docs/scripts/html` to the repository's root directory.  Commit these changes to the `gh-pages` branch.  They will now show up on the documentation Website.

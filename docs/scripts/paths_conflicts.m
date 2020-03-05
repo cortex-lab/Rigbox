@@ -41,7 +41,7 @@ mess = onCleanup(@() cd(origDir)); % When exiting the function, change back to o
 cd(fullfile('my', 'path')) % Change directory to containing mySpecialFunction.m is
 mySpecialFunction() % Call your function
 
-%%
+%%%
 % When returning, MATLAB clears all a function's variables, including
 % `mess`, whose delete method calls the anonymous function |@()
 % cd(origDir)|
@@ -116,6 +116,3 @@ home % Hide command output history
 % v1.0.0
 %
 % <index.html Home> > <./troubleshooting.html Troubleshooting> > Paths Conflicts
-
-% INTERNAL
-% execute off
