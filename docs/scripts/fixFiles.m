@@ -15,12 +15,19 @@ function fixFiles(filenames)
 %   (default) or 'changed'.  If 'changed' is present, all scripts
 %   considered untracked/modified by Git are published.
 %
+% Examples:
+%   fixFiles() % Re-publish all scripts
+%   fixFiles('all') 
+%   fixFiles('changed') % Publish all modified scripts
+%   fixFiles({'index.m, 'changed'}) % Publish index.m and all changed
+%   fixFiles(["index.m", "Parameters.m"]) % Publish two scripts
+%
 % See also...
 %
 % https://uk.mathworks.com/help/matlab/matlab_prog/marking-up-matlab-comments-for-publishing.html
 % https://uk.mathworks.com/help/matlab/matlab_prog/specifying-output-preferences-for-publishing.html
 
-%% Setup
+%% Setup 
 origDir = pwd;
 mess = onCleanup(@()cd(origDir));
 
@@ -63,6 +70,7 @@ end
 
 %% Fix up our files
 toFix = @(f) ismember(strrep(f,'html','m'), docFiles);
+cd(outputDir)
 
 %% Timeline.html
 % Add image to Timeline.html
@@ -72,9 +80,9 @@ if toFix(filename)
   pattern = '<h1>Timeline</h1><!--introduction-->';
   pos = 17;
   
-  T = readFile(fullfile(outputDir, filename));
+  T = readFile(filename);
   T = insert(T, subStr, pattern, pos);
-  writeFile(fullfile(outputDir, filename), T)
+  writeFile(filename, T)
 end
 
 %% using_test_gui.html
@@ -84,7 +92,7 @@ if toFix(filename)
   pattern = '<p>Error using bombWorld/timeSampler';
   subStr = '<pre class="error">';
   
-  T = readFile(fullfile(outputDir, filename));
+  T = readFile(filename);
   T = insert(T, subStr, pattern, 'before');
   T = insert(T, '</pre>', 'timeSampler)</p>', 'after');
   % Add breaks
@@ -97,7 +105,7 @@ if toFix(filename)
   for l = lines
     T = insert(T, '<br />', l, 'after', 1);
   end
-  writeFile(fullfile(outputDir, filename), T)
+  writeFile(filename, T)
 end
 
 %% paper_examples.html
@@ -107,18 +115,18 @@ if toFix(filename)
   pattern = strcat('src="./images/Fig', {'3','6'});
   subStr = 'width="500" ';
   
-  T = readFile(fullfile(outputDir, filename));
+  T = readFile(filename);
   for s = pattern
     T = insert(T, subStr, s, 'before', 1);
   end
-  writeFile(fullfile(outputDir, filename), T)
+  writeFile(filename, T)
 end
 
 %% install.html
 % Add notes as popups
 filename = 'install.html';
 if toFix(filename)
-T = readFile(fullfile(outputDir, filename));
+T = readFile(filename);
 iBody = contains(T, '<!--introduction-->');
 body = T{iBody};
 sections = split(string(body), '<h2');
@@ -194,7 +202,7 @@ T{iBody} = horzcat(newBody{:});
 T = cellfun(@(s) strrep(s, '''|', '''<tt>'), T, 'uni', 0);
 T = cellfun(@(s) strrep(s, '|''', '</tt>'''), T, 'uni', 0);
 
-writeFile(fullfile(outputDir, filename), T)
+writeFile(filename, T)
 end
 
 %% paths_conflicts.html
@@ -203,9 +211,9 @@ filename = 'paths_conflicts.html';
 if toFix(filename)
   pattern = '<a href="User">User</a>';
   subStr = '&lt;User&gt;';
-  T = readFile(fullfile(outputDir, filename));
+  T = readFile(filename);
   T = insert(T, subStr, pattern, 'replace', 1);
-  writeFile(fullfile(outputDir, filename), T)
+  writeFile(filename, T)
 end
 
 end
@@ -286,13 +294,11 @@ function changedFiles = changedViaGit(dirPaths)
 if iscell(dirPaths) || (isstring(dirPaths) && ~isStringScalar(dirPaths))
   % Recurse on directories
   changedFiles = mapToCell(@changedViaGit, dirPaths);
-  changedFiles = rmEmpty(cellflat(changedFiles));
 else
   [exitCode, cmdOut] = git.runCmd('status', 'dir', dirPaths, 'echo', false);
   assert(exitCode == 0)
   cmdOut = strsplit(cmdOut{:}, newline);
-  findChanged = @(str) regexp(str, '(?<=^\t.*)\w*.m$', 'match');
-  changedFiles = mapToCell(findChanged, cmdOut);
-  changedFiles = rmEmpty(cellflat(changedFiles));
+  changedFiles = regexp(cmdOut, '(?<=^\t.*)\w*.m$', 'match');
 end
+changedFiles = rmEmpty(cellflat(changedFiles));
 end

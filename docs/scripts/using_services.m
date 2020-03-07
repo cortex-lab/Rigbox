@@ -36,7 +36,7 @@ doc srv.Service
 % going down, left to right:
 
 % |srv.expServer/runExp|-(2)------>|
-%  ^       (1)                     |
+%  ^       (1)                     | Experiment.run()
 %  |        |                      V
 %  | |srv.prepareExp| ----> |exp.SignalsExp| (or other experiment)
 %  |        |                      |
@@ -251,6 +251,6 @@ open(fullfile(root, 'docs', 'scripts', 'websocket_config.m'))
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.1
+% v1.1.2
 
 %#ok<*FINS,*NASGU,*NOPTS>
