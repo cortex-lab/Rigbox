@@ -54,9 +54,10 @@
 % Rigbox.  These guides instruduce some functions for loading and
 % processing these data, and explain the forms in which data are saved.
 % 
-% * <using_wheel.html Working with wheel data>
-% * Working with block files
+% * <./block_files.html Working with block files>
 % * Working with ALF files
+% * <./using_wheel.html Working with wheel data>
+% * <./stim_window_analysis.html Stimulus Window analysis>
 % 
 
 %% Troubleshooting
@@ -97,10 +98,11 @@
 %
 % * <./using_services.html Setting up auxiliary services>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
+% * <./Experiment_framework.html An overview of the Experiment Framework> 
 % * <./glossary.html Glossary of Rigbox terminology>
 %
 
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.2
+% v0.1.3

@@ -16,6 +16,15 @@
 %
 % See also dat.paths, loading_experiment_data
 
+%% Conditional parameter (trial condition)
+% A conditional parameter, or trial condition, is a user defined experiment
+% parameter that is trial dependent.  That is, its value may change across
+% trials.  It is defined as a parameter whose number of columns is greater
+% than 1.  
+%
+% See the <./Parameters.html Parameters guide> for more information.  See
+% also Global parameter definition.
+
 %% Experiment Definition (expDef)
 % The experiment definition function (expDef) is a user-created function
 % that the Signals Experiment class uses to map the hardware inputs to the
@@ -30,21 +39,20 @@
 %% Experiment Framework
 % The 'Experiment Framework' is everything defined by the |exp.Experiment|
 % base class.  This class defines some basic methods (e.g. run, quit,
-% saveDave, useRig) and 'experiment phases' (experimentInit,
+% saveData, useRig) and 'experiment phases' (experimentInit,
 % experimentStarted, experimentEnded) within which stuff happens and
-% updates are broadcast to any listener such as MC.  An Experiment object
-% stores and uses various objects throughout the experiment, for instance
-% an |exp.ConditionServer| object that manages the trial parameter
-% conditions and an |io.Communicator| that manages the sending of updates
-% to remote listeners.  All experiments run in Rigbox (i.e. via mc and/or
-% srv.expServer) use this framework.
+% updates are broadcast to any listener such as MC.  Experiments are
+% constructed using a set of parameters and a rig object. All experiments
+% run in Rigbox (i.e. via mc and/or srv.expServer) use this framework.
 %
 % |exp.SignalsExp| extends this framework to use Signals for implementing a
 % user defined experiment function (expDef).  NB: Signals can be set up and
 % used outside of this framework.  For an example of this, see
 % |signals/docs/example/ringach98.m|
 %
-% For more info, see the Experiment package:
+% For more info, see the <./Experiment_framework.html Experiment Framework>
+% page and the <matlab:helpwin('+exp') Experiment package> documentation by
+% running the below command:
 helpwin +exp
 
 %% Experiment Reference String (expRef)
@@ -60,6 +68,15 @@ helpwin +exp
 %% expServer
 % |srv.expServer| is the function that loads rig hardware and allows users
 % to run experiments either locally or via MC.
+
+%% Global parameter
+% A global parameter is a user defined experiment parameter that is trial
+% independent.  That is, its value may change across experiments but
+% remains constant within an experiment.  It is defined as a parameter
+% whose number of columns is equal to 1.  
+%
+% See the <./Parameters.html Parameters guide> for more information.  See
+% also Conditional parameter definition.
 
 %% Main Repository
 % The 'main experiment repository' or 'main repo' is the primary location
@@ -90,4 +107,4 @@ helpwin +exp
 %
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1

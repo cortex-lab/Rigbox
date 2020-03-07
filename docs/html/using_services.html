@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-19"><meta name="DC.source" content="using_services.m"><style type="text/css">
+      --><title>Introduction</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-07"><meta name="DC.source" content="using_services.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,7 +68,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p>Timeline outputs are useful for triggering external hardware, but what about notifying other software of an experiment?  Services in Rigbox allow one to trigger software on other devices, including starting and stopping Timeline if it is running on a separate computer.  Services are simply objects that send UDP messages at various times during an experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The Service class</a></li><li><a href="#2">Workflow</a></li><li><a href="#3">Customising your services</a></li><li><a href="#4">Primative UDP Service</a></li><li><a href="#5">Basic UDP Service</a></li><li><a href="#6">MPEP UDP Data Hosts</a></li><li><a href="#7">Selecting services</a></li><li><a href="#8">Conclusion</a></li><li><a href="#9">Notes</a></li><li><a href="#10">Etc.</a></li></ul></div><h2 id="1">The Service class</h2><p>Service classes have at least two methods, <tt>start</tt> and <tt>stop</tt>.  At the beginning of an experiment <tt>srv.expServer</tt> will load these services objects and run the <tt>start</tt> method for each, likewise at the send on an experiment the <tt>stop</tt> method is called.  This provides a flexible way to perform custom tasks during an experiment, and is technically not limited to triggering software with UDPs: if you wanted you could create your own subclass that does something entirely different, such as opening a file or running system commands.</p><pre class="codeinput">doc <span class="string">srv.Service</span>
 </pre><h2 id="2">Workflow</h2><p>The sequence of events leading up to services starting is somewhat convoluted!</p><p>When <tt>srv.expServer</tt> receives a messages from MC to begin a new experiment it first starts Timeline locally (if required), then calls <tt>srv.prepareExp</tt> which initializes the experiment, then calls <tt>srv.findService</tt> with a list of services to be started. <tt>srv.findService</tt> loads <tt>srv.basicServices</tt> which loads all configured service objects.  <tt>srv.findService</tt> returns all requested services to <tt>srv.prepareExp</tt>, which creates stores them in both an <tt>exp.StartServices</tt> and <tt>exp.StopServices</tt> object.  These objects are added as callbacks to the experimentInit event.  <tt>srv.expServer</tt> now calls <tt>run</tt> on the experiment object, which during in turn triggers the experimentInit event, whereby the Service objects send their UDPs to start the auxillary software.  Below is the stack starting at #1 and going down, left to right:</p><pre class="codeinput"><span class="comment">% |srv.expServer/runExp|-(2)------&gt;|</span>
-<span class="comment">%  ^       (1)                     |</span>
+<span class="comment">%  ^       (1)                     | Experiment.run()</span>
 <span class="comment">%  |        |                      V</span>
 <span class="comment">%  | |srv.prepareExp| ----&gt; |exp.SignalsExp| (or other experiment)</span>
 <span class="comment">%  |        |                      |</span>
@@ -218,7 +218,7 @@ save(fullfile(p.globalConfig, <span class="string">'remote.mat'</span>), <span c
 <span class="comment">% websocket_config&gt; script:</span>
 root = getOr(dat.paths, <span class="string">'rigbox'</span>);
 open(fullfile(root, <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'websocket_config.m'</span>))
-</pre><h2 id="8">Conclusion</h2><p>Ultimately the way you configure your services will be idiosyncratic as it depends on what devices you need to trigger and what information they require from the experiment.  Hopefully the above gives you a good enough idea of the ways in which you can integrate other equipment and devices into Rigbox.</p><h2 id="9">Notes</h2><p>(1) MPEP is another, passive stimulus presentation toolbox that predates Rigbox.  The functions <tt>io.MpepUDPDataHosts</tt> and <tt>tl.mpepListener</tt> / <tt>tl.bindMpepServer</tt> were designed to work with both Rigbox and MPEP.  The latter is the function we run on the receiving end.</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*FINS,*NASGU,*NOPTS&gt;</span>
+</pre><h2 id="8">Conclusion</h2><p>Ultimately the way you configure your services will be idiosyncratic as it depends on what devices you need to trigger and what information they require from the experiment.  Hopefully the above gives you a good enough idea of the ways in which you can integrate other equipment and devices into Rigbox.</p><h2 id="9">Notes</h2><p>(1) MPEP is another, passive stimulus presentation toolbox that predates Rigbox.  The functions <tt>io.MpepUDPDataHosts</tt> and <tt>tl.mpepListener</tt> / <tt>tl.bindMpepServer</tt> were designed to work with both Rigbox and MPEP.  The latter is the function we run on the receiving end.</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.2</p><pre class="codeinput"><span class="comment">%#ok&lt;*FINS,*NASGU,*NOPTS&gt;</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Introduction
@@ -259,7 +259,7 @@ doc srv.Service
 % going down, left to right:
 
 % |srv.expServer/runExp|-(2)REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH>|
-%  ^       (1)                     |
+%  ^       (1)                     | Experiment.run()
 %  |        |                      V
 %  | |srv.prepareExp| REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH> |exp.SignalsExp| (or other experiment)
 %  |        |                      |
@@ -474,7 +474,7 @@ open(fullfile(root, 'docs', 'scripts', 'websocket_config.m'))
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.1
+% v1.1.2
 
 %#ok<*FINS,*NASGU,*NOPTS>
 ##### SOURCE END #####

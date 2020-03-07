@@ -283,7 +283,7 @@ timeline.Inputs(I).axesScale = 2; % 2x vertical scaling
 %% Clocks
 doc hw.Clock
 
-% While timeline is running, timestampts can be returned using the TIME
+% While timeline is running, timestamps can be returned using the |time|
 % method:
 timeline.time()
 % If called with false, a system timestamp is returned when timeline is not
@@ -319,10 +319,6 @@ clock.now()
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.0
-%
-
-% INTERNAL
-% execute off
+% v1.1.1
 
 %#ok<*NOPTS,*NASGU>
