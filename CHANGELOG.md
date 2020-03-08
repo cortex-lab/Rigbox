@@ -1,8 +1,8 @@
 # Changelog
 
-Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
+This file contains a curated, chronologically ordered list of notable changes made to the master branch since the release of Rigbox 2.2.0. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. The versioning numbering used is [SemVer](http://semver.org/). This changelog is based on [keep a changelog](https://keepachangelog.com).
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.5.0
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master)
 
 - new alyx instance now requested robustly when not logged in during SignalsExp
 - expStop event now logged has missing value when last trial over, even when expStop defined in def fun
@@ -28,7 +28,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - added FormatLabels flag to eui.SignalsExpPanel `c5794a8` 2020-02-03
 - HOTFIX Bugfix in signals for versions >2016b & <2018b
 
-## [2.4.1]
+## [2.4.0](https://github.com/cortex-lab/Rigbox/releases/tag/2.4.0)
 
 - patch to readme linking to most up-to-date documentation `4ff1a21` 2019-09-16
 - updates to `+git` package and its tests `5841dd6` 2019-09-24
