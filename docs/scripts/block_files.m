@@ -409,6 +409,7 @@ blocks = seq.map(@(p) p.expRef).map(@dat.loadBlock).toCell();
 % processed versions of standard data found in the block files (e.g. new
 % trial times, feddback times, etc.) and are quicker to load.  For more
 % information see the analysis with ALF files guide.
+%
 % (2) If you use Signals you may already be familiar with classic functions
 % like map.  Most Rigbox functional programming tools can be found in the
 % <matlab:doc('fun') +fun package>.
@@ -416,7 +417,7 @@ blocks = seq.map(@(p) p.expRef).map(@dat.loadBlock).toCell();
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.1
+% v0.0.2
 %
 % <index.html Home> > Analysis > Block Files
 

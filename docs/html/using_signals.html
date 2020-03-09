@@ -1,0 +1,975 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Writing an experiment definition</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-09"><meta name="DC.source" content="using_signals.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Writing an experiment definition</h1><!--introduction--><p>The purpose of this script is to introduce Signals and guide the reader towards programming in a less procedural way.  After reading this you should will be able to create the experiments you want in Signals, using the <a href="glossary.html">Signals Experiment Framework</a>.  The guide may appear slow at first but sticking with it will greatly reduce the number of errors you will encounter while making your first experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">What are signals?</a></li><li><a href="#4">Relationships between signals</a></li><li><a href="#6">Mathematical expressions</a></li><li><a href="#7">Example 1: cos(x * pi)</a></li><li><a href="#9">Example 2: x -&gt; degrees</a></li><li><a href="#11">Logical operations</a></li><li><a href="#13">mod, floor, ceil</a></li><li><a href="#15">Arrays</a></li><li><a href="#16">Matrix arithmatic</a></li><li><a href="#17">Complicated expressions</a></li><li><a href="#18">Example 1: Upper bound</a></li><li><a href="#20">Example 2: Gabor</a></li><li><a href="#23">A note about Signals variables</a></li><li><a href="#29">Signals only update when all their inputs have have values</a></li><li><a href="#32">Conditional statements</a></li><li><a href="#36">Indexing</a></li><li><a href="#37">Indexing into a Signal</a></li><li><a href="#38">Indexing with a Signal</a></li><li><a href="#40">selectFrom</a></li><li><a href="#42">indexOfFirst</a></li><li><a href="#43">Calling functions with map</a></li><li><a href="#52">Anonymous functions</a></li><li><a href="#55">Example 2: a complex counter</a></li><li><a href="#56">Sampling with map</a></li><li><a href="#57">at and then</a></li><li><a href="#58">Mapping constants</a></li><li><a href="#59">Map multiple Signals through a function with mapn</a></li><li><a href="#60">Notes</a></li><li><a href="#64">Summary</a></li><li><a href="#65">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>The live script that accompanies this document can be found in <tt>signals/docs/turorials/using_signals.m</tt>.  This script allows you to run the blocks of code shown here and plot the values of signals live.  To run a block of code, click on the section of interest and press Ctrl + Enter.</p><p>For the purposes of demonstration we can create signals using the <tt>sig.test.create</tt> function, however in you expDef you can only create new signals based on the function's inputs.  More on this later.</p><pre class="language-matlab"><span class="keyword">function</span> expDefFn(t, events, parameters, vs, inputs, outputs, audio)
+</pre><p>Example expDefs can be found in <tt>signals/docs/examples</tt>.</p><p>The bracketed numbers throughout this script correspond to notes at the bottom of the file.  The notes provide extra details about Signals. Please report any errors as GitHub issues. Thanks!</p><h2 id="2">What are signals?</h2><p>When writing an experiment definition (expDef), it's useful to think of signals as nodes in a network, where each node holds a value that is the result of passing its inputs through a function.  This network is 'reactive' in that whenever a node's input values change, the node recalculates its own value.  In this way changes propergate through the network asynchronously.</p><p><img vspace="5" hspace="5" src="./images/node_graph_phase.png" alt=""> </p><p>The above node graph would be the result of writing the following:</p><pre class="codeinput">t = sig.test.create; <span class="comment">% returns a signal</span>
+phi = 2*pi*3*t; <span class="comment">% a new signal, phi, that defines phase over time, t</span>
+</pre><p>Imagine the signal <tt>t</tt> was a clock signal whose value was a timestamp that constantly updated.  The signal <tt>phi</tt> then updates it's value every time <tt>t</tt> updates.  In this way you can express relationships between variables in an easy to read, mathematical way.  One of these variables happens to be time, which means you can define how variables change over time.  In the above example we have defined a temporal fequency in Hz (the value of <tt>t</tt> in your expDef is in seconds from experiment start).  This can then be applied to a visual stimulus property, as shown in the example expDef <tt>driftingGrating.m</tt>.</p><h2 id="4">Relationships between signals</h2><p>Let's start to build a reactive network.  Most of MATLAB's elementary operators work with signals in the way you would expect, as demonstrated below.  You may type ctrl + enter to run this entire secion at once...</p><pre class="codeinput">x = sig.test.sequence(-50:1:50, 0.05); <span class="comment">% Create a sequence</span>
+a = 5; b = 2; c = 8; <span class="comment">% Some constants to use in our equation</span>
+y = a*x^2 + b*x + c; <span class="comment">% Define a quadratic relationship between x and y</span>
+
+<span class="comment">% Let's call a little function that will show the relationship between our</span>
+<span class="comment">% two signals.  The plot updates each time the two input Signals update:</span>
+ax = sig.test.plot(x,y,<span class="string">'b-'</span>);
+xlim(ax, [-50 50]);
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_01.png" alt=""> </p><h2 id="6">Mathematical expressions</h2><p>Signals allows a good degree of clarity in defining methematical equations, particularly those where time is a direct or indirect variable</p><h2 id="7">Example 1: cos(x * pi)</h2><pre class="codeinput">x = sig.test.sequence(0:0.1:10, 0.05); <span class="comment">% Create a sequence</span>
+y = cos(x * pi);
+sig.test.timeplot(x, y, <span class="string">'mode'</span>, [0 2]); <span class="comment">% Plot each variable against time</span>
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_02.png" alt=""> </p><h2 id="9">Example 2: x -&gt; degrees</h2><p>Let's imagine you needed a Signal that showed the angle of its input between 0 and 360 degrees:</p><pre class="codeinput">x = sig.test.sequence(1:4:1080, 0.005); <span class="comment">% Create a sequence</span>
+y = iff(x &gt; 360, x - 360*floor(x/360), x); <span class="comment">% More about conditionals later</span>
+
+sig.test.plot(x, y, <span class="string">'b-'</span>);
+xlim([0 1080]); ylim([0 360])
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_04.png" alt=""> </p><h2 id="11">Logical operations</h2><p>Note that the short circuit operators &amp;&amp; and  are not implemented in Signals, always use &amp; and | instead.</p><pre class="codeinput">x = sig.test.sequence(1:15, 0.2); <span class="comment">% Create a sequence</span>
+bool = x &gt;= 5 &amp; x &lt; 10;
+
+ax = sig.test.plot(x, bool, <span class="string">'bx'</span>);
+xlim(ax, [0 15]), ylim(ax, [-1 2])
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_05.png" alt=""> </p><h2 id="13">mod, floor, ceil</h2><p>A simple example of using mod and floor natively with Signals:</p><pre class="codeinput">x = sig.test.sequence(1:15, 0.2); <span class="comment">% Create a sequence</span>
+
+even = mod(floor(x), 2) == 0;
+odd = ~even;
+
+sig.test.timeplot(x, even, odd, <span class="string">'tWin'</span>, 1);
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_06.png" alt=""> </p><h2 id="15">Arrays</h2><p>You can create numerical arrays and matricies with Signals in an intuitive way.  <b>NB</b> : Whenever you perform an operation on one or more Signal objects, always expect a new Signal object to be returned.  In the below example we create a 1x3 vector Signal, X, which is not an array of Signals but rather a Signal that represents a numrical array.</p><pre class="codeinput">x = sig.test.sequence(1:5, 0.5); <span class="comment">% Create a sequence</span>
+X = [x 2*x 3]; <span class="comment">% Create an array from signal x</span>
+X_sz = size(X); <span class="comment">% Reports the size of object's underlying value</span>
+</pre><h2 id="16">Matrix arithmatic</h2><pre class="codeinput">Xt = X'; <span class="comment">% X transpose</span>
+Y = Xt.^3 ./ 2;
+</pre><h2 id="17">Complicated expressions</h2><p>Below are some examples of more complex mathematical expressions that can be defined in Signals.</p><h2 id="18">Example 1: Upper bound</h2><p><img src="using_signals_eq05817505107173010813.png" alt="$upper bound = \frac{\max(\{|a|,|b|,|c|\})}{|a|} \times  \left(1 + \frac{\sqrt{5}}{2}\right)$"></p><pre class="codeinput">[a, b, c] = sig.test.create(<span class="string">'names'</span>, {<span class="string">'a'</span>,<span class="string">'b'</span>,<span class="string">'c'</span>});
+
+upperBound = max([abs(a), abs(b), abs(c)]) / abs(a) * (1 + sqrt(5))/2;
+disp(upperBound.Name)
+</pre><pre>max([|a| |b| |c|])/|a|*3.2361/2</pre><h2 id="20">Example 2: Gabor</h2><p>Let's reproduce the equation for generating a Gabor patch, i.e convolving a sinusoid with a 2D Gaussian function:</p><p><img src="using_signals_eq03735416933747425028.png" alt="$G(x,y;\lambda, \theta, \psi, \sigma) = \exp\left(-\frac{x'^2+ y'^2}{2\sigma^2}\right)\exp\left(2\pi\frac{x'}{\lambda}+\psi\right)$"></p><p>Where:</p><p><img src="using_signals_eq07876375137342284873.png" alt="$x' = x cos(\theta) + y sin(\theta)$"></p><p><img src="using_signals_eq09835309071099135563.png" alt="$y' = -x sin(\theta) + y cos(\theta)$"></p><pre class="codeinput"><span class="comment">% Create some input signals for this demonstration.  xx and yy are vectors</span>
+<span class="comment">% of the x and y coordinates of the Gabor, where (0,0) is the centre of the</span>
+<span class="comment">% Gabor patch</span>
+[xx, yy, theta, sigma, lambda, phi] = sig.test.create();
+
+<span class="comment">% Create a 2-D grid coordinates based on the coordinates contained in</span>
+<span class="comment">% vectors xx and yy</span>
+[X, Y] = xx.mapn(yy, @meshgrid);
+
+<span class="comment">% Calculate the rotated x and y coordinates for the Gabor filter.  The</span>
+<span class="comment">% rotated coordinates allow us to define an elliptical window rotated by</span>
+<span class="comment">% theta(1)</span>
+Xe = X.*cos(theta(1)) + Y.*sin(theta(1));
+Ye = Y.*cos(theta(1)) - X.*sin(theta(1));
+<span class="comment">% And the rotated coordinates for the grating</span>
+Xc = X.*cos(theta(2) - pi/2) + Y.*sin(theta(2) - pi/2);
+
+<span class="comment">% Define our Gaussian function</span>
+gauss = exp(-Xe.^2./(2*sigma(1)^2) + -Ye.^2./(2*sigma(2)^2));
+<span class="comment">% The grating function scaled by the wavelegth and translated by the phase</span>
+grate = cos( 2*pi*Xc./lambda + phi );
+G = gauss.*grate; <span class="comment">% Convolve the two functions</span>
+
+<span class="comment">% Rename a few of our signals for display purposes</span>
+theta.Name = char(hex2dec(<span class="string">'03bb'</span>)); <span class="comment">% Orientation</span>
+sigma.Name = char(hex2dec(<span class="string">'03B8'</span>)); <span class="comment">% Standard deviation of Gaussian envelope</span>
+lambda.Name = char(hex2dec(<span class="string">'03C3'</span>));<span class="comment">% Wavelength</span>
+phi.Name = char(hex2dec(<span class="string">'03C6'</span>)); <span class="comment">% Phase offset</span>
+Xe.Name = <span class="string">'x'''</span>; Ye.Name = <span class="string">'y'''</span>; <span class="comment">% Rename to X' and Y'</span>
+X.Name = <span class="string">'x'</span>; Y.Name = <span class="string">'y'</span>; <span class="comment">% Rename to x and y</span>
+
+<span class="comment">% And print their names to the command window</span>
+fprintf([<span class="keyword">...</span>
+  <span class="string">'Gaussian equation: %s\n'</span>,<span class="keyword">...</span>
+  <span class="string">'Grating equation: %s\n'</span>,<span class="keyword">...</span>
+  <span class="string">'Convolved: %s\n'</span>],<span class="keyword">...</span>
+  gauss.Name, grate.Name, G.Name)
+</pre><pre>Gaussian equation: exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2))
+Grating equation: cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))
+Convolved: exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2)).*cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))</pre><p>The above code is simply a demonstration of how to express relationships mathematically in Signals.  In the next tutorial we will look at creating stimuli in Signals.  Spoiler: there's a function that creates a Gabor for you.</p><h2 id="23">A note about Signals variables</h2><p>Signals are objects that constantly update their values each time the Signals they depend on update.  When you do an operation on a signal (e.g. <tt>x * 2</tt>) a new Signal object is created.  This can be assigned to a variable (e.g. <tt>y = x * 2</tt>, however clearing or overwriting that variable does not affect the underlying Signal.  The original object stays around until its inputs or the network are deleted.  This is important to think about when writing expDefs.  Think of variables as temporary labels for each object which can be moved around at any time without affecting the object they label.  Consider the following:</p><pre class="codeinput"><span class="comment">% Create a new input signal and assign it to the variable 'a'</span>
+a = sig.test.create();
+<span class="comment">% Derive a new signal from 'a' and assign it to the variable 'b'</span>
+b = abs(a);
+
+<span class="comment">% Reassign a value to 'a', e.g. a string.  Think of this as taking a</span>
+<span class="comment">% sticker that says 'a' off the Signal object and placing it on a string</span>
+<span class="comment">% instead:</span>
+a = <span class="string">"hello"</span>; <span class="comment">% assign "hello" to variable 'a'.</span>
+<span class="comment">% Note that this doesn't affect the Signal object originally assigned to</span>
+<span class="comment">% 'a', but now if you do something to 'a', you're not working with a Signal</span>
+<span class="comment">% anymore, but rather a char array:</span>
+b = abs(a)
+</pre><pre>  Undefined function 'abs' for input arguments of type 'string'.</pre><pre class="codeinput"><span class="comment">% This may seem obvious but important to note as this can be unclear to</span>
+<span class="comment">% people not used to this way of programming.</span>
+<span class="comment">%</span>
+<span class="comment">% Likewise if you re-define a Signal, any previous Signals will continue</span>
+<span class="comment">% using the old values and any future Signals will use the new values,</span>
+<span class="comment">% regardless of whether the variable name is the same.  Remember that</span>
+<span class="comment">% variable names are simply object handles so clearing or reassigning those</span>
+<span class="comment">% variable names doesn't necessarily change the underlying object:</span>
+
+<span class="comment">% Let's start with a blank slate</span>
+clear <span class="string">variables</span>
+<span class="comment">% Create a new input signal, x, and assign it to the variable 'a'</span>
+a = sig.test.create(<span class="string">'names'</span>, <span class="string">"x"</span>);
+b = a^2; <span class="comment">% Derive a signal ('a^2') and assign it to variable 'b'</span>
+c = b + 2; <span class="comment">% Derive a new signal ('a^2 + 2') and assign it to variable 'c'</span>
+b = a*3; <span class="comment">% A new Signal object ('a*3') is assigned to the variable 'b'</span>
+d = b + 2; <span class="comment">% A new Signal object ('a*3 + 2') is assigned to the variable 'd'</span>
+</pre><p>The key here is that <tt>d</tt> has the value <tt>a*3 + 2</tt> and <b>not</b> <tt>a^2 + 2</tt>, even though the variable <tt>b</tt> was at one point <tt>a^2</tt>.  Counting each mathematical value in the above code block (i.e. mathematical variables and constants), how many nodes are in our network? The answer is 9 (see note 2).</p><p><img vspace="5" hspace="5" src="./images/node_var_assign.png" alt=""> </p><p>Variables are like labels, if you reassign them they are no longer pointing to the same object.</p><p>Looking at the name of your Signals may help you better understand what they are</p><pre class="codeinput">y = abs(a);
+disp([<span class="string">'y = '</span> y.Name])
+y = y^2;
+disp([<span class="string">'y = '</span> y.Name])
+z = [y y];
+disp([<span class="string">'z = '</span> z.Name])
+</pre><pre class="language-matlab">y = |a|
+y = |a|^2
+z = [|a|^2 |a|^2]
+</pre><p>It's fine to break long lines into multiple shorter lines by re-assigning to the same variable:</p><pre class="codeinput">b = a * 2 * pi;
+b = abs(b);
+disp(b.Name)
+</pre><pre class="language-matlab">b = |a*2*pi|
+</pre><h2 id="29">Signals only update when all their inputs have have values</h2><p>As you may have noticed, signals can be derived from any number of other signals, as well as by constants(3). Mathematically, Signals can be viewed as variables which, any time they take a new value, cause any dependent equations to be re-evaluated.</p><p>This leads us to one of the most important things to consider when writing an expDef: Signals can only update if all (or enough) of their inputs have values.</p><p>At the beginning of an Experiment your expDef function is called and all your signals are wired up.  Until the experiment starts however, none of these signals have any value.  Each signal can only update its value when its inputs have updates and the time that this happens depends on how you wire your network.</p><p>In the below example we have signals  x, a, b, and c.  From these, we derive a new signal and assign it to 'y'. If x updates, y won't because the expression is still incomplete, we don't have values for a, b, or c. Likewise if b updates, y will remain unchanged and any signals derived from y will likewise not update.  The signal y can only have a value once all the input signals have a value.  When all inputs have values, a change to any of the inputs will cause y to be revaluated using the most recent value of all the inputs.</p><pre class="codeinput"><span class="comment">% Here we create four signals that each update in staggered fashion:</span>
+x = sig.test.sequence(1:5, 1, <span class="string">'delay'</span>, 1); <span class="comment">% Update once per second after a second</span>
+a = sig.test.sequence(1, 1, <span class="string">'name'</span>, <span class="string">'a'</span>, <span class="string">'delay'</span>, 2); <span class="comment">% Update after 2 seconds</span>
+b = sig.test.sequence(1, 1, <span class="string">'name'</span>, <span class="string">'b'</span>, <span class="string">'delay'</span>, 3); <span class="comment">% Update after 3 seconds</span>
+c = sig.test.sequence(1, 1, <span class="string">'name'</span>, <span class="string">'c'</span>, <span class="string">'delay'</span>, 4);  <span class="comment">% Update after 4 seconds</span>
+y = a*x^2 + b*x + c;
+
+sig.test.timeplot(x, a, b, c, y);
+</pre><p><img vspace="5" hspace="5" src="./SignalsPrimer_07.png" alt=""> </p><p>As you can see from the above plot, the signal 'y' does not update until all its input signals have values.  When that happens</p><h2 id="32">Conditional statements</h2><p>Above we saw how logical operations work with Signals. These can also be used in conditional statements that alter the value or operation on a given Signal.  Using an if/else statement won't work in your expDef.  To construct something similar to an if/else statement, we can use the <tt>iff</tt> method:</p><pre class="codeinput"><span class="comment">% Create a signal whose values go from 1 - 200</span>
+x = sig.test.sequence(1:2:200, 0.05);
+<span class="comment">% if x is greater than 100, y = 100, otherwise y = x</span>
+y = iff(x &gt; 100, 100, x);
+
+<span class="comment">% Plot the results</span>
+ax = sig.test.plot(x, y, <span class="string">'k-'</span>);
+ax.XLim = [0 200]; ax.YLim = [0 200];
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_03.png" alt=""> </p><pre class="codeinput"><span class="comment">% Note that with |iff| any and all values can be signals.</span>
+<span class="comment">%</span>
+<span class="comment">% In order to construct if/elseif statements we use the cond method, where</span>
+<span class="comment">% the input arguments are predicate-value pairs, for example:</span>
+y = cond( <span class="keyword">...</span>
+  x &lt; 5, a, <span class="keyword">...</span><span class="comment"> % If x &lt; 5, y = a</span>
+  x &gt; 10, b); <span class="comment">% elseif x &gt; 10, y = b</span>
+</pre><p>As with all Signals, the condition statement is re-evaluated when any of its inputs update.  Any input may be a Signal or otherwise, and if no predicate evaluates as true then the resulting Signal does not update.</p><p>Likewise, the condition statement will terminate if any of the source Signals of a particular pred-value pair do not yet have values.  Also, in the same way as a traditional if-elseif statement, each predicate is only evaluated so long as the previous one was false.  For this reason, the order of pred-value pairs is particularly important. Below we use true as the last predicate to ensure that the resulting Signal always has a value.</p><pre class="codeinput">y = cond(<span class="keyword">...</span>
+  x &gt; 0 &amp; x &lt; 5, a, <span class="keyword">...</span><span class="comment"> % if x between 0 and 5, y = a</span>
+  x &gt; 5, b, <span class="keyword">...</span><span class="comment"> % elseif x is greater than 5, y = b</span>
+  true, c); <span class="comment">% else y = c</span>
+</pre><h2 id="36">Indexing</h2><h2 id="37">Indexing into a Signal</h2><p>Signals can be indexed as expected with brackets and the colon operator.</p><pre class="codeinput">A = sig.test.create;
+a = A(2); <span class="comment">% index second element of A</span>
+B = A(5:end); <span class="comment">% index elements 5 to array end</span>
+</pre><h2 id="38">Indexing with a Signal</h2><p>Another Signal may be used to index another Signal.  In the below example we derive a signal indexes the value of A with the value of i.  The resulting signal will update whenever i or A update, so long as both of them have a value.</p><pre class="codeinput">i = sig.test.create; <span class="comment">% Define a new Signal</span>
+a = A(i);
+</pre><p>If the value of A has a length less than the value of i, an 'index out of bounds' error will be thrown, just like with normal arrays.  One solution to this would be to use a conditional signal like the one in the previous section to deal with such cases:</p><pre class="codeinput">i = iff(i &gt; numel(A), numel(A), i);
+a = A(i);
+</pre><h2 id="40">selectFrom</h2><p>The selectFrom method allows for indexing from a list of Signals whose values may be of different types.  In some ways this is comparable to indexing to a cell array:</p><pre class="codeinput">y = i.selectFrom(A, B, C); <span class="comment">% when i == 1, y = A, etc.</span>
+</pre><p><b>NB</b>: When the index is out of bounds the Signal simply doesn't update</p><h2 id="42">indexOfFirst</h2><p>The indexOfFirst method returns a Signal with the index of the first true predicate in a list of Signals.  This has a similar functionality to find(arr, 1, 'first'):</p><pre class="codeinput">idx = indexOfFirst(A &gt; 5, B &lt; 1, C == 5); <span class="comment">% Better examples welcome!</span>
+</pre><h2 id="43">Calling functions with map</h2><p>Not all MATLAB functions work natively with Signals.  For example, the function <tt>ischar</tt> does not play nicely with Signal objects:</p><pre class="codeinput">A = sig.test.create; <span class="comment">% Create an new signal</span>
+B = ischar(A);
+class(B) <span class="comment">% Note that B is not a Signal object but a boolean.</span>
+</pre><p>In the above example, MATLAB is testing the object <i>itself</i>, rather than the <i>value</i> of A (see note 4).  For this reason B isn't a Signal object and will never be true, even is the value of signal A is a char.  The solution to this problem is to use the <tt>map</tt> method.</p><p><tt>map</tt> creates a new signal that calls an arbitraty function with the value of its input.  This new signal's value is the output of the function you give it.</p><pre class="codeinput">B = A.map(@ischar);
+class(B) <span class="comment">% Returns a Signal object</span>
+</pre><p>In the above example whenever signal A updates with a new value, its value is passed (or 'mapped') to the function <tt>ischar</tt> and the output (a boolean) becomes the value of signal B.  This means that B will update its value whenever A updates.  As usual, while A doesn't have a value, <tt>ischar</tt> is never called.</p><p>The @ symbol is MATLAB's syntax for a function handle.  Instead of calling the function, you simply point to the function as if it is a variable.  For more information, see the MATLAB documentation on <a href="https://uk.mathworks.com/help/matlab/matlab_prog/creating-a-function-handle.html">creating function handles</a>.</p><p>In the below example we create a signal that can checks whether its input is a char and if so, converts it to a number:</p><pre class="codeinput">B = iff(A.map(@ischar), str2num(A), A);
+</pre><p>Why use can we write <tt>str2num(A)</tt> and not <tt>ischar(A)</tt>?  You can see which methods work natively with Signals by looking at the following list:</p><pre class="codeinput">methods(<span class="string">'sig.Signal'</span>) <span class="comment">% All methods of the class sig.Signal</span>
+</pre><pre class="language-matlab">Methods <span class="string">for</span> <span class="string">class</span> <span class="string">sig.Signal:</span>
+</pre><pre class="language-matlab">Signal        <span class="string">buffer</span>        <span class="string">delta</span>         <span class="string">floor</span>         <span class="string">keepWhen</span>      <span class="string">map2</span>          <span class="string">mod</span>           <span class="string">onValue</span>       <span class="string">rot90</span>         <span class="string">sin</span>           <span class="string">times</span>
+abs           <span class="string">bufferUpTo</span>    <span class="string">eq</span>            <span class="string">ge</span>            <span class="string">lag</span>           <span class="string">mapn</span>          <span class="string">mpower</span>        <span class="string">or</span>            <span class="string">round</span>         <span class="string">skipRepeats</span>   <span class="string">to</span>
+all           <span class="string">colon</span>         <span class="string">erf</span>           <span class="string">gt</span>            <span class="string">le</span>            <span class="string">max</span>           <span class="string">mrdivide</span>      <span class="string">output</span>        <span class="string">scan</span>          <span class="string">sqrt</span>          <span class="string">transpose</span>
+and           <span class="string">cond</span>          <span class="string">exp</span>           <span class="string">horzcat</span>       <span class="string">log</span>           <span class="string">merge</span>         <span class="string">mtimes</span>        <span class="string">plus</span>          <span class="string">selectFrom</span>    <span class="string">str2num</span>       <span class="string">uminus</span>
+any           <span class="string">cos</span>           <span class="string">fliplr</span>        <span class="string">identity</span>      <span class="string">lt</span>            <span class="string">min</span>           <span class="string">ne</span>            <span class="string">power</span>         <span class="string">setTrigger</span>    <span class="string">strcmp</span>        <span class="string">vertcat</span>
+at            <span class="string">delay</span>         <span class="string">flipud</span>        <span class="string">indexOfFirst</span>  <span class="string">map</span>           <span class="string">minus</span>         <span class="string">not</span>           <span class="string">rdivide</span>       <span class="string">sign</span>          <span class="string">sum</span>
+</pre><pre class="language-matlab">Methods <span class="string">of</span> <span class="string">sig.Signal</span> <span class="string">inherited</span> <span class="string">from</span> <span class="string">handle.</span>
+</pre><p>As you can see <tt>str2num</tt> is in the list but <tt>ischar</tt> is not.  If in doubt, map will always work, it just looks a little uglier:</p><pre class="codeinput">B = iff(A.map(@ischar), A.map(@str2num), A);
+</pre><p>Another important thing to note is that operators like '==' and '*' are just convenient ways of calling normal functions (5).  They actually correspond to the functions <tt>eq</tt> and <tt>times</tt>.  Most of the time you can use either form but on occasion it's clearer to use one over the other.</p><pre class="codeinput">B = iff(A.map(@ischar), strcmp(A, <span class="string">'10'</span>), A == 10)
+B = iff(A.map(@ischar), strcmp(A, <span class="string">'10'</span>), eq(A, 10)) <span class="comment">% These are equivalent</span>
+</pre><p>The functions you call using map can be any function include your own non-builtin functions (although they need to be on the MATLAB search path).  You can also define local functions in your expDef and map values with those.  The functions used by <tt>map</tt> don't need to deal with Signal objects as they only get called with a signal's <i>value</i>.</p><p>What if your function expects single but your input signal's value is a double?  Simply typecast it with <tt>map</tt>!</p><pre class="codeinput">B = A.map(@single).map(@myfunc);
+</pre><p>The value of A is called on <tt>single</tt> and its output is then called on <tt>myfunc</tt>. You'll notice that many Signals methods can be chained in this way, which is convient for writing one-liners.  If your line becomes too long or difficult to read you can also split it across a number of lines:</p><pre class="codeinput">B = A.map(@single);
+B = B.map(@myfunc);
+</pre><h2 id="52">Anonymous functions</h2><p>Sometimes your Signal must be in a different positional argument.  For this we simply create an anonymous function and use that.  See the <a href="https://www.mathworks.com/help/matlab/matlab_prog/anonymous-functions.html">MATLAB doumentation</a> for more information on how to use these.</p><pre class="codeinput">delta = A.map(@(A) diff(A,1,2)); <span class="comment">% Take 1st order difference over 2nd dimension</span>
+a = A.map(@(A) sum(A,2)); <span class="comment">% Take sum over 2nd dimension</span>
+</pre><p>You may have noticed that our other example can be written using an anonymous function as a wrapper so that <tt>map</tt> is called just once:</p><pre class="codeinput">B = A.map(@(v) myfunc(single(v)));
+</pre><p>Any of these variants will work just fine and there is no real atvantage to which one you choose, however if you need to access the intemediate value (i.e. single(v), it is better to use the former example.</p><h2 id="55">Example 2: a complex counter</h2><p>In the following example we have a signal, responseType, that may be an element of [-1 0 1].  A response type of 0 means the trial timed out before the subject gave a response.  Let's say we want to count the number of times in a row a trial timeout occurs:</p><pre class="codeinput"><span class="comment">% First we store the responseType values for up to the last 1000 trials</span>
+timeOuts = responseType.bufferUpTo(1000);
+<span class="comment">% Then count the number of recent timeouts that occured in a row using an</span>
+<span class="comment">% anonymous function that works on this array with find and sum:</span>
+timeOutCount = timeOuts.map(@(x) sum(x(find([1 x~=0],1,<span class="string">'last'</span>):end) == 0));
+</pre><h2 id="56">Sampling with map</h2><p>Map is particularly handy for 'sampling' functions, that is, for generating a new index, value, or whatever, each time an event occurs. Below we derive a signal, 'side', that each time 'newTrial' updates takes a new value from [-1 1] (technically 0 is also possible!).  Note that the anonymous function discards the value of newTrial.  We're only using it as a way to trigger the evaluation of this function.</p><pre class="codeinput">newTrial = sig.test.create;
+side = newTrial.map(@(~) sign(rand-0.5));
+</pre><h2 id="57">at and then</h2><p>Here we also introduce two more methods: <tt>at</tt> and <tt>then</tt>.  These functions sample the value of a Signal each time another Signal updates. What's more, the Signal that updates must evaluate to true:</p><pre class="codeinput">x = sig.test.sequence(1:15, 0.2); <span class="comment">% Create a sequence</span>
+bool = x &gt;= 5 &amp; x &lt; 10;
+y = x.at(bool);
+
+ax = sig.test.plot(x, bool, <span class="string">'bx'</span>);
+xlim(ax, [0 15]), ylim(ax, [-1 2])
+
+<span class="comment">% This may also be achieved with keepWhen:</span>
+y = x.keepWhen(x &gt; 5 &amp; x &lt; 10);
+
+<span class="comment">% NB c.f. with at, then and skipRepeats</span>
+y = net.origin(<span class="string">'y'</span>);
+updatedAndTrue = y.at(updated);
+<span class="comment">% updatedAndTrue = updated.then(y); % then is the same as at but with the</span>
+<span class="comment">% inputs in a reverse order.  This is simply to make things more</span>
+<span class="comment">% self-documenting.</span>
+updatedAndTrue = x.at(y &gt; 3);
+h = output(updatedAndTrue);
+</pre><h2 id="58">Mapping constants</h2><p>Sometimes you want to derive a Signal whose value is always constant but nevertheless updates depending on another Signal, thus acting as a trigger for something.  This can be achieved by using a constant value instead of a function in map.  For example below we produce a signal that is always mapped to true and updates whenever its dependent value updates.</p><pre class="codeinput">correct = sig.test.create; <span class="comment">% imagine this signal can update with 0 or 1</span>
+trigger = correct.map(true)
+
+<span class="comment">% Sometimes you want to sample one signal at the time that another updates,</span>
+<span class="comment">% regardless of whether it's value evaluates true.  For this we can simply</span>
+<span class="comment">% map that signal to a constant value, in this case 'true':</span>
+z = x.at(y);
+zi = x.at(y.map(true));
+
+ax = sig.test.timeplot(x, y, z, zi, <span class="string">'mode'</span>, [0,1,0,0], <span class="string">'tWin'</span>, 10);
+<span class="comment">% Run this loop manually</span>
+<span class="keyword">for</span> i = 1:50
+  x.post(i)
+  pause(0.3)
+  <span class="keyword">if</span> rand &gt; .5
+    y.post(rand &gt; .5)
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Note that if the input arg is a value rather than a function handle, it</span>
+<span class="comment">% is truely constant, even if it's the output of a function:</span>
+c = x.map(rand);
+rnd = x.map(@(~)rand);
+<span class="comment">% The tilda here means that the value of Signal x is ignored, instead of</span>
+<span class="comment">% being assigned to a temporary variable or being mapped into the functon</span>
+<span class="comment">% rand, thus rand is called with no arguments.</span>
+</pre><h2 id="59">Map multiple Signals through a function with mapn</h2><p><tt>mapn</tt> takes any number of inputs where the last argument is the function that the other arguments are mapped to.  The arguments may be any combination of Signals and normal data types.  It's important to note that the below 'dot notation' only works if the first input is a Signal, otherwise you must use the traditional syntax e.g. <tt>mapn(5, A, @f)</tt></p><pre class="codeinput">B = A.mapn(n, 1, @repmat); <span class="comment">% repmat(A,n,1)</span>
+
+<span class="comment">% NB: Map will only assign the first output argument of the function to the</span>
+<span class="comment">% resulting Signal.  Mapping to a variable number of output Signals will be</span>
+<span class="comment">% possible in the next version of Signals:</span>
+a = net.origin(<span class="string">'a'</span>);
+[b,n]  = a.mapn(@shiftdim); <span class="comment">% b is 3-by-1-by-2 and n is 2.</span>
+c = b.mapn(-n, @shiftdim);  <span class="comment">% c == a.</span>
+d = a.mapn(3, @shiftdim);   <span class="comment">% d is 1-by-2-by-1-by-1-by-3.</span>
+
+a.post(rand(1,1,3,1,2))
+</pre><h2 id="60">Notes</h2><p>(1) If a signal already has a value and you derive a new signal from it, the new signal won't automatically compute its value.  In the Signals Experiment Framework, the experiment definition function is run once to set up all Signals, before any inputs are posted into the network, so this isn't an issue.</p><p>(2) You can get the number of nodes in the network by calling <tt>networkInfo</tt> on the net id:</p><pre class="codeinput">networkInfo(a.Node.Net.Id)
+</pre><pre>Net 0 with 9/4000 active nodes</pre><p>(3) As you may have noticed from the node graphs, when you evaluate an expression involving a signal, any numbers are made into Signal objects. These are nodes that only ever have one value (known as 'root' nodes). There are often more nodes in a network than you might expect, for example the following line indicates that there are at least 4 nodes in the network:</p><pre class="codeinput">x = mod(floor(x), 1*2)
+</pre><p>These would be <tt>x</tt>, <tt>2</tt> (a root node), <tt>floor(x)</tt> and <tt>mod(floor(x), 2)</tt>.</p><p>(4) When a function is called on an object, MATLAB checks whether that object's class has a method of the same name (a 'method' is a function that is part of an object's class).  If the class has that method associated with it, this method is called instead of the usual function. This is known as 'overloading' and is how we can do things like adding and subtracting Signals.  For more info, see the MATLAB documentation <a href="https://uk.mathworks.com/help/matlab/matlab_oop/overloading-functions-for-your-class.html">here</a>.</p><p>(5) This is known as 'syntactic sugar', and a list of MATLAB's operators and the functions they correspond to can be found <a href="https://uk.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html">here</a>.</p><h2 id="64">Summary</h2><p>Here are the most important things to remember when writing an experiment:</p><div><ol><li>Signals represent values that change can over time.</li><li>Evaluating any expression that includes a signal will result in a new signal being returned, e.g. is 'a' is a signal, 'a * 2' produces a new signal.</li><li>In general a signal can only update when all of its inputs have a value.</li><li>Clearing or reassigning a variable is different to deleting or modifying a signal.</li><li>Signals can have any value type: if one of your signals changes data type, make sure all dependent signals can work with those types.</li></ol></div><h2 id="65">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.2</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS,*ST2NM&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Writing an experiment definition
+% The purpose of this script is to introduce Signals and guide the reader
+% towards programming in a less procedural way.  After reading this you
+% should will be able to create the experiments you want in Signals, using
+% the <glossary.html Signals Experiment Framework>.  The guide may appear
+% slow at first but sticking with it will greatly reduce the number of
+% errors you will encounter while making your first experiment.
+
+%% Introduction
+% The live script that accompanies this document can be found in
+% |signals/docs/turorials/using_signals.m|.  This script allows you to run
+% the blocks of code shown here and plot the values of signals live.  To
+% run a block of code, click on the section of interest and press Ctrl +
+% Enter.
+%
+% For the purposes of demonstration we can create signals using the
+% |sig.test.create| function, however in you expDef you can only create new
+% signals based on the function's inputs.  More on this later.
+% 
+%   function expDefFn(t, events, parameters, vs, inputs, outputs, audio)
+%
+% Example expDefs can be found in |signals/docs/examples|.
+%
+% The bracketed numbers throughout this script correspond to notes at the
+% bottom of the file.  The notes provide extra details about Signals.
+% Please report any errors as GitHub issues. Thanks!
+
+%% What are signals?
+% When writing an experiment definition (expDef), it's useful to think of
+% signals as nodes in a network, where each node holds a value that is the
+% result of passing its inputs through a function.  This network is
+% 'reactive' in that whenever a node's input values change, the node
+% recalculates its own value.  In this way changes propergate through the
+% network asynchronously.
+% 
+% <<./images/node_graph_phase.png>>
+%
+% The above node graph would be the result of writing the following:
+t = sig.test.create; % returns a signal
+phi = 2*pi*3*t; % a new signal, phi, that defines phase over time, t
+
+%%%
+% Imagine the signal |t| was a clock signal whose value was a timestamp
+% that constantly updated.  The signal |phi| then updates it's value
+% every time |t| updates.  In this way you can express relationships
+% between variables in an easy to read, mathematical way.  One of these
+% variables happens to be time, which means you can define how variables
+% change over time.  In the above example we have defined a temporal
+% fequency in Hz (the value of |t| in your expDef is in seconds from
+% experiment start).  This can then be applied to a visual stimulus
+% property, as shown in the example expDef |driftingGrating.m|.
+
+%% Relationships between signals
+% Let's start to build a reactive network.  Most of MATLAB's elementary
+% operators work with signals in the way you would expect, as demonstrated
+% below.  You may type ctrl + enter to run this entire secion at once...
+x = sig.test.sequence(-50:1:50, 0.05); % Create a sequence
+a = 5; b = 2; c = 8; % Some constants to use in our equation
+y = a*x^2 + b*x + c; % Define a quadratic relationship between x and y
+
+% Let's call a little function that will show the relationship between our
+% two signals.  The plot updates each time the two input Signals update:
+ax = sig.test.plot(x,y,'b-');
+xlim(ax, [-50 50]);
+%%%
+% <<SignalsPrimer_01.png>>
+
+%% Mathematical expressions 
+% Signals allows a good degree of clarity in defining methematical
+% equations, particularly those where time is a direct or indirect variable
+%
+%%% Example 1: cos(x * pi)
+x = sig.test.sequence(0:0.1:10, 0.05); % Create a sequence
+y = cos(x * pi);
+sig.test.timeplot(x, y, 'mode', [0 2]); % Plot each variable against time
+%%%
+% <<SignalsPrimer_02.png>>
+
+%%% Example 2: x -> degrees
+% Let's imagine you needed a Signal that showed the angle of its input
+% between 0 and 360 degrees:
+x = sig.test.sequence(1:4:1080, 0.005); % Create a sequence
+y = iff(x > 360, x - 360*floor(x/360), x); % More about conditionals later
+
+sig.test.plot(x, y, 'b-');
+xlim([0 1080]); ylim([0 360])
+%%%
+% <<SignalsPrimer_04.png>>
+
+%% Logical operations
+% Note that the short circuit operators && and || are not implemented in
+% Signals, always use & and | instead.
+x = sig.test.sequence(1:15, 0.2); % Create a sequence
+bool = x >= 5 & x < 10; 
+
+ax = sig.test.plot(x, bool, 'bx');
+xlim(ax, [0 15]), ylim(ax, [-1 2])
+%%%
+% <<SignalsPrimer_05.png>>
+
+%% mod, floor, ceil
+% A simple example of using mod and floor natively with Signals:
+x = sig.test.sequence(1:15, 0.2); % Create a sequence
+
+even = mod(floor(x), 2) == 0;
+odd = ~even;
+
+sig.test.timeplot(x, even, odd, 'tWin', 1);
+%%%
+% <<SignalsPrimer_06.png>>
+
+%% Arrays
+% You can create numerical arrays and matricies with Signals in an
+% intuitive way.  *NB* : Whenever you perform an operation on one or more
+% Signal objects, always expect a new Signal object to be returned.  In
+% the below example we create a 1x3 vector Signal, X, which is not an
+% array of Signals but rather a Signal that represents a numrical array.
+x = sig.test.sequence(1:5, 0.5); % Create a sequence
+X = [x 2*x 3]; % Create an array from signal x
+X_sz = size(X); % Reports the size of object's underlying value
+
+%% Matrix arithmatic
+Xt = X'; % X transpose
+Y = Xt.^3 ./ 2;
+
+%% Complicated expressions
+% Below are some examples of more complex mathematical expressions that can
+% be defined in Signals.  
+
+%%% Example 1: Upper bound
+% $upper bound = \frac{\max(\{|a|,|b|,|c|\})}{|a|} \times  \left(1 +
+% \frac{\sqrt{5}}{2}\right)$
+%
+[a, b, c] = sig.test.create('names', {'a','b','c'}); 
+
+upperBound = max([abs(a), abs(b), abs(c)]) / abs(a) * (1 + sqrt(5))/2;
+disp(upperBound.Name)
+%%%
+%  max([|a| |b| |c|])/|a|*3.2361/2
+%
+%%% Example 2: Gabor
+% Let's reproduce the equation for generating a Gabor patch, i.e convolving
+% a sinusoid with a 2D Gaussian function: 
+%
+% $G(x,y;\lambda, \theta, \psi, \sigma) = \exp\left(-\frac{x'^2+
+% y'^2}{2\sigma^2}\right)\exp\left(2\pi\frac{x'}{\lambda}+\psi\right)$
+%
+% Where:
+%
+% $x' = x cos(\theta) + y sin(\theta)$
+%
+% $y' = -x sin(\theta) + y cos(\theta)$
+
+% Create some input signals for this demonstration.  xx and yy are vectors
+% of the x and y coordinates of the Gabor, where (0,0) is the centre of the
+% Gabor patch
+[xx, yy, theta, sigma, lambda, phi] = sig.test.create(); 
+
+% Create a 2-D grid coordinates based on the coordinates contained in
+% vectors xx and yy
+[X, Y] = xx.mapn(yy, @meshgrid);
+
+% Calculate the rotated x and y coordinates for the Gabor filter.  The
+% rotated coordinates allow us to define an elliptical window rotated by
+% theta(1)
+Xe = X.*cos(theta(1)) + Y.*sin(theta(1));
+Ye = Y.*cos(theta(1)) - X.*sin(theta(1));
+% And the rotated coordinates for the grating
+Xc = X.*cos(theta(2) - pi/2) + Y.*sin(theta(2) - pi/2);
+
+% Define our Gaussian function
+gauss = exp(-Xe.^2./(2*sigma(1)^2) + -Ye.^2./(2*sigma(2)^2));
+% The grating function scaled by the wavelegth and translated by the phase
+grate = cos( 2*pi*Xc./lambda + phi );
+G = gauss.*grate; % Convolve the two functions
+
+% Rename a few of our signals for display purposes
+theta.Name = char(hex2dec('03bb')); % Orientation
+sigma.Name = char(hex2dec('03B8')); % Standard deviation of Gaussian envelope
+lambda.Name = char(hex2dec('03C3'));% Wavelength
+phi.Name = char(hex2dec('03C6')); % Phase offset
+Xe.Name = 'x'''; Ye.Name = 'y'''; % Rename to X' and Y'
+X.Name = 'x'; Y.Name = 'y'; % Rename to x and y
+
+% And print their names to the command window
+fprintf([...
+  'Gaussian equation: %s\n',...
+  'Grating equation: %s\n',...
+  'Convolved: %s\n'],...
+  gauss.Name, grate.Name, G.Name)
+%%%
+%  Gaussian equation: exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2))
+%  Grating equation: cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))
+%  Convolved: exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2)).*cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))
+%%%
+%
+% The above code is simply a demonstration of how to express relationships
+% mathematically in Signals.  In the next tutorial we will look at creating
+% stimuli in Signals.  Spoiler: there's a function that creates a Gabor for
+% you.
+
+%% A note about Signals variables
+% Signals are objects that constantly update their values each time the
+% Signals they depend on update.  When you do an operation on a signal
+% (e.g. |x * 2|) a new Signal object is created.  This can be assigned to
+% a variable (e.g. |y = x * 2|, however clearing or overwriting that
+% variable does not affect the underlying Signal.  The original object
+% stays around until its inputs or the network are deleted.  This is
+% important to think about when writing expDefs.  Think of variables as
+% temporary labels for each object which can be moved around at any time
+% without affecting the object they label.  Consider the following:
+
+% Create a new input signal and assign it to the variable 'a'
+a = sig.test.create(); 
+% Derive a new signal from 'a' and assign it to the variable 'b'
+b = abs(a);
+
+% Reassign a value to 'a', e.g. a string.  Think of this as taking a
+% sticker that says 'a' off the Signal object and placing it on a string
+% instead:
+a = "hello"; % assign "hello" to variable 'a'.  
+% Note that this doesn't affect the Signal object originally assigned to
+% 'a', but now if you do something to 'a', you're not working with a Signal
+% anymore, but rather a char array:
+b = abs(a)
+%%%
+%    Undefined function 'abs' for input arguments of type 'string'.
+%%%
+
+% This may seem obvious but important to note as this can be unclear to
+% people not used to this way of programming.
+%
+% Likewise if you re-define a Signal, any previous Signals will continue
+% using the old values and any future Signals will use the new values,
+% regardless of whether the variable name is the same.  Remember that
+% variable names are simply object handles so clearing or reassigning those
+% variable names doesn't necessarily change the underlying object:
+
+% Let's start with a blank slate
+clear variables
+% Create a new input signal, x, and assign it to the variable 'a'
+a = sig.test.create('names', "x"); 
+b = a^2; % Derive a signal ('a^2') and assign it to variable 'b'
+c = b + 2; % Derive a new signal ('a^2 + 2') and assign it to variable 'c'
+b = a*3; % A new Signal object ('a*3') is assigned to the variable 'b'
+d = b + 2; % A new Signal object ('a*3 + 2') is assigned to the variable 'd'
+
+%%%
+% The key here is that |d| has the value |a*3 + 2| and *not* |a^2 + 2|,
+% even though the variable |b| was at one point |a^2|.  Counting each
+% mathematical value in the above code block (i.e. mathematical variables
+% and constants), how many nodes are in our network? The answer is 9 (see
+% note 2).
+% 
+% <<./images/node_var_assign.png>>
+%
+% Variables are like labels, if you reassign them they are no longer
+% pointing to the same object.
+%
+% Looking at the name of your Signals may help you better understand what
+% they are
+y = abs(a);
+disp(['y = ' y.Name])
+y = y^2;
+disp(['y = ' y.Name])
+z = [y y];
+disp(['z = ' z.Name])
+%%%
+%   y = |a|
+%   y = |a|^2
+%   z = [|a|^2 |a|^2]
+%
+% It's fine to break long lines into multiple shorter lines by re-assigning
+% to the same variable:
+b = a * 2 * pi;
+b = abs(b);
+disp(b.Name)
+%%%
+%   b = |a*2*pi|
+
+%% Signals only update when all their inputs have have values
+% As you may have noticed, signals can be derived from any number of other
+% signals, as well as by constants(3). Mathematically, Signals can be
+% viewed as variables which, any time they take a new value, cause any
+% dependent equations to be re-evaluated.
+%
+% This leads us to one of the most important things to consider when
+% writing an expDef: Signals can only update if all (or enough) of their
+% inputs have values.  
+%
+% At the beginning of an Experiment your expDef function is called and all
+% your signals are wired up.  Until the experiment starts however, none of
+% these signals have any value.  Each signal can only update its value when
+% its inputs have updates and the time that this happens depends on how you
+% wire your network.
+%
+% In the below example we have signals  x, a, b, and c.  From these, we
+% derive a new signal and assign it to 'y'. If x updates, y won't because
+% the expression is still incomplete, we don't have values for a, b, or c.
+% Likewise if b updates, y will remain unchanged and any signals derived
+% from y will likewise not update.  The signal y can only have a value once
+% all the input signals have a value.  When all inputs have values, a
+% change to any of the inputs will cause y to be revaluated using the most
+% recent value of all the inputs.  
+
+% Here we create four signals that each update in staggered fashion:
+x = sig.test.sequence(1:5, 1, 'delay', 1); % Update once per second after a second
+a = sig.test.sequence(1, 1, 'name', 'a', 'delay', 2); % Update after 2 seconds
+b = sig.test.sequence(1, 1, 'name', 'b', 'delay', 3); % Update after 3 seconds
+c = sig.test.sequence(1, 1, 'name', 'c', 'delay', 4);  % Update after 4 seconds
+y = a*x^2 + b*x + c;
+
+sig.test.timeplot(x, a, b, c, y);
+%%%
+% <<./SignalsPrimer_07.png>>
+%%%
+% As you can see from the above plot, the signal 'y' does not update until
+% all its input signals have values.  When that happens
+
+%% Conditional statements
+% Above we saw how logical operations work with Signals. These can also be
+% used in conditional statements that alter the value or operation on a
+% given Signal.  Using an if/else statement won't work in your expDef.  To
+% construct something similar to an if/else statement, we can use the |iff|
+% method:
+
+% Create a signal whose values go from 1 - 200
+x = sig.test.sequence(1:2:200, 0.05); 
+% if x is greater than 100, y = 100, otherwise y = x
+y = iff(x > 100, 100, x); 
+
+% Plot the results
+ax = sig.test.plot(x, y, 'k-');
+ax.XLim = [0 200]; ax.YLim = [0 200];
+%%%
+% <<SignalsPrimer_03.png>>
+%%%
+
+% Note that with |iff| any and all values can be signals.
+%
+% In order to construct if/elseif statements we use the cond method, where
+% the input arguments are predicate-value pairs, for example:
+y = cond( ...
+  x < 5, a, ... % If x < 5, y = a
+  x > 10, b); % elseif x > 10, y = b
+
+%%%
+% As with all Signals, the condition statement is re-evaluated when any of
+% its inputs update.  Any input may be a Signal or otherwise, and if no
+% predicate evaluates as true then the resulting Signal does not update.
+%
+% Likewise, the condition statement will terminate if any of the source
+% Signals of a particular pred-value pair do not yet have values.  Also, in
+% the same way as a traditional if-elseif statement, each predicate is only
+% evaluated so long as the previous one was false.  For this reason, the
+% order of pred-value pairs is particularly important. Below we use true as
+% the last predicate to ensure that the resulting Signal always has a
+% value.
+y = cond(...
+  x > 0 & x < 5, a, ... % if x between 0 and 5, y = a
+  x > 5, b, ... % elseif x is greater than 5, y = b
+  true, c); % else y = c
+
+%% Indexing
+%%% Indexing into a Signal
+% Signals can be indexed as expected with brackets and the colon operator.
+A = sig.test.create;
+a = A(2); % index second element of A
+B = A(5:end); % index elements 5 to array end
+
+%%% Indexing with a Signal
+% Another Signal may be used to index another Signal.  In the below example
+% we derive a signal indexes the value of A with the value of i.  The
+% resulting signal will update whenever i or A update, so long as both of
+% them have a value.  
+i = sig.test.create; % Define a new Signal 
+a = A(i);
+
+%%%
+% If the value of A has a length less than the value of i, an 'index out of
+% bounds' error will be thrown, just like with normal arrays.  One solution
+% to this would be to use a conditional signal like the one in the previous
+% section to deal with such cases:
+i = iff(i > numel(A), numel(A), i);
+a = A(i);
+
+%%% selectFrom
+% The selectFrom method allows for indexing from a list of Signals whose
+% values may be of different types.  In some ways this is comparable to
+% indexing to a cell array:
+y = i.selectFrom(A, B, C); % when i == 1, y = A, etc.
+%%%
+% *NB*: When the index is out of bounds the Signal simply doesn't update
+
+%%% indexOfFirst
+% The indexOfFirst method returns a Signal with the index of the first true
+% predicate in a list of Signals.  This has a similar functionality to
+% find(arr, 1, 'first'):
+idx = indexOfFirst(A > 5, B < 1, C == 5); % Better examples welcome!
+
+%% Calling functions with map
+% Not all MATLAB functions work natively with Signals.  For example, the
+% function |ischar| does not play nicely with Signal objects:
+A = sig.test.create; % Create an new signal
+B = ischar(A);
+class(B) % Note that B is not a Signal object but a boolean.
+
+%%%
+% In the above example, MATLAB is testing the object _itself_, rather than
+% the _value_ of A (see note 4).  For this reason B isn't a Signal object
+% and will never be true, even is the value of signal A is a char.  The
+% solution to this problem is to use the |map| method.
+%
+% |map| creates a new signal that calls an arbitraty function with the
+% value of its input.  This new signal's value is the output of the
+% function you give it.  
+B = A.map(@ischar);
+class(B) % Returns a Signal object
+
+%%%
+% In the above example whenever signal A updates with a new value, its
+% value is passed (or 'mapped') to the function |ischar| and the output (a
+% boolean) becomes the value of signal B.  This means that B will update
+% its value whenever A updates.  As usual, while A doesn't have a value,
+% |ischar| is never called.
+%
+% The @ symbol is MATLAB's syntax for a function handle.  Instead of
+% calling the function, you simply point to the function as if it is a
+% variable.  For more information, see the MATLAB documentation on
+% <https://uk.mathworks.com/help/matlab/matlab_prog/creating-a-function-handle.html
+% creating function handles>.
+%
+% In the below example we create a signal that can checks whether its input
+% is a char and if so, converts it to a number:
+B = iff(A.map(@ischar), str2num(A), A);
+
+%%%
+% Why use can we write |str2num(A)| and not |ischar(A)|?  You can see which
+% methods work natively with Signals by looking at the following list:
+methods('sig.Signal') % All methods of the class sig.Signal
+%%%
+%   Methods for class sig.Signal:
+% 
+%   Signal        buffer        delta         floor         keepWhen      map2          mod           onValue       rot90         sin           times         
+%   abs           bufferUpTo    eq            ge            lag           mapn          mpower        or            round         skipRepeats   to            
+%   all           colon         erf           gt            le            max           mrdivide      output        scan          sqrt          transpose     
+%   and           cond          exp           horzcat       log           merge         mtimes        plus          selectFrom    str2num       uminus        
+%   any           cos           fliplr        identity      lt            min           ne            power         setTrigger    strcmp        vertcat       
+%   at            delay         flipud        indexOfFirst  map           minus         not           rdivide       sign          sum           
+% 
+%   Methods of sig.Signal inherited from handle.
+%%%
+% As you can see |str2num| is in the list but |ischar| is not.  If in
+% doubt, map will always work, it just looks a little uglier:
+B = iff(A.map(@ischar), A.map(@str2num), A);
+
+%%%
+% Another important thing to note is that operators like '==' and '*'
+% are just convenient ways of calling normal functions (5).  They actually
+% correspond to the functions |eq| and |times|.  Most of the time you can
+% use either form but on occasion it's clearer to use one over the other.
+B = iff(A.map(@ischar), strcmp(A, '10'), A == 10)
+B = iff(A.map(@ischar), strcmp(A, '10'), eq(A, 10)) % These are equivalent 
+
+%%%
+% The functions you call using map can be any function include your own
+% non-builtin functions (although they need to be on the MATLAB search
+% path).  You can also define local functions in your expDef and map values
+% with those.  The functions used by |map| don't need to deal with Signal
+% objects as they only get called with a signal's _value_. 
+%
+% What if your function expects single but your input signal's value is a
+% double?  Simply typecast it with |map|!
+B = A.map(@single).map(@myfunc);
+
+%%%
+% The value of A is called on |single| and its output is then called on
+% |myfunc|. You'll notice that many Signals methods can be chained in this
+% way, which is convient for writing one-liners.  If your line becomes too
+% long or difficult to read you can also split it across a number of lines:
+B = A.map(@single);
+B = B.map(@myfunc); 
+
+%%% Anonymous functions
+% Sometimes your Signal must be in a different positional argument.  For
+% this we simply create an anonymous function and use that.  See the
+% <https://www.mathworks.com/help/matlab/matlab_prog/anonymous-functions.html
+% MATLAB doumentation> for more information on how to use these.
+delta = A.map(@(A) diff(A,1,2)); % Take 1st order difference over 2nd dimension
+a = A.map(@(A) sum(A,2)); % Take sum over 2nd dimension
+
+%%%
+% You may have noticed that our other example can be written using an
+% anonymous function as a wrapper so that |map| is called just once:
+B = A.map(@(v) myfunc(single(v)));
+%%%
+% Any of these variants will work just fine and there is no real atvantage
+% to which one you choose, however if you need to access the intemediate
+% value (i.e. single(v), it is better to use the former example.
+
+%%% Example 2: a complex counter
+% In the following example we have a signal, responseType, that may be an
+% element of [-1 0 1].  A response type of 0 means the trial timed out
+% before the subject gave a response.  Let's say we want to count the
+% number of times in a row a trial timeout occurs:
+
+% First we store the responseType values for up to the last 1000 trials
+timeOuts = responseType.bufferUpTo(1000);
+% Then count the number of recent timeouts that occured in a row using an
+% anonymous function that works on this array with find and sum:
+timeOutCount = timeOuts.map(@(x) sum(x(find([1 x~=0],1,'last'):end) == 0));
+
+%%% Sampling with map
+% Map is particularly handy for 'sampling' functions, that is, for
+% generating a new index, value, or whatever, each time an event occurs.
+% Below we derive a signal, 'side', that each time 'newTrial' updates takes
+% a new value from [-1 1] (technically 0 is also possible!).  Note that the
+% anonymous function discards the value of newTrial.  We're only using it
+% as a way to trigger the evaluation of this function.
+newTrial = sig.test.create;
+side = newTrial.map(@(~) sign(rand-0.5));
+
+%% at and then
+% Here we also introduce two more methods: |at| and |then|.  These
+% functions sample the value of a Signal each time another Signal updates.
+% What's more, the Signal that updates must evaluate to true:
+x = sig.test.sequence(1:15, 0.2); % Create a sequence
+bool = x >= 5 & x < 10; 
+y = x.at(bool);
+
+ax = sig.test.plot(x, bool, 'bx');
+xlim(ax, [0 15]), ylim(ax, [-1 2])
+
+% This may also be achieved with keepWhen:
+y = x.keepWhen(x > 5 & x < 10);
+
+% NB c.f. with at, then and skipRepeats
+y = net.origin('y');
+updatedAndTrue = y.at(updated);
+% updatedAndTrue = updated.then(y); % then is the same as at but with the
+% inputs in a reverse order.  This is simply to make things more
+% self-documenting.
+updatedAndTrue = x.at(y > 3);
+h = output(updatedAndTrue);
+
+%%% Mapping constants
+% Sometimes you want to derive a Signal whose value is always constant but
+% nevertheless updates depending on another Signal, thus acting as a
+% trigger for something.  This can be achieved by using a constant value
+% instead of a function in map.  For example below we produce a signal that
+% is always mapped to true and updates whenever its dependent value
+% updates.  
+correct = sig.test.create; % imagine this signal can update with 0 or 1
+trigger = correct.map(true)
+  
+% Sometimes you want to sample one signal at the time that another updates,
+% regardless of whether it's value evaluates true.  For this we can simply
+% map that signal to a constant value, in this case 'true':
+z = x.at(y);
+zi = x.at(y.map(true));
+
+ax = sig.test.timeplot(x, y, z, zi, 'mode', [0,1,0,0], 'tWin', 10);
+% Run this loop manually
+for i = 1:50
+  x.post(i)
+  pause(0.3)
+  if rand > .5
+    y.post(rand > .5)
+  end
+end
+
+% Note that if the input arg is a value rather than a function handle, it
+% is truely constant, even if it's the output of a function:
+c = x.map(rand);
+rnd = x.map(@(~)rand);
+% The tilda here means that the value of Signal x is ignored, instead of
+% being assigned to a temporary variable or being mapped into the functon
+% rand, thus rand is called with no arguments.
+
+%% Map multiple Signals through a function with mapn
+% |mapn| takes any number of inputs where the last argument is the function
+% that the other arguments are mapped to.  The arguments may be any
+% combination of Signals and normal data types.  It's important to note
+% that the below 'dot notation' only works if the first input is a Signal,
+% otherwise you must use the traditional syntax e.g. |mapn(5, A, @f)|
+B = A.mapn(n, 1, @repmat); % repmat(A,n,1)
+
+% NB: Map will only assign the first output argument of the function to the
+% resulting Signal.  Mapping to a variable number of output Signals will be
+% possible in the next version of Signals:
+a = net.origin('a');
+[b,n]  = a.mapn(@shiftdim); % b is 3-by-1-by-2 and n is 2.
+c = b.mapn(-n, @shiftdim);  % c == a.
+d = a.mapn(3, @shiftdim);   % d is 1-by-2-by-1-by-1-by-3.
+
+a.post(rand(1,1,3,1,2))
+
+%% Notes
+% (1) If a signal already has a value and you derive a new signal from it,
+% the new signal won't automatically compute its value.  In the Signals
+% Experiment Framework, the experiment definition function is run once to
+% set up all Signals, before any inputs are posted into the network, so
+% this isn't an issue.
+%
+% (2) You can get the number of nodes in the network by calling
+% |networkInfo| on the net id:
+networkInfo(a.Node.Net.Id)
+%%%
+%  Net 0 with 9/4000 active nodes
+%%%
+%
+% (3) As you may have noticed from the node graphs, when you evaluate an
+% expression involving a signal, any numbers are made into Signal objects.
+% These are nodes that only ever have one value (known as 'root' nodes).
+% There are often more nodes in a network than you might expect, for
+% example the following line indicates that there are at least 4 nodes in
+% the network:
+x = mod(floor(x), 1*2)
+%%%
+% These would be |x|, |2| (a root node), |floor(x)| and |mod(floor(x), 2)|.
+%
+% (4) When a function is called on an object, MATLAB checks whether that
+% object's class has a method of the same name (a 'method' is a function
+% that is part of an object's class).  If the class has that method
+% associated with it, this method is called instead of the usual function.
+% This is known as 'overloading' and is how we can do things like adding
+% and subtracting Signals.  For more info, see the MATLAB documentation
+% <https://uk.mathworks.com/help/matlab/matlab_oop/overloading-functions-for-your-class.html
+% here>.
+%
+% (5) This is known as 'syntactic sugar', and a list of MATLAB's operators
+% and the functions they correspond to can be found
+% <https://uk.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html
+% here>.
+
+%% Summary
+% Here are the most important things to remember when writing an
+% experiment:
+% 
+% # Signals represent values that change can over time.
+% # Evaluating any expression that includes a signal will result in a new
+% signal being returned, e.g. is 'a' is a signal, 'a * 2' produces a new
+% signal.
+% # In general a signal can only update when all of its inputs have a
+% value.
+% # Clearing or reassigning a variable is different to deleting or
+% modifying a signal.
+% # Signals can have any value type: if one of your signals changes data
+% type, make sure all dependent signals can work with those types.
+%
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.2
+
+%#ok<*NASGU,*NOPTS,*ST2NM>
+##### SOURCE END #####
+--></body></html>

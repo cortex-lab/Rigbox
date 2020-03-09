@@ -47,6 +47,10 @@
 % set of guides for how to write an expDef, and how to test it.
 % 
 % * <./using_test_gui.html Playing around with Signals Experiment Definitions>
+% * <./using_signals.html A guide to signals methods>
+% * <./visual_stimuli.html A guide to creating visual stimuli>
+% * <./signals_cookbook.html The Signals cookbook>
+% * <./using_ExpPanel.html How to create a custom Experiment Panel>
 % 
 
 %% Working with Rigbox Experiment data
@@ -97,9 +101,9 @@
 % Below is a list of useful topics:
 %
 % * <./using_services.html Setting up auxiliary services>
-% * <./using_ExpPanel.html How to create a custom Experiment Panel>
 % * <./Experiment_framework.html An overview of the Experiment Framework> 
 % * <./glossary.html Glossary of Rigbox terminology>
+% * <./using_visual_stimuli.html Details of the Signals viewing model>
 %
 
 %% Etc.

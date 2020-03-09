@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Working with block files</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-07"><meta name="DC.source" content="block_files.m"><style type="text/css">
+      --><title>Working with block files</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-09"><meta name="DC.source" content="block_files.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -139,7 +139,7 @@ filterFn = @(p) <span class="keyword">...</span>
   endsWith(getOr(p, <span class="string">'expDef'</span>), <span class="string">'advancedChoiceWorld.m'</span>);
 seq = filter(sequence(refs, @dat.loadParams), filterFn);
 </pre><p>This will return parameter structs, but we ultimately want the block, so lets map using the expRef field:</p><pre class="codeinput">blocks = seq.map(@(p) p.expRef).map(@dat.loadBlock).toCell();
-</pre><h2 id="18">Notes</h2><p>(1) One way to mitigate this is to use ALF files instead.  These files are processed versions of standard data found in the block files (e.g. new trial times, feddback times, etc.) and are quicker to load.  For more information see the analysis with ALF files guide. (2) If you use Signals you may already be familiar with classic functions like map.  Most Rigbox functional programming tools can be found in the <a href="matlab:doc('fun')">+fun package</a>.</p><h2 id="19">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><p><a href="index.html">Home</a> &gt; Analysis &gt; Block Files</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU&gt;</span>
+</pre><h2 id="18">Notes</h2><p>(1) One way to mitigate this is to use ALF files instead.  These files are processed versions of standard data found in the block files (e.g. new trial times, feddback times, etc.) and are quicker to load.  For more information see the analysis with ALF files guide.</p><p>(2) If you use Signals you may already be familiar with classic functions like map.  Most Rigbox functional programming tools can be found in the <a href="matlab:doc('fun')">+fun package</a>.</p><h2 id="19">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.2</p><p><a href="index.html">Home</a> &gt; Analysis &gt; Block Files</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU&gt;</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Working with block files
@@ -553,6 +553,7 @@ blocks = seq.map(@(p) p.expRef).map(@dat.loadBlock).toCell();
 % processed versions of standard data found in the block files (e.g. new
 % trial times, feddback times, etc.) and are quicker to load.  For more
 % information see the analysis with ALF files guide.
+%
 % (2) If you use Signals you may already be familiar with classic functions
 % like map.  Most Rigbox functional programming tools can be found in the
 % <matlab:doc('fun') +fun package>.
@@ -560,7 +561,7 @@ blocks = seq.map(@(p) p.expRef).map(@dat.loadBlock).toCell();
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.1
+% v0.0.2
 %
 % <index.html Home> > Analysis > Block Files
 
