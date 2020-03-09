@@ -26,6 +26,8 @@ function fixFiles(filenames)
 %
 % https://uk.mathworks.com/help/matlab/matlab_prog/marking-up-matlab-comments-for-publishing.html
 % https://uk.mathworks.com/help/matlab/matlab_prog/specifying-output-preferences-for-publishing.html
+%
+% 2020-02-18 MW created
 
 %% Setup 
 origDir = pwd;
@@ -216,9 +218,32 @@ if toFix(filename)
   writeFile(filename, T)
 end
 
+%% using_signals.html
+% Replace symbols with html unicode
+filename = 'using_signals.html';
+if toFix(filename)
+  pattern = '<pre>Gaussian equation:';
+  subStr = [
+    "Gaussian equation: exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2))";
+    "Grating equation: cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))";
+    "Convolved: exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2)).*cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))"];
+%   T = readFile(filename);
+%   T = insert(T, subStr, pattern, 'replace', 1);
+%   writeFile(filename, T)
+end
+
 end
 %% Helpers
 function T = readFile(filename)
+% READFILE Read text from file
+%
+%  Input:
+%    filename (char): full file path of html doc to read
+%
+%  Output:
+%    T (cellstr): cell array of text, where each element is a single line
+%
+
 % Load file
 fid = fopen(filename,'r');
 i = 1;
@@ -277,7 +302,12 @@ end
 end
 
 function writeFile(filename, T)
-% Write back into file
+% WRITEFILE Write back into file
+%
+%  Inputs:
+%    filename (char): full file path of html doc to write
+%    T (cellstr): cell array of text to write to file
+%
 fid = fopen(filename, 'w');
 for i = 1:numel(T)
   if i == numel(T)
@@ -290,6 +320,19 @@ end
 end
 
 function changedFiles = changedViaGit(dirPaths)
+% CHANGEDVIAGIT List changed repo files
+%  List the files in dirPaths that Git says have been modified.  Untracked
+%  files are also returned.
+%
+%  Inputs:
+%    dirPaths (cellstr|char|string): the Git directory paths to check
+%
+%  Outputs:
+%    changedFiles (cellstr): cell array of file names that Git says are
+%      different to the HEAD.  Note that the full paths aren't returned,
+%      only filename.ext.
+%
+
 % Return all files that Git says have changed
 if iscell(dirPaths) || (isstring(dirPaths) && ~isStringScalar(dirPaths))
   % Recurse on directories
