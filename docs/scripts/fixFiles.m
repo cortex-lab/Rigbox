@@ -60,8 +60,7 @@ end
 %% Publish files
 options = {...
   'format', 'html', ....
-  'outputDir', outputDir, ...
-  'maxWidth', 800};
+  'outputDir', outputDir};
 
 % Publish each file
 for f = docFiles'
@@ -219,17 +218,22 @@ if toFix(filename)
 end
 
 %% using_signals.html
-% Replace symbols with html unicode
+% Replace Greek symbols with html unicode
 filename = 'using_signals.html';
 if toFix(filename)
-  pattern = '<pre>Gaussian equation:';
-  subStr = [
-    "Gaussian equation: exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2))";
-    "Grating equation: cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))";
-    "Convolved: exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2)).*cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))"];
-%   T = readFile(filename);
-%   T = insert(T, subStr, pattern, 'replace', 1);
-%   writeFile(filename, T)
+  T = readFile(filename);
+  pattern = [
+    "exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2))";
+    "cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))";
+    "exp((-x'.^2./2*?(1)^2 + -y'.^2./2*?(2)^2)).*cos((6.2832*(x.*cos((?(2) - 1.5708)) + y.*sin((?(2) - 1.5708)))./? + ?))"];
+  replace = [
+    "exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2))";
+    "cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))";
+    "exp((-x'.^2./2*&theta;(1)^2 + -y'.^2./2*&theta;(2)^2)).*cos((6.2832*(x.*cos((&lambda;(2) - 1.5708)) + y.*sin((&lambda;(2) - 1.5708)))./&sigma; + &phi;))"];
+  i = find(contains(T, '<pre>Gaussian'),1);
+  i = i:i+numel(pattern)-1;
+  [T(i)] = mapToCell(@strrep, T(i)', pattern, replace);
+  writeFile(filename, T)
 end
 
 end

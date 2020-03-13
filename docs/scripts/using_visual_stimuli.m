@@ -19,8 +19,6 @@
 % It is a |StructRef| object, which like a structure, can be assigned
 % fields.
 
-
-
 %% vis.screen
 % The model produced by vis.screen is a matrix (known as the
 % world-to-camera matrix) that transforms our world coordinates (visual

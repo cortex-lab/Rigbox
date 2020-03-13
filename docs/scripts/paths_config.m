@@ -63,6 +63,9 @@ assert(copyfile(source, destination), 'Failed to copy the template file')
 % # Save the paths file in Documents\MATLAB\+dat and do the same on the mc
 % computer (the two computers must have the same paths).
 
+%% Resetting paths
+% For a guide to resetting the paths each time you open MATLAB, see the
+% <./paths_conflicts.html this guide>.
 
 %% Etc.
 % Author: Miles Wells

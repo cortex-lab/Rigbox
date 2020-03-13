@@ -1,0 +1,589 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Advanced Signals</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="advanced_signals.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Advanced Signals</h1><!--introduction--><p>This guide shows you some of the methods available for use outside of the Signals Experiment Framework (i.e. outside of an experiment definition function).  The intention is to explain the machinary of Signals and to demonstrate how to create experiments with a custom UI.  After reading this you should have a near complete understanding of how Signals works and thus how to create any experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Network architecture</a></li><li><a href="#2">Origin signals</a></li><li><a href="#4">Demonstration on sig.Signal/output() method</a></li><li><a href="#6">Timing in signals</a></li><li><a href="#7">Now let's increase the frequency to 10 ms...</a></li><li><a href="#8">When we clear the handle, the value is no longer displayed</a></li><li><a href="#9">Due to the timer, the value of 'time' continues to update</a></li><li><a href="#10">When the timer is stopped, the value of 'time' is no longer updated</a></li><li><a href="#11">Timing 2 - Scheduling</a></li><li><a href="#12">Demonstration of sig.Signal/log() method</a></li><li><a href="#13">Logging signals in a registry</a></li><li><a href="#14">Visual stimuli</a></li><li><a href="#15">Notes</a></li><li><a href="#23">FAQ</a></li><li><a href="#24">I'm seeing '-1 is not a valid network id' in the command prompt</a></li><li><a href="#25">Etc.</a></li></ul></div><h2 id="1">Network architecture</h2><p>Every signal is part of a network, managed through a <tt>sig.Net</tt> object. The network object holds all the ids of all the signals' nodes(1).</p><pre class="codeinput"><span class="comment">% Every signal has an underlying node; a |sig.node.Node| object that</span>
+<span class="comment">% contains a number of important properties:</span>
+<span class="comment">% * Net: a handle to the parent network (a sig.Net object)</span>
+<span class="comment">% * Inputs: an array of input nodes (other sig.node.Node objects)</span>
+<span class="comment">% * Id: an integer node ID used by the low level C code</span>
+<span class="comment">% * NetId: an integer ID for the parent network, used by the low level C code</span>
+<span class="comment">% * CurrValue: the current value that the node holds</span>
+
+net = sig.Net; <span class="comment">% Create a new signals network</span>
+</pre><h2 id="2">Origin signals</h2><p>An origin signal is a special sub-class of the <tt>sig.node.Signal</tt> class whose value can be updated directly using the <tt>post</tt> method. The function call for creating an origin signal takes two inputs: the parent network and optionally, a string identifier.</p><p>These origin signals are the input nodes to the reactive network. All other signals are either directly or indirectly dependent on origin signals. Origin signals can take values of any type, as demonstrated below.</p><p>In the context of a Signals Experiment, the origin signals would be the timing signal and signals representing hardware devices (a wheel, lever, keyboard, computer mouse, etc...).  These origin Signals are defined outside of your experiment definition function (expDef) and are the input variables. Your expDef defines the mapping of these input origin signals to various hardware outputs (more on this later):</p><pre class="language-matlab">inputs <span class="string">--&gt;</span> <span class="string">|</span>          <span class="string">|</span> <span class="string">--&gt;</span>               <span class="string">--&gt;</span> <span class="string">|\</span> <span class="string">/|</span> <span class="string">--&gt;</span>
+       --&gt; | (expDef) | --&gt;               --&gt; |-X-| --&gt;
+       --&gt; |          | --&gt; outputs       --&gt; |/ \| --&gt; outputs
+</pre><p>You can post values to an origin Signal by using the <tt>post</tt> method.  This is not possible with other classes of Signals as their values instead depend on the values of their input nodes.</p><p>It is worth noting that every Signal has a <tt>Name</tt> property which may be set manually or be set based on its inputs.  The name of a Signal may be used by visualization functions to describe its functional relationship within the network.  The name property of an origin Signal is set as its second input.  Signals are handle objects and therefore may be assigned to any variable name.  Hence there are two means to identify a Signal: it's true name (the string held in the Name property) and the name of the variable or variables to which it is assigned. Below a Signal whose name is 'input' is created and assigned to the variable `originSignal`.  Two values are posted to it, first a double, then a char array:</p><pre class="codeinput">originSignal = net.origin(<span class="string">'input'</span>); <span class="comment">% Create an origin signal</span>
+originSignal.Node.CurrValue <span class="comment">% The current value is empty</span>
+
+post(originSignal, 21) <span class="comment">% Post a new value to originSignal</span>
+originSignal.Node.CurrValue <span class="comment">% The current value is now 21</span>
+
+post(originSignal, <span class="string">'hello'</span>) <span class="comment">% Post a new value to originSignal</span>
+originSignal.Node.CurrValue <span class="comment">% The current value is now 'hello'</span>
+
+<span class="comment">% You can see there are two names for this signal.  The string identifier</span>
+<span class="comment">% ('input') is the Signal object's name, stored in the Name property:</span>
+disp(originSignal.Name)
+</pre><p>Any Signals derived from this will include this identifier in their Name property (an example will follow shortly).  The variable name 'originSignal' is simply a handle to the Signal object and can be changed or cleared without affecting the object it references(3).</p><p>Although the value is stored in the Node's CurrValue field, it is not intended that you use this field directly.  The purpose of using a reactive network is that callbacks will access these values automatically if and when they change.  Accessing this property directly will most likely lead to unintended behaviour.</p><h2 id="4">Demonstration on sig.Signal/output() method</h2><p>The output method is a useful function for understanding the relationship between signals.  It simply displays a signal's output each time it takes a value.  The output method returns an object of the class <tt>TidyHandle</tt>, which is like a normal listener handle, however when its lifecyle ends it will delete itself.  What this means is that when the handle is no longer referenced anywhere (i.e. stored as a variable), the callback will no longer function.</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create a new signals network</span>
+clc <span class="comment">% Clear previous output for clarity</span>
+
+simpleSignal = net.origin(<span class="string">'simpleSignal'</span>);
+h = output(simpleSignal);
+class(h)
+
+simpleSignal.post(false) <span class="comment">% Value printed to the command window</span>
+simpleSignal.post(true)
+</pre><p>The output method can't be used within an expDef function. It should instead be used only for playing around with Signals in the command prompt.</p><h2 id="6">Timing in signals</h2><p>Most experiments require things to occur at specific times.  This can be achieved by keeping a timing signal that has a clock value posted to it periodically.  In the following example, we will create a 'time' signal that takes the value returned by 'now' every second.  We achieve this with a fixed-rate timer.  In the context of a Signals Experiment, the time signal has a time in seconds from the experiment start posted every iteration of a while loop.  Read through the below section then run it as a block by pressing ctrl + enter.</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create a new signals network</span>
+clc <span class="comment">% Clear previous output for clarity</span>
+time = net.origin(<span class="string">'t'</span>); <span class="comment">% Create a time signal</span>
+<span class="comment">% NB: The onValue method is very similar to the output method, but allows</span>
+<span class="comment">% you to define any callback function to be called each time the signal</span>
+<span class="comment">% takes a value (so long as the handle is still around).  Here we are using</span>
+<span class="comment">% it to display the formatted value of our 't' signal.  Again, the output</span>
+<span class="comment">% and onValue methods are not suitable for use within an experiment as the</span>
+<span class="comment">% handle is deleted.</span>
+handle = time.onValue(@(t)fprintf(<span class="string">'%.3f sec\n'</span>, t*10e4));
+
+t0 = now; <span class="comment">% Record current time</span>
+<span class="comment">% Create a timer that posts the time since t0 to the 'time' signal, at a</span>
+<span class="comment">% given rate given by 'frequency'.</span>
+frequency = 1; <span class="comment">% Update the timer every second</span>
+tmr = timer(<span class="string">'TimerFcn'</span>, @(~,~)post(time, now-t0),<span class="keyword">...</span>
+    <span class="string">'ExecutionMode'</span>, <span class="string">'fixedrate'</span>, <span class="string">'Period'</span>, 1/frequency);
+start(tmr) <span class="comment">% Start the timer</span>
+disp(<span class="string">'Timer started'</span>)
+<span class="comment">% ...Because of the output method, we are seeing the value of the time</span>
+<span class="comment">% signal displayed every second</span>
+pause(3)
+</pre><h2 id="7">Now let's increase the frequency to 10 ms...</h2><pre class="codeinput">stop(tmr) <span class="comment">% Stop the timer</span>
+frequency = 1e-2; <span class="comment">% Frequency now 10x higher</span>
+disp(<span class="string">'Let''s increase the timer frequency to 10 times per second...'</span>)
+set(tmr, <span class="string">'Period'</span>, frequency)
+pause(1) <span class="comment">% Ready... steady... go!</span>
+start(tmr)
+pause(3) <span class="comment">% ...</span>
+</pre><h2 id="8">When we clear the handle, the value is no longer displayed</h2><pre class="codeinput">disp(<span class="string">'Clearing the output TidyHandle'</span>)
+clear <span class="string">handle</span>
+pause(1) <span class="comment">% ...The values of the 'time' Signal are no longer displayed</span>
+</pre><h2 id="9">Due to the timer, the value of 'time' continues to update</h2><pre class="codeinput">fprintf(<span class="string">'%.3f sec\n'</span>, time.Node.CurrValue*10e4)
+pause(1)<span class="comment">% ...</span>
+fprintf(<span class="string">'%.3f sec\n'</span>, time.Node.CurrValue*10e4)
+pause(1)
+</pre><h2 id="10">When the timer is stopped, the value of 'time' is no longer updated</h2><pre class="codeinput">disp(<span class="string">'Stopping timer'</span>);
+stop(tmr)
+pause(1)<span class="comment">% ...</span>
+fprintf(<span class="string">'%.3f sec\n'</span>, time.Node.CurrValue*10e4)
+pause(1)<span class="comment">% ...</span>
+fprintf(<span class="string">'%.3f sec\n'</span>, time.Node.CurrValue*10e4)
+pause(1)<span class="comment">% ...</span>
+<span class="comment">% Let's clear the variables</span>
+delete(tmr); clear <span class="string">tmr</span> <span class="string">frequency</span> <span class="string">t0</span> <span class="string">time</span>
+</pre><h2 id="11">Timing 2 - Scheduling</h2><p>The net object contains an attribute called Schedule which stores a structure of node ids and their due time.  Each time the schedule is run using the method runSchedule, the nodes whose  TODO</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create network</span>
+frequency = 10e-2;
+tmr = timer(<span class="string">'TimerFcn'</span>, @(~,~)net.runSchedule,<span class="keyword">...</span>
+    <span class="string">'ExecutionMode'</span>, <span class="string">'fixedrate'</span>, <span class="string">'Period'</span>, frequency);
+start(tmr) <span class="comment">% Run schedule every 10 ms</span>
+s = net.origin(<span class="string">'input'</span>); <span class="comment">% Input signal</span>
+delayedSig = s.delay(5); <span class="comment">% New signal delayed by 5 sec</span>
+h = output(delayedSig); <span class="comment">% Let's output its value</span>
+h(2) = delayedSig.onValue(@(~)toc); tic
+delayedPost(s, pi, 5) <span class="comment">% Post to input signal also delayed by 5 sec</span>
+disp(<span class="string">'Delayed post of pi to input signal (5 seconds)'</span>)
+<span class="comment">% After creating a delayed post, an entry was added to the schedule</span>
+disp(<span class="string">'Contents of Schedule: '</span>); disp(net.Schedule)
+fprintf(<span class="string">'Node id %s corresponds to ''%s'' signal\n\n'</span>, num2str(s.Node.Id), s.Node.Name)
+<span class="comment">% ...</span>
+disp(<span class="string">'... 5 seconds later...'</span>); pause(5.1)
+<span class="comment">% ...</span>
+<span class="comment">% ... a second entry was added to the schedule, this time for 'delayedSig'.</span>
+<span class="comment">% This was added to the schedule as soon as the value of pi was posted to</span>
+<span class="comment">% our 'input' signal.</span>
+disp(<span class="string">'Contents of Schedule: '</span>); disp(net.Schedule)
+fprintf(<span class="string">'Node id %s corresponds to ''%s'' signal\n\n'</span>,<span class="keyword">...</span>
+    num2str(net.Schedule.nodeid), delayedSig.Node.Name)
+<span class="comment">% ...</span>
+disp(<span class="string">'... another 5 seconds later...'</span>); pause(5.1)
+<span class="comment">% ...</span>
+<span class="comment">% 3.14</span>
+stop(tmr); delete(tmr); clear <span class="string">tmr</span> <span class="string">s</span> <span class="string">frequency</span> <span class="string">h</span> <span class="string">delayedSig</span>
+</pre><h2 id="12">Demonstration of sig.Signal/log() method</h2><p>Sometimes you want the values of a signal to be logged and timestamped. The log method returns a signal that carries a structure with the fields 'time' and 'value'.  Log takes two inputs: the signal to be logged and an optional clock function to use for the timestamps.  The default clock function is GetSecs, a PsychToolbox MEX function that returns the most reliable system time available.</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create our network</span>
+simpleSignal = net.origin(<span class="string">'simpleSignal'</span>); <span class="comment">% Create a simple signal to log</span>
+loggingSignal = simpleSignal.log(@now); <span class="comment">% Log that signal using MATLAB's now function</span>
+loggingSignal.onValue(@(a)disp(toStr(a))); <span class="comment">% Each time our loggingSignal takes a new value, let's display it</span>
+
+simpleSignal.post(3)
+pause(1); fprintf(<span class="string">'\n\n'</span>)
+
+simpleSignal.post(8)
+pause(1); fprintf(<span class="string">'\n\n'</span>)
+
+simpleSignal.post(false)
+pause(1); fprintf(<span class="string">'\n\n'</span>)
+
+simpleSignal.post(<span class="string">'foo'</span>)
+</pre><h2 id="13">Logging signals in a registry</h2><p>In order to simplify things, one can create a registry which will hold the logs of all signals added to it.  When the experiment is over, the registry can return all the logged values in the timestampes optionally offset to another clock.  This can be useful for returning values in seconds since the start of the experiment</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create our network</span>
+t0 = now; <span class="comment">% Let's use this as our example reference time</span>
+events = sig.Registry(@now); <span class="comment">% Create our registy</span>
+simpleSignal = net.origin(<span class="string">'simpleSignal'</span>); <span class="comment">% Create a simple signal to log</span>
+events.signalA = simpleSignal^2; <span class="comment">% Log a new signal that takes the second power of the input signal</span>
+events.signalB = simpleSignal.lag(2); <span class="comment">% Log another signal that takes the last but one value of the input signal</span>
+simpleSignal.post(3) <span class="comment">% Post some values to the input signal</span>
+simpleSignal.post(3)
+simpleSignal.post(8)
+
+s = logs(events, t0); <span class="comment">% Return our logged signals as a structure</span>
+disp(s)
+</pre><h2 id="14">Visual stimuli</h2><pre class="codeinput">[t, setgraphic] = sig.playgroundPTB;
+grating = vis.grating(t);    <span class="comment">% we want a gabor grating patch</span>
+grating.phase = 2*pi*t*3; <span class="comment">% with it's phase cycling at 3Hz</span>
+grating.show = true;
+
+elements = StructRef;
+elements.grating = grating;
+
+setgraphic(elements);
+</pre><h2 id="15">Notes</h2><p>1. The sig.Net class itself does not store the nodes in its properties, however the underlying mexnet does.  This network is created by calling the MEX function createNetwork.  New nodes are created by calling the MEX function addNode.  This is done for you in the sig.Net and sig.node.Node class constructors.</p><p>2. Two such examples of visualization functions are introduced later, <tt>sig.test.plot</tt> and <tt>sig.test.timeplot</tt>.</p><p>3. Signals objects that are entirely out of scope are cleaned up by MATLAB and the underlying C code.  That is, if a Signal is created, assigned to a variable, and that variable is cleared then the underlying node is deleted if there exist no dependent Signals:</p><pre class="codeinput">net = sig.Net;
+x = net.origin(<span class="string">'orphan'</span>);
+networkInfo(net.Id) <span class="comment">% Net with 1/4000 active nodes</span>
+clear <span class="string">x</span>
+networkInfo(net.Id) <span class="comment">% Net with 0/4000 active nodes</span>
+</pre><p>If the Signal is used by another node that is still in scope, then it will not be cleaned up:</p><pre class="codeinput">x = net.origin(<span class="string">'x'</span>);
+y = x + 2; <span class="comment">% y depends of two nodes: 'x' and '2' (a root node)</span>
+networkInfo(net.Id) <span class="comment">% Net with 3/4000 active nodes</span>
+clear <span class="string">x</span> <span class="comment">% After clearing the handle 'x', the node is still in the network</span>
+networkInfo(net.Id) <span class="comment">% Net with 3/4000 active nodes</span>
+<span class="comment">% The node still exists because another handle to it is stored in the</span>
+<span class="comment">% Inputs property of the node 'y':</span>
+str = sprintf(<span class="string">'Inputs to y: %s'</span>, strjoin(mapToCell(@(n)n.Name, [y.Node.DisplayInputs]), <span class="string">', '</span>));
+disp(str)
+disp([<span class="string">'y.Node.DisplayInputs(1) is a '</span> class(y.Node.DisplayInputs(1))])
+</pre><p>4. The command window message '**net.delete**' simply indicates that a Signals network has been deleted, most likely as a result of a net object being cleared from the workspace.  The message '0 is not a valid network id' is nothing to worry about.  It is simply a result of an over-zealous cleanup proceedure in the underlying MEX code.  In future versions this will only show up when debugging.</p><p>5. Note that constants are in fact made into signals using the rootNode method.  These are nodes that only ever have one value.  There are often more nodes in a network than you might expect, for example the following line indicates there are at least 4 nodes in the network:</p><pre class="codeinput">x = mod(floor(x), 1*2)
+</pre><p>These would be x, 2 (a root node), floor(x) and mod(floor(x), 2)</p><p>6. It should be noted here that you are responsible for handling potential problems that may arise from a Signal changing data type:</p><pre class="codeinput">y = x*5;
+x.post(2) <span class="comment">% y = 10</span>
+x.post({<span class="string">'bad'</span>}) <span class="comment">% Undefined operator '*' for input arguments of type 'cell'</span>
+</pre><p>Within a Signals Experiment this rarely is a problem as parameters may not change type, although you may still encounter issues, for example the below signal `evts.newTrial` holds the value `true` which must be typecast to an int or float before being used with randsample:</p><pre class="codeinput">side = evts.newTrial.map(@(k)randsample([-1 1], int32(k)));
+</pre><p>The below line demonstrates how a signal can change type:</p><pre class="codeinput">s = merge(str, int, mat);
+</pre><p>7. Rule exceptions: merge and scan pars There are only two exceptions to this.</p><p>merge - a merge signal will take the value of the last updated input signal, even if not all of the inputs have taken a value.  To only take values once all are updated, use the at/then methods:</p><pre class="codeinput">s = merge(a, b, c).at(map([a b c], true)); <span class="comment">% map(true) for if a, b, c = 0</span>
+</pre><p>scan - any signals passed into scan after the 'pars' named parameter do not cause the scan function to be re-evaluated when they update.  See section on scan above for more info.</p><pre class="codeinput">s = a.scan(f, [], <span class="string">'pars'</span>, b, c); <span class="comment">% b and c values used in f when a updates</span>
+</pre><h2 id="23">FAQ</h2><h2 id="24">I'm seeing '-1 is not a valid network id' in the command prompt</h2><p>Currently there is a limit of 10 networks at any one time.  If you see this you most likely have more than 10 in your workspace.  Run clear all and then re-run your code.</p><h2 id="25">Etc.</h2><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Advanced Signals
+% This guide shows you some of the methods available for use outside of the
+% Signals Experiment Framework (i.e. outside of an experiment definition
+% function).  The intention is to explain the machinary of Signals and to
+% demonstrate how to create experiments with a custom UI.  After reading
+% this you should have a near complete understanding of how Signals works
+% and thus how to create any experiment.
+
+%% Network architecture
+% Every signal is part of a network, managed through a |sig.Net| object.
+% The network object holds all the ids of all the signals' nodes(1).
+
+% Every signal has an underlying node; a |sig.node.Node| object that
+% contains a number of important properties:
+% * Net: a handle to the parent network (a sig.Net object)
+% * Inputs: an array of input nodes (other sig.node.Node objects)
+% * Id: an integer node ID used by the low level C code
+% * NetId: an integer ID for the parent network, used by the low level C code
+% * CurrValue: the current value that the node holds
+
+net = sig.Net; % Create a new signals network
+
+%% Origin signals
+% An origin signal is a special sub-class of the |sig.node.Signal| class
+% whose value can be updated directly using the |post| method. The function
+% call for creating an origin signal takes two inputs: the parent network 
+% and optionally, a string identifier.
+%
+% These origin signals are the input nodes to the reactive network. All
+% other signals are either directly or indirectly dependent on origin
+% signals. Origin signals can take values of any type, as demonstrated 
+% below.
+%
+% In the context of a Signals Experiment, the origin signals would be the
+% timing signal and signals representing hardware devices (a wheel, lever,
+% keyboard, computer mouse, etc...).  These origin Signals are defined
+% outside of your experiment definition function (expDef) and are the input
+% variables. Your expDef defines the mapping of these input origin
+% signals to various hardware outputs (more on this later):
+%
+%   inputs REPLACE_WITH_DASH_DASH> |          | REPLACE_WITH_DASH_DASH>               REPLACE_WITH_DASH_DASH> |\ /| REPLACE_WITH_DASH_DASH> 
+%          REPLACE_WITH_DASH_DASH> | (expDef) | REPLACE_WITH_DASH_DASH>               REPLACE_WITH_DASH_DASH> |-X-| REPLACE_WITH_DASH_DASH>
+%          REPLACE_WITH_DASH_DASH> |          | REPLACE_WITH_DASH_DASH> outputs       REPLACE_WITH_DASH_DASH> |/ \| REPLACE_WITH_DASH_DASH> outputs
+%
+% You can post values to an origin Signal by using the |post| method.  This
+% is not possible with other classes of Signals as their values instead
+% depend on the values of their input nodes. 
+%
+% It is worth noting that every Signal has a |Name| property which may be
+% set manually or be set based on its inputs.  The name of a Signal may be
+% used by visualization functions to describe its functional relationship
+% within the network.  The name property of an origin Signal is set as its
+% second input.  Signals are handle objects and therefore may be assigned
+% to any variable name.  Hence there are two means to identify a Signal:
+% it's true name (the string held in the Name property) and the name of the
+% variable or variables to which it is assigned. Below a Signal whose name
+% is 'input' is created and assigned to the variable `originSignal`.  Two
+% values are posted to it, first a double, then a char array:
+
+originSignal = net.origin('input'); % Create an origin signal
+originSignal.Node.CurrValue % The current value is empty
+
+post(originSignal, 21) % Post a new value to originSignal
+originSignal.Node.CurrValue % The current value is now 21
+
+post(originSignal, 'hello') % Post a new value to originSignal
+originSignal.Node.CurrValue % The current value is now 'hello'
+
+% You can see there are two names for this signal.  The string identifier
+% ('input') is the Signal object's name, stored in the Name property:
+disp(originSignal.Name)
+
+%%%
+% Any Signals derived from this will include this identifier in their Name
+% property (an example will follow shortly).  The variable name
+% 'originSignal' is simply a handle to the Signal object and can be changed
+% or cleared without affecting the object it references(3).
+%
+% Although the value is stored in the Node's CurrValue field, it is not
+% intended that you use this field directly.  The purpose of using a
+% reactive network is that callbacks will access these values automatically
+% if and when they change.  Accessing this property directly will most
+% likely lead to unintended behaviour.
+
+%% Demonstration on sig.Signal/output() method
+% The output method is a useful function for understanding the relationship
+% between signals.  It simply displays a signal's output each time it takes
+% a value.  The output method returns an object of the class |TidyHandle|,
+% which is like a normal listener handle, however when its lifecyle ends
+% it will delete itself.  What this means is that when the handle is no
+% longer referenced anywhere (i.e. stored as a variable), the callback will
+% no longer function.
+net = sig.Net; % Create a new signals network
+clc % Clear previous output for clarity
+
+simpleSignal = net.origin('simpleSignal');
+h = output(simpleSignal);
+class(h)
+
+simpleSignal.post(false) % Value printed to the command window
+simpleSignal.post(true)
+
+%%%
+% The output method can't be used within an expDef function. It should
+% instead be used only for playing around with Signals in the command
+% prompt.
+
+%% Timing in signals
+% Most experiments require things to occur at specific times.  This can be
+% achieved by keeping a timing signal that has a clock value posted to it
+% periodically.  In the following example, we will create a 'time' signal
+% that takes the value returned by 'now' every second.  We achieve this
+% with a fixed-rate timer.  In the context of a Signals Experiment, the
+% time signal has a time in seconds from the experiment start posted every
+% iteration of a while loop.  Read through the below section then run it as
+% a block by pressing ctrl + enter.
+
+net = sig.Net; % Create a new signals network
+clc % Clear previous output for clarity
+time = net.origin('t'); % Create a time signal
+% NB: The onValue method is very similar to the output method, but allows
+% you to define any callback function to be called each time the signal
+% takes a value (so long as the handle is still around).  Here we are using
+% it to display the formatted value of our 't' signal.  Again, the output
+% and onValue methods are not suitable for use within an experiment as the
+% handle is deleted.
+handle = time.onValue(@(t)fprintf('%.3f sec\n', t*10e4));
+
+t0 = now; % Record current time
+% Create a timer that posts the time since t0 to the 'time' signal, at a
+% given rate given by 'frequency'.
+frequency = 1; % Update the timer every second
+tmr = timer('TimerFcn', @(~,~)post(time, now-t0),...
+    'ExecutionMode', 'fixedrate', 'Period', 1/frequency);
+start(tmr) % Start the timer
+disp('Timer started')
+% ...Because of the output method, we are seeing the value of the time
+% signal displayed every second
+pause(3)
+
+%%% Now let's increase the frequency to 10 ms...
+stop(tmr) % Stop the timer
+frequency = 1e-2; % Frequency now 10x higher
+disp('Let''s increase the timer frequency to 10 times per second...')
+set(tmr, 'Period', frequency)
+pause(1) % Ready... steady... go!
+start(tmr)
+pause(3) % ...
+
+%%% When we clear the handle, the value is no longer displayed
+disp('Clearing the output TidyHandle')
+clear handle
+pause(1) % ...The values of the 'time' Signal are no longer displayed
+
+%%% Due to the timer, the value of 'time' continues to update
+fprintf('%.3f sec\n', time.Node.CurrValue*10e4)
+pause(1)% ...
+fprintf('%.3f sec\n', time.Node.CurrValue*10e4)
+pause(1)
+
+%%% When the timer is stopped, the value of 'time' is no longer updated
+disp('Stopping timer');
+stop(tmr)
+pause(1)% ...
+fprintf('%.3f sec\n', time.Node.CurrValue*10e4)
+pause(1)% ...
+fprintf('%.3f sec\n', time.Node.CurrValue*10e4)
+pause(1)% ...
+% Let's clear the variables
+delete(tmr); clear tmr frequency t0 time
+
+%% Timing 2 - Scheduling
+% The net object contains an attribute called Schedule which stores a
+% structure of node ids and their due time.  Each time the schedule is run
+% using the method runSchedule, the nodes whose  TODO
+
+net = sig.Net; % Create network
+frequency = 10e-2; 
+tmr = timer('TimerFcn', @(~,~)net.runSchedule,...
+    'ExecutionMode', 'fixedrate', 'Period', frequency);
+start(tmr) % Run schedule every 10 ms
+s = net.origin('input'); % Input signal
+delayedSig = s.delay(5); % New signal delayed by 5 sec
+h = output(delayedSig); % Let's output its value
+h(2) = delayedSig.onValue(@(~)toc); tic
+delayedPost(s, pi, 5) % Post to input signal also delayed by 5 sec
+disp('Delayed post of pi to input signal (5 seconds)')
+% After creating a delayed post, an entry was added to the schedule
+disp('Contents of Schedule: '); disp(net.Schedule) 
+fprintf('Node id %s corresponds to ''%s'' signal\n\n', num2str(s.Node.Id), s.Node.Name)
+% ...
+disp('... 5 seconds later...'); pause(5.1)
+% ...
+% ... a second entry was added to the schedule, this time for 'delayedSig'.
+% This was added to the schedule as soon as the value of pi was posted to
+% our 'input' signal.
+disp('Contents of Schedule: '); disp(net.Schedule) 
+fprintf('Node id %s corresponds to ''%s'' signal\n\n',...
+    num2str(net.Schedule.nodeid), delayedSig.Node.Name)
+% ...
+disp('... another 5 seconds later...'); pause(5.1)
+% ...
+% 3.14
+stop(tmr); delete(tmr); clear tmr s frequency h delayedSig
+
+%% Demonstration of sig.Signal/log() method
+% Sometimes you want the values of a signal to be logged and timestamped.
+% The log method returns a signal that carries a structure with the fields
+% 'time' and 'value'.  Log takes two inputs: the signal to be logged and
+% an optional clock function to use for the timestamps.  The default clock
+% function is GetSecs, a PsychToolbox MEX function that returns the most
+% reliable system time available.
+
+net = sig.Net; % Create our network
+simpleSignal = net.origin('simpleSignal'); % Create a simple signal to log
+loggingSignal = simpleSignal.log(@now); % Log that signal using MATLAB's now function
+loggingSignal.onValue(@(a)disp(toStr(a))); % Each time our loggingSignal takes a new value, let's display it
+
+simpleSignal.post(3)
+pause(1); fprintf('\n\n')
+
+simpleSignal.post(8)
+pause(1); fprintf('\n\n')
+
+simpleSignal.post(false)
+pause(1); fprintf('\n\n')
+
+simpleSignal.post('foo')
+
+%% Logging signals in a registry
+% In order to simplify things, one can create a registry which will hold
+% the logs of all signals added to it.  When the experiment is over, the
+% registry can return all the logged values in the timestampes optionally
+% offset to another clock.  This can be useful for returning values in
+% seconds since the start of the experiment
+net = sig.Net; % Create our network
+t0 = now; % Let's use this as our example reference time
+events = sig.Registry(@now); % Create our registy
+simpleSignal = net.origin('simpleSignal'); % Create a simple signal to log
+events.signalA = simpleSignal^2; % Log a new signal that takes the second power of the input signal
+events.signalB = simpleSignal.lag(2); % Log another signal that takes the last but one value of the input signal
+simpleSignal.post(3) % Post some values to the input signal
+simpleSignal.post(3)
+simpleSignal.post(8)
+
+s = logs(events, t0); % Return our logged signals as a structure
+disp(s)
+
+%% Visual stimuli
+[t, setgraphic] = sig.playgroundPTB;
+grating = vis.grating(t);    % we want a gabor grating patch
+grating.phase = 2*pi*t*3; % with it's phase cycling at 3Hz
+grating.show = true;
+
+elements = StructRef;
+elements.grating = grating;
+
+setgraphic(elements);
+
+%% Notes
+% 1. The sig.Net class itself does not store the nodes in its properties,
+% however the underlying mexnet does.  This network is created by calling
+% the MEX function createNetwork.  New nodes are created by calling the MEX
+% function addNode.  This is done for you in the sig.Net and sig.node.Node
+% class constructors.
+%
+% 2. Two such examples of visualization functions are introduced later,
+% |sig.test.plot| and |sig.test.timeplot|.  
+%
+% 3. Signals objects that are entirely out of scope are cleaned up by
+% MATLAB and the underlying C code.  That is, if a Signal is created,
+% assigned to a variable, and that variable is cleared then the underlying
+% node is deleted if there exist no dependent Signals:
+net = sig.Net;
+x = net.origin('orphan');
+networkInfo(net.Id) % Net with 1/4000 active nodes
+clear x
+networkInfo(net.Id) % Net with 0/4000 active nodes
+
+%%%
+% If the Signal is used by another node that is still in scope, then it
+% will not be cleaned up:
+x = net.origin('x');
+y = x + 2; % y depends of two nodes: 'x' and '2' (a root node)
+networkInfo(net.Id) % Net with 3/4000 active nodes
+clear x % After clearing the handle 'x', the node is still in the network
+networkInfo(net.Id) % Net with 3/4000 active nodes
+% The node still exists because another handle to it is stored in the
+% Inputs property of the node 'y':
+str = sprintf('Inputs to y: %s', strjoin(mapToCell(@(n)n.Name, [y.Node.DisplayInputs]), ', '));
+disp(str)
+disp(['y.Node.DisplayInputs(1) is a ' class(y.Node.DisplayInputs(1))])
+
+%%%
+% 4. The command window message '**net.delete**' simply indicates that a
+% Signals network has been deleted, most likely as a result of a net object
+% being cleared from the workspace.  The message '0 is not a valid network
+% id' is nothing to worry about.  It is simply a result of an over-zealous
+% cleanup proceedure in the underlying MEX code.  In future versions this
+% will only show up when debugging.
+%
+% 5. Note that constants are in fact made into signals using the rootNode
+% method.  These are nodes that only ever have one value.  There are often
+% more nodes in a network than you might expect, for example the following
+% line indicates there are at least 4 nodes in the network:
+x = mod(floor(x), 1*2)
+
+%%%
+% These would be x, 2 (a root node), floor(x) and mod(floor(x), 2)
+%
+% 6. It should be noted here that you are responsible for handling
+% potential problems that may arise from a Signal changing data type:
+y = x*5;
+x.post(2) % y = 10
+x.post({'bad'}) % Undefined operator '*' for input arguments of type 'cell'
+
+%%%
+% Within a Signals Experiment this rarely is a problem as parameters may
+% not change type, although you may still encounter issues, for example the
+% below signal `evts.newTrial` holds the value `true` which must be
+% typecast to an int or float before being used with randsample:
+side = evts.newTrial.map(@(k)randsample([-1 1], int32(k)));
+
+%%%
+% The below line demonstrates how a signal can change type:
+s = merge(str, int, mat);
+
+%%%
+% 7. Rule exceptions: merge and scan pars There are only two exceptions to
+% this. 
+%
+% merge - a merge signal will take the value of the last updated input
+% signal, even if not all of the inputs have taken a value.  To only take
+% values once all are updated, use the at/then methods:
+s = merge(a, b, c).at(map([a b c], true)); % map(true) for if a, b, c = 0
+
+%%%
+% scan - any signals passed into scan after the 'pars' named parameter
+% do not cause the scan function to be re-evaluated when they update.  See
+% section on scan above for more info.
+s = a.scan(f, [], 'pars', b, c); % b and c values used in f when a updates
+
+%% FAQ
+%%% I'm seeing '-1 is not a valid network id' in the command prompt
+% Currently there is a limit of 10 networks at any one time.  If you see
+% this you most likely have more than 10 in your workspace.  Run clear all
+% and then re-run your code.
+
+%% Etc.
+
+%#ok<*NASGU,*NOPTS>
+##### SOURCE END #####
+--></body></html>

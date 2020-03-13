@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Introduction</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-08-21"><meta name="DC.source" content="AlyxMatlabPrimer.m"><style type="text/css">
+      --><title>AlyxMatlabPrimer</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-12"><meta name="DC.source" content="AlyxMatlabPrimer.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Introduction</h1><!--introduction--><p><a href="https://github.com/cortex-lab/alyx">Alyx</a> is a light-weight meta-database for colony management and experimental logging.  Its purpose is to facilitate the recording and sharing of experimental data within the neuroscience community.  It is currently adopted by the <a href="https://www.internationalbrainlab.com/">International Brain Lab</a> (IBL).</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example dataset creation &amp; file registration on Alyx</a></li><li><a href="#2">Logging in/out</a></li><li><a href="#3">Using endpoints to GET data</a></li><li><a href="#4">Posting data</a></li><li><a href="#5">Datasets</a></li><li><a href="#6">Advance session search</a></li><li><a href="#7">Getting file paths</a></li><li><a href="#8">Saving files</a></li><li><a href="#9">File registration</a></li><li><a href="#10">Alyx queue</a></li><li><a href="#11">Debugging with http.jsonPost</a></li><li><a href="#12">Using Alyx with Rigbox</a></li><li><a href="#13">Sending Alyx around</a></li><li><a href="#14">Headless Alyx</a></li><li><a href="#15">MySQL queries</a></li><li><a href="#16">Etc.</a></li></ul></div><h2 id="1">Example dataset creation &amp; file registration on Alyx</h2><p>The simplst way to interface with Alyx via MATLAB is through the RESTful interface.  The Alyx class (found in Rigbox/alyx-matlab/@Alyx) creates an instance of an Alyx object that can be passed around rigs and used to get and post data from/to the database.  NB: Alyx is actually a value class, not a handle one.  More on that later.</p><pre class="codeinput">doc <span class="string">Alyx</span>
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Example dataset creation &amp; file registration on Alyx</a></li><li><a href="#2">Logging in/out</a></li><li><a href="#3">Using endpoints to GET data</a></li><li><a href="#4">Posting data</a></li><li><a href="#5">Datasets</a></li><li><a href="#6">Advance session search</a></li><li><a href="#7">Getting file paths</a></li><li><a href="#8">Saving files</a></li><li><a href="#9">File registration</a></li><li><a href="#10">Alyx queue</a></li><li><a href="#11">Debugging with http.jsonPost</a></li><li><a href="#12">Using Alyx with Rigbox</a></li><li><a href="#13">Sending Alyx around</a></li><li><a href="#14">Headless Alyx</a></li><li><a href="#15">MySQL queries</a></li><li><a href="#16">Etc.</a></li></ul></div><h2 id="1">Example dataset creation &amp; file registration on Alyx</h2><p>The simplst way to interface with Alyx via MATLAB is through the RESTful interface.  The Alyx class (found in Rigbox/alyx-matlab/@Alyx) creates an instance of an Alyx object that can be passed around rigs and used to get and post data from/to the database.  NB: Alyx is actually a value class, not a handle one.  More on that later.</p><pre class="codeinput">doc <span class="string">Alyx</span>
 </pre><h2 id="2">Logging in/out</h2><p>To instantiate an instance of Alyx, call the constructor like so:</p><pre class="codeinput">ai = Alyx;
 
 <span class="comment">% When called with no arguments, a login window is automatically displayed.</span>
@@ -220,6 +220,9 @@ sessions = ai.getSessions(<span class="string">'2018-07-13_1_flowers'</span>) <s
 refs = [<span class="string">"2018-07-13_1_flowers"</span> <span class="string">"2019-08-16_2_ZM_335"</span>];
 [~, eids] = ai.getSessions(refs)
 
+<span class="comment">% To convert the other way, use getExpRef:</span>
+refs = ai.getExpRef(eids);
+
 <span class="comment">% Sessions can be filtered based on subject, date, or associated dataset</span>
 <span class="comment">% types:</span>
 sessions = ai.getSessions(<span class="string">'cf264653-2deb-44cb-aa84-89b82507028a'</span>, <span class="keyword">...</span>
@@ -247,7 +250,20 @@ fullPath = ai.getFile(eids, <span class="string">'file'</span>, true) <span clas
 
 <span class="comment">% Note: Inputs may be cellstr, char or string.  The first output will be</span>
 <span class="comment">% either a char or cellstr.</span>
-</pre><h2 id="8">Saving files</h2><p>Saving files in a standard way can be easily achieved by using dat.expFilePath to return the path and file name for your data.  The main data repository is defined in <a href="./using_dat_package.html">dat.paths</a>, the folder tree by dat.canstructExpRef (used by dat.newExp), and the file name is constructed from the expRef + '_filetype'.  The list of file types are found here:</p><pre class="codeinput">opentoline(which(<span class="string">'dat.expFilePath'</span>),45,1)
+
+<span class="comment">% File paths may also be retrieved using `Alyx.expFilePath`.  This method</span>
+<span class="comment">% allows one to get file paths for a given experiment reference and dataset</span>
+<span class="comment">% type:</span>
+help <span class="string">Alyx.expFilePath</span>
+
+ref = <span class="string">'2019-04-11_1_KS005'</span>;
+type = <span class="string">'trials.itiDuration'</span>;
+[fullpath, filename] = ai.expFilePath(ref, type);
+
+<span class="comment">% As with `dat.expFilePath` a specific repository location may be specified</span>
+<span class="comment">% and the method also accepts subject, date and sequence number as separate</span>
+<span class="comment">% inputs, instead of an expRef.</span>
+</pre><h2 id="8">Saving files</h2><p>Saving files in a standard way can be easily achieved by using dat.expFilePath to return the path and file name for your data.  The main data repository is defined in dat.paths, the folder tree by dat.canstructExpRef (used by dat.newExp), and the file name is constructed from the expRef + '_filetype'.  The list of file types are found here:</p><pre class="codeinput">opentoline(which(<span class="string">'dat.expFilePath'</span>),45,1)
 doc <span class="string">dat</span> <span class="comment">% further info</span>
 open(fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_dat_package.m'</span>))
 
@@ -272,9 +288,11 @@ expPath = dat.expPath(expRef, <span class="string">'main'</span>, <span class="s
 <span class="comment">% in the provided directory.  You can register the same file multiple</span>
 <span class="comment">% times.  If a filerecord already exists, Alyx simply returns the original.</span>
 </pre><h2 id="10">Alyx queue</h2><p>All posts to Alyx are first saved as a JSON file in a location specified by the objects QueueDir property.  This means that when a post fails for reasons other than user error, the posts remain in the queue until further notice.  Each time a user 'logs in', the queue is flushed, meaning that all saved posts are re-submitted to Alyx.  You can manually flush the queue by called in the flushQueue method:</p><pre class="codeinput">ai.flushQueue
-</pre><h2 id="11">Debugging with http.jsonPost</h2><p>Unfortunately, the MATLAB built in http interface functions are limited in terms of debugging, as they don't directly return the server's responses upon failure.  Status codes must be extracted from the error message bodies, and the full reponse of the server is usually not returned.  In order to debug your Alyx posts, you can use the missing http package's jsonPost function instead.  See line 47 of <tt>Alyx.flushQueue</tt>:</p><pre class="codeinput">opentoline(which(<span class="string">'flushQueue'</span>),47,1)
+</pre><h2 id="11">Debugging with http.jsonPost</h2><p>Unfortunately, the MATLAB built in http interface functions are limited in terms of debugging, as they don't directly return the server's responses upon failure.  Status codes must be extracted from the error message bodies, and the full reponse of the server is usually not returned.  In order to debug your Alyx posts, you can use the missing http package's jsonPost function instead.  See line 47 of Alyx.flushQueue:</p><pre class="codeinput">opentoline(which(<span class="string">'flushQueue'</span>),47,1)
 web(<span class="string">'https://github.com/psexton/missing-http/releases'</span>) <span class="comment">% To download toolbox</span>
-</pre><h2 id="12">Using Alyx with Rigbox</h2><p>Alys can be used with Rigbox.  In this way subject information such as weight can be posted to Alyx through MC or the AlyxPanel GUI, and files and reward volumes can be posted automatically at the end of the session.</p><p>To activate Alyx simply set the databaseURL field in <tt>dat.paths</tt> to a non-empty string (should be a valid database url).</p><pre class="codeinput">getOr(dat.paths, <span class="string">'databaseURL'</span>)
+</pre><h2 id="12">Using Alyx with Rigbox</h2><p>Alys can be used with Rigbox.  In this way subject information such as weight can be posted to Alyx through MC or the AlyxPanel GUI, and files and reward volumes can be posted automatically at the end of the session.</p><pre class="codeinput"><span class="comment">% To activate Alyx simply set the databaseURL field in |dat.paths| to a</span>
+<span class="comment">% non-empty string (should be a valid database url).</span>
+getOr(dat.paths, <span class="string">'databaseURL'</span>)
 
 <span class="comment">% Once active you will be able to use the standalone AlyxPanel and the one</span>
 <span class="comment">% in MC:</span>
@@ -290,10 +308,10 @@ eui.AlyxPanel;
 <span class="comment">% weight').  More info on setting this up can be found here:</span>
 hw_setup = fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'hardware_config.m'</span>);
 opentoline(hw_setup, 497, 1)
-</pre><h2 id="13">Sending Alyx around</h2><p>An Alyx instance can be sent between rigs in one of two ways: 1. Via Java Websockets using the io.WSJCommunicator.server/client object.   This object uses the hlp_serialize/deserialize functions to send the   object. 2. Via UDP using Rigbox services objects (using udp and pnet functions).   The Alyx.parseAlyxInstance method can be used to convert the object   into a JSON string and back again. Both methods ultimately use saveobj and loadobj methods to convert the Alyx object.  This isn't really important to know. More info on <a href="./using_services.html">services</a>:</p><pre class="codeinput">doc <span class="string">Alyx.parseAlyxInstance</span> <span class="comment">% Used by srv.BasicUDPService and tl.mpepListener</span>
+</pre><h2 id="13">Sending Alyx around</h2><p>An Alyx instance can be sent between rigs in one of two ways: 1. Via Java Websockets using the io.WSJCommunicator.server/client object.   This object uses the hlp_serialize/deserialize functions to send the   object. 2. Via UDP using Rigbox services objects (using udp and pnet functions).   The Alyx.parseAlyxInstance method can be used to convert the object   into a JSON string and back again. Both methods ultimately use saveobj and loadobj methods to convert the Alyx object.  This isn't really important to know. More info:</p><pre class="codeinput">doc <span class="string">Alyx.parseAlyxInstance</span> <span class="comment">% Used by srv.BasicUDPService and tl.mpepListener</span>
 doc <span class="string">io.WSJCommunicator.server</span> <span class="comment">% Used by expServer to communicate with mc</span>
 doc <span class="string">srv.StimulusControl</span> <span class="comment">% Used by mc to communicate with expServer</span>
-open(fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'using_services.m'</span>))
+open(fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'services_config.m'</span>))
 </pre><h2 id="14">Headless Alyx</h2><p>Before sending an instance of Alyx to a stimulus computer, consider setting the Headless property to 'true'.  This means that the object will not spawn any user prompts, and will supress some errors.  This can also be set when the database become unreachable.  All posts are still saved in the queue for when a user logs in on that computer.  NB: Even when headless the Alyx object may throw errors.  On recording computers, always put GET/POST related methods in a try-catch, or only attempt such things at the end of the experiment</p><pre class="codeinput">ai.Headless = true;
 ai = ai.logout;
 ai = ai.login; <span class="comment">% Dialog surpressed</span>
@@ -301,16 +319,9 @@ ai.registerFile(expPath); <span class="comment">% Dialog surpressed</span>
 </pre><h2 id="15">MySQL queries</h2><p>One can also interact with Alyx through connection to the underlying MySQL database.  This currently isn't really supported by the alyx-matlab package and isn't encouraged.  More information:</p><pre class="codeinput">alyxPath = fileparts(which(<span class="string">'Alyx'</span>));
 open(fullfile(alyxPath, <span class="string">'..'</span>, <span class="string">'docs'</span>, <span class="string">'sql'</span>, <span class="string">'openAlyxSQL.m'</span>))
 open(fullfile(alyxPath, <span class="string">'..'</span>, <span class="string">'docs'</span>, <span class="string">'sql'</span>, <span class="string">'expFilePath.m'</span>))
-</pre><h2 id="16">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*ASGLU,*NOPTS&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><h2 id="16">Etc.</h2><p>Author: Miles Wells v1.1.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*ASGLU,*NOPTS&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Introduction 
-% <https://github.com/cortex-lab/alyx Alyx> is a light-weight meta-database
-% for colony management and experimental logging.  Its purpose is to
-% facilitate the recording and sharing of experimental data within the
-% neuroscience community.  It is currently adopted by the
-% <https://www.internationalbrainlab.com/ International Brain Lab> (IBL).
-
 %% Example dataset creation & file registration on Alyx
 % The simplst way to interface with Alyx via MATLAB is through the RESTful
 % interface.  The Alyx class (found in Rigbox/alyx-matlab/@Alyx) creates an
@@ -518,6 +529,9 @@ sessions = ai.getSessions('2018-07-13_1_flowers') % expRef
 refs = ["2018-07-13_1_flowers" "2019-08-16_2_ZM_335"];
 [~, eids] = ai.getSessions(refs)
 
+% To convert the other way, use getExpRef:
+refs = ai.getExpRef(eids);
+
 % Sessions can be filtered based on subject, date, or associated dataset
 % types:
 sessions = ai.getSessions('cf264653-2deb-44cb-aa84-89b82507028a', ...
@@ -551,13 +565,26 @@ fullPath = ai.getFile(eids, 'file', true) % remoteOnly = true
 % Note: Inputs may be cellstr, char or string.  The first output will be
 % either a char or cellstr.
 
+% File paths may also be retrieved using `Alyx.expFilePath`.  This method
+% allows one to get file paths for a given experiment reference and dataset
+% type:
+help Alyx.expFilePath
+
+ref = '2019-04-11_1_KS005';
+type = 'trials.itiDuration';
+[fullpath, filename] = ai.expFilePath(ref, type);
+
+% As with `dat.expFilePath` a specific repository location may be specified
+% and the method also accepts subject, date and sequence number as separate
+% inputs, instead of an expRef.
+
 %% Saving files
 % Saving files in a standard way can be easily achieved by using
 % dat.expFilePath to return the path and file name for your data.  The main
-% data repository is defined in <./using_dat_package.html dat.paths>, the
-% folder tree by dat.canstructExpRef (used by dat.newExp), and the file
-% name is constructed from the expRef + '_filetype'.  The list of file
-% types are found here:
+% data repository is defined in dat.paths, the folder tree by
+% dat.canstructExpRef (used by dat.newExp), and the file name is
+% constructed from the expRef + '_filetype'.  The list of file types are
+% found here:
 opentoline(which('dat.expFilePath'),45,1)
 doc dat % further info
 open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'using_dat_package.m'))
@@ -603,7 +630,7 @@ ai.flushQueue
 % message bodies, and the full reponse of the server is usually not
 % returned.  In order to debug your Alyx posts, you can use the missing
 % http package's jsonPost function instead.  See line 47 of
-% |Alyx.flushQueue|:
+% Alyx.flushQueue:
 opentoline(which('flushQueue'),47,1)
 web('https://github.com/psexton/missing-http/releases') % To download toolbox
 
@@ -611,7 +638,7 @@ web('https://github.com/psexton/missing-http/releases') % To download toolbox
 % Alys can be used with Rigbox.  In this way subject information such as
 % weight can be posted to Alyx through MC or the AlyxPanel GUI, and files
 % and reward volumes can be posted automatically at the end of the session.
-%
+
 % To activate Alyx simply set the databaseURL field in |dat.paths| to a
 % non-empty string (should be a valid database url).
 getOr(dat.paths, 'databaseURL')
@@ -641,11 +668,11 @@ opentoline(hw_setup, 497, 1)
 %   into a JSON string and back again.
 % Both methods ultimately use saveobj and loadobj methods to convert the
 % Alyx object.  This isn't really important to know.
-% More info on <./using_services.html services>: 
+% More info: 
 doc Alyx.parseAlyxInstance % Used by srv.BasicUDPService and tl.mpepListener
 doc io.WSJCommunicator.server % Used by expServer to communicate with mc
 doc srv.StimulusControl % Used by mc to communicate with expServer
-open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'setup', 'using_services.m'))
+open(fullfile(getOr(dat.paths, 'rigbox'), 'docs', 'setup', 'services_config.m'))
 
 %% Headless Alyx
 % Before sending an instance of Alyx to a stimulus computer, consider
@@ -671,7 +698,6 @@ open(fullfile(alyxPath, '..', 'docs', 'sql', 'expFilePath.m'))
 
 %% Etc.
 % Author: Miles Wells
-%
 % v1.1.0
 
 %#ok<*NASGU,*ASGLU,*NOPTS>
