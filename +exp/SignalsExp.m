@@ -247,10 +247,8 @@ classdef SignalsExp < handle
       end
       obj.DaqController = rig.daqController;
       obj.Wheel = rig.mouseInput;
-      obj.Wheel.zero();
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
-        obj.LickDetector.zero();
       end
       if ~isempty(obj.DaqController.SignalGenerators)
           outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
@@ -621,6 +619,12 @@ classdef SignalsExp < handle
       
       %init end status to nothing
       obj.Data.endStatus = [];
+      
+      % Zero input devices
+      obj.Wheel.zero();
+      if ~isempty(obj.LickDetector)
+        obj.LickDetector.zero();
+      end
       
       % load each visual stimulus
       cellfun(@obj.loadVisual, fieldnames(obj.Visual));
