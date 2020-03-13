@@ -99,7 +99,8 @@
 % experiment parameters.
 % * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
 % * <./Timeline.html Timeline> - Using Timeline for time alignment
-% * <./using_stimWindow.html> - Using the stimWindow object
+% * <./using_stimWindow.html The Window class> - Using the stimWindow object
+% * <./clocks.html Clocks> - Using the Clock class
 %
 
 %% Miscellaneous
@@ -109,6 +110,7 @@
 % * <./Experiment_framework.html An overview of the Experiment Framework> 
 % * <./glossary.html Glossary of Rigbox terminology>
 % * <./using_visual_stimuli.html Details of the Signals viewing model>
+% * <./contributing.html How to edit the documentation>
 %
 
 %% Etc.
