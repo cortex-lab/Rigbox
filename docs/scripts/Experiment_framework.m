@@ -66,6 +66,30 @@
 % Experiment Framework the Signal network persists until the
 % Experiment object is explicitly deleted.
 
+%% Creating custom Experiments
+% The Experiment base class is highly customizable and can be extended to
+% implement any sort of task structure.  Most experiments are well suited
+% for the Signals Experiment Framework, where trial structure, etc. is
+% defined with Signals, however not all tasks are suitable for this type of
+% framework.  Namely non-interactive movie presentation.  For this, one
+% could extend the Experiment framework in the following ways:
+% 
+% # Subclass |exp.Experiment|, e.g. |exp.MovieWorld|.
+% # Create an experiment configuration function that sets up handlers to
+% load and play movies each trial.  The logic could load the movie during
+% an inter-trial delay for example. See |exp.configureChoiceExperiment| and
+% |exp.basicWorldEventHandlers| to see how the logic of that task is
+% implemented.
+% # Create a set of default parameters that includes parameters for
+% defining the dir where the movie files are, whether they're repeated,
+% etc. See |exp.choiceWorldParams|
+% # Add the experiment to mc by adding it to the NewExpFactory struct in
+% the |eui.MControl| constructor.
+% # Create an ExpPanel for displaying updates relevant to an experiment of
+% this type.  For example create a class called |eui.MovieExpPanel| that
+% extends |eui.ExpPanel|.  See the <./using_ExpPanel.html ExpPanel guide>
+% for more info.
+
 %% Notes
 % (1) |srv.prepareExp| is called by |srv.expServer| when an expRef is
 % received.  It also sets up the <./using_services.html#2 auxillary
@@ -79,6 +103,6 @@
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.1
+% v0.0.2
 %
 % <index.html Home> > Experiments > The Experiment Framework

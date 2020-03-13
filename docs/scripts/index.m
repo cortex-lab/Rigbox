@@ -14,7 +14,7 @@
 % The second is for 'power users' who have a basic understanding of these
 % things.
 % 
-% # <./install.html Full install instructions>
+% # <./install.html Detailed install instructions>
 % # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
 % for power users>
 % 
@@ -33,8 +33,9 @@
 % # <./paths_config.html Setting up dat.paths>
 % # <./hardware_config.html How to configure hardware on the stimulus computer>
 % # <./websocket_config.html Setting up communication between the stimulus computer and MC>
-% # <./using_single_rig.html Setting up |mc| and |srv.expServer| on the
-% same computer>
+% # <./using_single_rig.html Setting up |mc| and |srv.expServer| on the same computer>
+% # <./Burgess_hardware_setup.html Setting up hardware for the Burgess steering wheel task> 
+% # <./Burgess_setup.html Configuring harware for the Burgess steering wheel task>
 
 %% Running full experiments
 % Before you can run a complete experiment, you must set up Rigbox (see
@@ -48,9 +49,12 @@
 % 
 % * <./using_test_gui.html Playing around with Signals Experiment Definitions>
 % * <./using_signals.html A guide to signals methods>
+% * <./expDef_inputs.html A guide to writing expDefs>
 % * <./visual_stimuli.html A guide to creating visual stimuli>
-% * <./signals_cookbook.html The Signals cookbook>
+% * <./signals_cookbook.html Solutions and tips using Signals>
 % * <./using_ExpPanel.html How to create a custom Experiment Panel>
+% * <./advanced_signals.html Using Signals outside the Experiment
+% Framework>
 % 
 
 %% Working with Rigbox Experiment data
@@ -95,8 +99,9 @@
 % experiment parameters.
 % * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
 % * <./Timeline.html Timeline> - Using Timeline for time alignment
+% * <./using_stimWindow.html> - Using the stimWindow object
 %
-%
+
 %% Miscellaneous
 % Below is a list of useful topics:
 %

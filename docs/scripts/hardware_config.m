@@ -1,4 +1,4 @@
-%% Introduction 
+%% Configureing rig hardware 
 % When running |srv.expServer| the hardware settings are loaded from a MAT
 % file and initialized before an experiment. The MC computer may also have
 % a hardware file, though this isn't essential.  The below script is a
@@ -27,6 +27,8 @@
 % * |scale| - A weighing scale device for use by the MC computer
 % * |screens| - Parameters for the Signals viewing model
 % * |audioDevices| - Struct of parameters for each audio device
+% * |useDaq| - A logical that determines whether to create DAQ sessions on
+% load
 %
 % NB: Not all uncommented lines will run without error, particularly when a
 % specific hardware configuration is required.  Always read the preceeding
@@ -54,7 +56,8 @@ open(fullfile(rigbox, 'docs', 'scripts', 'using_dat_package.m'))
 % stimulus window.  It contains the attributes and methods for interacting
 % with the lower level functions that interact with the graphics drivers.
 % Currently the only concrete implementation is support for the
-% Psychophysics Toolbox, the |hw.ptb.Window| class.
+% Psychophysics Toolbox, the |hw.ptb.Window| class.  See the
+% <./using_stimWindow.html stimWindow user guide> for usage examples.
 
 doc hw.ptb.Window
 stimWindow = hw.ptb.Window;
@@ -209,59 +212,6 @@ stimWindow.Calibration = ...
   stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
 
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
-
-%% Using the Window object
-% Let's check the Window object is set up correctly and explore some of the
-% methods...
-
-%% - Setting the background colour
-stimWindow.open() % Open the window
-stimWindow.BackgroundColour = stimWindow.Green; % Change the background
-stimWindow.flip(); % Whoa!
-
-%% - Displaying a Gabor patch
-% Make a texture and draw it to the screen with |makeTexture| and
-% |drawTexture| Let's make a Gabor patch as an example:
-sz = 1000; % size of texture matrix
-[xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
-phi = 2*pi*rand; % randomised cosine phase
-sigma = 100; % size of Gaussian window
-thetaCos = 90; % grating orientation
-lambda = 100; % spatial frequency
-targetImg = vis.gabor(xx, yy, sigma, sigma, lambda, 0, thetaCos, phi);
-blankImg = repmat(stimWindow.Gray, [size(targetImg), 1]);
-targetImg = repmat(targetImg, [1 1 3]); % replicate three colour channels
-targetImg = round(blankImg.*(1 + targetImg));
-targetImg = min(max(targetImg, 0), 255); % Rescale values to 0-255
-
-% Convert the Gabor image to an OpenGL texture and load into buffer.
-% For more info: Screen MakeTexture?, Screen PreloadTextures?
-tex = stimWindow.makeTexture(round(targetImg));
-% Draw the texture into window (More info: Screen DrawTexture?)
-stimWindow.drawTexture(tex)
-% Flip the buffer:
-stimWindow.flip;
-
-%% - Clearing the window
-% To clear the window, the use the |clear| method:
-stimWindow.clear % Re-draw background colour
-stimWindow.flip; % Flip to screen
-
-%% - Drawing text to the screen
-% Drawing text to the screen can be done with the |drawText| method:
-[x, y] = deal('center'); % Render the text to the center
-[nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
-stimWindow.flip;
-
-% The nx and ny outputs may be used again as inputs to add to the text:
-[nx, ny] = stimWindow.drawText('Hello World', x, y, stimWindow.Red);
-stimWindow.drawText('! What''s up?', nx, ny, stimWindow.Red);
-stimWindow.flip;
-
-%% - Closing a window
-% Finally lets clear and close the window:
-stimWindow.clear
-stimWindow.close
 
 %% Viewing models
 % The viewing model classes allow one to configure the relationship between
@@ -661,6 +611,6 @@ d = daq.getDevices % Availiable devices and their info
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.1
+% v1.1.2
 
 %#ok<*NOPTS,*NASGU,*ASGLU>

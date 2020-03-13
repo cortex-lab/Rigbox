@@ -40,6 +40,37 @@ e.Hardware.mouseInput % Uses the eui.SignalsTest/getMouse method
 % object (see <../hardware_config.html#1 configuring hardware devices>):
 e.Hardware = hw.devices;  % Assign a rig's actual hardware settings
 
+
+%% Inspecting experiment data
+% You can view and save the block file data after ending an experiment:
+%
+%     e.Experiment.Data
+% 
+%     ans = 
+% 
+%       struct with fields:
+% 
+%                        expDef: 'C:\Users\User\Documents\Github\rigbox\signals\docs\examples\advancedChoiceWorld.m'
+%         stimWindowUpdateTimes: [176×1 double]
+%         stimWindowRenderTimes: [176×1 double]
+%                       rigName: 'desktop-c6p85d3'
+%                 startDateTime: 7.3786e+05
+%              startDateTimeStr: '11-Mar-2020 00:45:35'
+%                     endStatus: 'quit'
+%                        expRef: '2020-03-11_1_test'
+%            experimentInitTime: 1.6888e+06
+%         experimentStartedTime: 1.6888e+06
+%           experimentEndedTime: 1.6888e+06
+%         experimentCleanupTime: 1.6888e+06
+%                        events: [1×1 struct]
+%                  paramsValues: [1×12 struct]
+%                   paramsTimes: [1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06]
+%                        inputs: [1×1 struct]
+%                       outputs: [1×1 struct]
+%                   endDateTime: 7.3786e+05
+%                endDateTimeStr: '11-Mar-2020 00:46:05'
+%                      duration: 29.8610
+
 %% Editing parameters
 % Parameters are shown in the |eui.ParamEditor| which is in the
 % 'Parameters' box.  When you select an expDef, the default parameters are
@@ -123,7 +154,8 @@ help eui.SignalsTest/setOptions
 %% Notes
 % (1) These settings can be cleared by calling the Screen function:
 clear Screen
-%%
+
+%%%
 % (2) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
 
 %% Etc.

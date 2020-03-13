@@ -88,7 +88,7 @@ stimWindow.OpenBounds = [];
 % when looking back at old experiments in the future:
 stimWindow.MonitorId = 'LG LP097QX1'; % The screens used in Burgess et al.
 
-%% - Performing gamma calibration from command window
+%% Performing gamma calibration from command window
 %%% Calibration 
 % This stores the gamma correction tables (See Below) The simplist way to
 % to run the calibration is through SRV.EXPSEERVER once the rest of the
@@ -107,7 +107,7 @@ stimWindow.Calibration = stimWindow.calibration(DaqDev); % calibration
 save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
 
-%% - Signals viewing model
+%% Signals viewing model
 % Signals currently only supports a single viewing odel.  For now the
 % function VIS.SCREEN is used to configure this.  Below is an example of
 % configuring the viewing model for the Burgess wheel task, where there are
@@ -169,24 +169,6 @@ mouseInput.EncoderResolution = 1024
 % Diameter of the wheel in mm
 mouseInput.WheelDiameter = 62
 
-%% - Lick detector
-% A beam lick detector may be configured to work with an edge counter
-% channel.  We can use the HW.DAQEDGECOUNTER class for this:
-lickDetector = hw.DaqEdgeCounter;
-
-% This is actually a subclass of the HW.DAQROTARYENCODER class, and
-% therefore has a few irrelevant properties such as WheelDiameter.  These
-% can be ignored.
-
-% To deteremine what devices you have installed and their IDs:
-lickDetector.DaqId = 'Dev1'; % NI DAQ devices are named Dev# by default
-
-% The counter channel which the rotary encoder is connected to:
-lickDetector.DaqChannelId = 'ctr1';
-
-% Save these two into our hardware file
-save(hardware, 'stimWindow', 'lickDetector', '-append')
-
 %% Hardware outputs
 % HW.DAQCONTROLLER
 doc hw.DaqController
@@ -247,8 +229,6 @@ timeline.wiringInfo('chrono'); % New port # displayed
 % INPUTS
 % Add the rotary encoder
 timeline.addInput('rotaryEncoder', 'ctr0', 'Position');
-% For a lick detector
-timeline.addInput('lickDetector', 'ctr1', 'EdgeCount');
 % For a photodiode (see 'Configuring the visual stimuli' above)
 timeline.addInput('photoDiode', 'ai2', 'Voltage', 'SingleEnded');
 
@@ -413,7 +393,7 @@ d = daq.getDevices % Availiable devices and their info
 
 %% Etc.
 % Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini
-% v1.1.0
+% v1.1.1
 
 %#ok<*NOPTS>
 %#ok<*NASGU>

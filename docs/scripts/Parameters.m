@@ -510,11 +510,9 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 % the next condition is used. This allows you to present each condition n
 % times in a row but with the order of each condition block randomized:
 %%%
-%   function passiveStimWorld(t, evts, p, vs, in, out, audio)
-%   % First define a Signal that counts the repeat number of current condition
-%   repNum = events.newTrial.scan(@plus, p.skipRepeats().map(0));
+%   function passiveStimWorld(t, events, p, vs, in, out, audio)
 %   % Define when the next block of repetitions should occur
-%   nextCondition = repNum == p.numConditionReps; 
+%   nextCondition = events.repeatNum == p.numConditionReps; 
 %   % Define trial end
 %   events.endTrial = events.newTrial.delay(10).then(nextCondition);
 %   [...]
