@@ -1,0 +1,218 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Troubleshooting</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-05"><meta name="DC.source" content="troubleshooting.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Troubleshooting</h1><!--introduction--><p>Often finding the source of a problem seems daunghting when faced with a huge Rigbox error stack.  Below are some tips on how to quickly get to the root of the issue and hopefully solve it.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Update the code</a></li><li><a href="#2">Examining the stack</a></li><li><a href="#3">Paths</a></li><li><a href="#4">Reverting</a></li><li><a href="#5">Posting an issue on Github</a></li><li><a href="#6">FAQ</a></li><li><a href="#7">Etc.</a></li></ul></div><h2 id="1">Update the code</h2><p>Check what version of the code you're using and that you're up-to-date:</p><pre class="codeinput">git.runCmd(<span class="string">'status'</span>); <span class="comment">% Tells me what branch I'm on</span>
+git.update(0); <span class="comment">% Update now</span>
+
+<span class="comment">% If you're on a development or feature branch try moving to the master</span>
+<span class="comment">% branch, which should be most stable.</span>
+git.runCmd(<span class="string">'checkout master'</span>); git.update(0);
+</pre><h2 id="2">Examining the stack</h2><p>Don't be frightened by a wall of red text!  Simply start from the top and work out what the errors might mean and what part of code they came from. The error at the top is the one that ultimately caused the crash.  Try to determine if this is a MATLAB builtin function, e.g.</p><pre class="language-matlab">Warning: Error occurred <span class="string">while</span> <span class="string">executing</span> <span class="string">the</span> <span class="string">listener</span> <span class="string">callback</span> <span class="string">for</span> <span class="string">event</span> <span class="string">UpdatePanel</span> <span class="string">defined</span> <span class="string">for</span> <span class="string">class</span> <span class="string">eui.SignalsTest:</span>
+Error <span class="string">using</span> <span class="string">griddedInterpolant</span>
+Interpolation <span class="string">requires</span> <span class="string">at</span> <span class="string">least</span> <span class="string">two</span> <span class="string">sample</span> <span class="string">points</span> <span class="string">in</span> <span class="string">each</span> <span class="string">dimension.</span>
+</pre><pre class="language-matlab">Error <span class="string">in</span> <span class="string">interp1</span> <span class="string">(line 151)</span>
+F = griddedInterpolant(X,V,method);
+</pre><pre class="language-matlab">TODO <span class="string">Add</span> <span class="string">better</span> <span class="string">example</span> <span class="string">of</span> <span class="string">builtin</span> <span class="string">errors</span>
+</pre><p>If you're debugging a signals experiment definition, check for the line in your experiment where this particular builtin function was called. NB: You can check whether it is specific to your experiment by running one of the example experiment definitions such as advancedChoiceWorld.m, found in signals/docs/examples.  If this runs without error then you're problem may be specific to your experiment.  You should see the name of your definition function and exp.SignalsExp in the stack if they are involved.</p><p>If you don't know what a function is, try checking the documentation. Consider the following:</p><pre>Error using open
+Invalid number of channels</pre><pre>Error in audstream.fromSignal (line 16)
+  id = audstream.open(sampleRate, nChannels, devIdx);
+[...]</pre><p>If you're unsure what `audstream.fromSignal` does, try typing `doc audstream`.  This should tell you that the package deals with audio devices in signals.  In this case the issue might be that your audio settings are incorrect.  Take a look at the audio section of `docs\setup\hardware_config.m` and see if you can setup your audio devices differently.</p><h2 id="3">Paths</h2><p>By far the most common issue in Rigbox relates to problems with the MATLAB paths.  Check the following:</p><div><ol><li>Do you have a paths file in the +dat package?  Check the location by running `which dat.paths`.  Check that a file is  on the paths and that it's the correct one.</li><li>Check the paths set in this file.  Run `p = dat.paths` and inspect the output.  Perhaps a path is set  incorrectly for one of the fields.  Note that custom rig paths overwrite  those written in your paths file.  More info found in  `using_dat_package` and `paths_template`.</li><li>Do you have path conflicts?  Make sure MATLAB's set paths don't include other functions that have the  same name as Rigbox ones.  Note that any functions in ~/Documents/MATLAB  take precedence over others.  If you keep seeing the following warning  check that you've set the paths correctly:   Warning: Function system has the same name as a MATLAB builtin. We   suggest you rename the function to avoid a potential name conflict.  This warning can occur if the tests folder has been added to the paths  by mistake.  Always set the paths by running `addRigboxPaths` and never  set them manually as some folders should not be visible to MATLAB.</li><li>Check your working directory  MATLAB prioritizes functions found in your working directory over any  others in your path list so try to change into a 'safe' folder before  re-running your code:   pwd % display working directory   cd ~/Documents/MATLAB</li><li>Check your variable names  Make sure your variable names don't shadow a function or package in  Rigbox, for instance if in an experiment definition you create a varible  called `vis`, you will no longer be able to access functions in the +vis  package from within the function:   vis = 23;   img = vis.image(t);   Error: Reference to non-existent field 'image'.</li></ol></div><p><a href="./paths_conflicts.html">Click here</a> for tips on avoiding paths conflicts.</p><h2 id="4">Reverting</h2><p>If these errors only started occuring after updating the code, particularly if you hadn't updated in a long time, try reverting to the previous version of the code.  This can help determine if the update really was the culprit and will allow you to keep using the code on outdated machines.  Previous stable releases can be found on the Github page under releases.  NB: For the most recent stable code always pull directly from the master branch</p><h2 id="5">Posting an issue on Github</h2><p>If you're completely stumped, open an issue on the Rigbox Github page (or alyx-matlab if you think it's related to the Alyx database).  When creating an issue, read the bug report template carefully and be sure to provide as much information as possible.</p><p>If you tracked down the problem but found the error to be confusing or too vague, feel free to post a feature request describing how better to present the error.  This is an area in need of improvment. You could also make a change yourself and submit a pull request.  For more info see CONTRIBUTING.md</p><h2 id="6">FAQ</h2><p>Below are some frequently asked questions and suggestions for fixing them.  Note there are plenty of other FAQs in the various setup scripts with more specific information.</p><h2 id="7">Etc.</h2><p>Author: Miles Wells</p><p>v0.1.1</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Troubleshooting
+% Often finding the source of a problem seems daunghting when faced with a
+% huge Rigbox error stack.  Below are some tips on how to quickly get to
+% the root of the issue and hopefully solve it.
+
+
+%%% Update the code
+% Check what version of the code you're using and that you're up-to-date:
+git.runCmd('status'); % Tells me what branch I'm on
+git.update(0); % Update now
+
+% If you're on a development or feature branch try moving to the master
+% branch, which should be most stable.  
+git.runCmd('checkout master'); git.update(0);
+
+
+%%% Examining the stack
+% Don't be frightened by a wall of red text!  Simply start from the top and
+% work out what the errors might mean and what part of code they came from.
+% The error at the top is the one that ultimately caused the crash.  Try to
+% determine if this is a MATLAB builtin function, e.g. 
+%
+%   Warning: Error occurred while executing the listener callback for event UpdatePanel defined for class eui.SignalsTest:
+%   Error using griddedInterpolant
+%   Interpolation requires at least two sample points in each dimension.
+% 
+%   Error in interp1 (line 151)
+%   F = griddedInterpolant(X,V,method);
+%
+%   TODO Add better example of builtin errors
+%
+% If you're debugging a signals experiment definition, check for the line
+% in your experiment where this particular builtin function was called. NB:
+% You can check whether it is specific to your experiment by running one of
+% the example experiment definitions such as advancedChoiceWorld.m, found
+% in signals/docs/examples.  If this runs without error then you're problem
+% may be specific to your experiment.  You should see the name of your
+% definition function and exp.SignalsExp in the stack if they are involved.
+%
+% If you don't know what a function is, try checking the documentation.
+% Consider the following:
+%
+%  Error using open
+%  Invalid number of channels
+%
+%  Error in audstream.fromSignal (line 16)
+%    id = audstream.open(sampleRate, nChannels, devIdx);
+%  [...]
+%
+% If you're unsure what `audstream.fromSignal` does, try typing `doc
+% audstream`.  This should tell you that the package deals with audio
+% devices in signals.  In this case the issue might be that your audio
+% settings are incorrect.  Take a look at the audio section of
+% `docs\setup\hardware_config.m` and see if you can setup your audio
+% devices differently.
+
+
+%%% Paths
+% By far the most common issue in Rigbox relates to problems with the
+% MATLAB paths.  Check the following:
+% 
+% # Do you have a paths file in the +dat package?
+%  Check the location by running `which dat.paths`.  Check that a file is
+%  on the paths and that it's the correct one.
+% # Check the paths set in this file.
+%  Run `p = dat.paths` and inspect the output.  Perhaps a path is set
+%  incorrectly for one of the fields.  Note that custom rig paths overwrite
+%  those written in your paths file.  More info found in
+%  `using_dat_package` and `paths_template`.
+% # Do you have path conflicts?  
+%  Make sure MATLAB's set paths don't include other functions that have the
+%  same name as Rigbox ones.  Note that any functions in ~/Documents/MATLAB
+%  take precedence over others.  If you keep seeing the following warning
+%  check that you've set the paths correctly: 
+%   Warning: Function system has the same name as a MATLAB builtin. We
+%   suggest you rename the function to avoid a potential name conflict.
+%  This warning can occur if the tests folder has been added to the paths
+%  by mistake.  Always set the paths by running `addRigboxPaths` and never
+%  set them manually as some folders should not be visible to MATLAB.
+% # Check your working directory
+%  MATLAB prioritizes functions found in your working directory over any
+%  others in your path list so try to change into a 'safe' folder before
+%  re-running your code:
+%   pwd % display working directory
+%   cd ~/Documents/MATLAB
+% # Check your variable names
+%  Make sure your variable names don't shadow a function or package in
+%  Rigbox, for instance if in an experiment definition you create a varible
+%  called `vis`, you will no longer be able to access functions in the +vis
+%  package from within the function:
+%   vis = 23;
+%   img = vis.image(t);
+%   Error: Reference to non-existent field 'image'.
+%
+% <./paths_conflicts.html Click here> for tips on avoiding paths conflicts.
+
+
+%%% Reverting
+% If these errors only started occuring after updating the code,
+% particularly if you hadn't updated in a long time, try reverting to the
+% previous version of the code.  This can help determine if the update
+% really was the culprit and will allow you to keep using the code on
+% outdated machines.  Previous stable releases can be found on the Github
+% page under releases.  NB: For the most recent stable code always pull
+% directly from the master branch
+
+
+%%% Posting an issue on Github
+% If you're completely stumped, open an issue on the Rigbox Github page (or
+% alyx-matlab if you think it's related to the Alyx database).  When
+% creating an issue, read the bug report template carefully and be sure to
+% provide as much information as possible.
+%
+% If you tracked down the problem but found the error to be confusing or
+% too vague, feel free to post a feature request describing how better to
+% present the error.  This is an area in need of improvment. You could also
+% make a change yourself and submit a pull request.  For more info see
+% CONTRIBUTING.md
+
+
+%% FAQ
+% Below are some frequently asked questions and suggestions for fixing
+% them.  Note there are plenty of other FAQs in the various setup scripts
+% with more specific information.
+
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.1.1
+
+##### SOURCE END #####
+--></body></html>

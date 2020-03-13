@@ -1,0 +1,178 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>The Signals Cookbook</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="signals_cookbook.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>The Signals Cookbook</h1><!--introduction--><p>This document will contain some solutions to common problems in Signals, and some clever bits of code that you can adapt for your own experiments.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Trial states</a></li><li><a href="#5">Etc.</a></li></ul></div><h2 id="1">Trial states</h2><p>Here's how you work on data collected over a trial and reset this history on new trials.</p><pre class="codeinput"><span class="comment">% For this demonstration we create two signals, 'x' (e.g. an input device),</span>
+<span class="comment">% and a 'newTrial' event.</span>
+[x, newTrial] = sig.test.create;
+
+<span class="comment">% Each new trial update the seed with an empty array, thur reinitializing</span>
+<span class="comment">% our accumulated array.</span>
+seed = newTrial.then([]);
+trialSamps = x.scan(@horzcat, seed);
+</pre><p>A second more memory controlled way of doing this is by using a buffer signal.  Behind the scenes this initializes an array of a given size (in this example 1000 elements).  We then simply create a signal to keep track of the current buffer index and slice the array at a different point each trial.  You can pick any suffciently large number to initialze the buffer with.  It should be larger than the number of samples you expect to collect per trial.</p><pre class="codeinput">n = 1000; <span class="comment">% Number of spaces in the buffer</span>
+hist = x.bufferUpTo(n); <span class="comment">% Collect values of x into buffer</span>
+j = mod(x.map(1).scan(@plus,0), n); <span class="comment">% Current index in buffer</span>
+i = j.at(newTrial); <span class="comment">% Index at new trial</span>
+slice = iff(i &lt; j, i:j, [i:n 1:j]); <span class="comment">% deal with wrap-arounds</span>
+trialSamps = hist(slice);
+</pre><p>Note that it's usually possible to avoid having to do this accumuate a heuristic or summary statistic that can be rest each trial.  For instance if 'x' in the above example was a rotary encoder and you need the total displacement per trial, you could do this without storing the individual values in a buffer:</p><pre class="codeinput"><span class="comment">% Trial displacement is the difference between current position and</span>
+<span class="comment">% position at trial start</span>
+displacement = x - x.at(newTrial);
+
+<span class="comment">% Trial distance is the sum of absolute position changes, resetting to 0</span>
+<span class="comment">% at trial start</span>
+distance = x.delta().abs().scan(@plus, newTrial.then(0));
+</pre><pre class="codeinput">[start, choice, amt] = sig.test.create;
+nPots = 3;
+pots = cell(1,3);
+<span class="keyword">for</span> n = 1:nPots
+  pots{n} = start.map(@(~) randi(1000));
+<span class="keyword">end</span>
+
+f = @minus;
+
+chosenPot = choice.selectFrom(pots{:}); <span class="comment">% when i == 1, y = A, etc.</span>
+choiceHistory = choice.bufferUpTo(1000);
+
+sum(choiceHistory == choice) * amt;
+</pre><h2 id="5">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><p>See also <a href="./using_signals.html">Using Signals</a>.</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% The Signals Cookbook
+% This document will contain some solutions to common problems in Signals,
+% and some clever bits of code that you can adapt for your own experiments.
+
+%% Trial states
+% Here's how you work on data collected over a trial and reset this history
+% on new trials.
+
+% For this demonstration we create two signals, 'x' (e.g. an input device),
+% and a 'newTrial' event.
+[x, newTrial] = sig.test.create;
+
+% Each new trial update the seed with an empty array, thur reinitializing
+% our accumulated array.
+seed = newTrial.then([]);
+trialSamps = x.scan(@horzcat, seed);
+
+%%%
+% A second more memory controlled way of doing this is by using a buffer
+% signal.  Behind the scenes this initializes an array of a given size (in
+% this example 1000 elements).  We then simply create a signal to keep
+% track of the current buffer index and slice the array at a different
+% point each trial.  You can pick any suffciently large number to initialze
+% the buffer with.  It should be larger than the number of samples you
+% expect to collect per trial.
+n = 1000; % Number of spaces in the buffer
+hist = x.bufferUpTo(n); % Collect values of x into buffer
+j = mod(x.map(1).scan(@plus,0), n); % Current index in buffer
+i = j.at(newTrial); % Index at new trial
+slice = iff(i < j, i:j, [i:n 1:j]); % deal with wrap-arounds
+trialSamps = hist(slice);
+
+%%%
+% Note that it's usually possible to avoid having to do this accumuate a
+% heuristic or summary statistic that can be rest each trial.  For instance
+% if 'x' in the above example was a rotary encoder and you need the total
+% displacement per trial, you could do this without storing the individual
+% values in a buffer:
+
+% Trial displacement is the difference between current position and
+% position at trial start
+displacement = x - x.at(newTrial);
+
+% Trial distance is the sum of absolute position changes, resetting to 0
+% at trial start
+distance = x.delta().abs().scan(@plus, newTrial.then(0));
+
+%%
+[start, choice, amt] = sig.test.create;
+nPots = 3;
+pots = cell(1,3);
+for n = 1:nPots
+  pots{n} = start.map(@(~) randi(1000));
+end
+
+f = @minus;
+
+chosenPot = choice.selectFrom(pots{:}); % when i == 1, y = A, etc.
+choiceHistory = choice.bufferUpTo(1000);
+
+sum(choiceHistory == choice) * amt;
+
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.1
+%
+% See also <./using_signals.html Using Signals>.
+
+%#ok<*NASGU>
+##### SOURCE END #####
+--></body></html>

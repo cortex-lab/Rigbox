@@ -1,0 +1,329 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>using_test_gui</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="using_test_gui.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Opening your expDef in the GUI</a></li><li><a href="#3">Default settings</a></li><li><a href="#4">Testing different hardware</a></li><li><a href="#5">Inspecting experiment data</a></li><li><a href="#6">Editing parameters</a></li><li><a href="#7">Live plotting</a></li><li><a href="#8">Experiment panel</a></li><li><a href="#10">Debugging</a></li><li><a href="#11">Notes</a></li><li><a href="#13">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document demonstrates how to test Signals Experiment Definition (expDef) functions in the test GUI.  The GUI opens a PTB window and a Parameter Editor for live-updating parameters.  Before opening the test GUI, loading the debug settings for PTB will make the window transparent. This is particularly useful on small screens(1).</p><pre class="codeinput">PsychDebugWindowConfiguration
+</pre><h2 id="2">Opening your expDef in the GUI</h2><p>Upon calling the <tt>eui.SignalsTest</tt> class with no inputs you will be prompted to select your function from the file browser.  As with <tt>MC</tt>, the default folder location is set by the 'expDefinitions' field in dat.paths.</p><p>You can also call the function with the function name or function handle. The function must be on the MATLAB path.  Let's run one of the example expDef functions: the Burgess wheel task(2) implemented in Signals.</p><pre class="codeinput">PsychDebugWindowConfiguration <span class="comment">% Make window transparant and turn of blocking</span>
+root = fileparts(which(<span class="string">'addRigboxPaths'</span>)); <span class="comment">% Location of Rigbox root dir</span>
+cd(fullfile(root, <span class="string">'signals'</span>, <span class="string">'docs'</span>, <span class="string">'examples'</span>)) <span class="comment">% Change to examples folder</span>
+
+e = eui.SignalsTest(<span class="string">'advancedChoiceWorld'</span>) <span class="comment">% Start GUI and loaded expDef</span>
+<span class="comment">% e = eui.SignalsTest() % Opens a file navigator</span>
+<span class="comment">% e = eui.SignalsTest(@advancedChoiceWorld) % Function handle</span>
+<span class="comment">% e = eui.SignalsTest('full/path/to/expDef.m') % Absolute file path</span>
+</pre><pre class="codeoutput">PTB-INFO: Using modified PortAudio V19.6.0-devel, revision unknown
+
+e = 
+
+  SignalsTest with properties:
+
+          Hardware: [1&times;1 struct]
+               Ref: '2020-03-13_1_test'
+    LoggingDisplay: [1&times;1 UIControl]
+          LivePlot: off
+      ShowExpPanel: on
+      SingleScreen: off
+        Experiment: [0&times;0 exp.test.Signals]
+       ParamEditor: [1&times;1 eui.ParamEditor]
+       LivePlotFig: [0&times;0 Figure]
+          ExpPanel: [0&times;0 eui.ExpPanel]
+         IsRunning: 0
+
+</pre><img vspace="5" hspace="5" src="using_test_gui_01.png" alt=""> <h2 id="3">Default settings</h2><p>The hardware wheel input is simulated in the experiment GUI by the position of the cursor over the stimulus window.  Upon clicking start the 'expStart' event updates with the the experiment ref string.  The ref string can be changed by editing the Ref property before pressing start:</p><pre class="codeinput">e.Ref = dat.constructExpRef(<span class="string">'subject'</span>, now-7, 2);
+
+<span class="comment">% Moving the cursor over the window will move the visual stimulus in the</span>
+<span class="comment">% stimulus window.</span>
+e.Hardware.mouseInput <span class="comment">% Uses the eui.SignalsTest/getMouse method</span>
+</pre><pre class="codeoutput">
+ans = 
+
+  struct with fields:
+
+    readAbsolutePosition: @(varargin)obj.getMouse(varargin{:})
+       MillimetresFactor: 0.1000
+       EncoderResolution: 1
+              ZeroOffset: 0
+                    zero: @nop
+
+</pre><h2 id="4">Testing different hardware</h2><p>A hardware structure can be assigned to the Hardware property of the test object (see <a href="../hardware_config.html#1">configuring hardware devices</a>):</p><pre class="codeinput">e.Hardware = hw.devices;  <span class="comment">% Assign a rig's actual hardware settings</span>
+</pre><h2 id="5">Inspecting experiment data</h2><p>You can view and save the block file data after ending an experiment:</p><pre>   e.Experiment.Data</pre><pre>   ans =</pre><pre>     struct with fields:</pre><pre>                      expDef: 'C:\Users\User\Documents\Github\rigbox\signals\docs\examples\advancedChoiceWorld.m'
+       stimWindowUpdateTimes: [176&times;1 double]
+       stimWindowRenderTimes: [176&times;1 double]
+                     rigName: 'desktop-c6p85d3'
+               startDateTime: 7.3786e+05
+            startDateTimeStr: '11-Mar-2020 00:45:35'
+                   endStatus: 'quit'
+                      expRef: '2020-03-11_1_test'
+          experimentInitTime: 1.6888e+06
+       experimentStartedTime: 1.6888e+06
+         experimentEndedTime: 1.6888e+06
+       experimentCleanupTime: 1.6888e+06
+                      events: [1&times;1 struct]
+                paramsValues: [1&times;12 struct]
+                 paramsTimes: [1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06]
+                      inputs: [1&times;1 struct]
+                     outputs: [1&times;1 struct]
+                 endDateTime: 7.3786e+05
+              endDateTimeStr: '11-Mar-2020 00:46:05'
+                    duration: 29.8610</pre><h2 id="6">Editing parameters</h2><p>Parameters are shown in the <tt>eui.ParamEditor</tt> which is in the 'Parameters' box.  When you select an expDef, the default parameters are loaded.  These are the names and values defined in the try-catch block at the end of the expDef.  Parameters can be edited before pressing start, and saved/loaded using the 'saved sets' section.  Saved sets are located in the mainRepository (set in your <tt>dat.paths</tt> file), in a file called 'parameterProfiles.mat'.  For more info see <a href="./using_parameters.html">Using Parameters</a>.  The parameters can be updated live during the experiment.  In order to do this, check 'Post new parameters on edit' in the options dialog.</p><h2 id="7">Live plotting</h2><p>The values of the event Signals can be plotted live by checking the LivePlot option in the Options popup.</p><p>Clicking on each subplot will cycle through the three plot modes.  The default mode (0) creates a stair plot with each value update marked with an x.  Mode 1 plots each value as a discrete point.  Mode 2 plots a simple line, with now markers to indicate value updates.  Note, if a Signal takes a vector or matrix as its value, the mode is switched to 1 and the size of the array is added as an text annotation.  If the value is a charecter array, the mode is switched to 1 and the value is plotted as a text annotation.  For more details on the plotting function see <tt>sig.test.timeplot</tt>.</p><p>For more about options see the help for the <tt>setOptions</tt> method.</p><pre class="codeinput">e.setOptions <span class="comment">% Open Options dialog</span>
+help <span class="string">eui.SignalsTest/setOptions</span>
+</pre><pre class="codeoutput">  SETOPTIONS callback for 'Options' button
+    Sets various parameters related to monitering the experiment.
+    
+    Options:
+      Plot Signals (off): Plot all events, input and output Signals
+        against time in a separate figure.  Clicking on each subplot 
+        will cycle through the plotting styles.
+      Show experiment panel (on): Instantiate an eui.SignalsExpPanel
+        for monitoring the experiment updates.  The ExpPanelFun
+        parameter defines a custom ExpPanel function to display.  NB:
+        Unlike in MC, the comments box is hidden.
+      View PTB window as single screen (off): When true, the default
+        setting of the window simulates a 4:3 aspect ratio screen.
+      Post new parameters on edit (off): When true, whenever a
+        parameter is edited while the experiment is running, the
+        parameter Signals immediately update.
+ 
+  See also SIG.TEST.TIMEPLOT, EUI.SIGNALSEXPPANEL
+
+</pre><img vspace="5" hspace="5" src="using_test_gui_02.png" alt=""> <h2 id="8">Experiment panel</h2><p>The 'Show experiment panel' option is on by default and instantiates an experiment panel (ExpPanel) that displays Signals updates after the experiment has started.  A custom ExpPanel can be defined via your expDef's 'expPanelFun' parameter, otherwise <tt>eui.SignalsExpPanel</tt> is used.  Note that unlike in <tt>MC</tt>, the comments box is hidden from the panel.  For more info, see <a href="./using_ExpPanel.html">Using ExpPanel</a>.</p><p><img vspace="5" hspace="5" src="expPanel.PNG" alt=""> </p><h2 id="10">Debugging</h2><p>A number of features make debugging a little easier:</p><div><ol><li>The expDef is re-loaded each time you start the experiment, so you can make changes without having to reload the GUI.</li><li>The parameters can be updated live during the experiment (see <a href="#5">Editing Parmeters</a>).</li><li>You can pause and resume the experiment at any time by pressing the <tt>esc</tt> key.  While paused, no Signals are updated.  Note that while the experiment is running you can not use the command prompt, even when paused.</li><li>Signals is run in debug mode, so the error messages printed give more informative information about the exact cause of the error.  Below is an example of a typical Signals error thrown.  The top of the stack gives the name of the function that threw the error, the error message and the line at which it occured.  The 'Caused by' section gives the node ids involved (e.g. node 61 -&gt; node 62), their values at the time of the error (e.g. bombWorld/timeSampler([0; 0.1; 0.09]) ), and the name and line of problem Signal in your expDef, e.g. 'Error in [...]bombWorld.m (line 22)'; pars.preStimulusDelay.map(@bombWorld/timeSampler).  NB: If you call <tt>eui.SignalsTest</tt> with a function handle, the line number of your expDef can not be determined.</li></ol></div><p>Error using bombWorld/timeSampler (line 183) Expected char; was double instead.</p><p>[...]</p><p>Caused by:     Error in Net 1 mapping Node 61 to 62:     function call 'bombWorld/timeSampler' with input [0; 0.1; 0.09] produced an error:      Expected char; was double instead.     Error in C:\Users\User\Documents\Github\rigbox\signals\docs\examples\bombWorld.m (line 22)     pars.preStimulusDelay.map(@bombWorld/timeSampler)</p><h2 id="11">Notes</h2><p>(1) These settings can be cleared by calling the Screen function:</p><pre class="codeinput">clear <span class="string">Screen</span>
+</pre><p>(2) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="13">Etc.</h2><p>Author: Miles Wells</p><p>v0.1.1</p><pre class="codeinput"><span class="comment">% INTERNAL:</span>
+<span class="comment">%  execute code</span>
+<span class="comment">%#ok&lt;*NOPTS,*NASGU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Introduction
+% This document demonstrates how to test Signals Experiment Definition
+% (expDef) functions in the test GUI.  The GUI opens a PTB window and a
+% Parameter Editor for live-updating parameters.  Before opening the test
+% GUI, loading the debug settings for PTB will make the window transparent.
+% This is particularly useful on small screens(1).
+PsychDebugWindowConfiguration
+
+%% Opening your expDef in the GUI
+% Upon calling the |eui.SignalsTest| class with no inputs you will be
+% prompted to select your function from the file browser.  As with |MC|,
+% the default folder location is set by the 'expDefinitions' field in
+% dat.paths.
+%
+% You can also call the function with the function name or function handle.
+% The function must be on the MATLAB path.  Let's run one of the example
+% expDef functions: the Burgess wheel task(2) implemented in Signals.
+PsychDebugWindowConfiguration % Make window transparant and turn of blocking
+root = fileparts(which('addRigboxPaths')); % Location of Rigbox root dir
+cd(fullfile(root, 'signals', 'docs', 'examples')) % Change to examples folder
+
+e = eui.SignalsTest('advancedChoiceWorld') % Start GUI and loaded expDef
+% e = eui.SignalsTest() % Opens a file navigator
+% e = eui.SignalsTest(@advancedChoiceWorld) % Function handle
+% e = eui.SignalsTest('full/path/to/expDef.m') % Absolute file path
+
+%% Default settings
+% The hardware wheel input is simulated in the experiment GUI by the
+% position of the cursor over the stimulus window.  Upon clicking start the
+% 'expStart' event updates with the the experiment ref string.  The ref
+% string can be changed by editing the Ref property before pressing start:
+e.Ref = dat.constructExpRef('subject', now-7, 2);
+
+% Moving the cursor over the window will move the visual stimulus in the
+% stimulus window.
+e.Hardware.mouseInput % Uses the eui.SignalsTest/getMouse method
+
+%% Testing different hardware
+% A hardware structure can be assigned to the Hardware property of the test
+% object (see <../hardware_config.html#1 configuring hardware devices>):
+e.Hardware = hw.devices;  % Assign a rig's actual hardware settings
+
+
+%% Inspecting experiment data
+% You can view and save the block file data after ending an experiment:
+%
+%     e.Experiment.Data
+% 
+%     ans = 
+% 
+%       struct with fields:
+% 
+%                        expDef: 'C:\Users\User\Documents\Github\rigbox\signals\docs\examples\advancedChoiceWorld.m'
+%         stimWindowUpdateTimes: [176×1 double]
+%         stimWindowRenderTimes: [176×1 double]
+%                       rigName: 'desktop-c6p85d3'
+%                 startDateTime: 7.3786e+05
+%              startDateTimeStr: '11-Mar-2020 00:45:35'
+%                     endStatus: 'quit'
+%                        expRef: '2020-03-11_1_test'
+%            experimentInitTime: 1.6888e+06
+%         experimentStartedTime: 1.6888e+06
+%           experimentEndedTime: 1.6888e+06
+%         experimentCleanupTime: 1.6888e+06
+%                        events: [1×1 struct]
+%                  paramsValues: [1×12 struct]
+%                   paramsTimes: [1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06 1.6888e+06]
+%                        inputs: [1×1 struct]
+%                       outputs: [1×1 struct]
+%                   endDateTime: 7.3786e+05
+%                endDateTimeStr: '11-Mar-2020 00:46:05'
+%                      duration: 29.8610
+
+%% Editing parameters
+% Parameters are shown in the |eui.ParamEditor| which is in the
+% 'Parameters' box.  When you select an expDef, the default parameters are
+% loaded.  These are the names and values defined in the try-catch block at
+% the end of the expDef.  Parameters can be edited before pressing start,
+% and saved/loaded using the 'saved sets' section.  Saved sets are located
+% in the mainRepository (set in your |dat.paths| file), in a file called
+% 'parameterProfiles.mat'.  For more info see <./using_parameters.html
+% Using Parameters>.  The parameters can be updated live during the
+% experiment.  In order to do this, check 'Post new parameters on edit' in
+% the options dialog.
+
+%% Live plotting
+% The values of the event Signals can be plotted live by checking the
+% LivePlot option in the Options popup. 
+%
+% Clicking on each subplot will cycle through the three plot modes.  The
+% default mode (0) creates a stair plot with each value update marked with
+% an x.  Mode 1 plots each value as a discrete point.  Mode 2 plots a
+% simple line, with now markers to indicate value updates.  Note, if a
+% Signal takes a vector or matrix as its value, the mode is switched to 1
+% and the size of the array is added as an text annotation.  If the value
+% is a charecter array, the mode is switched to 1 and the value is plotted
+% as a text annotation.  For more details on the plotting function see
+% |sig.test.timeplot|.
+%
+% For more about options see the help for the |setOptions| method.  
+e.setOptions % Open Options dialog
+help eui.SignalsTest/setOptions
+
+%% Experiment panel
+% The 'Show experiment panel' option is on by default and instantiates an
+% experiment panel (ExpPanel) that displays Signals updates after the
+% experiment has started.  A custom ExpPanel can be defined via your
+% expDef's 'expPanelFun' parameter, otherwise |eui.SignalsExpPanel| is
+% used.  Note that unlike in |MC|, the comments box is hidden from the
+% panel.  For more info, see <./using_ExpPanel.html Using ExpPanel>.
+%%
+% 
+% <<expPanel.PNG>>
+% 
+
+
+%% Debugging
+% A number of features make debugging a little easier:
+%
+% # The expDef is re-loaded each time you start the experiment, so you can
+% make changes without having to reload the GUI.
+% # The parameters can be updated live during the experiment (see <#5
+% Editing Parmeters>).
+% # You can pause and resume the experiment at any time by pressing the
+% |esc| key.  While paused, no Signals are updated.  Note that while the
+% experiment is running you can not use the command prompt, even when
+% paused.
+% # Signals is run in debug mode, so the error messages printed give more
+% informative information about the exact cause of the error.  Below is an
+% example of a typical Signals error thrown.  The top of the stack gives
+% the name of the function that threw the error, the error message and the
+% line at which it occured.  The 'Caused by' section gives the node ids
+% involved (e.g. node 61 -> node 62), their values at the time of the error
+% (e.g. bombWorld/timeSampler([0; 0.1; 0.09]) ), and the name and line of
+% problem Signal in your expDef, e.g. 'Error in [...]bombWorld.m (line
+% 22)'; pars.preStimulusDelay.map(@bombWorld/timeSampler).  NB: If you call
+% |eui.SignalsTest| with a function handle, the line number of your expDef
+% can not be determined.
+%
+% Error using bombWorld/timeSampler (line 183)
+% Expected char; was double instead.
+% 
+% [...]
+% 
+% Caused by:
+%     Error in Net 1 mapping Node 61 to 62:
+%     function call 'bombWorld/timeSampler' with input [0; 0.1; 0.09] produced an error:
+%      Expected char; was double instead.
+%     Error in C:\Users\User\Documents\Github\rigbox\signals\docs\examples\bombWorld.m (line 22)
+%     pars.preStimulusDelay.map(@bombWorld/timeSampler)
+%
+
+
+%% Notes
+% (1) These settings can be cleared by calling the Screen function:
+clear Screen
+
+%%%
+% (2) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.1.1
+
+% INTERNAL:
+%  execute code
+%#ok<*NOPTS,*NASGU,*ASGLU>
+
+##### SOURCE END #####
+--></body></html>
