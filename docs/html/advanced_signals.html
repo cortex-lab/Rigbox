@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Advanced Signals</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="advanced_signals.m"><style type="text/css">
+      --><title>Advanced Signals</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-23"><meta name="DC.source" content="advanced_signals.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Advanced Signals</h1><!--introduction--><p>This guide shows you some of the methods available for use outside of the Signals Experiment Framework (i.e. outside of an experiment definition function).  The intention is to explain the machinary of Signals and to demonstrate how to create experiments with a custom UI.  After reading this you should have a near complete understanding of how Signals works and thus how to create any experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Network architecture</a></li><li><a href="#2">Origin signals</a></li><li><a href="#4">Demonstration on sig.Signal/output() method</a></li><li><a href="#6">Timing in signals</a></li><li><a href="#7">Now let's increase the frequency to 10 ms...</a></li><li><a href="#8">When we clear the handle, the value is no longer displayed</a></li><li><a href="#9">Due to the timer, the value of 'time' continues to update</a></li><li><a href="#10">When the timer is stopped, the value of 'time' is no longer updated</a></li><li><a href="#11">Timing 2 - Scheduling</a></li><li><a href="#12">Demonstration of sig.Signal/log() method</a></li><li><a href="#13">Logging signals in a registry</a></li><li><a href="#14">Visual stimuli</a></li><li><a href="#15">Notes</a></li><li><a href="#23">FAQ</a></li><li><a href="#24">I'm seeing '-1 is not a valid network id' in the command prompt</a></li><li><a href="#25">Etc.</a></li></ul></div><h2 id="1">Network architecture</h2><p>Every signal is part of a network, managed through a <tt>sig.Net</tt> object. The network object holds all the ids of all the signals' nodes(1).</p><pre class="codeinput"><span class="comment">% Every signal has an underlying node; a |sig.node.Node| object that</span>
+  </style></head><body><div class="content"><h1>Advanced Signals</h1><!--introduction--><p>This guide shows you some of the methods available for use outside of the Signals Experiment Framework (i.e. outside of an experiment definition function).  The intention is to explain the machinary of Signals and to demonstrate how to create experiments with a custom UI.  After reading this you should have a near complete understanding of how Signals works and thus how to create any experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Network architecture</a></li><li><a href="#2">Origin signals</a></li><li><a href="#4">Demonstration on sig.Signal/output() method</a></li><li><a href="#6">Timing in signals</a></li><li><a href="#7">Now let's increase the frequency to 10 ms...</a></li><li><a href="#8">When we clear the handle, the value is no longer displayed</a></li><li><a href="#9">Due to the timer, the value of 'time' continues to update</a></li><li><a href="#10">When the timer is stopped, the value of 'time' is no longer updated</a></li><li><a href="#11">Timing 2 - Scheduling</a></li><li><a href="#12">Demonstration of sig.Signal/log() method</a></li><li><a href="#13">Logging signals in a registry</a></li><li><a href="#14">Visual stimuli</a></li><li><a href="#15">subscriptable origin signals</a></li><li><a href="#16">flattenStruct</a></li><li><a href="#17">flatten</a></li><li><a href="#18">Implementing new Signal methods</a></li><li><a href="#19">Overloading a MATLAB function</a></li><li><a href="#20">Creating a method with scan</a></li><li><a href="#21">Creating a transfer function</a></li><li><a href="#22">Implementing in mexnet</a></li><li><a href="#23">Notes</a></li><li><a href="#31">FAQ</a></li><li><a href="#32">I'm seeing '-1 is not a valid network id' in the command prompt</a></li><li><a href="#33">Etc.</a></li></ul></div><h2 id="1">Network architecture</h2><p>Every signal is part of a network, managed through a <tt>sig.Net</tt> object. The network object holds all the ids of all the signals' nodes(1).</p><pre class="codeinput"><span class="comment">% Every signal has an underlying node; a |sig.node.Node| object that</span>
 <span class="comment">% contains a number of important properties:</span>
 <span class="comment">% * Net: a handle to the parent network (a sig.Net object)</span>
 <span class="comment">% * Inputs: an array of input nodes (other sig.node.Node objects)</span>
@@ -208,7 +208,7 @@ elements = StructRef;
 elements.grating = grating;
 
 setgraphic(elements);
-</pre><h2 id="15">Notes</h2><p>1. The sig.Net class itself does not store the nodes in its properties, however the underlying mexnet does.  This network is created by calling the MEX function createNetwork.  New nodes are created by calling the MEX function addNode.  This is done for you in the sig.Net and sig.node.Node class constructors.</p><p>2. Two such examples of visualization functions are introduced later, <tt>sig.test.plot</tt> and <tt>sig.test.timeplot</tt>.</p><p>3. Signals objects that are entirely out of scope are cleaned up by MATLAB and the underlying C code.  That is, if a Signal is created, assigned to a variable, and that variable is cleared then the underlying node is deleted if there exist no dependent Signals:</p><pre class="codeinput">net = sig.Net;
+</pre><h2 id="15">subscriptable origin signals</h2><h2 id="16">flattenStruct</h2><h2 id="17">flatten</h2><h2 id="18">Implementing new Signal methods</h2><h2 id="19">Overloading a MATLAB function</h2><h2 id="20">Creating a method with scan</h2><h2 id="21">Creating a transfer function</h2><h2 id="22">Implementing in mexnet</h2><h2 id="23">Notes</h2><p>1. The sig.Net class itself does not store the nodes in its properties, however the underlying mexnet does.  This network is created by calling the MEX function createNetwork.  New nodes are created by calling the MEX function addNode.  This is done for you in the sig.Net and sig.node.Node class constructors.</p><p>2. Two such examples of visualization functions are introduced later, <tt>sig.test.plot</tt> and <tt>sig.test.timeplot</tt>.</p><p>3. Signals objects that are entirely out of scope are cleaned up by MATLAB and the underlying C code.  That is, if a Signal is created, assigned to a variable, and that variable is cleared then the underlying node is deleted if there exist no dependent Signals:</p><pre class="codeinput">net = sig.Net;
 x = net.origin(<span class="string">'orphan'</span>);
 networkInfo(net.Id) <span class="comment">% Net with 1/4000 active nodes</span>
 clear <span class="string">x</span>
@@ -231,8 +231,8 @@ x.post({<span class="string">'bad'</span>}) <span class="comment">% Undefined op
 </pre><p>The below line demonstrates how a signal can change type:</p><pre class="codeinput">s = merge(str, int, mat);
 </pre><p>7. Rule exceptions: merge and scan pars There are only two exceptions to this.</p><p>merge - a merge signal will take the value of the last updated input signal, even if not all of the inputs have taken a value.  To only take values once all are updated, use the at/then methods:</p><pre class="codeinput">s = merge(a, b, c).at(map([a b c], true)); <span class="comment">% map(true) for if a, b, c = 0</span>
 </pre><p>scan - any signals passed into scan after the 'pars' named parameter do not cause the scan function to be re-evaluated when they update.  See section on scan above for more info.</p><pre class="codeinput">s = a.scan(f, [], <span class="string">'pars'</span>, b, c); <span class="comment">% b and c values used in f when a updates</span>
-</pre><h2 id="23">FAQ</h2><h2 id="24">I'm seeing '-1 is not a valid network id' in the command prompt</h2><p>Currently there is a limit of 10 networks at any one time.  If you see this you most likely have more than 10 in your workspace.  Run clear all and then re-run your code.</p><h2 id="25">Etc.</h2><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><h2 id="31">FAQ</h2><h2 id="32">I'm seeing '-1 is not a valid network id' in the command prompt</h2><p>Currently there is a limit of 10 networks at any one time.  If you see this you most likely have more than 10 in your workspace.  Run clear all and then re-run your code.</p><h2 id="33">Etc.</h2><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Advanced Signals
 % This guide shows you some of the methods available for use outside of the
@@ -492,6 +492,21 @@ elements = StructRef;
 elements.grating = grating;
 
 setgraphic(elements);
+
+%% subscriptable origin signals
+
+%% flattenStruct
+
+%% flatten
+
+%% Implementing new Signal methods
+%%% Overloading a MATLAB function
+
+%%% Creating a method with scan
+
+%%% Creating a transfer function
+
+%%% Implementing in mexnet
 
 %% Notes
 % 1. The sig.Net class itself does not store the nodes in its properties,
