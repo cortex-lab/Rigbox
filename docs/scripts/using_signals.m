@@ -705,6 +705,23 @@ S = map(S, pi);
 
 S = S.then(true); % When S updates and is true, return true
 S = then(S, true);
+%%%
+% This dot syntax is very useful for chaining together methods in a way
+% that is terse and readable.  Below we chain together functions to define
+% y as the sum of the absolute changes in x.  This is a core 
+x = sig.test.create('names', "x");
+y = x.delta.abs.skipRepeats.scan(@plus);
+
+disp(['y = ', y.Name]) % y = (*|?x|).scan(@plus)
+
+%%%
+% These chains can be spread over multiple lines using elipses:
+y = x.delta. ...      % Take the change in x
+    abs. ...          % Make it absolute
+    skipRepeats. ...  % Skip if the same as the last value
+    scan(@plus). ...  % Add it to our accumulated value
+    map(@string). ... % Convert to string
+    buffer(10);       % Store the last 10 strings in an array
 
 %% mapn
 % |mapn| takes any number of inputs where the last argument is the function
@@ -738,7 +755,7 @@ imgArr = imgIdx.map2(imgDir, ...
 % current value and its previous value through a function.  This allows one
 % to define signals that have some sort of history to them. This is similar
 % to the fold or reduce functions found in other functional programming
-% applications.
+% applications (see note 6).
 %
 % Below we take the value of |x| and return a value that is the
 % accumulation of |x| by using |scan| with the function |plus|.  The third
@@ -746,11 +763,11 @@ imgArr = imgIdx.map2(imgDir, ...
 % seed is zero, the first time |x| takes a value, |scan| maps zero and the
 % value of |x| respectively to the plus function and assigns the output to
 % Signal |y|. The second time |x| updates, scan maps the current value of
-% |y|, our accumulated value, and the new value of |x| to the plus
+% |y| - our accumulated value - and the new value of |x| to the plus
 % function.
 
 x = sig.test.sequence(ones(1:10), 0.5);
-y = x.scan(@plus, 0); % plus(y, x), or y + x
+y = x.scan(@plus, 0); % y = plus(y, x), or y = y + x
 
 sig.test.timeplot(x, y);
 %%%
@@ -761,7 +778,8 @@ sig.test.timeplot(x, y);
 %% The seed value may be a signal
 % As with other Signals methods, any of the inputs except the function
 % handle may be a Signal.  This is particularly useful as the seed value
-% can act as a reset of the accumulator as demonstrated below.
+% can act as a reset of the accumulator as demonstrated below.  The seed
+% must have a value before the signal will update.
 
 x = sig.test.sequence(1:10, 0.5);
 seed = sig.test.sequence([0 0], 2.5, 'name', 'seed');
@@ -784,20 +802,25 @@ f = @(acc,itm) [itm acc]; % Prepend char to array
 y = x.scan(f, '!');
 
 sig.test.timeplot(x, y); % Plot values
-h = output(y); % Post value to command prompt
+h = output(y); % Print value to command prompt
 %%%
 % 
 % <<./images/scan_example3.png>>
 % 
 
 %%%
-% Below, each time the Signal 'correct' takes a new, truthy value, the
+% Below, each time the Signal 'correct' takes a new, non-zero value, the
 % Signal 'trialSide' updates and scan will call the function horzcat with
-% the values of hist and trialSide like so: |horzcat(hist, trialSide)|,
-% which is syntactically equivalent to [hist trialSide]
-%  hist = trialSide.at(correct).scan(@horzcat);
+% the values of 'hist' and 'trialSide' like so: |horzcat(hist, trialSide)|,
+% which is syntactically equivalent to |[hist trialSide]|:
+hist = trialSide.at(correct).scan(@horzcat);
 
-%% Example: finding the max with scan
+%%%
+% *NB*: that is can also be acheived using the |bufferUpTo| method, however
+% scan gives one the ability to reset the history (i.e. clear the buffer)
+% at any time.
+
+%%% Example: finding the max with scan
 % In this example we use scan to find the maximum value in a signal's
 % history.  The logic is simple: each time signal 'x' updates we compare
 % our previous max value with the new one and save whichever is bigger.
@@ -821,38 +844,36 @@ sig.test.timeplot(x, peak, 'mode', [2, 1], 'tWin', 60);
 % 
 % <<./images/scan_example4.png>>
 % 
+%%% Example: Keep the unique values of a signal
+x = sig.test.sequence(randi(10,1,50), 1);
+xU = x.scan(@union, []);  
+h=output(xU);
+
+%%% Example: Keep track of which values in a set have not yet occurred
+x = sig.test.sequence(randi(10,1,25), 1);
+set = [1 2 4 7];
+remaining = x.scan(@setdiff, set);
+allOccurred = remaining.map(@numel) == 0;
+
+plotArgs = {'tWin', 15, 'mode', [0 1 1]};
+ax = sig.test.timeplot(x, remaining, allOccurred, plotArgs{:});
+ax(2).YLim = [-Inf max(set)+1];
+h = output(remaining);
 
 %% Introducing extra parameters
 % Some functions require any number of extra inputs.  A function can be
-% called with these extra parameters by defining them after the 'pars' name
-% argument.  All arguments after the input 'pars' are treated as extra
+% called with these extra parameters by defining them after the 'Pars' name
+% argument.  All arguments after the 'Pars' input are treated as extra
 % parameters to map to the function when either the input or seed Signals
-% update. 
-x = net.origin('x');
-seed = net.origin('seed');
-seed.post('!'); % Initialize seed with value
-f = @(acc,itm,p1) [itm p1 acc]; % Prepend char to array
-y = x.scan(f, seed, 'pars', '.'); % Pars may be signals or no
-h = y.output();
+% update.  Parameters can be normal values, signals or a mixture of the
+% two.  Below we use the scan function to build a character array with
+% strjoin...
 
-x.post('>')
-
-%% Parameters may be Signals
-% Below we use the scan function to build a character array with strjoin...
-
-x = net.origin('x');
-seed = net.origin('seed');
-seed.post('0'); % Initialize seed with value
-f = @(acc,itm,delim) strjoin({acc, itm}, delim); % Prepend char to array
-% f = @(acc,itm) strjoin({acc, itm}, ' + '); 
+x = sig.test.sequence(["1" "12" "18" "5" "8"], 1);
+seed = sig.test.sequence("0", 1, 'delay', 0); % Initialize seed with value
+f = @(acc,itm,delim) join([acc, itm], delim); % Prepend char to array
 y = x.scan(f, seed, 'pars', ' + '); % Pars may be signals or any other data type
 h = y.output();
-
-x.post('1')
-x.post('12')
-x.post('18')
-x.post('5')
-x.post('8')
 
 %% When pars take new values, accumulator function is not called!
 % Unlike most other Signals, parameters Signals can take new values
@@ -879,33 +900,174 @@ sig.test.timeplot(x, p, y); % Plot values
 % Note that y can not update until all its inputs have values (i.e. we
 % don't see a value until p updates). 
 
+%% Stateful data structures
+% So far we've looked at using scan to accumulate and reduce arrays,
+% however scan is perhaps most useful when applied to structs.  Scan can be
+% used to maintain a data structure which holds information about the
+% current state of things.  For this to work, the seed value should be a
+% struct.
+%
+% In the below example from the choiceWorld example expDef we create a
+% signal array of some things we want to track, namely the final position
+% of the stimulus, the trial number, the response ID and the current bias.
+% This is fed into a function called |updateTrialData| via scan, with the
+% initial value being an empty struct (it could also be a struct with
+% initial values).  The output is an updated struct which we can then apply
+% as parameters to the visual stimulus, etc.  
+
+% Update performance at response
+responseData = vertcat(stimDisplacement, events.trialNum, response, bias);
+trialData = responseData.at(response)... % At response time
+            .scan(@updateTrialData, struct)... % feed in our response data
+            .subscriptable; % mak the output signal subscriptable
+% Set trial contrast (chosen when updating performance)
+trialContrast = trialData.contrast.at(events.newTrial);
+hit = trialData.hit.at(response); % Was it a correct response?
+
+%%%
+% The function as the following signature:
+%  function trialData = updateTrialData(trialData,responseData)
+%   % Update the performance and pick the next contrast
+%   stimDisplacement = responseData(1);
+%   response = responseData(3);
+%   % bias normalized by trial number: abs(bias) = 0:1
+%   bias = responseData(4)/10; 
+%   ...
+%   % Define response type based on trial condition
+%   trialData.hit = response~=3 && stimDisplacement*trialData.trialSide < 0;
+%   % Pick next contrast
+%   trialData.contrast = randsample(contrasts, 1, true, w);
+%   % Pick next side
+%   trialData.side = iff(rand <= 0.5, -1, 1);
+%   ...
+%
+% As you can see the output is a struct of with fields such as 'contrast'
+% which we can then use in our expDef.  In order to do this we use the
+% |subscritable| mathod to make sure that we can use subsref on the
+% trialData signal, i.e. |contrast = trialData.contrast|.  If the field you
+% are referencing doesn't exist, your signal simply won't update.  If and
+% when your scanning function adds the field, the signal will update with
+% that signal's value.  
+%
+% This sort of stateful data structure is particularly handy for
+% implementing a reinforecement learning algorithm, where at given
+% timesteps information is fed into the scanning function, along with the
+% sate of the previous timestamp, and an updated state is returned.  
+
 %% Scan can call any number of functions at the same time
 % Scan can call any number of functions each time one of the input
 % Signals updates.  Only the functions whose named inputs update will be
 % called.  Remember that all functions called by scan have the accumulated
 % value as their first input argument, followed by the input Signal and any
 % parameters following the 'pars' input.
-x = net.origin('x');
-y = net.origin('y');
-z = net.origin('z');
-seed = net.origin('seed');
-seed.post(0); % Initialize seed with value
-f1 = @plus; %
-f2 = @minus; %
-f3 = @times; %
-v = scan(x, f1, y, f2, z, f3, seed); % Pars may be signals or any other data type
-h = v.output();
+%
+% Below is simple example to demonstrate the signature of scan with
+% multiple functions.  When x updates, the |plus| is called with the
+% current value of v and x, and the output is assigned to v.  Likewise,
+% when y updates, |minus| is called with the current value of v and y, and
+% the output is assigned to v.  Any number of functions and can be called
+% in this way.  The seed value and any parameters added are used in all
+% functions, therefore the seed should have the correct identity value (0
+% for plus, 1 for times) and the functions should have the same signature,
+% namely |acc = f(acc, v, p1,...,pN)|.
+f1 = @plus; % v = plus(v, x)
+f2 = @minus; % v = minus(v, y)
+f3 = @times; % v = times(v, z)
+v = scan(x, f1, y, f2, z, f3, seed);
 
-x.post(1) % 1
-x.post(1) % 2
-x.post(1) % 3
+%%%
+% Now let's look at an example with structs.  Below shows how the
+% |setEpochTrigger| method is actually implemented using scan:
+%
+%   % Get functions for the scanning signal
+%   [initState, tUpdate, xUpdate] = sig.scan.quiescienceWatch;
+%   % Each time period updates, return a default state structure
+%   newState = period.map(initState);
+%   % Update state structure each when t and x signals change
+%   state = scan(t.delta(), tUpdate,... scan time increments
+%                x.delta(), xUpdate,... scan x deltas
+%                newState,... initial state on arming trigger
+%                'pars', threshold); % parameters
+%   state = state.subscriptable(); % allow field subscripting on state
+% 
+%   % event signal is derived by monitoring the 'armed' field of state
+%   % for new false values (i.e. when the armed trigger is released).
+%   armed = state.armed;
+%   % Update to true; update only when trigger released
+%   tr = armed.skipRepeats().not().then(true);
+% 
+% Take a look at the functions in |sig.scan.quiescienceWatch| to get an
+% idea of what's happening when each one is called.  Note that |tUpdate|
+% and |xUpdate| each have three inputs, even though |xUpdate| doesn't use
+% the third input, it is always called with the threshold parameter.  
+%
+% By using multiple functions you can compartmentalize your code, where
+% different fields are handled by different functions.  The |+scan| package
+% contains functions that return function handles for use with scan.  In
+% the future more of these general-purpose functions will by added.
+%
+%%% Example: buffer with scan
+% The below code shows how something like the |buffer| method could be
+% inplemented with scan:
+%
+%   buffupto = scan(x, buffering(nSamples), []);
+%   nelem = size(buffupto, 2);
+%   b = buffupto.keepWhen(nelem == nSamples);
+% 
+%   function f = buffering(maxSamples)
+%   %SIG.SCAN.BUFFERING Implement buffering with scan
+%   %   Returns a function which grows an array up to the size of
+%   %   'maxSamples'.
+% 
+%   f = @buffer;
+% 
+%     function buff = buffer(buff, val)
+%       if size(buff, 2) == maxSamples
+%         buff = cat(2, buff(:,2:end), val);
+%       else
+%         buff = [buff val];
+%       end
+%     end
+% 
+%   end
 
-y.post(1) % 2
-y.post(1) % 1
+%% subscriptable
+% The |subscriptable| method allows you to derive signals from ones that
+% have structs as their values.  Subscriptable signals are referenced just
+% like normal structs.  If the field you are subscripting doesn't exist,
+% the resulting signal will simply never update. In the below example we
+% create a couple of signals that update with a struct to demonstrate the
+% behaviour of the |subscriptable| method.
 
-z.post(2) % 2
-z.post(2) % 4
-z.post(2) % 8
+% Create array of structs which our sequence signal will update with
+s = {struct('foo', 1), ...
+     struct('foo', 2, 'bar', 'baz'), ...
+     struct('foo', 3)};
+s = sig.test.sequence(s, 1);
+
+s = s.subscriptable; % Make signal subscriptable
+s.Name = 'subscriptable'; % Rename for display purposes
+foo = s.foo; % This field changes value from 0 to 1
+bar = s.bar; % This field appears after a second
+nil = s.nil; % This field isn't here
+
+% Plot our signals against time
+sig.test.timeplot(s, foo, bar, nil, 'tWin', 2.5, 'mode', 1);
+
+%%%
+% 
+% <<./images/subscriptable_example.png>>
+% 
+%%%
+% *NB*: The subscript referencing happens 'at runtime', i.e. at the time
+% the signal updates. If the subsciptable signal's value is not a struct,
+% an error will be thrown.  If your signal is likely to change datatype,
+% consider using |keepWhen| to filter by datatype before deriving the
+% subscriptable signal:
+%
+%   % Update only when s updates with a value that is a struct
+%   s = s.keepWhen(s.map(@isstruct)).subscriptable()
+%
 
 %% delta
 x = sig.test.sequence(linspace(-1,1,50).^2, 0.1);
@@ -920,10 +1082,10 @@ sig.test.timeplot(x, y, 'mode', 2);
 %% lag
 % |lag| delays a signal by a given number of samples.  To delay by a given
 % amount of time, use |delay|.  The number of samples you delay by must be
-% a whole number and cannot be a signal.  The derived signal will only
-% update once the input signal has updated the minimum number of times.
-% That is, given |b = a.lag(5)|, 'b' will get its first value _after_ 'a'
-% has updated five times.  
+% a positive whole number and cannot be a signal.  The derived signal will
+% only update once the input signal has updated the minimum number of
+% times. That is, given |b = a.lag(5)|, 'b' will get its first value
+% _after_ 'a' has updated five times.
 %
 % In the below example we define a sine wave signal, then derive a signal
 % that lags by a quarter of a period.  Plotting these two against each
@@ -952,11 +1114,19 @@ sig.test.plot(x, y, 'k-'); % Plot x vs y
 %
 
 %% buffer
-% The |buffer| method stores the last n values of its input.  The signal
-% updates when [...] the number of samples to buffer must be a whole number
-% and can't be a signal.
-x = sig.test.sequence(1:5, 1);
-y = x.buffer(3);
+% The |buffer| method stores the last N values of its input.  Each time the
+% dependent signal updates, the new value is appended to an array of
+% previous values. Unlike |bufferUpTo|, |buffer| will only update once all
+% the 'buffer slots' have been filled.  That is, when the input signal has
+% updated N times.  
+%
+% The number of samples to buffer (N) must be a positive whole number. If N
+% = 0 the buffer signal never updates, if N = 1 then the buffer signal
+% updates with the same value as the input signal (to update with the input
+% signal's previous value, use |x.lag(1)|).  If N = 2 the buffer updates
+% with the last two values, and so on.
+x = sig.test.sequence(1:5, 1); % x counts to 5, updating every second
+y = x.buffer(3); % Buffer the last three values of x
 
 h = output(y);
 
@@ -966,8 +1136,61 @@ h = output(y);
 %      2     3     4
 % 
 %      3     4     5
+%%%
+% *NB*: Starting version 1.3, the buffer number may be a signal, in which
+% case updates to this signal will not cause the buffer to change, but the
+% next time the signal that's being buffered updates, the buffer array size
+% is adjusted.  Remember the buffer signal won't update if the number of
+% previous values < the buffer size, N.
+x = sig.test.sequence(1:6, 1); % x counts to 6, updating every second
+n = sig.test.sequence([2, 2, 3, 2, 1], 1); % Keep adjusting the buffer size
+
+b = x.buffer(n);
+h = output(b); % Print the values of b to the command window
+%%%
+%      2     3
+% 
+%      2     3     4
+% 
+%      4     5
+% 
+%      6
+%%%
+% The buffer array is always the result of horizontally concatinating the
+% input values.  Therefore the size of your input signal's value must
+% remain consistant.  You can build an N-D array with the buffer if your
+% input signal's values are vectors or matrices so long as they can be
+% horizontally concatinated.  Below we create a matrix by building up the
+% column arrays:
+x = sig.test.sequence(1:6, 1); % x counts to 6, updating every second
+xT = x.buffer(2).'; % store the last two values transposed to form a 2x1 vector
+y = xT.buffer(3); % Buffer the last three values of xT to form a 2x3 matrix
+
+h = output(y);
+%%%
+%      1     2     3
+%      2     3     4
+% 
+%      2     3     4
+%      3     4     5
+% 
+%      3     4     5
+%      4     5     6
 
 %% bufferUpTo
+% The |bufferUpTo| method stores the last N values of its input.  Each time
+% the dependent signal updates, the new value is appended to an array of
+% previous values. Unlike |buffer|, |bufferUpTo| will update even if the
+% input signal doesn't have N previous values yet.  That is, buffer
+% signal's array will grow until it reaches a length of N, then the oldest
+% values are dropped each time the input signal updates.
+%
+% The number of samples to buffer (N) must be a positive whole number. If N
+% = 0 or 1 then the buffer signal updates with the same value as the input
+% signal (to update with the input signal's previous value, use
+% |x.lag(1)|).  If N = 2 the buffer updates with the last two values, and
+% so on.  If N = Inf, the buffer will grow indefinitely.  *NB*: If the
+% Starting v1.3 if N = 0, the bufferUpTo signal will never update.
 x = sig.test.sequence(1:5, 1);
 y = x.bufferUpTo(3);
 
@@ -983,6 +1206,59 @@ h = output(y);
 %      2     3     4
 % 
 %      3     4     5
+%%%
+% *NB*: Starting version 1.3, the buffer number may be a signal, in which
+% case updates to this signal will not cause the buffer to change, but the
+% next time the signal that's being buffered updates, the buffer array size
+% is adjusted.  
+x = sig.test.sequence(1:6, 1); % x counts to 6, updating every second
+n = sig.test.sequence([2, 2, 3, 2, 1], 1); % Keep adjusting the buffer size
+
+b = x.bufferUpTo(n);
+h = output(b); % Print the values of b to the command window
+%%%
+%      2
+%
+%      2     3
+% 
+%      2     3     4
+% 
+%      4     5
+% 
+%      6
+%%%
+% The buffer array is always the result of horizontally concatinating the
+% input values.  Therefore the size of your input signal's value must
+% remain consistant.  You can build an N-D array with the buffer if your
+% input signal's values are vectors or matrices so long as they can be
+% horizontally concatinated.  Below we create a matrix by building up the
+% column arrays:
+x = sig.test.sequence(1:5, 1); % x counts to 5, updating every second
+xT = x.buffer(2).'; % store the last two values transposed to form a 2x1 vector
+y = xT.bufferUpTo(3); % Buffer the last three values of xT to form a 2x3 matrix
+
+h = output(y);
+%%%
+%      1
+%      2
+% 
+%      1     2
+%      2     3
+% 
+%      1     2     3
+%      2     3     4
+% 
+%      2     3     4
+%      3     4     5
+%%%
+% Signals typecasts values in the same way as native MATLAB, therefore the
+% value type of your input signal can change so long as it is convertible.
+% For example, if a signal updates with doubles followed by a string, the
+% buffer signal will update to contain an array of strings, where all
+% previous values in the array become string representations.  For more
+% info see MATLAB's documentation on
+% <https://uk.mathworks.com/help/matlab/matlab_prog/valid-combinations-of-unlike-classes.html
+% Valid Combinations of Unlike Classes>.
 
 %% to 
 x = sig.test.sequence(true(1,5), 1, 'delay', 1);
@@ -998,6 +1274,19 @@ sig.test.timeplot(x, y, z, 'mode', [1 1 0])
 % 
 
 %% setTrigger
+% tr = set.setTrigger(release) returns a dependent signal that is
+% true only when 'release' evaluates true after 'set' updates.  If
+% release updates a second time after 'set', tr will not update.
+%
+% Inputs:
+%   set - a signal that arms the trigger each time it updates with a
+%     non-zero value
+%   release - when this signal updates with a non-zero value after
+%     'set' updates, 'tr' updates with true
+%
+% Outputs:
+%   tr - a signal that updates to true after 'set' and 'release'
+%     update in that order
 
 f = @(x) 2*x.^2 - x.^3;
 x = sig.test.sequence(f(linspace(-1,2,100)), 0.1);
@@ -1011,40 +1300,104 @@ sig.test.timeplot(arm, x, z, 'mode', [1 2 1], 'tWin', 10);
 % 
 % <<./images/setTrigger_example.png>>
 % 
+% Triggers are useful for when you need to detect the first event occuring
+% after some other event or trial phase.  If you want something to happen
+% once and only once during some phase then setTrigger does the job.
 % Below is a way of defining when a response is made during a trial:
+criteria = abs(wheelMovement)>=60 | trialTimeout;
+responseMade = closedLoopStart.setTrigger(criteria);
+
+%% A note on using signals as triggers
+% Signals can represent values that change over time, such as input devices
+% however they can also be used as triggers to move between events and
+% trial phases.  Below is an example of an experiment where there is an
+% inter-trial delay followed by an enforced quiescience period where the
+% wheel must be held still.  After this, the stimulus period begins where
+% the stimulus is presented.  After some time the closed loop period begins
+% where the stimulus can be controlled by the subject
+
+interTrialDelay = iff(p.interTrialDelay(1) - p.postQuiescentDelay > 0, ...
+  [p.interTrialDelay(1:2) - p.postQuiescentDelay ; p.interTrialDelay(3)], ...
+  p.interTrialDelay);
 % interTrialDelayEnd markes the end of the intertrial delay
-% clickTimes specifies the times at which clicks should occur, based on click rate and duraion
-% quiescentDuration chooses the length of the quiescent period for the tiral
-interTrialDelay = cond(...
-    (p.interTrialDelay(1)-p.postQuiescentDelay)>0, [p.interTrialDelay(1:2)-p.postQuiescentDelay;p.interTrialDelay(3)],...
-     1, p.interTrialDelay);
-interTrialDelayEnd = newTrial.delay(interTrialDelay.map(@(x) min(x(1) + exprnd(x(3)), x(2))));               
-quiescentDuration = p.preStimQuiescentRange.at(interTrialDelayEnd).map(@(x) x(1)+diff(x)*rand);            
-quiescenceWatchEnd = sig.quiescenceWatch(quiescentDuration, t, wheelPosition, p.preStimQuiescentThreshold);  
+interTrialDelayEnd = newTrial.delay(interTrialDelay.map(@rnd.sample));    
+% quiescentDuration chooses the length of the quiescent period for the
+% trial
+quiescentDuration = p.preStimQuiescentRange.map(@rnd.sample).at(interTrialDelayEnd);            
+quiescenceWatchEnd = quiescentDuration.setEpochTrigger(t, wheelPosition, p.preStimQuiescentThreshold);  
 stimPeriodStart = quiescenceWatchEnd.delay(p.postQuiescentDelay);
-closedLoopStart = stimPeriodStart.delay(p.openLoopDuration);   
-wheelOrigin = wheelPosition.at(closedLoopStart);                %Wheel position at closed loop start
-wheelMovement = p.wheelGain*(wheelPosition - wheelOrigin);      %Wheel movement from origin
-trialTimeout = skipRepeats((t-(at(t,stimPeriodStart)) > p.responseWindow)*(p.responseWindow>0));
+closedLoopStart = stimPeriodStart.delay(p.openLoopDuration);
+% Wheel position at closed loop start
+wheelOrigin = wheelPosition.at(closedLoopStart); 
+% Wheel movement from origin
+wheelMovement = p.wheelGain * (wheelPosition - wheelOrigin);
+trialTimeout = (t - t.at(stimPeriodStart) > p.responseWindow) * (p.responseWindow > 0);
+trialTimeout = skipRepeats(trialTimeout);
 responseMade = closedLoopStart.setTrigger(abs(wheelMovement)>=60 | trialTimeout);
 
-
 %% sig.quiescenceWatch
-% The function |sig.quiescenceWatch| is much like |setTrigger|, but both
-% the value and the update time are criteria.
+% The function |sig.quiescenceWatch| is much like |setTrigger|, but with
+% respect to time.  This tests whether the change in some signal over a
+% length of time is less than some threshold amount;
+% 
+% $$\frac{\Delta x}{\Delta t} < threshold$$
 %
+% NB: In version v1.3 the method |setEpochTrigger| will replace the
+% |sig.quiescenceWatch|.  Note that the default threshold for this method
+% is 0, instead of 1.
+
+% Create a signal that represents time
 Fs = 2000;
 t = 0:1/Fs:0.5;
-t = t(1:100);
-x = sin(2*pi*400*t); % A sine wave
-y = sin(2*pi*375*t); % B sine wave ;)
-x = sig.test.sequence(x+y, 0.1);
-t = sig.test.sequence(t, 0.1, 'name', 'time');
+t = t(1:200);
+t = sig.test.sequence(t, 0.1, 'name', 't');
 
-arm = skipRepeats(then(x < 0, 1));
-qevt = sig.quiescenceWatch(arm, t, x, 5);
+% Create an oscillating signal by adding two sine waves
+a = sin(2*pi*400*t); % A sine wave
+b = sin(2*pi*375*t); % Another sine wave
+x = sig.test.sequence(a + b, 0.1);
 
-sig.test.timeplot(t, x, qevt, arm, 'tWin', 20, 'mode', [2 2 1 1]);
+duration = (1/Fs)*5; % The quiescence duration in time samples
+threshold = 1; % x must change by less than this for the length of duration
+
+% A signal that updates around the max of x, arming our epoch trigger.
+% When this updates, its value sets the next epoch duration 
+newPeriod = at(duration, x > 1.8); 
+newPeriod.Name = 'duration'; % Rename it for display purposes
+
+% Create our epoch trigger signal
+tr = newPeriod.setEpochTrigger(t, x, threshold);
+
+sig.test.timeplot(t, x, newPeriod, tr, 'tWin', 20, 'mode', [2 2 1 1]);
+
+%%%
+% 
+% <<./images/setEpochTrigger_example.png>>
+% 
+%%%
+% This method is used for enforcing quiescence periods, where the subject
+% must ramain still for a given period of time. Each time the first input,
+% |newPeriod| updates to a non-zero value, a new quiescence period is
+% enforced.
+%
+% It can also be used as a sort of timeout, for instance if the subject
+% stops interacting for a given amount of time the session could end
+% automatically, or as a dynamic response window where the trial ends when
+% the movement ceases.
+
+% Reset the 60 second timer when the wheel changes
+period = wheel.delta.then(60);
+events.expStop = period.setEpochTrigger(t, wheel);
+
+%%% 
+% The dimention over which quiescence is enforced doesn't need to be time,
+% it could be another input instead.  Likewise, reversing the inputs would
+% impose the oppositeof a quiescence period, where the trigger updates to
+% true when movement reaches threshold within a given amount of time:
+% 
+% $$\frac{\Delta x}{\Delta t} > threshold$$
+%
+tr = threshold.setEpochTrigger(wheel, t, duration)
 
 %% merge
 % The |merge| method takes any number of inputs and returns the value of
@@ -1140,6 +1493,9 @@ x = mod(floor(x), 1*2)
 % and the functions they correspond to can be found
 % <https://uk.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html
 % here>.
+%
+% (6) Specifically, |scan| performs a left fold.  For example for |y =
+% x.scan(@plus, 0) where x := {1,5}| we get |((((0 + 1) + 2) + 3) + 4) + 5|
 
 %% Summary
 % Here are the most important things to remember when writing an
@@ -1198,6 +1554,6 @@ xlim = [-5 5]; ylim = [-5 5];
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.2
+% v0.0.3
 
 %#ok<*NASGU,*NOPTS,*ST2NM>

@@ -10,16 +10,16 @@
 % and a 'newTrial' event.
 [x, newTrial] = sig.test.create;
 
-% Each new trial update the seed with an empty array, thur reinitializing
+% Each new trial update the seed with an empty array, thus reinitializing
 % our accumulated array.
 seed = newTrial.then([]);
 trialSamps = x.scan(@horzcat, seed);
 
 %%%
-% A second more memory controlled way of doing this is by using a buffer
-% signal.  Behind the scenes this initializes an array of a given size (in
-% this example 1000 elements).  We then simply create a signal to keep
-% track of the current buffer index and slice the array at a different
+% A second slightly more memory controlled way of doing this is by using a
+% buffer signal.  Behind the scenes this initializes an array of a given
+% size (in this example 1000 elements).  We then simply create a signal to
+% keep track of the current buffer index and slice the array at a different
 % point each trial.  You can pick any suffciently large number to initialze
 % the buffer with.  It should be larger than the number of samples you
 % expect to collect per trial.

@@ -257,6 +257,21 @@ elements.grating = grating;
 
 setgraphic(elements);
 
+%% subscriptable origin signals
+
+%% flattenStruct
+
+%% flatten
+
+%% Implementing new Signal methods
+%%% Overloading a MATLAB function
+
+%%% Creating a method with scan
+
+%%% Creating a transfer function
+
+%%% Implementing in mexnet
+
 %% Notes
 % 1. The sig.Net class itself does not store the nodes in its properties,
 % however the underlying mexnet does.  This network is created by calling

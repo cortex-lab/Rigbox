@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>The Signals Cookbook</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="signals_cookbook.m"><style type="text/css">
+      --><title>The Signals Cookbook</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-23"><meta name="DC.source" content="signals_cookbook.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -70,11 +70,11 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <span class="comment">% and a 'newTrial' event.</span>
 [x, newTrial] = sig.test.create;
 
-<span class="comment">% Each new trial update the seed with an empty array, thur reinitializing</span>
+<span class="comment">% Each new trial update the seed with an empty array, thus reinitializing</span>
 <span class="comment">% our accumulated array.</span>
 seed = newTrial.then([]);
 trialSamps = x.scan(@horzcat, seed);
-</pre><p>A second more memory controlled way of doing this is by using a buffer signal.  Behind the scenes this initializes an array of a given size (in this example 1000 elements).  We then simply create a signal to keep track of the current buffer index and slice the array at a different point each trial.  You can pick any suffciently large number to initialze the buffer with.  It should be larger than the number of samples you expect to collect per trial.</p><pre class="codeinput">n = 1000; <span class="comment">% Number of spaces in the buffer</span>
+</pre><p>A second slightly more memory controlled way of doing this is by using a buffer signal.  Behind the scenes this initializes an array of a given size (in this example 1000 elements).  We then simply create a signal to keep track of the current buffer index and slice the array at a different point each trial.  You can pick any suffciently large number to initialze the buffer with.  It should be larger than the number of samples you expect to collect per trial.</p><pre class="codeinput">n = 1000; <span class="comment">% Number of spaces in the buffer</span>
 hist = x.bufferUpTo(n); <span class="comment">% Collect values of x into buffer</span>
 j = mod(x.map(1).scan(@plus,0), n); <span class="comment">% Current index in buffer</span>
 i = j.at(newTrial); <span class="comment">% Index at new trial</span>
@@ -101,7 +101,7 @@ choiceHistory = choice.bufferUpTo(1000);
 
 sum(choiceHistory == choice) * amt;
 </pre><h2 id="5">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><p>See also <a href="./using_signals.html">Using Signals</a>.</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% The Signals Cookbook
 % This document will contain some solutions to common problems in Signals,
@@ -115,16 +115,16 @@ sum(choiceHistory == choice) * amt;
 % and a 'newTrial' event.
 [x, newTrial] = sig.test.create;
 
-% Each new trial update the seed with an empty array, thur reinitializing
+% Each new trial update the seed with an empty array, thus reinitializing
 % our accumulated array.
 seed = newTrial.then([]);
 trialSamps = x.scan(@horzcat, seed);
 
 %%%
-% A second more memory controlled way of doing this is by using a buffer
-% signal.  Behind the scenes this initializes an array of a given size (in
-% this example 1000 elements).  We then simply create a signal to keep
-% track of the current buffer index and slice the array at a different
+% A second slightly more memory controlled way of doing this is by using a
+% buffer signal.  Behind the scenes this initializes an array of a given
+% size (in this example 1000 elements).  We then simply create a signal to
+% keep track of the current buffer index and slice the array at a different
 % point each trial.  You can pick any suffciently large number to initialze
 % the buffer with.  It should be larger than the number of samples you
 % expect to collect per trial.
