@@ -321,6 +321,7 @@ for i = 1:numel(T)
     fprintf(fid,'%s\n', T{i});
   end
 end
+fclose(fid);
 end
 
 function changedFiles = changedViaGit(dirPaths)
