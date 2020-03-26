@@ -366,7 +366,10 @@ ax.XLim = [0 200]; ax.YLim = [0 200];
 % <<SignalsPrimer_03.png>>
 %%%
 %
-% Note that with |iff| any and all values can be signals.
+% Note that with |iff| any and all values can be signals.  Also note that
+% |iff| is also a Rigbox function that works outside of signals:
+x = 'd';
+added = iff(ischar(x), @() [x x], @() x + x)
 
 %% cond
 % In order to construct if/elseif statements we use the cond method, where
@@ -649,7 +652,64 @@ z = x.keepWhen(y > .5); % z stops when x stops updating
 sig.test.timeplot(x, y, z, 'mode', [2,2,1], 'tWin', 20);
 
 %%%
-% Try playing with the update times and using |at| vs |keepWhen|
+% Try playing with the update times and using |at| vs |keepWhen|.
+%
+% *NB*: In version 1.3, |keepWhen| can be used in the same way as |filter|.
+% The below lines are equivalent.
+y = x.keepWhen(x > 0);
+y = x.keepWhen('> 0');
+
+%% filter
+% *NB*: This method will be introduced in version 1.3. The |filter| method
+% filters the values of the input based a function.  The function should
+% except a single input and output a logical value.  By default values that
+% evaluate true are kept:
+x = sig.test.sequence(sin(1:.1:10), 0.2);
+y = x.filter(@(x) x > 0);
+
+sig.test.timeplot(x, y, 'mode', [2 1], 'tWin', 20);
+%%%
+% 
+% <<./images/filter_example.png>>
+% 
+%%%
+% The function handle may be a char:
+%  
+%  y = x.filter('isinteger');
+%  y = x.filter(@isinteger); % These two are equivalent
+%
+% For simple logical operators the lefthand side can be omitted:
+% 
+%  y = x.filter('~= 0'); % Keep non-zero values
+%  y = x.filter(@(x) x ~= 0);
+%  y = x.filter('x~=0'); 
+%  y = x.filter(@identity); % These four are equivalent
+%
+% *NB* The same behaviour can be achieved with |keepWhen|.  The below lines
+% are equivalent also:
+%
+%  y = x.keepWhen(x ~= 0);
+%  y = x.keepWhen('~=0');
+%
+% An optional input argument allows you to explicitly set the criterion,
+% which is true by default:
+% 
+%  y = x.filter(@isnan, false); % Keep non-empty values
+%  y = x.filter(@(x) ~isnan(x)); % These two are equivalent
+%  y = x.filter('~isnan(x)'); % A char can be used as long as you use 'x'
+%
+% The criterion may also be a signal, allowing you to keep either the
+% passed or failed values on the fly.  In the below example the positive
+% values are kept only on odd trials:
+%
+%  keepTrue = events.trialNum.mod(2); % False on even trials
+%  y = x.filter('>0', keepTrue);
+%
+% Note that a non-signals filter function is also available in Rigbox:
+
+% fun.partial returns a function with the first argument pre-set
+filter = fun.partial(@fun.filter, @isnan); % equivalent to @(x)fun.filter(@isnan,x)
+[passed, failed] = x.mapn(filter);
 
 %% skipRepeats
 % |skipRepeats| creates a signal that only updates when its input updates
@@ -665,9 +725,8 @@ y = skipRepeats(x);
 sig.test.timeplot(x, y);
 %%%
 % 
-% <<./images/skipRepeats_example1.png>>
+% <<./images/skipRepeats_example.png>>
 % 
-
 %% A signal that updates only once
 % In this next example we show how to define a signal that updates once and
 % only once.  Remember that signals generally update whenever any of their
@@ -718,6 +777,7 @@ disp(['y = ', y.Name]) % y = (*|?x|).scan(@plus)
 % These chains can be spread over multiple lines using elipses:
 y = x.delta. ...      % Take the change in x
     abs. ...          % Make it absolute
+    filter('>10'). ...% Keep only values greater than 10
     skipRepeats. ...  % Skip if the same as the last value
     scan(@plus). ...  % Add it to our accumulated value
     map(@string). ... % Convert to string
@@ -1043,10 +1103,9 @@ v = scan(x, f1, y, f2, z, f3, seed);
 s = {struct('foo', 1), ...
      struct('foo', 2, 'bar', 'baz'), ...
      struct('foo', 3)};
-s = sig.test.sequence(s, 1);
+s = sig.test.sequence(s, 1, 'name', 'subscriptable');
 
 s = s.subscriptable; % Make signal subscriptable
-s.Name = 'subscriptable'; % Rename for display purposes
 foo = s.foo; % This field changes value from 0 to 1
 bar = s.bar; % This field appears after a second
 nil = s.nil; % This field isn't here

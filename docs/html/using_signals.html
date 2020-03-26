@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Writing an experiment definition</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-23"><meta name="DC.source" content="using_signals.m"><style type="text/css">
+      --><title>Writing an experiment definition</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-27"><meta name="DC.source" content="using_signals.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Writing an experiment definition</h1><!--introduction--><p>The purpose of this script is to introduce Signals and guide the reader towards programming in a less procedural way.  After reading this you should will be able to create the experiments you want in Signals, using the <a href="glossary.html">Signals Experiment Framework</a>.  The guide may appear slow at first but sticking with it will greatly reduce the number of errors you will encounter while making your first experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">What are signals?</a></li><li><a href="#4">Relationships between signals</a></li><li><a href="#6">Mathematical expressions</a></li><li><a href="#7">Example 1: cos(x * pi)</a></li><li><a href="#9">Example 2: x -&gt; degrees</a></li><li><a href="#11">Logical operations</a></li><li><a href="#13">mod, floor, ceil</a></li><li><a href="#15">Arrays</a></li><li><a href="#18">Matrix arithmatic</a></li><li><a href="#19">Complicated expressions</a></li><li><a href="#20">Example 1: Upper bound</a></li><li><a href="#22">Example 2: Gabor</a></li><li><a href="#26">A note about Signals variables</a></li><li><a href="#32">Signals only update when all their inputs have have values</a></li><li><a href="#35">Conditional statements</a></li><li><a href="#36">iff</a></li><li><a href="#39">cond</a></li><li><a href="#41">Indexing</a></li><li><a href="#42">Indexing into a Signal</a></li><li><a href="#43">Indexing with a Signal</a></li><li><a href="#45">selectFrom</a></li><li><a href="#47">indexOfFirst</a></li><li><a href="#49">map</a></li><li><a href="#58">Anonymous functions</a></li><li><a href="#61">Example 2: a complex counter</a></li><li><a href="#62">Sampling with map</a></li><li><a href="#63">at</a></li><li><a href="#65">then</a></li><li><a href="#66">Mapping constants</a></li><li><a href="#70">keepWhen</a></li><li><a href="#73">skipRepeats</a></li><li><a href="#75">A signal that updates only once</a></li><li><a href="#78">A note about syntax</a></li><li><a href="#81">mapn</a></li><li><a href="#83">map2</a></li><li><a href="#84">scan</a></li><li><a href="#86">The seed value may be a signal</a></li><li><a href="#88">Growing an array with scan</a></li><li><a href="#92">Example: finding the max with scan</a></li><li><a href="#94">Example: Keep the unique values of a signal</a></li><li><a href="#95">Example: Keep track of which values in a set have not yet occurred</a></li><li><a href="#96">Introducing extra parameters</a></li><li><a href="#97">When pars take new values, accumulator function is not called!</a></li><li><a href="#98">Plot output</a></li><li><a href="#99">Command output</a></li><li><a href="#101">Stateful data structures</a></li><li><a href="#103">Scan can call any number of functions at the same time</a></li><li><a href="#105">Example: buffer with scan</a></li><li><a href="#106">subscriptable</a></li><li><a href="#109">delta</a></li><li><a href="#111">lag</a></li><li><a href="#113">buffer</a></li><li><a href="#119">bufferUpTo</a></li><li><a href="#126">to</a></li><li><a href="#128">setTrigger</a></li><li><a href="#130">A note on using signals as triggers</a></li><li><a href="#131">sig.quiescenceWatch</a></li><li><a href="#135">merge</a></li><li><a href="#138">delay</a></li><li><a href="#140">Notes</a></li><li><a href="#144">Summary</a></li><li><a href="#145">Bonus plot 1</a></li><li><a href="#147">Butterfly curve (transcendental plane curve)</a></li><li><a href="#149">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>The live script that accompanies this document can be found in <tt>signals/docs/turorials/using_signals.m</tt>.  This script allows you to run the blocks of code shown here and plot the values of signals live.  To run a block of code, click on the section of interest and press Ctrl + Enter.</p><p>For the purposes of demonstration we can create signals using the <tt>sig.test.create</tt> function, however in you expDef you can only create new signals based on the function's inputs.  <a href="./expDef_inputs.html">More on this later</a>.</p><pre class="language-matlab"><span class="keyword">function</span> expDefFn(t, events, parameters, vs, inputs, outputs, audio)
+  </style></head><body><div class="content"><h1>Writing an experiment definition</h1><!--introduction--><p>The purpose of this script is to introduce Signals and guide the reader towards programming in a less procedural way.  After reading this you should will be able to create the experiments you want in Signals, using the <a href="glossary.html">Signals Experiment Framework</a>.  The guide may appear slow at first but sticking with it will greatly reduce the number of errors you will encounter while making your first experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">What are signals?</a></li><li><a href="#4">Relationships between signals</a></li><li><a href="#6">Mathematical expressions</a></li><li><a href="#7">Example 1: cos(x * pi)</a></li><li><a href="#9">Example 2: x -&gt; degrees</a></li><li><a href="#11">Logical operations</a></li><li><a href="#13">mod, floor, ceil</a></li><li><a href="#15">Arrays</a></li><li><a href="#18">Matrix arithmatic</a></li><li><a href="#19">Complicated expressions</a></li><li><a href="#20">Example 1: Upper bound</a></li><li><a href="#22">Example 2: Gabor</a></li><li><a href="#26">A note about Signals variables</a></li><li><a href="#32">Signals only update when all their inputs have have values</a></li><li><a href="#35">Conditional statements</a></li><li><a href="#36">iff</a></li><li><a href="#39">cond</a></li><li><a href="#41">Indexing</a></li><li><a href="#42">Indexing into a Signal</a></li><li><a href="#43">Indexing with a Signal</a></li><li><a href="#45">selectFrom</a></li><li><a href="#47">indexOfFirst</a></li><li><a href="#49">map</a></li><li><a href="#58">Anonymous functions</a></li><li><a href="#61">Example 2: a complex counter</a></li><li><a href="#62">Sampling with map</a></li><li><a href="#63">at</a></li><li><a href="#65">then</a></li><li><a href="#66">Mapping constants</a></li><li><a href="#70">keepWhen</a></li><li><a href="#73">filter</a></li><li><a href="#76">skipRepeats</a></li><li><a href="#78">A signal that updates only once</a></li><li><a href="#81">A note about syntax</a></li><li><a href="#84">mapn</a></li><li><a href="#86">map2</a></li><li><a href="#87">scan</a></li><li><a href="#89">The seed value may be a signal</a></li><li><a href="#91">Growing an array with scan</a></li><li><a href="#95">Example: finding the max with scan</a></li><li><a href="#97">Example: Keep the unique values of a signal</a></li><li><a href="#98">Example: Keep track of which values in a set have not yet occurred</a></li><li><a href="#99">Introducing extra parameters</a></li><li><a href="#100">When pars take new values, accumulator function is not called!</a></li><li><a href="#101">Plot output</a></li><li><a href="#102">Command output</a></li><li><a href="#104">Stateful data structures</a></li><li><a href="#106">Scan can call any number of functions at the same time</a></li><li><a href="#108">Example: buffer with scan</a></li><li><a href="#109">subscriptable</a></li><li><a href="#112">delta</a></li><li><a href="#114">lag</a></li><li><a href="#116">buffer</a></li><li><a href="#122">bufferUpTo</a></li><li><a href="#129">to</a></li><li><a href="#131">setTrigger</a></li><li><a href="#133">A note on using signals as triggers</a></li><li><a href="#134">sig.quiescenceWatch</a></li><li><a href="#138">merge</a></li><li><a href="#141">delay</a></li><li><a href="#143">Notes</a></li><li><a href="#147">Summary</a></li><li><a href="#148">Bonus plot 1</a></li><li><a href="#150">Butterfly curve (transcendental plane curve)</a></li><li><a href="#152">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>The live script that accompanies this document can be found in <tt>signals/docs/turorials/using_signals.m</tt>.  This script allows you to run the blocks of code shown here and plot the values of signals live.  To run a block of code, click on the section of interest and press Ctrl + Enter.</p><p>For the purposes of demonstration we can create signals using the <tt>sig.test.create</tt> function, however in you expDef you can only create new signals based on the function's inputs.  <a href="./expDef_inputs.html">More on this later</a>.</p><pre class="language-matlab"><span class="keyword">function</span> expDefFn(t, events, parameters, vs, inputs, outputs, audio)
 </pre><p>Example expDefs can be found in <tt>signals/docs/examples</tt>.</p><p>The bracketed numbers throughout this script correspond to notes at the bottom of the file.  The notes provide extra details about Signals. Please report any errors as GitHub issues. Thanks!</p><h2 id="2">What are signals?</h2><p>When writing an experiment definition (expDef), it's useful to think of signals as nodes in a network, where each node holds a value that is the result of passing its inputs through a function.  This network is 'reactive' in that whenever a node's input values change, the node recalculates its own value.  In this way changes propergate through the network asynchronously.</p><p><img vspace="5" hspace="5" src="./images/node_graph_phase.png" alt=""> </p><p>The above node graph would be the result of writing the following:</p><pre class="codeinput">t = sig.test.create; <span class="comment">% returns a signal</span>
 phi = 2*pi*3*t; <span class="comment">% a new signal, phi, that defines phase over time, t</span>
 </pre><p>Imagine the signal <tt>t</tt> was a clock signal whose value was a timestamp that constantly updated.  The signal <tt>phi</tt> then updates it's value every time <tt>t</tt> updates.  In this way you can express relationships between variables in an easy to read, mathematical way.  One of these variables happens to be time, which means you can define how variables change over time.  In the above example we have defined a temporal fequency in Hz (the value of <tt>t</tt> in your expDef is in seconds from experiment start).  This can then be applied to a visual stimulus property, as shown in the example expDef <tt>driftingGrating.m</tt>.</p><h2 id="4">Relationships between signals</h2><p>Let's start to build a reactive network.  Most of MATLAB's elementary operators work with signals in the way you would expect, as demonstrated below.  You may type ctrl + enter to run this entire secion at once...</p><pre class="codeinput">x = sig.test.sequence(-50:1:50, 0.05); <span class="comment">% Create a sequence</span>
@@ -198,7 +198,9 @@ y = iff(x &gt; 100, 100, x);
 <span class="comment">% Plot the results</span>
 ax = sig.test.plot(x, y, <span class="string">'k-'</span>);
 ax.XLim = [0 200]; ax.YLim = [0 200];
-</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_03.png" alt=""> </p><p>Note that with <tt>iff</tt> any and all values can be signals.</p><h2 id="39">cond</h2><p>In order to construct if/elseif statements we use the cond method, where the input arguments are predicate-value pairs, for example:</p><pre class="codeinput">y = cond( <span class="keyword">...</span>
+</pre><p><img vspace="5" hspace="5" src="SignalsPrimer_03.png" alt=""> </p><p>Note that with <tt>iff</tt> any and all values can be signals.  Also note that <tt>iff</tt> is also a Rigbox function that works outside of signals:</p><pre class="codeinput">x = <span class="string">'d'</span>;
+added = iff(ischar(x), @() [x x], @() x + x)
+</pre><h2 id="39">cond</h2><p>In order to construct if/elseif statements we use the cond method, where the input arguments are predicate-value pairs, for example:</p><pre class="codeinput">y = cond( <span class="keyword">...</span>
   x &lt; 5, a, <span class="keyword">...</span><span class="comment"> % If x &lt; 5, y = a</span>
   x &gt; 10, b); <span class="comment">% elseif x &gt; 10, y = b</span>
 </pre><p>As with all Signals, the condition statement is re-evaluated when any of its inputs update.  Any input may be a Signal or otherwise, and if no predicate evaluates as true then the resulting Signal does not update.</p><p>Likewise, the condition statement will terminate if any of the source Signals of a particular pred-value pair do not yet have values.  Also, in the same way as a traditional if-elseif statement, each predicate is only evaluated so long as the previous one was false.  For this reason, the order of pred-value pairs is particularly important. Below we use true as the last predicate to ensure that the resulting Signal always has a value.</p><pre class="codeinput">y = cond(<span class="keyword">...</span>
@@ -274,12 +276,28 @@ y = sig.test.sequence(sin(1:.1:20), 0.1, <span class="string">'name'</span>, <sp
 <span class="comment">% z = x.at(y &gt; .5); % z stops when y stops updating</span>
 z = x.keepWhen(y &gt; .5); <span class="comment">% z stops when x stops updating</span>
 sig.test.timeplot(x, y, z, <span class="string">'mode'</span>, [2,2,1], <span class="string">'tWin'</span>, 20);
-</pre><p>Try playing with the update times and using <tt>at</tt> vs <tt>keepWhen</tt></p><h2 id="73">skipRepeats</h2><p><tt>skipRepeats</tt> creates a signal that only updates when its input updates with an unique value.  That is, when its input updates with a value that is different to the previous one.  It is important to realize that signals can repeatedly update with the same value, and each time a signal updates it can cause other signals to update depending on how you define them.  Below is an example of <tt>skipRepeats</tt>:</p><pre class="codeinput">seq = [0 0 2 2 0 0 -2 -2 0 0 0];
+</pre><p>Try playing with the update times and using <tt>at</tt> vs <tt>keepWhen</tt>.</p><p><b>NB</b>: In version 1.3, <tt>keepWhen</tt> can be used in the same way as <tt>filter</tt>. The below lines are equivalent.</p><pre class="codeinput">y = x.keepWhen(x &gt; 0);
+y = x.keepWhen(<span class="string">'&gt; 0'</span>);
+</pre><h2 id="73">filter</h2><p><b>NB</b>: This method will be introduced in version 1.3. The <tt>filter</tt> method filters the values of the input based a function.  The function should except a single input and output a logical value.  By default values that evaluate true are kept:</p><pre class="codeinput">x = sig.test.sequence(sin(1:.1:10), 0.2);
+y = x.filter(@(x) x &gt; 0);
+
+sig.test.timeplot(x, y, <span class="string">'mode'</span>, [2 1], <span class="string">'tWin'</span>, 20);
+</pre><p><img vspace="5" hspace="5" src="./images/filter_example.png" alt=""> </p><p>The function handle may be a char:</p><pre>y = x.filter('isinteger');
+y = x.filter(@isinteger); % These two are equivalent</pre><p>For simple logical operators the lefthand side can be omitted:</p><pre>y = x.filter('~= 0'); % Keep non-zero values
+y = x.filter(@(x) x ~= 0);
+y = x.filter('x~=0'); % These three are equivalent</pre><p><b>NB</b> The same behaviour can be achieved with <tt>keepWhen</tt>.  The below lines are equivalent also:</p><pre>y = x.keepWhen(x ~= 0);
+y = x.keepWhen('~=0');</pre><p>An optional input argument allows you to explicitly set the criterion, which is true by default:</p><pre>y = x.filter(@isnan, false); % Keep non-empty values
+y = x.filter(@(x) ~isnan(x)); % These two are equivalent
+y = x.filter('~isnan(x)'); % A char can be used as long as you use 'x'</pre><p>The criterion may also be a signal, allowing you to keep either the passed or failed values on the fly.  In the below example the positive values are kept only on odd trials:</p><pre>keepTrue = events.trialNum.mod(2); % False on even trials
+y = x.filter('&gt;0', keepTrue);</pre><p>Note that a non-signals filter function is also available in Rigbox:</p><pre class="codeinput"><span class="comment">% fun.partial returns a function with the first argument pre-set</span>
+filter = fun.partial(@fun.filter, @isnan); <span class="comment">% equivalent to @(x)fun.filter(@isnan,x)</span>
+[passed, failed] = x.mapn(filter);
+</pre><h2 id="76">skipRepeats</h2><p><tt>skipRepeats</tt> creates a signal that only updates when its input updates with an unique value.  That is, when its input updates with a value that is different to the previous one.  It is important to realize that signals can repeatedly update with the same value, and each time a signal updates it can cause other signals to update depending on how you define them.  Below is an example of <tt>skipRepeats</tt>:</p><pre class="codeinput">seq = [0 0 2 2 0 0 -2 -2 0 0 0];
 x = sig.test.sequence(seq, 0.45);
 y = skipRepeats(x);
 
 sig.test.timeplot(x, y);
-</pre><p><img vspace="5" hspace="5" src="./images/skipRepeats_example1.png" alt=""> </p><h2 id="75">A signal that updates only once</h2><p>In this next example we show how to define a signal that updates once and only once.  Remember that signals generally update whenever any of their inputs update.  Sometimes you want to use a value such as a user defined parameter to calculate something, but you don't want it to change at all.</p><pre class="codeinput">x = sig.test.sequence(0:9, 0.5);
+</pre><p><img vspace="5" hspace="5" src="./images/skipRepeats_example.png" alt=""> </p><h2 id="78">A signal that updates only once</h2><p>In this next example we show how to define a signal that updates once and only once.  Remember that signals generally update whenever any of their inputs update.  Sometimes you want to use a value such as a user defined parameter to calculate something, but you don't want it to change at all.</p><pre class="codeinput">x = sig.test.sequence(0:9, 0.5);
 y = x.map(true).skipRepeats.then(x);
 
 sig.test.timeplot(x, y, <span class="string">'mode'</span>, 1);
@@ -287,7 +305,7 @@ sig.test.timeplot(x, y, <span class="string">'mode'</span>, 1);
 y = x.keepWhen(x == 0).skipRepeats;
 
 sig.test.timeplot(x, y, <span class="string">'mode'</span>, 1);
-</pre><h2 id="78">A note about syntax</h2><p>When we type something like <tt>A.map(pi)</tt> we are actually calling the method <tt>map</tt> on the object <tt>A</tt>.  A method is another word for a function associated with an object.  Signals are objects, and so far we've looked at various methods (i.e. functions) that work with them.  In MATLAB there are two ways of calling a method on an object, one is the traditional way e.g. <tt>func(obj)</tt> and the other is the 'dot syntax' way: <tt>obj.func()</tt>. These are the same, and you can use them interchangeably so long as 'obj' is a Signal (and not something else, like a double or logical).  Below are pairs of lines that are equivalent:</p><pre class="codeinput">S = sig.test.create; <span class="comment">% create a Signal object</span>
+</pre><h2 id="81">A note about syntax</h2><p>When we type something like <tt>A.map(pi)</tt> we are actually calling the method <tt>map</tt> on the object <tt>A</tt>.  A method is another word for a function associated with an object.  Signals are objects, and so far we've looked at various methods (i.e. functions) that work with them.  In MATLAB there are two ways of calling a method on an object, one is the traditional way e.g. <tt>func(obj)</tt> and the other is the 'dot syntax' way: <tt>obj.func()</tt>. These are the same, and you can use them interchangeably so long as 'obj' is a Signal (and not something else, like a double or logical).  Below are pairs of lines that are equivalent:</p><pre class="codeinput">S = sig.test.create; <span class="comment">% create a Signal object</span>
 
 S = S.map(pi); <span class="comment">% Map values of S -&gt; pi, e.g. when S updates, return pi</span>
 S = map(S, pi);
@@ -300,35 +318,36 @@ y = x.delta.abs.skipRepeats.scan(@plus);
 disp([<span class="string">'y = '</span>, y.Name]) <span class="comment">% y = (*|?x|).scan(@plus)</span>
 </pre><p>These chains can be spread over multiple lines using elipses:</p><pre class="codeinput">y = x.delta. <span class="keyword">...</span><span class="comment">      % Take the change in x</span>
     abs. <span class="keyword">...</span><span class="comment">          % Make it absolute</span>
+    filter(<span class="string">'&gt;10'</span>). <span class="keyword">...</span><span class="comment">% Keep only values greater than 10</span>
     skipRepeats. <span class="keyword">...</span><span class="comment">  % Skip if the same as the last value</span>
     scan(@plus). <span class="keyword">...</span><span class="comment">  % Add it to our accumulated value</span>
     map(@string). <span class="keyword">...</span><span class="comment"> % Convert to string</span>
     buffer(10);       <span class="comment">% Store the last 10 strings in an array</span>
-</pre><h2 id="81">mapn</h2><p><tt>mapn</tt> takes any number of inputs where the last argument is the function that the other arguments are mapped to.  The arguments may be any combination of signals and normal data types.  It's important to note that the below 'dot notation' only works if the first input is a Signal, otherwise you must use the traditional syntax e.g. <tt>mapn(5, A, @f)</tt></p><pre class="codeinput">B = A.mapn(n, 1, @repmat); <span class="comment">% repmat(A,n,1)</span>
+</pre><h2 id="84">mapn</h2><p><tt>mapn</tt> takes any number of inputs where the last argument is the function that the other arguments are mapped to.  The arguments may be any combination of signals and normal data types.  It's important to note that the below 'dot notation' only works if the first input is a Signal, otherwise you must use the traditional syntax e.g. <tt>mapn(5, A, @f)</tt></p><pre class="codeinput">B = A.mapn(n, 1, @repmat); <span class="comment">% repmat(A,n,1)</span>
 </pre><p><b>NB</b>: <tt>map</tt> will only assign the first output argument of the function to the resulting Signal.  Mapping to a variable number of output Signals is only possible with mapn:</p><pre class="codeinput">a = sig.test.create; <span class="comment">% if a = rand(1,1,3,1,2)</span>
 [b, n] = a.mapn(@shiftdim); <span class="comment">% b is 3-by-1-by-2 and n is 2.</span>
 c = b.mapn(-n, @shiftdim);  <span class="comment">% c == a.</span>
 d = a.mapn(3, @shiftdim);   <span class="comment">% d is 1-by-2-by-1-by-1-by-3.</span>
-</pre><h2 id="83">map2</h2><p>If you have exactly two inputs to a function you can also used <tt>map2</tt>. This method behaves identically to <tt>mapn</tt> but can apply a function to only two inputs.  Also <tt>map2</tt> cannot create more than one resulting signal.</p><pre class="codeinput"><span class="comment">% Load an image from a directory of images with the name pattern imgN.mat:</span>
+</pre><h2 id="86">map2</h2><p>If you have exactly two inputs to a function you can also used <tt>map2</tt>. This method behaves identically to <tt>mapn</tt> but can apply a function to only two inputs.  Also <tt>map2</tt> cannot create more than one resulting signal.</p><pre class="codeinput"><span class="comment">% Load an image from a directory of images with the name pattern imgN.mat:</span>
 imgArr = imgIdx.map2(imgDir, <span class="keyword">...</span>
   @(num,dir)loadVar(fullfile(dir, [<span class="string">'img'</span>, num2str(num), <span class="string">'.mat'</span>]), <span class="string">'img'</span>));
-</pre><h2 id="84">scan</h2><p><tt>scan</tt> is a very powerful method that allows one to map a signal's current value and its previous value through a function.  This allows one to define signals that have some sort of history to them. This is similar to the fold or reduce functions found in other functional programming applications (see note 6).</p><p>Below we take the value of <tt>x</tt> and return a value that is the accumulation of <tt>x</tt> by using <tt>scan</tt> with the function <tt>plus</tt>.  The third argument to <tt>scan</tt> here is the initial, or 'seed', value.  Because the seed is zero, the first time <tt>x</tt> takes a value, <tt>scan</tt> maps zero and the value of <tt>x</tt> respectively to the plus function and assigns the output to Signal <tt>y</tt>. The second time <tt>x</tt> updates, scan maps the current value of <tt>y</tt> - our accumulated value - and the new value of <tt>x</tt> to the plus function.</p><pre class="codeinput">x = sig.test.sequence(ones(1:10), 0.5);
+</pre><h2 id="87">scan</h2><p><tt>scan</tt> is a very powerful method that allows one to map a signal's current value and its previous value through a function.  This allows one to define signals that have some sort of history to them. This is similar to the fold or reduce functions found in other functional programming applications (see note 6).</p><p>Below we take the value of <tt>x</tt> and return a value that is the accumulation of <tt>x</tt> by using <tt>scan</tt> with the function <tt>plus</tt>.  The third argument to <tt>scan</tt> here is the initial, or 'seed', value.  Because the seed is zero, the first time <tt>x</tt> takes a value, <tt>scan</tt> maps zero and the value of <tt>x</tt> respectively to the plus function and assigns the output to Signal <tt>y</tt>. The second time <tt>x</tt> updates, scan maps the current value of <tt>y</tt> - our accumulated value - and the new value of <tt>x</tt> to the plus function.</p><pre class="codeinput">x = sig.test.sequence(ones(1:10), 0.5);
 y = x.scan(@plus, 0); <span class="comment">% y = plus(y, x), or y = y + x</span>
 
 sig.test.timeplot(x, y);
-</pre><p><img vspace="5" hspace="5" src="./images/scan_example1.png" alt=""> </p><h2 id="86">The seed value may be a signal</h2><p>As with other Signals methods, any of the inputs except the function handle may be a Signal.  This is particularly useful as the seed value can act as a reset of the accumulator as demonstrated below.  The seed must have a value before the signal will update.</p><pre class="codeinput">x = sig.test.sequence(1:10, 0.5);
+</pre><p><img vspace="5" hspace="5" src="./images/scan_example1.png" alt=""> </p><h2 id="89">The seed value may be a signal</h2><p>As with other Signals methods, any of the inputs except the function handle may be a Signal.  This is particularly useful as the seed value can act as a reset of the accumulator as demonstrated below.  The seed must have a value before the signal will update.</p><pre class="codeinput">x = sig.test.sequence(1:10, 0.5);
 seed = sig.test.sequence([0 0], 2.5, <span class="string">'name'</span>, <span class="string">'seed'</span>);
 y = x.scan(@plus, seed);
 
 sig.test.timeplot(x, y, seed, <span class="string">'mode'</span>, [0 0 1]);
-</pre><p><img vspace="5" hspace="5" src="./images/scan_example2.png" alt=""> </p><h2 id="88">Growing an array with scan</h2><p>You can grow arrays with scan by using the vertcat or horzcat functions. The accumulated/seed value is always the first argument to the function, however, you can of course assign them to temporary variables beforehand as below.</p><pre class="codeinput">x = sig.test.sequence(<span class="string">'olleh'</span>, 1);
+</pre><p><img vspace="5" hspace="5" src="./images/scan_example2.png" alt=""> </p><h2 id="91">Growing an array with scan</h2><p>You can grow arrays with scan by using the vertcat or horzcat functions. The accumulated/seed value is always the first argument to the function, however, you can of course assign them to temporary variables beforehand as below.</p><pre class="codeinput">x = sig.test.sequence(<span class="string">'olleh'</span>, 1);
 f = @(acc,itm) [itm acc]; <span class="comment">% Prepend char to array</span>
 y = x.scan(f, <span class="string">'!'</span>);
 
 sig.test.timeplot(x, y); <span class="comment">% Plot values</span>
 h = output(y); <span class="comment">% Print value to command prompt</span>
 </pre><p><img vspace="5" hspace="5" src="./images/scan_example3.png" alt=""> </p><p>Below, each time the Signal 'correct' takes a new, non-zero value, the Signal 'trialSide' updates and scan will call the function horzcat with the values of 'hist' and 'trialSide' like so: <tt>horzcat(hist, trialSide)</tt>, which is syntactically equivalent to <tt>[hist trialSide]</tt>:</p><pre class="codeinput">hist = trialSide.at(correct).scan(@horzcat);
-</pre><p><b>NB</b>: that is can also be acheived using the <tt>bufferUpTo</tt> method, however scan gives one the ability to reset the history (i.e. clear the buffer) at any time.</p><h2 id="92">Example: finding the max with scan</h2><p>In this example we use scan to find the maximum value in a signal's history.  The logic is simple: each time signal 'x' updates we compare our previous max value with the new one and save whichever is bigger.</p><p>Let x be an amplitude modulated signal defined as:</p><p><img src="using_signals_eq13815438658259374597.png" alt="$c(t) = A(t)sin(2\pi f_{c} t)$"></p><pre class="codeinput">f_c = 8; <span class="comment">% Carrier frequency in Hz</span>
+</pre><p><b>NB</b>: that is can also be acheived using the <tt>bufferUpTo</tt> method, however scan gives one the ability to reset the history (i.e. clear the buffer) at any time.</p><h2 id="95">Example: finding the max with scan</h2><p>In this example we use scan to find the maximum value in a signal's history.  The logic is simple: each time signal 'x' updates we compare our previous max value with the new one and save whichever is bigger.</p><p>Let x be an amplitude modulated signal defined as:</p><p><img src="using_signals_eq13815438658259374597.png" alt="$c(t) = A(t)sin(2\pi f_{c} t)$"></p><pre class="codeinput">f_c = 8; <span class="comment">% Carrier frequency in Hz</span>
 t = 0:1/1000:0.5; <span class="comment">% Determine time values at 1000 Hz sampling rate</span>
 A = t <span class="comment">% Information signal (linear function)</span>
 
@@ -339,10 +358,10 @@ x = sig.test.sequence(AM, 0.1);
 peak = x.scan(@max, -Inf).skipRepeats();
 
 sig.test.timeplot(x, peak, <span class="string">'mode'</span>, [2, 1], <span class="string">'tWin'</span>, 60);
-</pre><p><img vspace="5" hspace="5" src="./images/scan_example4.png" alt=""> </p><h2 id="94">Example: Keep the unique values of a signal</h2><pre class="codeinput">x = sig.test.sequence(randi(10,1,50), 1);
+</pre><p><img vspace="5" hspace="5" src="./images/scan_example4.png" alt=""> </p><h2 id="97">Example: Keep the unique values of a signal</h2><pre class="codeinput">x = sig.test.sequence(randi(10,1,50), 1);
 xU = x.scan(@union, []);
 h=output(xU);
-</pre><h2 id="95">Example: Keep track of which values in a set have not yet occurred</h2><pre class="codeinput">x = sig.test.sequence(randi(10,1,25), 1);
+</pre><h2 id="98">Example: Keep track of which values in a set have not yet occurred</h2><pre class="codeinput">x = sig.test.sequence(randi(10,1,25), 1);
 set = [1 2 4 7];
 remaining = x.scan(@setdiff, set);
 allOccurred = remaining.map(@numel) == 0;
@@ -351,12 +370,12 @@ plotArgs = {<span class="string">'tWin'</span>, 15, <span class="string">'mode'<
 ax = sig.test.timeplot(x, remaining, allOccurred, plotArgs{:});
 ax(2).YLim = [-Inf max(set)+1];
 h = output(remaining);
-</pre><h2 id="96">Introducing extra parameters</h2><p>Some functions require any number of extra inputs.  A function can be called with these extra parameters by defining them after the 'Pars' name argument.  All arguments after the 'Pars' input are treated as extra parameters to map to the function when either the input or seed Signals update.  Parameters can be normal values, signals or a mixture of the two.  Below we use the scan function to build a character array with strjoin...</p><pre class="codeinput">x = sig.test.sequence([<span class="string">"1"</span> <span class="string">"12"</span> <span class="string">"18"</span> <span class="string">"5"</span> <span class="string">"8"</span>], 1);
+</pre><h2 id="99">Introducing extra parameters</h2><p>Some functions require any number of extra inputs.  A function can be called with these extra parameters by defining them after the 'Pars' name argument.  All arguments after the 'Pars' input are treated as extra parameters to map to the function when either the input or seed Signals update.  Parameters can be normal values, signals or a mixture of the two.  Below we use the scan function to build a character array with strjoin...</p><pre class="codeinput">x = sig.test.sequence([<span class="string">"1"</span> <span class="string">"12"</span> <span class="string">"18"</span> <span class="string">"5"</span> <span class="string">"8"</span>], 1);
 seed = sig.test.sequence(<span class="string">"0"</span>, 1, <span class="string">'delay'</span>, 0); <span class="comment">% Initialize seed with value</span>
 f = @(acc,itm,delim) join([acc, itm], delim); <span class="comment">% Prepend char to array</span>
 y = x.scan(f, seed, <span class="string">'pars'</span>, <span class="string">' + '</span>); <span class="comment">% Pars may be signals or any other data type</span>
 h = y.output();
-</pre><h2 id="97">When pars take new values, accumulator function is not called!</h2><p>Unlike most other Signals, parameters Signals can take new values without causing the function to be called.  Below we define a Signal, p, into which we can post the delimiter for the function strjoin.</p><pre class="codeinput">x = sig.test.sequence(randi(10,1,5), 1); <span class="comment">% Some random numbers from 1-10</span>
+</pre><h2 id="100">When pars take new values, accumulator function is not called!</h2><p>Unlike most other Signals, parameters Signals can take new values without causing the function to be called.  Below we define a Signal, p, into which we can post the delimiter for the function strjoin.</p><pre class="codeinput">x = sig.test.sequence(randi(10,1,5), 1); <span class="comment">% Some random numbers from 1-10</span>
 p = sig.test.sequence(<span class="string">'+-'</span>, 1, <span class="string">'name'</span>, <span class="string">'op'</span>); <span class="comment">% Some operators</span>
 init = <span class="string">'0'</span>; <span class="comment">% The seed value</span>
 f = @(acc,itm,delim) strjoin({acc, num2str(itm)}, delim); <span class="comment">% Prepend char to array</span>
@@ -364,10 +383,10 @@ y = x.scan(f, init, <span class="string">'pars'</span>, p); <span class="comment
 
 h = y.output(); <span class="comment">% Output to the command window</span>
 sig.test.timeplot(x, p, y); <span class="comment">% Plot values</span>
-</pre><h2 id="98">Plot output</h2><p><img vspace="5" hspace="5" src="./images/scan_example5.png" alt=""> </p><h2 id="99">Command output</h2><pre>   0+1
+</pre><h2 id="101">Plot output</h2><p><img vspace="5" hspace="5" src="./images/scan_example5.png" alt=""> </p><h2 id="102">Command output</h2><pre>   0+1
    0+1-10
    0+1-10-8
-   0+1-10-8-8</pre><p>Note that y can not update until all its inputs have values (i.e. we don't see a value until p updates).</p><h2 id="101">Stateful data structures</h2><p>So far we've looked at using scan to accumulate and reduce arrays, however scan is perhaps most useful when applied to structs.  Scan can be used to maintain a data structure which holds information about the current state of things.  For this to work, the seed value should be a struct.</p><p>In the below example from the choiceWorld example expDef we create a signal array of some things we want to track, namely the final position of the stimulus, the trial number, the response ID and the current bias. This is fed into a function called <tt>updateTrialData</tt> via scan, with the initial value being an empty struct (it could also be a struct with initial values).  The output is an updated struct which we can then apply as parameters to the visual stimulus, etc.</p><pre class="codeinput"><span class="comment">% Update performance at response</span>
+   0+1-10-8-8</pre><p>Note that y can not update until all its inputs have values (i.e. we don't see a value until p updates).</p><h2 id="104">Stateful data structures</h2><p>So far we've looked at using scan to accumulate and reduce arrays, however scan is perhaps most useful when applied to structs.  Scan can be used to maintain a data structure which holds information about the current state of things.  For this to work, the seed value should be a struct.</p><p>In the below example from the choiceWorld example expDef we create a signal array of some things we want to track, namely the final position of the stimulus, the trial number, the response ID and the current bias. This is fed into a function called <tt>updateTrialData</tt> via scan, with the initial value being an empty struct (it could also be a struct with initial values).  The output is an updated struct which we can then apply as parameters to the visual stimulus, etc.</p><pre class="codeinput"><span class="comment">% Update performance at response</span>
 responseData = vertcat(stimDisplacement, events.trialNum, response, bias);
 trialData = responseData.at(response)<span class="keyword">...</span><span class="comment"> % At response time</span>
             .scan(@updateTrialData, struct)<span class="keyword">...</span><span class="comment"> % feed in our response data</span>
@@ -375,7 +394,7 @@ trialData = responseData.at(response)<span class="keyword">...</span><span class
 <span class="comment">% Set trial contrast (chosen when updating performance)</span>
 trialContrast = trialData.contrast.at(events.newTrial);
 hit = trialData.hit.at(response); <span class="comment">% Was it a correct response?</span>
-</pre><p>The function as the following signature:  function trialData = updateTrialData(trialData,responseData)   % Update the performance and pick the next contrast   stimDisplacement = responseData(1);   response = responseData(3);   % bias normalized by trial number: abs(bias) = 0:1   bias = responseData(4)/10;   ...   % Define response type based on trial condition   trialData.hit = response~=3 &amp;&amp; stimDisplacement*trialData.trialSide &lt; 0;   % Pick next contrast   trialData.contrast = randsample(contrasts, 1, true, w);   % Pick next side   trialData.side = iff(rand &lt;= 0.5, -1, 1);   ...</p><p>As you can see the output is a struct of with fields such as 'contrast' which we can then use in our expDef.  In order to do this we use the <tt>subscritable</tt> mathod to make sure that we can use subsref on the trialData signal, i.e. <tt>contrast = trialData.contrast</tt>.  If the field you are referencing doesn't exist, your signal simply won't update.  If and when your scanning function adds the field, the signal will update with that signal's value.</p><p>This sort of stateful data structure is particularly handy for implementing a reinforecement learning algorithm, where at given timesteps information is fed into the scanning function, along with the sate of the previous timestamp, and an updated state is returned.</p><h2 id="103">Scan can call any number of functions at the same time</h2><p>Scan can call any number of functions each time one of the input Signals updates.  Only the functions whose named inputs update will be called.  Remember that all functions called by scan have the accumulated value as their first input argument, followed by the input Signal and any parameters following the 'pars' input.</p><p>Below is simple example to demonstrate the signature of scan with multiple functions.  When x updates, the <tt>plus</tt> is called with the current value of v and x, and the output is assigned to v.  Likewise, when y updates, <tt>minus</tt> is called with the current value of v and y, and the output is assigned to v.  Any number of functions and can be called in this way.  The seed value and any parameters added are used in all functions, therefore the seed should have the correct identity value (0 for plus, 1 for times) and the functions should have the same signature, namely <tt>acc = f(acc, v, p1,...,pN)</tt>.</p><pre class="codeinput">f1 = @plus; <span class="comment">% v = plus(v, x)</span>
+</pre><p>The function as the following signature:  function trialData = updateTrialData(trialData,responseData)   % Update the performance and pick the next contrast   stimDisplacement = responseData(1);   response = responseData(3);   % bias normalized by trial number: abs(bias) = 0:1   bias = responseData(4)/10;   ...   % Define response type based on trial condition   trialData.hit = response~=3 &amp;&amp; stimDisplacement*trialData.trialSide &lt; 0;   % Pick next contrast   trialData.contrast = randsample(contrasts, 1, true, w);   % Pick next side   trialData.side = iff(rand &lt;= 0.5, -1, 1);   ...</p><p>As you can see the output is a struct of with fields such as 'contrast' which we can then use in our expDef.  In order to do this we use the <tt>subscritable</tt> mathod to make sure that we can use subsref on the trialData signal, i.e. <tt>contrast = trialData.contrast</tt>.  If the field you are referencing doesn't exist, your signal simply won't update.  If and when your scanning function adds the field, the signal will update with that signal's value.</p><p>This sort of stateful data structure is particularly handy for implementing a reinforecement learning algorithm, where at given timesteps information is fed into the scanning function, along with the sate of the previous timestamp, and an updated state is returned.</p><h2 id="106">Scan can call any number of functions at the same time</h2><p>Scan can call any number of functions each time one of the input Signals updates.  Only the functions whose named inputs update will be called.  Remember that all functions called by scan have the accumulated value as their first input argument, followed by the input Signal and any parameters following the 'pars' input.</p><p>Below is simple example to demonstrate the signature of scan with multiple functions.  When x updates, the <tt>plus</tt> is called with the current value of v and x, and the output is assigned to v.  Likewise, when y updates, <tt>minus</tt> is called with the current value of v and y, and the output is assigned to v.  Any number of functions and can be called in this way.  The seed value and any parameters added are used in all functions, therefore the seed should have the correct identity value (0 for plus, 1 for times) and the functions should have the same signature, namely <tt>acc = f(acc, v, p1,...,pN)</tt>.</p><pre class="codeinput">f1 = @plus; <span class="comment">% v = plus(v, x)</span>
 f2 = @minus; <span class="comment">% v = minus(v, y)</span>
 f3 = @times; <span class="comment">% v = times(v, z)</span>
 v = scan(x, f1, y, f2, z, f3, seed);
@@ -394,7 +413,7 @@ state = state.subscriptable(); <span class="comment">% allow field subscripting 
 armed = state.armed;
 <span class="comment">% Update to true; update only when trigger released</span>
 tr = armed.skipRepeats().not().then(true);
-</pre><p>Take a look at the functions in <tt>sig.scan.quiescienceWatch</tt> to get an idea of what's happening when each one is called.  Note that <tt>tUpdate</tt> and <tt>xUpdate</tt> each have three inputs, even though <tt>xUpdate</tt> doesn't use the third input, it is always called with the threshold parameter.</p><p>By using multiple functions you can compartmentalize your code, where different fields are handled by different functions.  The <tt>+scan</tt> package contains functions that return function handles for use with scan.  In the future more of these general-purpose functions will by added.</p><h2 id="105">Example: buffer with scan</h2><p>The below code shows how something like the <tt>buffer</tt> method could be inplemented with scan:</p><pre class="language-matlab">buffupto = scan(x, buffering(nSamples), []);
+</pre><p>Take a look at the functions in <tt>sig.scan.quiescienceWatch</tt> to get an idea of what's happening when each one is called.  Note that <tt>tUpdate</tt> and <tt>xUpdate</tt> each have three inputs, even though <tt>xUpdate</tt> doesn't use the third input, it is always called with the threshold parameter.</p><p>By using multiple functions you can compartmentalize your code, where different fields are handled by different functions.  The <tt>+scan</tt> package contains functions that return function handles for use with scan.  In the future more of these general-purpose functions will by added.</p><h2 id="108">Example: buffer with scan</h2><p>The below code shows how something like the <tt>buffer</tt> method could be inplemented with scan:</p><pre class="language-matlab">buffupto = scan(x, buffering(nSamples), []);
 nelem = size(buffupto, 2);
 b = buffupto.keepWhen(nelem == nSamples);
 </pre><pre class="language-matlab"><span class="keyword">function</span> f = buffering(maxSamples)
@@ -409,14 +428,13 @@ b = buffupto.keepWhen(nelem == nSamples);
        buff = [buff val];
      end
    end</pre><pre class="language-matlab"><span class="keyword">end</span>
-</pre><h2 id="106">subscriptable</h2><p>The <tt>subscriptable</tt> method allows you to derive signals from ones that have structs as their values.  Subscriptable signals are referenced just like normal structs.  If the field you are subscripting doesn't exist, the resulting signal will simply never update. In the below example we create a couple of signals that update with a struct to demonstrate the behaviour of the <tt>subscriptable</tt> method.</p><pre class="codeinput"><span class="comment">% Create array of structs which our sequence signal will update with</span>
+</pre><h2 id="109">subscriptable</h2><p>The <tt>subscriptable</tt> method allows you to derive signals from ones that have structs as their values.  Subscriptable signals are referenced just like normal structs.  If the field you are subscripting doesn't exist, the resulting signal will simply never update. In the below example we create a couple of signals that update with a struct to demonstrate the behaviour of the <tt>subscriptable</tt> method.</p><pre class="codeinput"><span class="comment">% Create array of structs which our sequence signal will update with</span>
 s = {struct(<span class="string">'foo'</span>, 1), <span class="keyword">...</span>
      struct(<span class="string">'foo'</span>, 2, <span class="string">'bar'</span>, <span class="string">'baz'</span>), <span class="keyword">...</span>
      struct(<span class="string">'foo'</span>, 3)};
-s = sig.test.sequence(s, 1);
+s = sig.test.sequence(s, 1, <span class="string">'name'</span>, <span class="string">'subscriptable'</span>);
 
 s = s.subscriptable; <span class="comment">% Make signal subscriptable</span>
-s.Name = <span class="string">'subscriptable'</span>; <span class="comment">% Rename for display purposes</span>
 foo = s.foo; <span class="comment">% This field changes value from 0 to 1</span>
 bar = s.bar; <span class="comment">% This field appears after a second</span>
 nil = s.nil; <span class="comment">% This field isn't here</span>
@@ -425,11 +443,11 @@ nil = s.nil; <span class="comment">% This field isn't here</span>
 sig.test.timeplot(s, foo, bar, nil, <span class="string">'tWin'</span>, 2.5, <span class="string">'mode'</span>, 1);
 </pre><p><img vspace="5" hspace="5" src="./images/subscriptable_example.png" alt=""> </p><p><b>NB</b>: The subscript referencing happens 'at runtime', i.e. at the time the signal updates. If the subsciptable signal's value is not a struct, an error will be thrown.  If your signal is likely to change datatype, consider using <tt>keepWhen</tt> to filter by datatype before deriving the subscriptable signal:</p><pre class="language-matlab"><span class="comment">% Update only when s updates with a value that is a struct</span>
 s = s.keepWhen(s.map(@isstruct)).subscriptable()
-</pre><h2 id="109">delta</h2><pre class="codeinput">x = sig.test.sequence(linspace(-1,1,50).^2, 0.1);
+</pre><h2 id="112">delta</h2><pre class="codeinput">x = sig.test.sequence(linspace(-1,1,50).^2, 0.1);
 y = delta(x);
 
 sig.test.timeplot(x, y, <span class="string">'mode'</span>, 2);
-</pre><p><img vspace="5" hspace="5" src="./images/delta_example.png" alt=""> </p><h2 id="111">lag</h2><p><tt>lag</tt> delays a signal by a given number of samples.  To delay by a given amount of time, use <tt>delay</tt>.  The number of samples you delay by must be a positive whole number and cannot be a signal.  The derived signal will only update once the input signal has updated the minimum number of times. That is, given <tt>b = a.lag(5)</tt>, 'b' will get its first value <i>after</i> 'a' has updated five times.</p><p>In the below example we define a sine wave signal, then derive a signal that lags by a quarter of a period.  Plotting these two against each other results in a circle.</p><pre class="codeinput">f = 2; <span class="comment">% Frequency in Hz</span>
+</pre><p><img vspace="5" hspace="5" src="./images/delta_example.png" alt=""> </p><h2 id="114">lag</h2><p><tt>lag</tt> delays a signal by a given number of samples.  To delay by a given amount of time, use <tt>delay</tt>.  The number of samples you delay by must be a positive whole number and cannot be a signal.  The derived signal will only update once the input signal has updated the minimum number of times. That is, given <tt>b = a.lag(5)</tt>, 'b' will get its first value <i>after</i> 'a' has updated five times.</p><p>In the below example we define a sine wave signal, then derive a signal that lags by a quarter of a period.  Plotting these two against each other results in a circle.</p><pre class="codeinput">f = 2; <span class="comment">% Frequency in Hz</span>
 Fs = 100; <span class="comment">% Samples per second</span>
 t = 0 : 1/Fs : 2/f; <span class="comment">% 2 periods</span>
 
@@ -447,7 +465,7 @@ sig.test.plot(x, y, <span class="string">'k-'</span>); <span class="comment">% P
     <img src="./images/lag_example1.png" alt="x, y vs t">
     <img src="./images/lag_example2.png" alt="x vs y">
   </div>
-</p><h2 id="113">buffer</h2><p>The <tt>buffer</tt> method stores the last N values of its input.  Each time the dependent signal updates, the new value is appended to an array of previous values. Unlike <tt>bufferUpTo</tt>, <tt>buffer</tt> will only update once all the 'buffer slots' have been filled.  That is, when the input signal has updated N times.</p><p>The number of samples to buffer (N) must be a positive whole number. If N = 0 the buffer signal never updates, if N = 1 then the buffer signal updates with the same value as the input signal (to update with the input signal's previous value, use <tt>x.lag(1)</tt>).  If N = 2 the buffer updates with the last two values, and so on.</p><pre class="codeinput">x = sig.test.sequence(1:5, 1); <span class="comment">% x counts to 5, updating every second</span>
+</p><h2 id="116">buffer</h2><p>The <tt>buffer</tt> method stores the last N values of its input.  Each time the dependent signal updates, the new value is appended to an array of previous values. Unlike <tt>bufferUpTo</tt>, <tt>buffer</tt> will only update once all the 'buffer slots' have been filled.  That is, when the input signal has updated N times.</p><p>The number of samples to buffer (N) must be a positive whole number. If N = 0 the buffer signal never updates, if N = 1 then the buffer signal updates with the same value as the input signal (to update with the input signal's previous value, use <tt>x.lag(1)</tt>).  If N = 2 the buffer updates with the last two values, and so on.</p><pre class="codeinput">x = sig.test.sequence(1:5, 1); <span class="comment">% x counts to 5, updating every second</span>
 y = x.buffer(3); <span class="comment">% Buffer the last three values of x</span>
 
 h = output(y);
@@ -464,7 +482,7 @@ h = output(y);
 </pre><pre>    1     2     3
     2     3     4</pre><pre>    2     3     4
     3     4     5</pre><pre>    3     4     5
-    4     5     6</pre><h2 id="119">bufferUpTo</h2><p>The <tt>bufferUpTo</tt> method stores the last N values of its input.  Each time the dependent signal updates, the new value is appended to an array of previous values. Unlike <tt>buffer</tt>, <tt>bufferUpTo</tt> will update even if the input signal doesn't have N previous values yet.  That is, buffer signal's array will grow until it reaches a length of N, then the oldest values are dropped each time the input signal updates.</p><p>The number of samples to buffer (N) must be a positive whole number. If N = 0 or 1 then the buffer signal updates with the same value as the input signal (to update with the input signal's previous value, use <tt>x.lag(1)</tt>).  If N = 2 the buffer updates with the last two values, and so on.  If N = Inf, the buffer will grow indefinitely.  <b>NB</b>: If the Starting v1.3 if N = 0, the bufferUpTo signal will never update.</p><pre class="codeinput">x = sig.test.sequence(1:5, 1);
+    4     5     6</pre><h2 id="122">bufferUpTo</h2><p>The <tt>bufferUpTo</tt> method stores the last N values of its input.  Each time the dependent signal updates, the new value is appended to an array of previous values. Unlike <tt>buffer</tt>, <tt>bufferUpTo</tt> will update even if the input signal doesn't have N previous values yet.  That is, buffer signal's array will grow until it reaches a length of N, then the oldest values are dropped each time the input signal updates.</p><p>The number of samples to buffer (N) must be a positive whole number. If N = 0 or 1 then the buffer signal updates with the same value as the input signal (to update with the input signal's previous value, use <tt>x.lag(1)</tt>).  If N = 2 the buffer updates with the last two values, and so on.  If N = Inf, the buffer will grow indefinitely.  <b>NB</b>: If the Starting v1.3 if N = 0, the bufferUpTo signal will never update.</p><pre class="codeinput">x = sig.test.sequence(1:5, 1);
 y = x.bufferUpTo(3);
 
 h = output(y);
@@ -482,13 +500,13 @@ h = output(y);
     2</pre><pre>    1     2
     2     3</pre><pre>    1     2     3
     2     3     4</pre><pre>    2     3     4
-    3     4     5</pre><p>Signals typecasts values in the same way as native MATLAB, therefore the value type of your input signal can change so long as it is convertible. For example, if a signal updates with doubles followed by a string, the buffer signal will update to contain an array of strings, where all previous values in the array become string representations.  For more info see MATLAB's documentation on <a href="https://uk.mathworks.com/help/matlab/matlab_prog/valid-combinations-of-unlike-classes.html">Valid Combinations of Unlike Classes</a>.</p><h2 id="126">to</h2><pre class="codeinput">x = sig.test.sequence(true(1,5), 1, <span class="string">'delay'</span>, 1);
+    3     4     5</pre><p>Signals typecasts values in the same way as native MATLAB, therefore the value type of your input signal can change so long as it is convertible. For example, if a signal updates with doubles followed by a string, the buffer signal will update to contain an array of strings, where all previous values in the array become string representations.  For more info see MATLAB's documentation on <a href="https://uk.mathworks.com/help/matlab/matlab_prog/valid-combinations-of-unlike-classes.html">Valid Combinations of Unlike Classes</a>.</p><h2 id="129">to</h2><pre class="codeinput">x = sig.test.sequence(true(1,5), 1, <span class="string">'delay'</span>, 1);
 y = sig.test.sequence(true(1,5), 1, <span class="string">'delay'</span>, 1.5, <span class="string">'name'</span>, <span class="string">'y'</span>);
 
 z = x.to(y);
 
 sig.test.timeplot(x, y, z, <span class="string">'mode'</span>, [1 1 0])
-</pre><p><img vspace="5" hspace="5" src="./images/to_example1.png" alt=""> </p><h2 id="128">setTrigger</h2><p>tr = set.setTrigger(release) returns a dependent signal that is true only when 'release' evaluates true after 'set' updates.  If release updates a second time after 'set', tr will not update.</p><p>Inputs:   set - a signal that arms the trigger each time it updates with a     non-zero value   release - when this signal updates with a non-zero value after     'set' updates, 'tr' updates with true</p><p>Outputs:   tr - a signal that updates to true after 'set' and 'release'     update in that order</p><pre class="codeinput">f = @(x) 2*x.^2 - x.^3;
+</pre><p><img vspace="5" hspace="5" src="./images/to_example1.png" alt=""> </p><h2 id="131">setTrigger</h2><p>tr = set.setTrigger(release) returns a dependent signal that is true only when 'release' evaluates true after 'set' updates.  If release updates a second time after 'set', tr will not update.</p><p>Inputs:   set - a signal that arms the trigger each time it updates with a     non-zero value   release - when this signal updates with a non-zero value after     'set' updates, 'tr' updates with true</p><p>Outputs:   tr - a signal that updates to true after 'set' and 'release'     update in that order</p><pre class="codeinput">f = @(x) 2*x.^2 - x.^3;
 x = sig.test.sequence(f(linspace(-1,2,100)), 0.1);
 arm = skipRepeats(x &lt; 1);
 
@@ -497,7 +515,7 @@ z = arm.setTrigger(x &gt; 1);
 sig.test.timeplot(arm, x, z, <span class="string">'mode'</span>, [1 2 1], <span class="string">'tWin'</span>, 10);
 </pre><p><img vspace="5" hspace="5" src="./images/setTrigger_example.png" alt=""> </p><p>Triggers are useful for when you need to detect the first event occuring after some other event or trial phase.  If you want something to happen once and only once during some phase then setTrigger does the job. Below is a way of defining when a response is made during a trial:</p><pre class="codeinput">criteria = abs(wheelMovement)&gt;=60 | trialTimeout;
 responseMade = closedLoopStart.setTrigger(criteria);
-</pre><h2 id="130">A note on using signals as triggers</h2><p>Signals can represent values that change over time, such as input devices however they can also be used as triggers to move between events and trial phases.  Below is an example of an experiment where there is an inter-trial delay followed by an enforced quiescience period where the wheel must be held still.  After this, the stimulus period begins where the stimulus is presented.  After some time the closed loop period begins where the stimulus can be controlled by the subject</p><pre class="codeinput">interTrialDelay = iff(p.interTrialDelay(1) - p.postQuiescentDelay &gt; 0, <span class="keyword">...</span>
+</pre><h2 id="133">A note on using signals as triggers</h2><p>Signals can represent values that change over time, such as input devices however they can also be used as triggers to move between events and trial phases.  Below is an example of an experiment where there is an inter-trial delay followed by an enforced quiescience period where the wheel must be held still.  After this, the stimulus period begins where the stimulus is presented.  After some time the closed loop period begins where the stimulus can be controlled by the subject</p><pre class="codeinput">interTrialDelay = iff(p.interTrialDelay(1) - p.postQuiescentDelay &gt; 0, <span class="keyword">...</span>
   [p.interTrialDelay(1:2) - p.postQuiescentDelay ; p.interTrialDelay(3)], <span class="keyword">...</span>
   p.interTrialDelay);
 <span class="comment">% interTrialDelayEnd markes the end of the intertrial delay</span>
@@ -515,7 +533,7 @@ wheelMovement = p.wheelGain * (wheelPosition - wheelOrigin);
 trialTimeout = (t - t.at(stimPeriodStart) &gt; p.responseWindow) * (p.responseWindow &gt; 0);
 trialTimeout = skipRepeats(trialTimeout);
 responseMade = closedLoopStart.setTrigger(abs(wheelMovement)&gt;=60 | trialTimeout);
-</pre><h2 id="131">sig.quiescenceWatch</h2><p>The function <tt>sig.quiescenceWatch</tt> is much like <tt>setTrigger</tt>, but with respect to time.  This tests whether the change in some signal over a length of time is less than some threshold amount;</p><p><img src="using_signals_eq14854557375451074805.png" alt="$$\frac{\Delta x}{\Delta t} < threshold$$"></p><p>NB: In version v1.3 the method <tt>setEpochTrigger</tt> will replace the <tt>sig.quiescenceWatch</tt>.  Note that the default threshold for this method is 0, instead of 1.</p><pre class="codeinput"><span class="comment">% Create a signal that represents time</span>
+</pre><h2 id="134">sig.quiescenceWatch</h2><p>The function <tt>sig.quiescenceWatch</tt> is much like <tt>setTrigger</tt>, but with respect to time.  This tests whether the change in some signal over a length of time is less than some threshold amount;</p><p><img src="using_signals_eq14854557375451074805.png" alt="$$\frac{\Delta x}{\Delta t} < threshold$$"></p><p>NB: In version v1.3 the method <tt>setEpochTrigger</tt> will replace the <tt>sig.quiescenceWatch</tt>.  Note that the default threshold for this method is 0, instead of 1.</p><pre class="codeinput"><span class="comment">% Create a signal that represents time</span>
 Fs = 2000;
 t = 0:1/Fs:0.5;
 t = t(1:200);
@@ -542,7 +560,7 @@ sig.test.timeplot(t, x, newPeriod, tr, <span class="string">'tWin'</span>, 20, <
 period = wheel.delta.then(60);
 events.expStop = period.setEpochTrigger(t, wheel);
 </pre><p>The dimention over which quiescence is enforced doesn't need to be time, it could be another input instead.  Likewise, reversing the inputs would impose the oppositeof a quiescence period, where the trigger updates to true when movement reaches threshold within a given amount of time:</p><p><img src="using_signals_eq14166680990163361571.png" alt="$$\frac{\Delta x}{\Delta t} &gt; threshold$$"></p><pre class="codeinput">tr = threshold.setEpochTrigger(wheel, t, duration)
-</pre><h2 id="135">merge</h2><p>The <tt>merge</tt> method takes any number of inputs and returns the value of the last updated input.</p><pre class="codeinput"><span class="comment">% Here we create four signals that each update in staggered fashion:</span>
+</pre><h2 id="138">merge</h2><p>The <tt>merge</tt> method takes any number of inputs and returns the value of the last updated input.</p><pre class="codeinput"><span class="comment">% Here we create four signals that each update in staggered fashion:</span>
 x = sig.test.sequence([1 1], 1, <span class="string">'delay'</span>, 1); <span class="comment">% Update once per second after a second</span>
 a = sig.test.sequence(2, 1, <span class="string">'name'</span>, <span class="string">'a'</span>, <span class="string">'delay'</span>, 2); <span class="comment">% Update after 2 seconds</span>
 b = sig.test.sequence(3, 1, <span class="string">'name'</span>, <span class="string">'b'</span>, <span class="string">'delay'</span>, 3); <span class="comment">% Update after 3 seconds</span>
@@ -558,20 +576,20 @@ sig.test.timeplot(x, a, b, y, z, <span class="string">'mode'</span>, 1, <span cl
 <span class="comment">% value of the merge signal for s</span>
 allUpdated = map([a b c], true);
 s = allUpdated.then(merge(a, b, c));
-</pre><h2 id="138">delay</h2><p>The <tt>delay</tt> method produces a signal that updates a given number of seconds after its input.  As with <tt>lag</tt>, the number you delay by must be a double and not a Signal object.</p><pre class="codeinput">emitter = sig.test.sequence([-1 -1 0 3 4 4 5], 0.5);
+</pre><h2 id="141">delay</h2><p>The <tt>delay</tt> method produces a signal that updates a given number of seconds after its input.  As with <tt>lag</tt>, the number you delay by must be a double and not a Signal object.</p><pre class="codeinput">emitter = sig.test.sequence([-1 -1 0 3 4 4 5], 0.5);
 
 x = emitter.skipRepeats;
 y = x.delay(1);
 
 sig.test.timeplot(x, y, <span class="string">'mode'</span>, 1)
-</pre><p><img vspace="5" hspace="5" src="./images/delay_example.png" alt=""> </p><h2 id="140">Notes</h2><p>(1) If a signal already has a value and you derive a new signal from it, the new signal won't automatically compute its value.  In the Signals Experiment Framework, the experiment definition function is run once to set up all Signals, before any inputs are posted into the network, so this isn't an issue.</p><p>(2) You can get the number of nodes in the network by calling <tt>networkInfo</tt> on the net id:</p><pre class="codeinput">networkInfo(a.Node.Net.Id)
+</pre><p><img vspace="5" hspace="5" src="./images/delay_example.png" alt=""> </p><h2 id="143">Notes</h2><p>(1) If a signal already has a value and you derive a new signal from it, the new signal won't automatically compute its value.  In the Signals Experiment Framework, the experiment definition function is run once to set up all Signals, before any inputs are posted into the network, so this isn't an issue.</p><p>(2) You can get the number of nodes in the network by calling <tt>networkInfo</tt> on the net id:</p><pre class="codeinput">networkInfo(a.Node.Net.Id)
 </pre><pre>Net 0 with 9/4000 active nodes</pre><p>(3) As you may have noticed from the node graphs, when you evaluate an expression involving a signal, any numbers are made into Signal objects. These are nodes that only ever have one value (known as 'root' nodes). There are often more nodes in a network than you might expect, for example the following line indicates that there are at least 4 nodes in the network:</p><pre class="codeinput">x = mod(floor(x), 1*2)
-</pre><p>These would be <tt>x</tt>, <tt>2</tt> (a root node), <tt>floor(x)</tt> and <tt>mod(floor(x), 2)</tt>.</p><p>(4) When a function is called on an object, MATLAB checks whether that object's class has a method of the same name (a 'method' is a function that is part of an object's class).  If the class has that method associated with it, this method is called instead of the usual function. This is known as 'overloading' and is how we can do things like adding and subtracting Signals.  For more info, see the MATLAB documentation <a href="https://uk.mathworks.com/help/matlab/matlab_oop/overloading-functions-for-your-class.html">here</a>.</p><p>(5) This is known as 'syntactic sugar', and a list of MATLAB's operators and the functions they correspond to can be found <a href="https://uk.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html">here</a>.</p><p>(6) Specifically, <tt>scan</tt> performs a left fold.  For example for <tt>y = x.scan(@plus, 0) where x := {1,5}</tt> we get <tt>((((0 + 1) + 2) + 3) + 4) + 5</tt></p><h2 id="144">Summary</h2><p>Here are the most important things to remember when writing an experiment:</p><div><ol><li>Signals represent values that change can over time.</li><li>Evaluating any expression that includes a signal will result in a new signal being returned, e.g. is 'a' is a signal, 'a * 2' produces a new signal.</li><li>In general a signal can only update when all of its inputs have a value.</li><li>Clearing or reassigning a variable is different to deleting or modifying a signal.</li><li>Signals can have any value type: if one of your signals changes data type, make sure all dependent signals can work with those types.</li></ol></div><p>Next section: <a href="./expDef_inputs.html">expDef Inputs</a>.</p><h2 id="145">Bonus plot 1</h2><pre class="codeinput">t = 1.5 : 0.01 : 14.2;
+</pre><p>These would be <tt>x</tt>, <tt>2</tt> (a root node), <tt>floor(x)</tt> and <tt>mod(floor(x), 2)</tt>.</p><p>(4) When a function is called on an object, MATLAB checks whether that object's class has a method of the same name (a 'method' is a function that is part of an object's class).  If the class has that method associated with it, this method is called instead of the usual function. This is known as 'overloading' and is how we can do things like adding and subtracting Signals.  For more info, see the MATLAB documentation <a href="https://uk.mathworks.com/help/matlab/matlab_oop/overloading-functions-for-your-class.html">here</a>.</p><p>(5) This is known as 'syntactic sugar', and a list of MATLAB's operators and the functions they correspond to can be found <a href="https://uk.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html">here</a>.</p><p>(6) Specifically, <tt>scan</tt> performs a left fold.  For example for <tt>y = x.scan(@plus, 0) where x := {1,5}</tt> we get <tt>((((0 + 1) + 2) + 3) + 4) + 5</tt></p><h2 id="147">Summary</h2><p>Here are the most important things to remember when writing an experiment:</p><div><ol><li>Signals represent values that change can over time.</li><li>Evaluating any expression that includes a signal will result in a new signal being returned, e.g. is 'a' is a signal, 'a * 2' produces a new signal.</li><li>In general a signal can only update when all of its inputs have a value.</li><li>Clearing or reassigning a variable is different to deleting or modifying a signal.</li><li>Signals can have any value type: if one of your signals changes data type, make sure all dependent signals can work with those types.</li></ol></div><p>Next section: <a href="./expDef_inputs.html">expDef Inputs</a>.</p><h2 id="148">Bonus plot 1</h2><pre class="codeinput">t = 1.5 : 0.01 : 14.2;
 t = sig.test.sequence(t, 0.2);
 x = t - 1.6 * cos(24*t);
 y = t - 1.6 * sin(25*t);
 sig.test.plot(x, y, <span class="string">'Color'</span>, [0 0.4470 0.7410]);
-</pre><p><img vspace="5" hspace="5" src="./images/plot1.png" alt=""> </p><h2 id="147">Butterfly curve (transcendental plane curve)</h2><p><img src="using_signals_eq04738575078279429894.png" alt="$$x = \sin(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over&#xA;12}\right)\right)$$"></p><p><img src="using_signals_eq16115894552409673452.png" alt="$$y = \cos(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over&#xA;12}\right)\right)$$"></p><p><img src="using_signals_eq06493553977241472644.png" alt="$$0\le t \le 12\pi$$"></p><pre class="codeinput">t = sig.test.sequence(0:0.1:12*pi, 0.2);
+</pre><p><img vspace="5" hspace="5" src="./images/plot1.png" alt=""> </p><h2 id="150">Butterfly curve (transcendental plane curve)</h2><p><img src="using_signals_eq04738575078279429894.png" alt="$$x = \sin(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over&#xA;12}\right)\right)$$"></p><p><img src="using_signals_eq16115894552409673452.png" alt="$$y = \cos(t) \left(e^{\cos(t)} - 2\cos(4t) - \sin^5\left({t \over&#xA;12}\right)\right)$$"></p><p><img src="using_signals_eq06493553977241472644.png" alt="$$0\le t \le 12\pi$$"></p><pre class="codeinput">t = sig.test.sequence(0:0.1:12*pi, 0.2);
 
 f = exp(cos(t)) - 2 * cos(4*t) - sin(t/12)^5;
 
@@ -580,7 +598,7 @@ y = cos(t) * f;
 
 sig.test.plot(x,y);
 xlim = [-5 5]; ylim = [-5 5];
-</pre><p><img vspace="5" hspace="5" src="./images/plot2.png" alt=""> </p><h2 id="149">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.3</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS,*ST2NM&gt;</span>
+</pre><p><img vspace="5" hspace="5" src="./images/plot2.png" alt=""> </p><h2 id="152">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.3</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS,*ST2NM&gt;</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Writing an experiment definition
@@ -951,7 +969,10 @@ ax.XLim = [0 200]; ax.YLim = [0 200];
 % <<SignalsPrimer_03.png>>
 %%%
 %
-% Note that with |iff| any and all values can be signals.
+% Note that with |iff| any and all values can be signals.  Also note that
+% |iff| is also a Rigbox function that works outside of signals:
+x = 'd';
+added = iff(ischar(x), @() [x x], @() x + x)
 
 %% cond
 % In order to construct if/elseif statements we use the cond method, where
@@ -1234,7 +1255,63 @@ z = x.keepWhen(y > .5); % z stops when x stops updating
 sig.test.timeplot(x, y, z, 'mode', [2,2,1], 'tWin', 20);
 
 %%%
-% Try playing with the update times and using |at| vs |keepWhen|
+% Try playing with the update times and using |at| vs |keepWhen|.
+%
+% *NB*: In version 1.3, |keepWhen| can be used in the same way as |filter|.
+% The below lines are equivalent.
+y = x.keepWhen(x > 0);
+y = x.keepWhen('> 0');
+
+%% filter
+% *NB*: This method will be introduced in version 1.3. The |filter| method
+% filters the values of the input based a function.  The function should
+% except a single input and output a logical value.  By default values that
+% evaluate true are kept:
+x = sig.test.sequence(sin(1:.1:10), 0.2);
+y = x.filter(@(x) x > 0);
+
+sig.test.timeplot(x, y, 'mode', [2 1], 'tWin', 20);
+%%%
+% 
+% <<./images/filter_example.png>>
+% 
+%%%
+% The function handle may be a char:
+%  
+%  y = x.filter('isinteger');
+%  y = x.filter(@isinteger); % These two are equivalent
+%
+% For simple logical operators the lefthand side can be omitted:
+% 
+%  y = x.filter('~= 0'); % Keep non-zero values
+%  y = x.filter(@(x) x ~= 0);
+%  y = x.filter('x~=0'); % These three are equivalent
+%
+% *NB* The same behaviour can be achieved with |keepWhen|.  The below lines
+% are equivalent also:
+%
+%  y = x.keepWhen(x ~= 0);
+%  y = x.keepWhen('~=0');
+%
+% An optional input argument allows you to explicitly set the criterion,
+% which is true by default:
+% 
+%  y = x.filter(@isnan, false); % Keep non-empty values
+%  y = x.filter(@(x) ~isnan(x)); % These two are equivalent
+%  y = x.filter('~isnan(x)'); % A char can be used as long as you use 'x'
+%
+% The criterion may also be a signal, allowing you to keep either the
+% passed or failed values on the fly.  In the below example the positive
+% values are kept only on odd trials:
+%
+%  keepTrue = events.trialNum.mod(2); % False on even trials
+%  y = x.filter('>0', keepTrue);
+%
+% Note that a non-signals filter function is also available in Rigbox:
+
+% fun.partial returns a function with the first argument pre-set
+filter = fun.partial(@fun.filter, @isnan); % equivalent to @(x)fun.filter(@isnan,x)
+[passed, failed] = x.mapn(filter);
 
 %% skipRepeats
 % |skipRepeats| creates a signal that only updates when its input updates
@@ -1250,9 +1327,8 @@ y = skipRepeats(x);
 sig.test.timeplot(x, y);
 %%%
 % 
-% <<./images/skipRepeats_example1.png>>
+% <<./images/skipRepeats_example.png>>
 % 
-
 %% A signal that updates only once
 % In this next example we show how to define a signal that updates once and
 % only once.  Remember that signals generally update whenever any of their
@@ -1303,6 +1379,7 @@ disp(['y = ', y.Name]) % y = (*|?x|).scan(@plus)
 % These chains can be spread over multiple lines using elipses:
 y = x.delta. ...      % Take the change in x
     abs. ...          % Make it absolute
+    filter('>10'). ...% Keep only values greater than 10
     skipRepeats. ...  % Skip if the same as the last value
     scan(@plus). ...  % Add it to our accumulated value
     map(@string). ... % Convert to string
@@ -1628,10 +1705,9 @@ v = scan(x, f1, y, f2, z, f3, seed);
 s = {struct('foo', 1), ...
      struct('foo', 2, 'bar', 'baz'), ...
      struct('foo', 3)};
-s = sig.test.sequence(s, 1);
+s = sig.test.sequence(s, 1, 'name', 'subscriptable');
 
 s = s.subscriptable; % Make signal subscriptable
-s.Name = 'subscriptable'; % Rename for display purposes
 foo = s.foo; % This field changes value from 0 to 1
 bar = s.bar; % This field appears after a second
 nil = s.nil; % This field isn't here
