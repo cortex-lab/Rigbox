@@ -80,7 +80,9 @@ disp(originSignal.Name)
 % intended that you use this field directly.  The purpose of using a
 % reactive network is that callbacks will access these values automatically
 % if and when they change.  Accessing this property directly will most
-% likely lead to unintended behaviour.
+% likely lead to unintended behaviour.  Retrieving the value this was is
+% akin to removing something from a factory conveyor belt: once retrieved,
+% the state is fixed and will no longer change.
 
 %% Demonstration on sig.Signal/output() method
 % The output method is a useful function for understanding the relationship
