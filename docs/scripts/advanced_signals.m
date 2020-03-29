@@ -364,5 +364,8 @@ s = a.scan(f, [], 'pars', b, c); % b and c values used in f when a updates
 % and then re-run your code.
 
 %% Etc.
+% Author: Miles Wells
+%
+% v0.0.2
 
 %#ok<*NASGU,*NOPTS>
