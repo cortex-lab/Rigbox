@@ -43,7 +43,7 @@ displacement = x - x.at(newTrial);
 
 % Trial distance is the sum of absolute position changes, resetting to 0
 % at trial start
-distance = x.delta().abs().scan(@plus, newTrial.then(0));
+distance = x.delta.abs.scan(@plus, newTrial.then(0));
 
 %%
 [start, choice, amt] = sig.test.create;

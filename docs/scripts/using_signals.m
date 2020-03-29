@@ -584,6 +584,21 @@ sig.test.timeplot(x, y, z, 'mode', [2,2,1], 'tWin', 20); % plot over 20 secs
 % In other words, |y = x.at(updatedAndNonZero)|. As you can see 'z' keeps
 % updating each time 'y' updates, even when 'x' stops updating (c.f.
 % |keepWhen| method below).
+%
+% Below is an example of how to implement downsampling, or 'throttling', of
+% a signal:
+t = sig.test.sequence(0:0.1:30, 0.1, 'name', 't');
+x = sin(t);
+
+% Sample at 1Hz, i.e. whenever t is a multiple of 1
+sampler = skipRepeats(floor(t)).then(true);
+throttled = x.at(sampler);
+
+sig.test.timeplot(t, x, throttled, 'mode', [2 2 1], 'tWin', 30);
+
+%%%
+% 
+% <<./images/at_example5.png>>
 
 %% then
 % There is another method called |then| which works the same way as |at|,
@@ -1141,10 +1156,10 @@ sig.test.timeplot(x, y, 'mode', 2);
 %% lag
 % |lag| delays a signal by a given number of samples.  To delay by a given
 % amount of time, use |delay|.  The number of samples you delay by must be
-% a positive whole number and cannot be a signal.  The derived signal will
-% only update once the input signal has updated the minimum number of
-% times. That is, given |b = a.lag(5)|, 'b' will get its first value
-% _after_ 'a' has updated five times.
+% a positive whole number or a signal with such a value.  The derived
+% signal will only update once the input signal has updated the minimum
+% number of times. That is, given |b = a.lag(5)|, 'b' will get its first
+% value _after_ 'a' has updated five times.
 %
 % In the below example we define a sine wave signal, then derive a signal
 % that lags by a quarter of a period.  Plotting these two against each
@@ -1500,8 +1515,7 @@ s = allUpdated.then(merge(a, b, c));
 
 %% delay
 % The |delay| method produces a signal that updates a given number of
-% seconds after its input.  As with |lag|, the number you delay by must be
-% a double and not a Signal object.
+% seconds after its input.  
 
 emitter = sig.test.sequence([-1 -1 0 3 4 4 5], 0.5);
 
@@ -1513,6 +1527,19 @@ sig.test.timeplot(x, y, 'mode', 1)
 %%%
 % 
 % <<./images/delay_example.png>>
+% 
+%%%
+% As with |lag|, the number you delay by may be a Signal object:
+
+x = sig.test.sequence(1:5, 1); % a signal that counts to 5
+d = x.scan(@plus,0); % each time x updates, delay by sum of values
+y = x.delay(d); % update with value of x with ever increasing delay
+
+sig.test.timeplot(x, y, 'mode', 1, 'tWin', 20);
+
+%%%
+% 
+% <<./images/delay_example2.png>>
 % 
 
 %% Notes
@@ -1613,6 +1640,6 @@ xlim = [-5 5]; ylim = [-5 5];
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.3
+% v0.0.4
 
 %#ok<*NASGU,*NOPTS,*ST2NM>
