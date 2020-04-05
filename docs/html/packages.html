@@ -1,0 +1,203 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Code organization</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-17"><meta name="DC.source" content="packages.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Code organization</h1><!--introduction--><p>Rigbox is organized into various MATLAB packages(1).  Functions and classes within a package have their own namespace.  We seperate our functions based broadly on what part of Rigbox they're for.  For example files in the <tt>+eui</tt> folder are part of the 'Experiment UI' package and are all related to GUIs in Rigbox (e.g. the MC GUI or Parameter Editor GUI).</p><p><img vspace="5" hspace="5" src="Rigbox_packages.png" alt=""> </p><p><i>Fig. 1</i> - An overview of the packages and their loose relationships to one another</p><p>Below is a list of Rigbox's subdirectories and an overview of their general purpose. Shown is the command for viewing the package overview doc, which lists the package contents.  For further details, see the REAME.md and Contents.m files for each package folder.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">+dat</a></li><li><a href="#2">+eui</a></li><li><a href="#3">+exp</a></li><li><a href="#4">+hw</a></li><li><a href="#5">+psy</a></li><li><a href="#6">+srv</a></li><li><a href="#7">cb-tools/burgbox</a></li><li><a href="#8">cortexlab</a></li><li><a href="#9">tests</a></li><li><a href="#10">docs</a></li><li><a href="#11">submodules</a></li><li><a href="#12">Notes</a></li><li><a href="#13">Etc.</a></li></ul></div><h2 id="1">+dat</h2><p>The 'data' package contains code pertaining to the organization and logging of data. It contains functions that generate and parse unique experiment reference ids, and return file paths where subject data and rig configuration information is stored. Other functions include those that manage experimental log entries and parameter profiles. A nice metaphor for this package is a lab notebook.</p><pre class="codeinput">doc <span class="string">+dat</span>
+</pre><h2 id="2">+eui</h2><p>The 'experiment user interface' package contains code pertaining to the Rigbox user interface. It contains code for constructing the mc GUI (MControl.m), and for plotting live experiment data or generating tables for viewing experiment parameters and subject logs.</p><p>This package is exclusively used by the master computer.</p><pre class="codeinput">doc <span class="string">+eui</span>
+</pre><h2 id="3">+exp</h2><p>The 'experiment' package is for the initialization and running of behavioural experiments. It contains code that define a framework for event- and state-based experiments. Actions such as visual stimulus presentation or reward delivery can be controlled by experiment phases, and experiment phases are managed by an event-handling system (e.g. ResponseEventInfo).</p><p>The package also triggers auxiliary services (e.g. starting remote acquisition software), and loads parameters for presentation for each trial. The principle two base classes that control these experiments are 'Experiment' and its 'signals package' counterpart, 'SignalsExp'.</p><pre class="codeinput">helpwin <span class="string">+exp</span>
+</pre><h2 id="4">+hw</h2><p>The 'hardware' package is for configuring, and interfacing with, hardware (such as screens, DAQ devices, weighing scales and lick detectors). Within this is the '+ptb' package which contains classes for interacting with PsychToolbox.</p><p><tt>hw.devices</tt> loads and initializes all the hardware for a specific experimental rig. There are also classes for unifying system and hardware clocks.</p><pre class="codeinput">doc <span class="string">hw</span>
+</pre><h2 id="5">+psy</h2><p>The 'psychometrics' package contains simple functions for processing and plotting psychometric data.</p><pre class="codeinput">doc <span class="string">psy</span>
+</pre><h2 id="6">+srv</h2><p>The 'stim server' package contains the 'expServer' function as well as classes that manage communications between rig computers.</p><p>The 'Service' base class allows the stimulus computer to start and stop auxiliary acquisition systems at the beginning and end of experiments.</p><p>The 'StimulusControl' class is used by the master computer to manage the stimulus computer.</p><p><b>Note</b>: Lower-level communication protocol code is found in the 'cortexlab/+io' package.</p><pre class="codeinput">doc <span class="string">+srv</span>
+</pre><h2 id="7">cb-tools/burgbox</h2><p>'Burgbox' contains many simple helper functions that are used by the main packages. Within this directory are additional packages:</p><div><ul><li>+bui --- Classes for managing graphics objects such as axes</li><li>+aud --- Functions for interacting with PsychoPortAudio</li><li>+file --- Functions for simplifying directory and file management, for instance returning the modified dates for specified folders or filtering an array of directories by those that exist</li><li>+fun --- Convenience functions for working with function handles in MATLAB, e.g. functions similar cellfun that are agnostic of input type, or ones that cache function outputs</li><li>+img --- Classes that deal with image and frame data (DEPRECATED)</li><li>+io --- Lower-level communications classes for managing UDP and TCP/IP Web sockets</li><li>+plt --- A few small plotting functions (DEPRECATED)</li><li>+vis --- Functions for returning various windowed visual stimuli (i.g. gabor gratings)</li><li>+ws --- An early Web socket package using SuperWebSocket (DEPRECATED)</li></ul></div><h2 id="8">cortexlab</h2><p>The 'cortexlab' directory is intended for functions and classes that are rig or CortexLab specific, for example, code that allows compatibility with other stimulus presentation packages used by CortexLab (e.g. MPEP)</p><h2 id="9">tests</h2><p>The 'tests' directory contains code for running unit tests within Rigbox.</p><h2 id="10">docs</h2><p>Contains various guides for how to configure and use Rigbox.</p><h2 id="11">submodules</h2><p>Additional information on the <a href="https://github.com/cortex-lab/alyx-matlab">alyx-matlab</a>, <a href="https://github.com/kwikteam/npy-matlab">npy-matlab</a>, <a href="https://github.com/cortex-lab/signals">signals</a> and <a href="https://github.com/cortex-lab/wheelAnalysis">wheelAnalysis</a> submodules can be found in their respective github repositories.</p><h2 id="12">Notes</h2><p>(1) For more information about using packages in MATLAB, see <a href="https://uk.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html">Scoping Classes With Packages</a></p><h2 id="13">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.2</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Code organization
+% Rigbox is organized into various MATLAB packages(1).  Functions and
+% classes within a package have their own namespace.  We seperate our
+% functions based broadly on what part of Rigbox they're for.  For example
+% files in the |+eui| folder are part of the 'Experiment UI' package and
+% are all related to GUIs in Rigbox (e.g. the MC GUI or Parameter Editor
+% GUI).
+% 
+% <<Rigbox_packages.png>>
+%
+% _Fig. 1_ - An overview of the packages and their loose relationships to
+% one another
+%
+% Below is a list of Rigbox's subdirectories and an overview of their
+% general purpose. Shown is the command for viewing the package overview
+% doc, which lists the package contents.  For further details, see the
+% REAME.md and Contents.m files for each package folder.
+%
+
+
+%%% +dat
+% The 'data' package contains code pertaining to the organization and
+% logging of data. It contains functions that generate and parse unique
+% experiment reference ids, and return file paths where subject data and
+% rig configuration information is stored. Other functions include those
+% that manage experimental log entries and parameter profiles. A nice
+% metaphor for this package is a lab notebook.
+doc +dat
+
+%%% +eui
+% The 'experiment user interface' package contains code pertaining to the
+% Rigbox user interface. It contains code for constructing the mc GUI
+% (MControl.m), and for plotting live experiment data or generating tables
+% for viewing experiment parameters and subject logs.
+%
+% This package is exclusively used by the master computer.
+doc +eui
+
+%%% +exp
+% The 'experiment' package is for the initialization and running of
+% behavioural experiments. It contains code that define a framework for
+% event- and state-based experiments. Actions such as visual stimulus
+% presentation or reward delivery can be controlled by experiment phases,
+% and experiment phases are managed by an event-handling system (e.g.
+% ResponseEventInfo).
+%
+% The package also triggers auxiliary services (e.g. starting remote
+% acquisition software), and loads parameters for presentation for each
+% trial. The principle two base classes that control these experiments are
+% 'Experiment' and its 'signals package' counterpart, 'SignalsExp'.
+helpwin +exp
+
+%%% +hw
+% The 'hardware' package is for configuring, and interfacing with, hardware
+% (such as screens, DAQ devices, weighing scales and lick detectors).
+% Within this is the '+ptb' package which contains classes for interacting
+% with PsychToolbox.
+%
+% |hw.devices| loads and initializes all the hardware for a specific
+% experimental rig. There are also classes for unifying system and hardware
+% clocks.
+doc hw
+
+%%% +psy
+% The 'psychometrics' package contains simple functions for processing and
+% plotting psychometric data.
+doc psy
+
+%%% +srv
+% The 'stim server' package contains the 'expServer' function as well as
+% classes that manage communications between rig computers.
+%
+% The 'Service' base class allows the stimulus computer to start and stop
+% auxiliary acquisition systems at the beginning and end of experiments.
+%
+% The 'StimulusControl' class is used by the master computer to manage the
+% stimulus computer.
+%
+% *Note*: Lower-level communication protocol code is found in the
+% 'cortexlab/+io' package.
+doc +srv
+
+%%% cb-tools/burgbox
+% 'Burgbox' contains many simple helper functions that are used by the main
+% packages. Within this directory are additional packages:
+% 
+% * +bui REPLACE_WITH_DASH_DASH- Classes for managing graphics objects such as axes
+% * +aud REPLACE_WITH_DASH_DASH- Functions for interacting with PsychoPortAudio
+% * +file REPLACE_WITH_DASH_DASH- Functions for simplifying directory and file management, for instance returning the modified dates for specified folders or filtering an array of directories by those that exist
+% * +fun REPLACE_WITH_DASH_DASH- Convenience functions for working with function handles in MATLAB, e.g. functions similar cellfun that are agnostic of input type, or ones that cache function outputs
+% * +img REPLACE_WITH_DASH_DASH- Classes that deal with image and frame data (DEPRECATED)
+% * +io REPLACE_WITH_DASH_DASH- Lower-level communications classes for managing UDP and TCP/IP Web sockets
+% * +plt REPLACE_WITH_DASH_DASH- A few small plotting functions (DEPRECATED)
+% * +vis REPLACE_WITH_DASH_DASH- Functions for returning various windowed visual stimuli (i.g. gabor gratings)
+% * +ws REPLACE_WITH_DASH_DASH- An early Web socket package using SuperWebSocket (DEPRECATED)
+
+%%% cortexlab
+% The 'cortexlab' directory is intended for functions and classes that are
+% rig or CortexLab specific, for example, code that allows compatibility
+% with other stimulus presentation packages used by CortexLab (e.g. MPEP)
+
+%%% tests
+% The 'tests' directory contains code for running unit tests within Rigbox.
+
+%%% docs
+% Contains various guides for how to configure and use Rigbox.
+
+%%% submodules
+% Additional information on the
+% <https://github.com/cortex-lab/alyx-matlab alyx-matlab>, 
+% <https://github.com/kwikteam/npy-matlab npy-matlab>, 
+% <https://github.com/cortex-lab/signals signals> and 
+% <https://github.com/cortex-lab/wheelAnalysis wheelAnalysis> submodules
+% can be found in their respective github repositories.
+
+%% Notes
+% (1) For more information about using packages in MATLAB, see
+% <https://uk.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html
+% Scoping Classes With Packages>
+%
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.2
+##### SOURCE END #####
+--></body></html>

@@ -53,24 +53,28 @@ classdef Parameters < handle
     end
     
     function set(obj, name, value, description, units)
-      % SET Adds or changes a given parameter
-      %  SET(OBJ, NAME, VALUE[, DESCRIPTION, UNITS]) Sets the value of a
-      %  named parameter.  If the parameter doesn't already exist it is
-      %  added to the structure.  If adding a trial condition, the value
-      %  must have the same number of columns as the current trial
-      %  conditions.  If the A description and value units can optionally be set.
+      % SET Set a named parameter value
+      %  SET(OBJ, NAME, VALUE[, DESCRIPTION, UNITS]) sets the value of a
+      %  parameter.  If the parameter doesn't already exist, a new one is
+      %  added.  
       %
-      %  Input:
-      %   name (char): name of parameter to set
-      %   value (*): name of parameter to set
-      %   description (char): name of parameter to set
-      %   units (char): name of parameter to set
+      %  Inputs:
+      %    name (char): The parameter name to set
+      %    value (*): The value of the parameter.  The number of columns must
+      %      be 1 or equal to numTrialConditions (or for chars the number
+      %      of rows)
+      %    description (char): Optional.  A description of the parameter
+      %    units (char): Optional.  The parameter units
       %
-      %  Example:
-      %   P = exp.Parameters();
-      %   P.set('onsetToneFreq', 10, 'The frequency of the onset tone', 'kHz')
+      %  Example 1: Add a new parameter called targetAltitude
+      %    description = 'Visual angle of target centre above horizon';
+      %    P.set('targetAltitude', 90, description,  '°')
       %
-      % See also TITLE, DESCRIPTION
+      %  Example 2: Set the values for a trial condition
+      %    values = randsample(0:45:135, P.numTrialConditions, true);
+      %    P.set('orientation', values)
+      %
+      % See also DESCRIPTION, NUMTRIALCONDITIONS
       
       % Check value dimentions are valid
       dim = iff(ischar(value), 1, 2); % rows are trial conditions for chars

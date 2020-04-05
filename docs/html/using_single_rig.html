@@ -1,0 +1,173 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Running experiments on a single computer</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="using_single_rig.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Running experiments on a single computer</h1><!--introduction--><p>Running experiments with two PCs has two major advantages:</p><div><ol><li>An MC computer can control and monitor multiple stimulus computers in parallel.</li><li>Using <tt>mc</tt> on a separate computer frees up the stimulus computer's resources.  A dedicated experiment computer is likely to have lower latencies.</li></ol></div><p>Nevertheless, it is possible to run experiments using a single computer. The first way is by using <tt>srv.expServer</tt>'s 'single-shot' mode to run an experiment without running <tt>mc</tt>.  The second way is by running <tt>mc</tt> on the same computer, in a different instance of MATLAB.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Without MC</a></li><li><a href="#3">With MC</a></li><li><a href="#5">Etc.</a></li></ul></div><h2 id="1">Without MC</h2><p>Running experiments on a single computer without MC is simple, however live monitoring of the experiment is not possible.  First a new experiment is created, then <tt>srv.expServer</tt> should be called the experiment reference string.  The below code shows how to create and run a ChoiceWorld Experiment using the default parameters, without using <a href="./glossary.html">Alyx</a>:</p><pre class="codeinput">ref = dat.newExp(<span class="string">'test'</span>, now, exp.choiceWorldParams);
+srv.expServer(<span class="string">'expRef'</span>, ref, <span class="string">'preDelay'</span>, 10) <span class="comment">% Ten second delay before start</span>
+</pre><p>Below is an example of modifying parameters for a Signals Experiment, then create an experiment in Alyx and run it:</p><pre class="codeinput"><span class="comment">% Get the parameter list using inferParameters</span>
+paramStruct = exp.inferParameters(@advancedChoiceWorld);
+
+<span class="comment">% Modify the parameters using the exp.Parameters object</span>
+P = exp.Parameters(paramStruct); <span class="comment">%</span>
+P.makeTrialSpecific(<span class="string">'rewardSize'</span>)
+P.set(<span class="string">'rewardSize'</span>, linspace(1,3,P.numTrialConditions))
+
+<span class="comment">% Parameters can also be manipulated in the Parameter Editor GUI</span>
+PE = eui.ParamEditor(P);
+paramStruct = PE.Parameters.Struct;
+
+<span class="comment">% Save parameters and register session to Alyx</span>
+ai = Alyx;
+ref = newExp(ai, <span class="string">'test'</span>, now, P.Struct);
+srv.expServer(<span class="string">'expRef'</span>, ref, <span class="string">'alyx'</span>, ai)
+</pre><h2 id="3">With MC</h2><p>It is also possible to run <tt>mc</tt> on the same computer as <tt>srv.expServer</tt>. This requires that the computer has at least 2 monitors connected.</p><p>To do this set up the remote file according to the <a href="./websocket_config.html">Configuring WebSockets</a> guide, however, instead of using the hostname or external IP as the URI, use the localhost address (normally <tt>127.0.0.1</tt>).  Below is the code for setting up the remote file this way:</p><pre class="codeinput"><span class="comment">% The stimulus controllers are loaded from a MAT file with the name</span>
+<span class="comment">% 'remote' in the globalConfig directory, defined in dat.paths:</span>
+p = fullfile(getOr(dat.paths, <span class="string">'globalConfig'</span>), <span class="string">'remote.mat'</span>);
+
+<span class="comment">% Let's create a stimulus controller for this PC</span>
+stimulusControllers = srv.StimulusControl.create(hostname, <span class="string">'127.0.0.1'</span>);
+
+<span class="comment">% Save your new configuration.  Note the variable name must be as below:</span>
+save(p, <span class="string">'stimulusControllers'</span>)
+</pre><p>Now simply open another instance of MATLAB and in one, run <tt>mc</tt>.  In the other instance, run <tt>srv.expServer</tt>.</p><h2 id="5">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.1</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Running experiments on a single computer
+% Running experiments with two PCs has two major advantages:
+%
+% # An MC computer can control and monitor multiple stimulus computers in
+% parallel.  
+% # Using |mc| on a separate computer frees up the stimulus computer's
+% resources.  A dedicated experiment computer is likely to have lower
+% latencies.
+%
+% Nevertheless, it is possible to run experiments using a single computer.
+% The first way is by using |srv.expServer|'s 'single-shot' mode to run an
+% experiment without running |mc|.  The second way is by running |mc| on
+% the same computer, in a different instance of MATLAB.
+
+%% Without MC
+% Running experiments on a single computer without MC is simple, however
+% live monitoring of the experiment is not possible.  First a new
+% experiment is created, then |srv.expServer| should be called the
+% experiment reference string.  The below code shows how to create and run
+% a ChoiceWorld Experiment using the default parameters, without using
+% <./glossary.html Alyx>:
+ref = dat.newExp('test', now, exp.choiceWorldParams);
+srv.expServer('expRef', ref, 'preDelay', 10) % Ten second delay before start
+
+%%
+% Below is an example of modifying parameters for a Signals Experiment,
+% then create an experiment in Alyx and run it:
+
+% Get the parameter list using inferParameters
+paramStruct = exp.inferParameters(@advancedChoiceWorld);
+
+% Modify the parameters using the exp.Parameters object
+P = exp.Parameters(paramStruct); % 
+P.makeTrialSpecific('rewardSize')
+P.set('rewardSize', linspace(1,3,P.numTrialConditions))
+
+% Parameters can also be manipulated in the Parameter Editor GUI
+PE = eui.ParamEditor(P);
+paramStruct = PE.Parameters.Struct;
+
+% Save parameters and register session to Alyx
+ai = Alyx;
+ref = newExp(ai, 'test', now, P.Struct);
+srv.expServer('expRef', ref, 'alyx', ai)
+
+%% With MC
+% It is also possible to run |mc| on the same computer as |srv.expServer|.
+% This requires that the computer has at least 2 monitors connected.
+%
+% To do this set up the remote file according to the
+% <./websocket_config.html Configuring WebSockets> guide, however, instead
+% of using the hostname or external IP as the URI, use the localhost
+% address (normally |127.0.0.1|).  Below is the code for setting up the
+% remote file this way:
+
+% The stimulus controllers are loaded from a MAT file with the name
+% 'remote' in the globalConfig directory, defined in dat.paths:
+p = fullfile(getOr(dat.paths, 'globalConfig'), 'remote.mat');
+
+% Let's create a stimulus controller for this PC
+stimulusControllers = srv.StimulusControl.create(hostname, '127.0.0.1');
+
+% Save your new configuration.  Note the variable name must be as below:
+save(p, 'stimulusControllers')
+
+%%
+% Now simply open another instance of MATLAB and in one, run |mc|.  In the
+% other instance, run |srv.expServer|.
+
+%% Etc.
+% Author: Miles Wells
+%
+% v0.0.1
+
+##### SOURCE END #####
+--></body></html>
