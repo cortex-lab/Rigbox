@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Configureing rig hardware</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="hardware_config.m"><style type="text/css">
+      --><title>Configureing rig hardware</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-05"><meta name="DC.source" content="hardware_config.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Configureing rig hardware</h1><!--introduction--><p>When running <tt>srv.expServer</tt> the hardware settings are loaded from a MAT file and initialized before an experiment. The MC computer may also have a hardware file, though this isn't essential.  The below script is a guide for setting up a new hardware file, with examples mostly pertaining to replicating the Burgess steering wheel task(1).  Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><p>It is recommended that you copy this file and keep it as a way of versioning your hardware configurations.  In this way the script can easily be re-run when after any unintended changes are made to your hardware file.  If you do this, make sure you save a copy of the calibration strutures or re-run the calibrations.</p><p>Note that the variable names saved to the hardware file must be the same as those below in order for various Rigbox functions to recognize them, namely these variables:</p><div><ul><li><tt>stimWindow</tt> - The hw.Window object for PsychToolbox parameters</li><li><tt>stimViewingModel</tt> - A viewing model used by legacy experiments</li><li><tt>mouseInput</tt> - The rotary encoder device</li><li><tt>lickDetector</tt> - A lick detector device</li><li><tt>timeline</tt> - The Timeline object</li><li><tt>daqController</tt> - NI DAQ output settings for use during an experiment</li><li><tt>scale</tt> - A weighing scale device for use by the MC computer</li><li><tt>screens</tt> - Parameters for the Signals viewing model</li><li><tt>audioDevices</tt> - Struct of parameters for each audio device</li><li><tt>useDaq</tt> - A logical that determines whether to create DAQ sessions on load</li></ul></div><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The +hw packages</a></li><li><a href="#2">Retrieving hardware file path</a></li><li><a href="#3">Configuring the stimulus window</a></li><li><a href="#4">ScreenNum</a></li><li><a href="#5">SyncBounds</a></li><li><a href="#6">SyncColourCycle</a></li><li><a href="#7">PxDepth</a></li><li><a href="#8">OpenBounds</a></li><li><a href="#9">DaqSyncEchoPort</a></li><li><a href="#10">BackgroundColour</a></li><li><a href="#11">MonitorId</a></li><li><a href="#12">PtbSyncTests</a></li><li><a href="#13">PtbVerbosity</a></li><li><a href="#14">ColourRange, White, Black, etc.</a></li><li><a href="#15">Calibration (performing gamma calibration from command window)</a></li><li><a href="#16">Viewing models</a></li><li><a href="#17">Basic screen viewing model</a></li><li><a href="#18">Using the model</a></li><li><a href="#19">Pseudo-Circular screen viewing model</a></li><li><a href="#20">Signals viewing model</a></li><li><a href="#21">Hardware inputs</a></li><li><a href="#22">DAQ rotary encoder</a></li><li><a href="#23">Lick detector</a></li><li><a href="#24">Hardware outputs</a></li><li><a href="#25">Timeline</a></li><li><a href="#26">Inputs</a></li><li><a href="#27">Outputs</a></li><li><a href="#28">Weigh scale</a></li><li><a href="#29">Using the scale</a></li><li><a href="#30">Audio devices</a></li><li><a href="#31">Loading your hardware file</a></li><li><a href="#32">FAQ</a></li><li><a href="#33">I tried loading an old hardware file but the variables are not objects.</a></li><li><a href="#34">I'm missing the time of the first flip only, why?</a></li><li><a href="#35">The PsychToolbox window covers the wrong monitors when I run the experiment server</a></li><li><a href="#36">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</a></li><li><a href="#37">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</a></li><li><a href="#38">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</a></li><li><a href="#39">My rotary encoder has a different resolution, how do I change the hardware config?</a></li><li><a href="#40">Notes</a></li><li><a href="#41">Etc.</a></li></ul></div><h2 id="1">The +hw packages</h2><p>Many of these classes for are found in the HW package.  This package contains all of the code that interfaces with lower-level hardware code (e.g. PsychToolbox's OpenGL functions, the NI +daq package):</p><pre class="codeinput">doc <span class="string">hw</span>
+  </style></head><body><div class="content"><h1>Configureing rig hardware</h1><!--introduction--><p>When running <tt>srv.expServer</tt> the hardware settings are loaded from a MAT file and initialized before an experiment. The MC computer may also have a hardware file, though this isn't essential.  The below script is a guide for setting up a new hardware file, with examples mostly pertaining to replicating the Burgess steering wheel task(1).  Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><p>It is recommended that you copy this file and keep it as a way of versioning your hardware configurations.  In this way the script can easily be re-run when after any unintended changes are made to your hardware file.  If you do this, make sure you save a copy of the calibration strutures or re-run the calibrations.</p><p>Note that the variable names saved to the hardware file must be the same as those below in order for various Rigbox functions to recognize them, namely these variables:</p><div><ul><li><tt>stimWindow</tt> - The hw.Window object for PsychToolbox parameters</li><li><tt>stimViewingModel</tt> - A viewing model used by legacy experiments</li><li><tt>mouseInput</tt> - The rotary encoder device</li><li><tt>lickDetector</tt> - A lick detector device</li><li><tt>timeline</tt> - The Timeline object</li><li><tt>daqController</tt> - NI DAQ output settings for use during an experiment</li><li><tt>scale</tt> - A weighing scale device for use by the MC computer</li><li><tt>screens</tt> - Parameters for the Signals viewing model</li><li><tt>audioDevices</tt> - Struct of parameters for each audio device</li><li><tt>useDaq</tt> - A logical that determines whether to create DAQ sessions on load</li></ul></div><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The +hw packages</a></li><li><a href="#2">Retrieving hardware file path</a></li><li><a href="#3">Configuring the stimulus window</a></li><li><a href="#4">ScreenNum</a></li><li><a href="#5">SyncBounds</a></li><li><a href="#6">SyncColourCycle</a></li><li><a href="#7">PxDepth</a></li><li><a href="#8">OpenBounds</a></li><li><a href="#9">DaqSyncEchoPort</a></li><li><a href="#10">BackgroundColour</a></li><li><a href="#11">MonitorId</a></li><li><a href="#12">PtbSyncTests</a></li><li><a href="#13">PtbVerbosity</a></li><li><a href="#14">ColourRange, White, Black, etc.</a></li><li><a href="#15">Calibration (performing gamma calibration from command window)</a></li><li><a href="#16">Viewing models</a></li><li><a href="#17">Basic screen viewing model</a></li><li><a href="#18">Using the model</a></li><li><a href="#19">Pseudo-Circular screen viewing model</a></li><li><a href="#20">Signals viewing model</a></li><li><a href="#21">Hardware inputs</a></li><li><a href="#22">DAQ rotary encoder</a></li><li><a href="#23">Lick detector</a></li><li><a href="#24">Hardware outputs</a></li><li><a href="#25">Timeline</a></li><li><a href="#26">Inputs</a></li><li><a href="#27">Outputs</a></li><li><a href="#28">Weigh scale</a></li><li><a href="#29">Using the scale</a></li><li><a href="#30">Audio devices</a></li><li><a href="#31">Selecting a default audio device</a></li><li><a href="#33">Loading your hardware file</a></li><li><a href="#34">FAQ</a></li><li><a href="#35">I tried loading an old hardware file but the variables are not objects.</a></li><li><a href="#36">I'm missing the time of the first flip only, why?</a></li><li><a href="#37">The PsychToolbox window covers the wrong monitors when I run the experiment server</a></li><li><a href="#38">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</a></li><li><a href="#39">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</a></li><li><a href="#40">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</a></li><li><a href="#41">My rotary encoder has a different resolution, how do I change the hardware config?</a></li><li><a href="#42">Notes</a></li><li><a href="#43">Etc.</a></li></ul></div><h2 id="1">The +hw packages</h2><p>Many of these classes for are found in the HW package.  This package contains all of the code that interfaces with lower-level hardware code (e.g. PsychToolbox's OpenGL functions, the NI +daq package):</p><pre class="codeinput">doc <span class="string">hw</span>
 </pre><h2 id="2">Retrieving hardware file path</h2><p>The location of the configuration file is set in <a href="./using_dat_package.html">DAT.PATHS</a>.  If running this on the stimulus computer you can use the following syntax:</p><pre class="codeinput">hardware = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
 
 <span class="comment">% For more info on setting the paths and using the DAT package:</span>
@@ -143,7 +143,7 @@ stimWindow.Calibration = <span class="keyword">...</span>
   stimWindow.calibration(DaqDev, lightIn, clockIn, clockOut);
 
 save(hardware, <span class="string">'stimWindow'</span>, <span class="string">'-append'</span>) <span class="comment">% Save the stimWindow to file</span>
-</pre><h2 id="16">Viewing models</h2><p>The viewing model classes allow one to configure the relationship between physical dimentions and pixel space.  The viewing model classes contain methods for converting between visual degrees, pixels and physical dimentions.  Note: The viewing model classes are currently only implemented in legacy experiments such as ChoiceWorld.  See below section for configuring the viewing model in Signals.</p><p>There are currently two viewing model classes to choose from...</p><h2 id="17">Basic screen viewing model</h2><p>The basic viewing model class deals with single screens positioned straight in front of an observer (^):| ___ |                                        ^</p><pre class="codeinput">doc <span class="string">hw.BasicScreenViewingModel</span>
+</pre><h2 id="16">Viewing models</h2><p>The viewing model classes allow one to configure the relationship between physical dimentions and pixel space.  The viewing model classes contain methods for converting between visual degrees, pixels and physical dimentions.  Note: The viewing model classes are currently only implemented in legacy experiments such as ChoiceWorld.  See below section for configuring the viewing model in Signals.</p><p>There are currently two viewing model classes to choose from...</p><h2 id="17">Basic screen viewing model</h2><p>The basic viewing model class deals with single screens positioned straight in front of an observer (^):| ___ |                                          ^</p><pre class="codeinput">doc <span class="string">hw.BasicScreenViewingModel</span>
 
 <span class="comment">% Let's set this up:</span>
 stimViewingModel = hw.BasicScreenViewingModel;
@@ -366,21 +366,12 @@ lh = event.listener(scale, <span class="string">'NewReading'</span>, callback);
 
 <span class="comment">% To clean up you can simply clear the object from the workspace:</span>
 clear <span class="string">scale</span> <span class="string">lh</span>
-</pre><h2 id="30">Audio devices</h2><p>On MS-Windows you'll have the choice between up to 5 different audio subsystems: WASAPI (on Windows-Vista and later), or WDMKS (on Windows-2000/XP) should provide ok latency. DirectSound is the next worst choice if you have hardware with DirectSound support. If everything else fails, you'll be left with MME, a completely unusable API for precise or low latency timing.</p><pre class="codeinput">InitializePsychSound
-devs = PsychPortAudio(<span class="string">'GetDevices'</span>)
-
-<span class="comment">% Sanitize the names</span>
-names = matlab.lang.makeValidName({devs.DeviceName}, <span class="string">'ReplacementStyle'</span>, <span class="string">'delete'</span>);
-names = iff(ismember(<span class="string">'default'</span>, names), names, @()[{<span class="string">'default'</span>} names(2:end)]);
-<span class="keyword">for</span> i = 1:length(names); devs(i).DeviceName = names{i}; <span class="keyword">end</span>
-audioDevices = devs;
+</pre><h2 id="30">Audio devices</h2><p>On MS-Windows you'll have the choice between up to 5 different audio subsystems: WASAPI (on Windows-Vista and later), or WDMKS (on Windows-2000/XP) should provide ok latency. DirectSound is the next worst choice if you have hardware with DirectSound support. If everything else fails, you'll be left with MME, a completely unusable API for precise or low latency timing.  The below code shows how to view all audio device settings and to save them into the hardware file.  NB: It is important to rename the DeviceName field of the devices you with to use, as this field is used to reference them in your Signals experiment definition.</p><pre class="codeinput">InitializePsychSound
+audioDevices = PsychPortAudio(<span class="string">'GetDevices'</span>)
 
 save(hardware, <span class="string">'audioDevices'</span>, <span class="string">'-append'</span>)
-
-<span class="comment">% @TODO Substantiate</span>
-<span class="comment">% @body Info on PTB support, mention the helper for testing devices,</span>
-<span class="comment">% mention how audio device naming works</span>
-</pre><h2 id="31">Loading your hardware file</h2><p>To load your rig hardware objects for testing at a rig, you can use <tt>hw.devices</tt>:</p><pre class="codeinput">rig = hw.devices;
+</pre><h2 id="31">Selecting a default audio device</h2><p>The function <tt>hw.testAudioOutputDevices</tt> can help you select a default output audio device.  For each output device, white noise is played through all channels.  If the user presses the space bar the current device is returned, which may then be saved into the rig hardware file. Press any other key to proceed to the next device.  If unsure which device to use, press <a href="space">space</a> during the first which produces sound.  This will be the lowest latency device that produces sound.  The saveAsDefault flag will automatically save the device into your hardware file with the DeviceName as 'default':</p><pre class="codeinput">d = hw.testAudioOutputDevices(<span class="string">'SaveAsDefault'</span>, true);
+</pre><p><b>NB</b>: In recent years PsychToolbox dropped support for ASIO drivers.  If you are using an ASIO device please ensure that you have version 3.0.14 or earlier installed.  For more information, see the <a href="https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/Hardware:-Audio-Devices">PsychToolbox Wiki</a>.</p><h2 id="33">Loading your hardware file</h2><p>To load your rig hardware objects for testing at a rig, you can use <tt>hw.devices</tt>:</p><pre class="codeinput">rig = hw.devices;
 
 <span class="comment">% To load the hardware file or a different rig, you can input the rig name.</span>
 <span class="comment">% Note HW.DEVICES initializes some of the hardware by default, including</span>
@@ -389,7 +380,7 @@ save(hardware, <span class="string">'audioDevices'</span>, <span class="string">
 rigName = <span class="string">'ZREDONE'</span>;
 initialize = false;
 rig = hw.devices(rigName, initialize);
-</pre><h2 id="32">FAQ</h2><h2 id="33">I tried loading an old hardware file but the variables are not objects.</h2><p>This was probably accompanied with an error such as: * <tt>% Warning: Variable 'rewardController' originally saved as a hw.DaqRewardValve cannot be instantiated as an object and will be read in as a uint32.</tt> *</p><pre class="codeinput"><span class="comment">% This usually means that there has been a substantial change in the code</span>
+</pre><h2 id="34">FAQ</h2><h2 id="35">I tried loading an old hardware file but the variables are not objects.</h2><p>This was probably accompanied with an error such as: * <tt>% Warning: Variable 'rewardController' originally saved as a hw.DaqRewardValve cannot be instantiated as an object and will be read in as a uint32.</tt> *</p><pre class="codeinput"><span class="comment">% This usually means that there has been a substantial change in the code</span>
 <span class="comment">% since the object was last saved and MATLAB can no longer load it into the</span>
 <span class="comment">% workspace.  One solution is to revert your code to a release dated around</span>
 <span class="comment">% the time of the hardware file's modified date:</span>
@@ -398,10 +389,10 @@ datestr(file.modDate(hwPath)) <span class="comment">% Find the time file was las
 
 <span class="comment">% Once you have the previous parameters, create a new object with the</span>
 <span class="comment">% current code version, assign the parameters and resave.</span>
-</pre><h2 id="34">I'm missing the time of the first flip only, why?</h2><p>Perhaps the first flip is always too dark a colour.  Try reversing the order stimWindow.SyncColourCycle:</p><pre class="codeinput">scc = stimWindow.SyncColourCycle;
+</pre><h2 id="36">I'm missing the time of the first flip only, why?</h2><p>Perhaps the first flip is always too dark a colour.  Try reversing the order stimWindow.SyncColourCycle:</p><pre class="codeinput">scc = stimWindow.SyncColourCycle;
 scc = iff(size(scc,1) &gt; size(scc,2), @() flipud(scc), @() fliplr(scc));
 stimWindow.SyncColourCycle = scc;
-</pre><h2 id="35">The PsychToolbox window covers the wrong monitors when I run the experiment server</h2><p>Make sure Mosaic is still running (sometimes if the computer loses a monitor input the graphics card disables Mosaic). One indication of this is that the task bar should stretch across all three of the stimulus screens. Also check that the stimWindow.ScreenNum is correct in the hardware.mat file. When set to 0, PsychToolbox uses all screens available to Windows; 1 means Windows' primary screen (see the Display Settings); 2 means Windows' secondary screen, etc.</p><h2 id="36">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</h2><p>This happens from time-to-time. When a PsychToolbox window is opened it runs some synchronization to retrace tests, checking whether buffer flips are properly synchronized to the vertical retrace signal of your display. Synchronization failiures indicate that there tareing or flickering may occur during stimulus presentation.  More info on this may be found <a href="http://psychtoolbox.org/docs/SyncTrouble">here</a> :</p><pre class="codeinput">web(<span class="string">'http://psychtoolbox.org/docs/SyncTrouble'</span>)
+</pre><h2 id="37">The PsychToolbox window covers the wrong monitors when I run the experiment server</h2><p>Make sure Mosaic is still running (sometimes if the computer loses a monitor input the graphics card disables Mosaic). One indication of this is that the task bar should stretch across all three of the stimulus screens. Also check that the stimWindow.ScreenNum is correct in the hardware.mat file. When set to 0, PsychToolbox uses all screens available to Windows; 1 means Windows' primary screen (see the Display Settings); 2 means Windows' secondary screen, etc.</p><h2 id="38">I get a &#8216;PTB synchronization error&#8217; when I run the experiment server.</h2><p>This happens from time-to-time. When a PsychToolbox window is opened it runs some synchronization to retrace tests, checking whether buffer flips are properly synchronized to the vertical retrace signal of your display. Synchronization failiures indicate that there tareing or flickering may occur during stimulus presentation.  More info on this may be found <a href="http://psychtoolbox.org/docs/SyncTrouble">here</a> :</p><pre class="codeinput">web(<span class="string">'http://psychtoolbox.org/docs/SyncTrouble'</span>)
 <span class="comment">% The problem may be exacerbated if you're running other programs that</span>
 <span class="comment">% interfere with the graphics, such as remote window viewers (VNC, Remote</span>
 <span class="comment">% Desktpo, etc.), or if you are running multiple monitors that do not have</span>
@@ -409,13 +400,13 @@ stimWindow.SyncColourCycle = scc;
 <span class="comment">% If you know what you're doing and are confident that things are working,</span>
 <span class="comment">% you can skip the tests by setting the following property:</span>
 stimWindow.PtbSyncTests = false;
-</pre><h2 id="37">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</h2><p>NI Error -88709 ?or Error using hw.DaqRotaryEncoder/createDaqChannel (line 81): The requested subsystem 'CounterInput' does not exist on this device.</p><pre class="codeinput"><span class="comment">% This happens from time to time, particularly after the computer has gone</span>
+</pre><h2 id="39">Error using hw.DaqRotaryEncoder/readAbsolutePosition (line 143)</h2><p>NI Error -88709 ?or Error using hw.DaqRotaryEncoder/createDaqChannel (line 81): The requested subsystem 'CounterInput' does not exist on this device.</p><pre class="codeinput"><span class="comment">% This happens from time to time, particularly after the computer has gone</span>
 <span class="comment">% to sleep. Unplugging the DAQ USB cable and plugging it back in helps.</span>
 <span class="comment">% Restart MATLAB. If the error persists, restart the computer with the DAQ</span>
 <span class="comment">% unplugged.</span>
-</pre><h2 id="38">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</h2><p>If you have multiple NI devices on this computer, set the DaqIds properties to the correct id in your hardware.mat file, i.e. daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId</p><pre class="codeinput">d = daq.getDevices <span class="comment">% Availiable devices and their info</span>
-</pre><h2 id="39">My rotary encoder has a different resolution, how do I change the hardware config?</h2><p>Change the mouseInput.EncoderResolution peroperty to the value found at the end of your rotary encoder&#8217;s product number: e.g. 05.2400.1122.1024 means EncoderResolution = 1024.</p><h2 id="40">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="41">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.2</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU,*ASGLU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><h2 id="40">The experiment server is unable to open my DAQ on &#8216;Dev1&#8217;</h2><p>If you have multiple NI devices on this computer, set the DaqIds properties to the correct id in your hardware.mat file, i.e. daqController.DaqIds, mouseInput.DaqId, rewardController.DaqId</p><pre class="codeinput">d = daq.getDevices <span class="comment">% Availiable devices and their info</span>
+</pre><h2 id="41">My rotary encoder has a different resolution, how do I change the hardware config?</h2><p>Change the mouseInput.EncoderResolution peroperty to the value found at the end of your rotary encoder&#8217;s product number: e.g. 05.2400.1122.1024 means EncoderResolution = 1024.</p><h2 id="42">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="43">Etc.</h2><p>Author: Miles Wells</p><p>v1.2.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU,*ASGLU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Configureing rig hardware 
 % When running |srv.expServer| the hardware settings are loaded from a MAT
@@ -644,8 +635,8 @@ save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
 %%% Basic screen viewing model
 % The basic viewing model class deals with single screens positioned
-% straight in front of an observer (^):| _____
-% |                                        ^  
+% straight in front of an observer (^):| _____ |
+%                                          ^  
 doc hw.BasicScreenViewingModel
 
 % Let's set this up:
@@ -924,22 +915,34 @@ clear scale lh
 % Windows-2000/XP) should provide ok latency. DirectSound is the next worst
 % choice if you have hardware with DirectSound support. If everything else
 % fails, you'll be left with MME, a completely unusable API for precise or
-% low latency timing. 
+% low latency timing.  The below code shows how to view all audio device
+% settings and to save them into the hardware file.  NB: It is important to
+% rename the DeviceName field of the devices you with to use, as this field
+% is used to reference them in your Signals experiment definition.
 
 InitializePsychSound
-devs = PsychPortAudio('GetDevices')
-
-% Sanitize the names
-names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
-names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
-for i = 1:length(names); devs(i).DeviceName = names{i}; end
-audioDevices = devs;
+audioDevices = PsychPortAudio('GetDevices')
 
 save(hardware, 'audioDevices', '-append')
 
-% @TODO Substantiate
-% @body Info on PTB support, mention the helper for testing devices,
-% mention how audio device naming works
+%%% Selecting a default audio device
+% The function |hw.testAudioOutputDevices| can help you select a default
+% output audio device.  For each output device, white noise is played
+% through all channels.  If the user presses the space bar the current
+% device is returned, which may then be saved into the rig hardware file.
+% Press any other key to proceed to the next device.  If unsure which
+% device to use, press <space> during the first which produces sound.  This
+% will be the lowest latency device that produces sound.  The saveAsDefault
+% flag will automatically save the device into your hardware file with the
+% DeviceName as 'default':
+d = hw.testAudioOutputDevices('SaveAsDefault', true);
+
+%%%
+% *NB*: In recent years PsychToolbox dropped support for ASIO drivers.  If
+% you are using an ASIO device please ensure that you have version 3.0.14
+% or earlier installed.  For more information, see the
+% <https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/Hardware:-Audio-Devices
+% PsychToolbox Wiki>.
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
@@ -1030,7 +1033,7 @@ d = daq.getDevices % Availiable devices and their info
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.2
+% v1.2.1
 
 %#ok<*NOPTS,*NASGU,*ASGLU>
 
