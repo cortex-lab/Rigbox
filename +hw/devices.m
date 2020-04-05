@@ -100,11 +100,16 @@ if init
   names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
   % If no 'default' DeviceName present, rename output device with lowest latency
   if ~ismember('default', names)
-    [~,I] = min([devs([devs.NrOutputChannels] > 0).LowOutputLatency]);
-    names(find(I, 1)) = 'default';
+    outputLatency = [devs.LowOutputLatency];
+    outputLatency([devs.NrOutputChannels] == 0) = nan; % output channel mask
+    [~,I] = nanmin(outputLatency);
+    names{I} = 'default';
   end
-  for i = 1:length(names); devs(i).DeviceName = names{i}; end
-  rig.audioDevices = devs;
+  % Assign sanitized names
+  for i = 1:length(names)
+    devs(i).DeviceName = names{i};
+  end
+  rig.audioDevices = devs; % Assign to rig object
 end
 
 %% Helper function
