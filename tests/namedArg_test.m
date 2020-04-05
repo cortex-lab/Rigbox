@@ -14,3 +14,10 @@ assert(idx == 4, 'Failed to return named argument index')
 assert(~present, 'Failed to report absence of named argument')
 assert(isempty(value), 'Unexpected value returned')
 assert(isempty(idx), 'Unexpected index returned')
+
+%% Test 3: Dealing with nonscalar inputs
+args(1:2) = {["non", "scalar"], {'non', 'scalar'}};
+[present, value, idx] = namedArg(args, 'nameB');
+assert(present, 'Failed to find named argument')
+assert(strcmp(value, 'valB'), 'Failed to return named value')
+assert(idx == 4, 'Failed to return named argument index')

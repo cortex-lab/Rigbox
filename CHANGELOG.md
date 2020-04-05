@@ -1,8 +1,20 @@
 # Changelog
 
-Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
+This file contains a curated, chronologically ordered list of notable changes made to the master branch since the release of Rigbox 2.2.0. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. The versioning numbering used is [SemVer](http://semver.org/). This changelog is based on [keep a changelog](https://keepachangelog.com).
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.5.0
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) [2.6.0]
+
+- exp.Parameters class has been fully documented and some code refactored `4d3f3f2` 2020-02-03
+- there is now more informative error message in the hw.ptb.Window contructor, reminding users to install PTB `a251845` 2020-02-03
+- a test was added for the 'distribute' function `92e5a40` 2020-02-03 
+- hw.findDevice was renamed to hw.testAudioOutputDevices and documentation regarding this function was added to hardware_config `244e93c` 2020-02-03
+- refactoring of hw.devices, including documentation, use of 'useDaq' flag and choosing lowest latancy audio device by default `477b4e8` 2020-02-03
+- fixed typo in calibration_test that meant parameter default was used `d58408e` 2020-02-03
+- removed redundant cellfun call in dat.listSubjects and brought dat.newExp back in line with Alyx.newExp `ee35ed3` 2020-02-14
+- zeroing of devices in exp.SignalsExp now occurs within init, in line with exp.Experiment `3ba222f` 2020-03-13
+
+
+## [2.5.0]
 
 - new alyx instance now requested robustly when not logged in during SignalsExp
 - expStop event now logged has missing value when last trial over, even when expStop defined in def fun
@@ -27,7 +39,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - added tests for *paramProfile functions + no error when saving into new repo `72b04fa` 2020-01-30
 - added FormatLabels flag to eui.SignalsExpPanel `c5794a8` 2020-02-03
 
-## [2.4.1]
+## [2.4.1](https://github.com/cortex-lab/Rigbox/releases/tag/2.4.0)
 
 - patch to readme linking to most up-to-date documentation `4ff1a21` 2019-09-16
 - updates to `+git` package and its tests `5841dd6` 2019-09-24

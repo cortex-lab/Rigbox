@@ -395,6 +395,7 @@ classdef Window < hw.Window
       else
         % if the Window was still valid, just return a lag of zero
         validationLag = 0;
+        invalidFrames = 0;
       end
       obj.InvalidationUpdates = {}; % clear invalidation updates list
     end

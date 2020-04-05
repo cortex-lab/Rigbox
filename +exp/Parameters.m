@@ -53,14 +53,36 @@ classdef Parameters < handle
     end
     
     function set(obj, name, value, description, units)
+      % SET Adds or changes a given parameter
+      %  SET(OBJ, NAME, VALUE[, DESCRIPTION, UNITS]) Sets the value of a
+      %  named parameter.  If the parameter doesn't already exist it is
+      %  added to the structure.  If adding a trial condition, the value
+      %  must have the same number of columns as the current trial
+      %  conditions.  If the A description and value units can optionally be set.
+      %
+      %  Input:
+      %   name (char): name of parameter to set
+      %   value (*): name of parameter to set
+      %   description (char): name of parameter to set
+      %   units (char): name of parameter to set
+      %
+      %  Example:
+      %   P = exp.Parameters();
+      %   P.set('onsetToneFreq', 10, 'The frequency of the onset tone', 'kHz')
+      %
+      % See also TITLE, DESCRIPTION
       
-%       if size(value, 2) > 1
-%         % Attempting to set a conditional parameter so it should match the 
-%         nConditions = numTrialConditions(obj);
-%         assert(nConditions == 0 || nConditions == size(value, 2),...
-%           'Wrong number of trials for conditional parameter. Should be %d, was %d\n',...
-%                   nConditions, size(value, 2));
-%       end
+      % Check value dimentions are valid
+      dim = iff(ischar(value), 1, 2); % rows are trial conditions for chars
+      if size(value, dim) > 1
+        % Attempting to set a conditional parameter so it should match the
+        % number of trial conditions
+        nConditions = numTrialConditions(obj);
+        assert(nConditions == 0 || nConditions == size(value, dim),...
+          'Rigbox:exp:Parameters:numTrialConditionsMismatch', ...
+          'Wrong number of trials for conditional parameter. Should be %d, was %d\n',...
+           nConditions, size(value, dim));
+      end
       
       newField = ~isfield(obj.Struct, name);
       obj.Struct.(name) = value;
@@ -147,6 +169,16 @@ classdef Parameters < handle
     end
     
     function removeConditions(obj, indices)
+      % REMOVECONDITIONS Removes values of trial conditions at indicies
+      %  The values are the given indices are removes from all trial
+      %  conditional parameters.
+      %
+      %  Example:
+      %    % Remove first and seventh trial conditions
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    removeConditions(P, [1,7])
+      %
+      % See also ISTRIALCONDITIONAL
       names = obj.TrialSpecificNames;
       for i = 1:numel(names)
         obj.Struct.(names{i})(:,indices) = [];
@@ -162,6 +194,25 @@ classdef Parameters < handle
     end
     
     function b = isTrialSpecific(obj, name)
+      % ISTRIALSPECIFIC Checks whether parameter(s) is trial specific
+      %  Returns true if parameter name is trial specific.  Parameters are
+      %  trial specific if they have more than one column, unless they are
+      %  char arrays, in which case they are trial specific if they have
+      %  more than one row.  
+      %
+      %  Input:
+      %   name (char|cellstr): parameter name(s) to check
+      %
+      %  Output:
+      %   b (logical): logical array the length of name, true if parameter
+      %     is trial specific
+      %
+      %  Example:
+      %   P = exp.Parameters(exp.choiceWorldParams);
+      %   TF = isTrialSpecific(P, {'visCueContrast', 'cueSigma'})
+      %
+      % See also MAKETRIALSPECIFIC
+
       isSpecific = @(n) obj.IsTrialSpecific.(n);
       if iscell(name)
         b = cellfun(@(n) isSpecific(n), name);
@@ -171,6 +222,18 @@ classdef Parameters < handle
     end
     
     function makeTrialSpecific(obj, name)
+      % MAKETRIALSPECIFIC Makes parameter trial conditional
+      %  If the named parameter is already trial specific (number of
+      %  columns > 1) an exception is thrown, otherwise the parameter value
+      %  is replicated accross all trial conditions.  If the parameter is a
+      %  is a char, it is converted to a cellstr first.
+      %
+      %  Example:
+      %    % Remove first and seventh trial conditions
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    makeTrialSpecific(P, 'onsetToneRelAmp')
+      %
+      % See also ISTRIALCONDITIONAL, NUMTRIALCONDITIONS
       assert(~obj.isTrialSpecific(name), '''%s'' is already trial-specific', name);
       currValue = obj.Struct.(name); % Current value of parameter
       n = numTrialConditions(obj); % Number of trial conditions (table rows)
@@ -188,6 +251,19 @@ classdef Parameters < handle
     end
     
     function makeGlobal(obj, name, newValue)
+      % MAKEGLOBAL Makes named trial condition a global parameter
+      %  MAKEGLOBAL(OBJ, NAME[, NEWVALUE]) If the named parameter is
+      %  already global (number of columns == 1) an exception is thrown,
+      %  otherwise the value of the first column is kept and the others
+      %  discarded.  Optionally a new value can be set instead.
+      %
+      %  Example:
+      %    % Make 'repeatIncorrectTrial' globally false
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    makeGlobal(P, 'repeatIncorrectTrial', false)
+      %
+      % See also MAKETRIALSPECIFIC, NUMTRIALCONDITIONS
+
       % takes the first condition value and applies as global value
       assert(obj.isTrialSpecific(name), '''%s'' is already global', name);
       if nargin < 3
@@ -205,12 +281,26 @@ classdef Parameters < handle
     end
     
     function n = numTrialConditions(obj)
+      % NUMTRIALCONDITIONS Returns the number of trial conditions
+      %  Returns the number of trial conditions, defined as the maximum
+      %  number of non-single columns.  If all parameters have only one
+      %  column, n = 0.
+      %
+      %  Output:
+      %   n (int): the total number of trial conditions
+      %
+      %  Example:
+      %   P = exp.Parameters(exp.choiceWorldParams);
+      %   n = P.numTrialConditions % 12
+      %
+      % See also ISTRIALSPECIFIC
       trialParamNames = obj.TrialSpecificNames;
       trialParamLen = cellfun(@(n) size(obj.Struct.(n), 2), trialParamNames);
       if ~isempty(trialParamLen)
         n = trialParamLen(1);
         assert(all(trialParamLen == n),...
-        'Not all trial-specific parameters are the same length (ncols).');
+          'Rigbox:exp:Parameters:numTrialConditionsMismatch',...
+          'Not all trial-specific parameters are the same length (ncols).');
       else
         n = 0;
       end
@@ -307,6 +397,16 @@ classdef Parameters < handle
   methods (Access = protected)
     
     function l = namesFromFields(obj)
+      % NAMESFROMFIELDS Returns list of formatted names for the fields
+      %  Makes cell array of parameter names, converting camelCase to Space
+      %  Seperated Words, e.g. 'repeatIncorrectTrial' -> 'Repeat Incorrect
+      %  Trial'.
+      %
+      %  Example:
+      %    P = exp.Parameters(exp.choiceWorldParams)
+      %    P.Names % Get list of formatted names
+      %
+      % See also GET.NAME, SET.STRUCT
       fields = fieldnames(obj.pStruct);
       isinfo = cellfun(@(f) strEndsWith(f, {'Description', 'Units'}), fields);
       l = fields(~isinfo & ~strcmp(fields, 'type'));
