@@ -99,7 +99,11 @@ else
         else
           % if using default but with default array output, first get cell
           % output with defaults applied, then convert back to a MATLAB array:
-          v = cell2mat(pick(from, key, varargin{:}, 'cell'));
+          asCell = pick(from, key, varargin{:}, 'cell');
+% v = cell2mat( pick(from, key, varargin{:}, 'cell'));
+          % cell2mat doesn't process single element cells if they contain a
+          % cell or string, so we short circuit ourselves in this case:
+          v = iff(numel(asCell) == 1, @() asCell{1}, @() cell2mat(asCell));
         end
       end
     else
