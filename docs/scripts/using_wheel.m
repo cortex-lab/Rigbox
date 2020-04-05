@@ -241,7 +241,7 @@ moveType = wheel.classifyWheelMoves(...
 
 %% Notes
 % (1) e.g. 'inputs.foo'.  This is know as dot notation.  More info
-% <https://uk.mathworks.com/help/matlab/ref/subsref.html here> .
+% <https://uk.mathworks.com/help/matlab/ref/subsref.html here>.
 
 %% Etc.
 % Author: Miles Wells
