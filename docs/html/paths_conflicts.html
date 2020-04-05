@@ -1,0 +1,229 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Path conflicts</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-05"><meta name="DC.source" content="paths_conflicts.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Path conflicts</h1><!--introduction--><p>A frequent cause of errors is that MATLAB calls 'the wrong' function that has the same name as the intended one.  This is called shadowing and the precise file MATLAB uses depends on MATLAB's <a href="https://uk.mathworks.com/help/matlab/matlab_prog/function-precedence-order.html">function precedence order</a>.</p><p>For this reason you should be very careful in the way you use paths on shared rigs. Here is a list of things to avoid:</p><div><ol><li>Don't ever call savepath from your functions and more generally avoid changing the rig paths.</li><li>Avoid putting your functions in the userpath (usually <tt>&lt;User&gt;\Documents\MATLAB</tt>) because this folder is by default at the top of the MATLAB path list.</li><li>Avoid changing directory in your functions</li><li>Don't start an experiment before checking your current working directory.</li></ol></div><p>Note that Rigbox doesn't need to be in any specific directory to work, and besides <tt>addRigboxPaths</tt>, no code will permanently change the working directory or search path.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Checking your working directory</a></li><li><a href="#2">Calling custom functions</a></li><li><a href="#4">When to add paths</a></li><li><a href="#5">Reset on startup</a></li><li><a href="#6">Etc.</a></li></ul></div><h2 id="1">Checking your working directory</h2><p>It's good idea to make sure your working directory is somewhere safe before starting your experiment.  To check you working directory type <tt>pwd</tt> into the command window. To change into MATLAB's default directory (<tt>&lt;User&gt;\Documents\MATLAB</tt>), call <tt>cd(userpath)</tt>.  To check which file is being used, call the function <tt>which</tt> with the name of the function your investigating, e.g. <tt>which choiceWorld</tt>.</p><h2 id="2">Calling custom functions</h2><p>If changing paths, etc. is unavoidable, make sure you leave everything in the state it was in afterwards.</p><p>One way is to temporarily change directory using <tt>onCleanup</tt>, which will execute even if your function encounters an error:</p><pre class="codeinput">origDir = pwd; <span class="comment">% Get current working directory</span>
+mess = onCleanup(@() cd(origDir)); <span class="comment">% When exiting the function, change back to original dir</span>
+cd(fullfile(<span class="string">'my'</span>, <span class="string">'path'</span>)) <span class="comment">% Change directory to containing mySpecialFunction.m is</span>
+mySpecialFunction() <span class="comment">% Call your function</span>
+</pre><p>When returning, MATLAB clears all a function's variables, including `mess`, whose delete method calls the anonymous function <tt>@() cd(origDir)</tt></p><p>Another way is to use <tt>fileFunction</tt>, which temporarily adds the file to the MATLAB path, then removes it after the function is called.  This is useful if you need to call a custom function just once:</p><pre class="codeinput">mySpecialFunction = fileFunction([<span class="string">'my'</span> filesep <span class="string">'path'</span>], <span class="string">'mySpecialFunction.m'</span>); <span class="comment">% Return function wrapper</span>
+<span class="comment">% [...]</span>
+mySpecialFunction() <span class="comment">% Call your function</span>
+</pre><h2 id="4">When to add paths</h2><p>Changing directory and adding paths can affect performance as MATLAB has to rehash all its file and function caches.  If you're constantly calling a special function there are two things to consider. Your <a href="./gloassay.html">expDef</a> is run only twice per experiment so not being on the path doesn't really affect performance, and Rigbox deals with this for you.  However if in your expDef a function that is called with <tt>scan</tt> or <tt>map</tt> is changing the paths, consider refactoring your code, e.g. making whatever function you need to call a local function. Another option is to create a <a href="https://uk.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html">MATLAB package</a>. That way your function is in its own namespace and you will most likely avoid these sorts of conflicts.  For example say I have a function called <tt>ls</tt> that I need to constantly call.  If I put it in <tt>+john\ls.m</tt> then I can add it to the paths and safely call it without worrying about conflicts:</p><pre class="codeinput">addpath(<span class="string">'+john'</span>) <span class="comment">% Add this package to the search path</span>
+john.ls() <span class="comment">% Call +john\ls.m</span>
+ls() <span class="comment">% Call MATLAB's builtin ls</span>
+</pre><h2 id="5">Reset on startup</h2><p>Another way to avoid these conflicts occuring over time is to reset your paths each time MATLAB starts up.  You can do this by adding the following to <a href="https://uk.mathworks.com/help/matlab/ref/startup.html">MATLAB's startup script</a>:</p><pre class="codeinput">disp <span class="string">'Resetting paths...'</span>
+restoredefaultpath <span class="comment">% Restore all paths to factory state</span>
+
+userDir = winqueryreg(<span class="string">'HKEY_CURRENT_USER'</span>,<span class="keyword">...</span>
+  <span class="string">'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'</span>, <span class="keyword">...</span>
+  <span class="string">'Personal'</span>); <span class="comment">% Get the user directory path, e.g. &lt;User&gt;\Documents</span>
+
+<span class="comment">% Change these paths to your install locations</span>
+rigbox_path = fullfile(userDir, <span class="string">'Github'</span>, <span class="string">'rigbox'</span>);
+ptb_path = fullfile(userDir, <span class="string">'PTB'</span>, <span class="string">'Psychtoolbox'</span>);
+
+<span class="comment">% Add Psychtoolbox paths</span>
+disp <span class="string">'...'</span>
+disp <span class="string">'Adding PsychToolbox paths...'</span>
+cd(ptb_path)
+state = pause(<span class="string">'off'</span>);
+SetupPsychtoolbox;
+pause(state);
+
+<span class="comment">% Add Rigbox paths</span>
+disp <span class="string">'Adding Rigbox paths...'</span>
+cd(rigbox_path)
+addRigboxPaths(<span class="string">'Strict'</span>, false)
+
+<span class="comment">% Return to default working directory</span>
+cd(userpath)
+clear <span class="string">variables</span>
+home <span class="comment">% Hide command output history</span>
+</pre><h2 id="6">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.0</p><p><a href="index.html">Home</a> &gt; <a href="./troubleshooting.html">Troubleshooting</a> &gt; Paths Conflicts</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Path conflicts
+% A frequent cause of errors is that MATLAB calls 'the wrong' function that
+% has the same name as the intended one.  This is called shadowing and the
+% precise file MATLAB uses depends on MATLAB's
+% <https://uk.mathworks.com/help/matlab/matlab_prog/function-precedence-order.html
+% function precedence order>.  
+%
+% For this reason you should be very careful in the way you use paths on
+% shared rigs. Here is a list of things to avoid:
+% 
+% # Don't ever call savepath from your functions and more generally avoid
+% changing the rig paths.
+% # Avoid putting your functions in the userpath (usually
+% |<User>\Documents\MATLAB|) because this folder is by default at the top
+% of the MATLAB path list.
+% # Avoid changing directory in your functions
+% # Don't start an experiment before checking your current working
+% directory.  
+%
+% Note that Rigbox doesn't need to be in any specific directory to work,
+% and besides |addRigboxPaths|, no code will permanently change the working
+% directory or search path.
+
+%% Checking your working directory
+% It's good idea to make sure your working directory is somewhere safe
+% before starting your experiment.  To check you working directory type
+% |pwd| into the command window. To change into MATLAB's default directory
+% (|<User>\Documents\MATLAB|), call |cd(userpath)|.  To check which file is
+% being used, call the function |which| with the name of the function your
+% investigating, e.g. |which choiceWorld|.
+
+%% Calling custom functions
+% If changing paths, etc. is unavoidable, make sure you leave everything in
+% the state it was in afterwards.  
+%
+% One way is to temporarily change directory using |onCleanup|, which will
+% execute even if your function encounters an error:
+
+origDir = pwd; % Get current working directory
+mess = onCleanup(@() cd(origDir)); % When exiting the function, change back to original dir
+cd(fullfile('my', 'path')) % Change directory to containing mySpecialFunction.m is
+mySpecialFunction() % Call your function
+
+%%%
+% When returning, MATLAB clears all a function's variables, including
+% `mess`, whose delete method calls the anonymous function |@()
+% cd(origDir)|
+%
+% Another way is to use |fileFunction|, which temporarily adds the file to
+% the MATLAB path, then removes it after the function is called.  This is
+% useful if you need to call a custom function just once:
+
+mySpecialFunction = fileFunction(['my' filesep 'path'], 'mySpecialFunction.m'); % Return function wrapper
+% [...]
+mySpecialFunction() % Call your function
+
+%% When to add paths
+% Changing directory and adding paths can affect performance as MATLAB has
+% to rehash all its file and function caches.  If you're constantly calling
+% a special function there are two things to consider. Your
+% <./gloassay.html expDef> is run only twice per experiment so not being on
+% the path doesn't really affect performance, and Rigbox deals with this
+% for you.  However if in your expDef a function that is called with |scan|
+% or |map| is changing the paths, consider refactoring your code, e.g.
+% making whatever function you need to call a local function. Another
+% option is to create a
+% <https://uk.mathworks.com/help/matlab/matlab_oop/scoping-classes-with-packages.html
+% MATLAB package>. That way your function is in its own namespace and you
+% will most likely avoid these sorts of conflicts.  For example say I have
+% a function called |ls| that I need to constantly call.  If I put it in
+% |+john\ls.m| then I can add it to the paths and safely call it without
+% worrying about conflicts:
+
+addpath('+john') % Add this package to the search path
+john.ls() % Call +john\ls.m
+ls() % Call MATLAB's builtin ls
+
+%% Reset on startup
+% Another way to avoid these conflicts occuring over time is to reset your
+% paths each time MATLAB starts up.  You can do this by adding the
+% following to <https://uk.mathworks.com/help/matlab/ref/startup.html
+% MATLAB's startup script>:
+
+disp 'Resetting paths...'
+restoredefaultpath % Restore all paths to factory state
+
+userDir = winqueryreg('HKEY_CURRENT_USER',...
+  'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', ...
+  'Personal'); % Get the user directory path, e.g. <User>\Documents
+
+% Change these paths to your install locations
+rigbox_path = fullfile(userDir, 'Github', 'rigbox');
+ptb_path = fullfile(userDir, 'PTB', 'Psychtoolbox');
+
+% Add Psychtoolbox paths
+disp '...'
+disp 'Adding PsychToolbox paths...'
+cd(ptb_path)
+state = pause('off');
+SetupPsychtoolbox;
+pause(state);
+
+% Add Rigbox paths
+disp 'Adding Rigbox paths...'
+cd(rigbox_path)
+addRigboxPaths('Strict', false)
+
+% Return to default working directory
+cd(userpath)
+clear variables
+home % Hide command output history
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.0.0
+%
+% <index.html Home> > <./troubleshooting.html Troubleshooting> > Paths Conflicts
+
+##### SOURCE END #####
+--></body></html>

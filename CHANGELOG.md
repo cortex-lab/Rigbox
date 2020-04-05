@@ -38,6 +38,7 @@ This file contains a curated, chronologically ordered list of notable changes ma
 - added tests for eui.ExpPanel `572463c` 2020-01-28
 - added tests for *paramProfile functions + no error when saving into new repo `72b04fa` 2020-01-30
 - added FormatLabels flag to eui.SignalsExpPanel `c5794a8` 2020-02-03
+- HOTFIX Bugfix in signals for versions >2016b & <2018b
 
 ## [2.4.1](https://github.com/cortex-lab/Rigbox/releases/tag/2.4.0)
 
@@ -57,8 +58,9 @@ This file contains a curated, chronologically ordered list of notable changes ma
 - stricter and more accurate tolerance in AlyxPanel_test `31641f1` 2019-10-17
 - added tests for dat.mpepMessageParse and tl.bindMpepServer `bd15b95` 2019-10-21
 - HOTFIX to error when plotting supressed in Window calibrate `7d6b601` 2019-11-15
+- updates to alyx-matlab submodule 2019-11-02
 
-## [2.3.0](https://github.com/cortex-lab/Rigbox/releases/tag/v2.3.0)
+## [2.3.1](https://github.com/cortex-lab/Rigbox/releases/tag/2.3.1)
 
 - patch in alyx-matlab submodule 2019-07-25
 - updated Signals performance test `993d906` 2019-07-19

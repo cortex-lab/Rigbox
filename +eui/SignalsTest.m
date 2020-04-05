@@ -118,6 +118,16 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         'signals:test:copyPaths',...
         'No paths file found. A template can be found in %s.', ...
         fullfile(fileparts(which('addRigboxPaths')), 'docs', 'setup'))
+            
+      % Check that the Psychophisics Toolbox is installed
+      toolboxes = ver;
+      isInstalled = strcmp('Psychtoolbox', {toolboxes.Name});
+      if ~any(isInstalled) || str2double(toolboxes(isInstalled).Version(1)) < 3
+        error('signals:test:toolboxRequired',...
+          ['Requires Psychtoolbox v3.0 or higher to be installed. '...
+          'Follow the steps in the <a href="matlab:web(''%s'',''-browser'')">README</a> to install.'],...
+          'https://github.com/cortex-lab/Rigbox/tree/master#installing-psychtoolbox')
+      end
       
       obj.LastDir = getOr(dat.paths, 'expDefinitions');
       if nargin > 0 % called with experiment function to run

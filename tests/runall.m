@@ -39,4 +39,3 @@ results = run(tests);
 %% Diagnostics
 exitStatus = any([results.Failed]);
 failures = tests([results.Failed]);
-

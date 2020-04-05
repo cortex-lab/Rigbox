@@ -2,3 +2,4 @@
 .DS_Store
 *.m~
 +dat/paths.m
+docs/scripts/html/
