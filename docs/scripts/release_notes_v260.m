@@ -23,6 +23,8 @@
 % * |getOr| - Added comparisons with |pick| function
 % * |hw.testAudioOutputDevices| (formally |hw.findDevice|) - Complete
 % documentation
+% * |exp.configureSignalsExperiment| - Complete documentation with an
+% example
 % 
 % Updates to guides:
 % 
@@ -51,9 +53,17 @@
 % array, and the 'updateSchedule' field of |dat.paths| may be set to
 % -1/'never' to turn off updates
 % * |srv.expServer| - Pressing 'h' key in expServer will display the
-% keyboard shortcuts.  
+%                     keyboard shortcuts.  
 %                   - The calibration plot will now be displayed on the
-%                   screen.
+%                     screen.
+% * |exp.configureSignalsExperiment| - Stimulus window background colour
+% can now be set with a 'bgColor' field in the parameter struct.  This
+% allows users to set the window colour for individual experiments without
+% having to restart expServer, and this parameter may be used in an expDef
+% to match the colour of stimuli.  NB: The background colour can only be
+% set once, at the start of the experiment.
+% * |exp.rangeEventHandlers| - Function removed (old and incomplete code)
+% * |exp.rangeParams| - Function removed (old and incomplete code)
 %
 % *Tests*
 %
