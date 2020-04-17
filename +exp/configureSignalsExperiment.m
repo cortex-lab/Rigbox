@@ -25,10 +25,14 @@ if isfield(rig, 'stimWindow') && rig.stimWindow.IsOpen
   % the current background colour
   bgColour = getOr(paramStruct, 'bgColour', rig.stimWindow.BackgroundColour);
   fullRange = rig.stimWindow.ColourRange;
+  assert(numel(bgColour) < 5, ...
+    'Rigbox:exp:configureSignalsExperiment:bgColourSize', ...
+    'background colour must be 1, 3 or 4 elements and cannot vary by trial')
   % Normalize by available colour range based on current pixel depth.  This
   % is nearly always 0-255 and sometimes 0-1 but technically it could be
   % any positive number
   rig.stimWindow.BackgroundColour = (bgColour / 255) * fullRange;
+  paramStruct.bgColour = rig.stimWindow.BackgroundColour(:);
 end
 
 %% Create the experiment object

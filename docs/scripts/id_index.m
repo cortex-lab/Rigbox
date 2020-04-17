@@ -117,6 +117,28 @@
 %  Rigbox:MockDialog:newCall:behaviourNotSet
 %  
 
+%% bgColourSize
+% *Problem*:
+%
+% The background colour of the stimulus window may be 1, 3 or 4 elements,
+% corresponding to greyscale luminance, RGB and RGBA (the alpha value is
+% ignored).  The background colour is taken from the 'bgColour' parameter
+% if it exists.  This error occures when the number of elements of this
+% parameter is greater than four.  The shape doesn't matter but currently
+% trial conditional background colours are not supported.
+%
+% *Solution*:
+%
+% Ensure that the bgColour parameter is less than 5 elements, and as trial
+% conditional bgColour parameters are not supported, it should be a column:
+%
+%  p.bgColour = [255; 255; 255] / 2; % Middle grey
+%
+% *IDs*
+% 
+%  Rigbox:exp:configureSignalsExperiment:bgColourSize
+%
+
 %% mkdirFailed
 % *Problem*:
 %
@@ -240,6 +262,35 @@ stimWindow.PtbSyncTests = false;
 hwPath = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
 save(hwPath, 'stimWindow', '-append')
 
+%% deprecated
+% *Problem*:
+%
+% This warning occurs when a function is called that will soon be renamed
+% or removed, usually in the next release.
+%
+% *Solution*:
+%
+% Usually the message will recommend a new function to call instead. Before
+% updating your code, be sure to change your code and note any differences
+% between the old and new functions.  Often you can 'future-proof' your
+% code with a try-catch block, e.g.
+% 
+%  try
+%    % Soon to change name to 'testAudioOutputDevices'
+%    hw.findDevice()
+%  catch ex
+%    if endsWith(ex.identifier, 'depricated')
+%      hw.testAudioOutputDevices()
+%    else
+%      rethrow(ex)
+%    end
+%  end
+%
+% *IDs*
+%
+% signals:sig:quiescenceWatch:deprecated
+%
+
 %% Undocumented IDs
 % Below is a list of all other error and warning ids.  
 
@@ -287,6 +338,8 @@ save(hwPath, 'stimWindow', '-append')
 %
 % toStr:isstruct:Unfinished
 %
+% signals:sig:test:create:notEnoughNames
+%
 % squeak.hw
 % shape:error
 % window:error
@@ -294,8 +347,5 @@ save(hwPath, 'stimWindow', '-append')
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.1
+% v0.1.2
 %
-
-% INTERNAL
-% execute off
