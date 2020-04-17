@@ -365,7 +365,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_timeline_override(testCase)
-      % Test timeline overrride with toggle key and expServer input
+      % Test timeline override with toggle key and expServer input
       import matlab.mock.constraints.WasSet
       
       KbQueueCheck(-1, sequence({'t', 'q'})); % Toggle timeline then quit
