@@ -91,10 +91,10 @@ paramStruct.expPanelFun % (1,27)
 % <using_ExpPanel.html Using ExpPanel> for more info.
 
 %%% type
-% A legacy parameter that defines what experiment class to use. Options
-% include 'ChoiceWorld' and 'custom', where the latter indicates a signals
-% experiment.  For these two options the experiment classes are
-% |exp.ChoiceWorld| and |exp.SignalsExp|, respectively (see note 2). 
+% A parameter that defines what experiment class to use. Options include
+% 'ChoiceWorld', 'Surround' and 'custom', where the latter indicates a
+% signals experiment.  For the first two options the experiment class is
+% |exp.ChoiceWorld|; for the last, |exp.SignalsExp| (see note 2).
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.
@@ -542,6 +542,6 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
 % Author: Miles Wells
 %
-% v1.1.2
+% v1.1.3
 
 %#ok<*NOPTS,*ASGLU,*NASGU>

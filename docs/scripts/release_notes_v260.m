@@ -32,6 +32,7 @@
 % * |using_wheel| - Added section on using the +wheel package for analysis
 % * |paths_config| - Added note about adding paths as chars: strings not
 % supported
+% * |id_index| - Added info on 'deprecated' and 'bgColourSize'
 % 
 %
 % *Bug fixes*
@@ -78,6 +79,7 @@
 % * srv.expServer - Test refactoring
 % * git.update - Tests added for new array support
 % * exp.configureSignalsExperiment - Full test coverage
+%
 
 %% signals v1.3
 % *Major changes*

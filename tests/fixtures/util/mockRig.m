@@ -18,7 +18,6 @@ function [rig, behaviour] = mockRig(testCase)
 %    [rig, behaviour] = mockRig(testCase)
 %
 % TODO Call this from calibrate_test
-% TODO Make into Fixture
 %
 % See also HW.DEVICES
 %
