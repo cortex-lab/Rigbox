@@ -1,8 +1,7 @@
 %% Introduction 
 % The |dat.paths| function is used for configuring important paths for the
-% computers which Rigbox runs on. These include paths to:
+% computers which Rigbox runs on. These include paths to...
 %
-% 
 % # either the shared folder(s) OR the remote server(s) on which 
 % organization-wide configuration files, subject data and experiment data 
 % is stored, and a local directory for generating redundant copies of this 
@@ -13,6 +12,8 @@
 % back-ups (e.g. for working analyses, tapes, etc...)
 % # optionally, a path to a custom config file for the local computer.
 %
+% *NB*: Besides the 'updateSchedule' field, all fields must be char arrays,
+% not strings (see note 1).
 %
 %% Setting up the paths
 % |dat.paths| is simply a function that returns a struct of directory paths
@@ -67,6 +68,14 @@ assert(copyfile(source, destination), 'Failed to copy the template file')
 % For a guide to resetting the paths each time you open MATLAB, see the
 % <./paths_conflicts.html this guide>.
 
+%% Notes
+% (1) A char is defined using single quotes ('a char') while strings are
+% defined using double quotes ("a string").  String arrays are currently
+% not supported in the paths file.  For more information on the difference
+% between MATLAB chars and strings, see their
+% <https://uk.mathworks.com/help/matlab/characters-and-strings.html
+% documentation>.
+%
 %% Etc.
 % Author: Miles Wells
 %

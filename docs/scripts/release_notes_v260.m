@@ -25,10 +25,13 @@
 % documentation
 % * |exp.configureSignalsExperiment| - Complete documentation with an
 % example
+% * |paths_template| - Note about using chars instead of strings
 % 
 % Updates to guides:
 % 
 % * |using_wheel| - Added section on using the +wheel package for analysis
+% * |paths_config| - Added note about adding paths as chars: strings not
+% supported
 % 
 %
 % *Bug fixes*

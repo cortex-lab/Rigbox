@@ -5,6 +5,9 @@ function p = paths(rig)
 %   input is used to generate rig specific paths, including custom paths.
 %   The default is the hostname of this computer.
 %
+%   NB: Aside from 'updateSchedule', all fields must be char arrays, not
+%   strings.
+%
 %   The main and local repositories are essential for determining where to
 %   save experimental data.
 %
