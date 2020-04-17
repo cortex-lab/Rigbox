@@ -20,9 +20,15 @@ function e = configureSignalsExperiment(paramStruct, rig)
 % See also exp.configureFilmExperiment, exp.configureChoiceExperiment
 
 %% Set the background colour
-% If the 'bgColour' parameter is defined, set the background colour
-if isfield(paramStruct, 'bgColour')
-  rig.stimWindow.BackgroundColour = paramStruct.bgColour;
+if isfield(rig, 'stimWindow') && rig.stimWindow.IsOpen
+  % If the 'bgColour' parameter is defined use that value, otherwise use
+  % the current background colour
+  bgColour = getOr(paramStruct, 'bgColour', rig.stimWindow.BackgroundColour);
+  fullRange = rig.stimWindow.ColourRange;
+  % Normalize by available colour range based on current pixel depth.  This
+  % is nearly always 0-255 and sometimes 0-1 but technically it could be
+  % any positive number
+  rig.stimWindow.BackgroundColour = (bgColour / 255) * fullRange;
 end
 
 %% Create the experiment object

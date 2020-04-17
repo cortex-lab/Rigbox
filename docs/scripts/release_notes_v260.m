@@ -48,7 +48,8 @@
 % folder is removed if remote folder creation fails
 % * |exp.SignalsExp| - Zeroing of input devices now happens during
 % initialization, closer to experiment start.  This is in line with the
-% base Experiment class
+% base Experiment class.  The RigName property is now used, in line with
+% exp.Experiment behaviour.
 % * |git.update| - The update day may now be a char, cellstr, or string
 % array, and the 'updateSchedule' field of |dat.paths| may be set to
 % -1/'never' to turn off updates
@@ -60,8 +61,9 @@
 % can now be set with a 'bgColor' field in the parameter struct.  This
 % allows users to set the window colour for individual experiments without
 % having to restart expServer, and this parameter may be used in an expDef
-% to match the colour of stimuli.  NB: The background colour can only be
-% set once, at the start of the experiment.
+% to match the colour of stimuli.  The background colour is now normalized
+% based on the available colour range.  NB: The background colour can only
+% be set once, at the start of the experiment.
 % * |exp.rangeEventHandlers| - Function removed (old and incomplete code)
 % * |exp.rangeParams| - Function removed (old and incomplete code)
 %
@@ -72,6 +74,7 @@
 % * namedArg - Test added for when inputs are nonscalar cell arrays
 % * srv.expServer - Test refactoring
 % * git.update - Tests added for new array support
+% * exp.configureSignalsExperiment - Full test coverage
 
 %% signals v1.3
 % *Major changes*

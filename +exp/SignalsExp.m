@@ -233,7 +233,7 @@ classdef SignalsExp < handle
     
     function useRig(obj, rig)
       obj.Clock = rig.clock;
-      obj.Data.rigName = rig.name;
+      obj.RigName = rig.name;
       obj.SyncBounds = rig.stimWindow.SyncBounds;
       obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
       obj.NextSyncIdx = 1;
@@ -367,6 +367,7 @@ classdef SignalsExp < handle
       %do initialisation
       init(obj);
       
+      obj.Data.rigName = obj.RigName;
       obj.Data.expRef = ref; %record the experiment reference
       
       %Trigger the 'experimentInit' event so any handlers will be called

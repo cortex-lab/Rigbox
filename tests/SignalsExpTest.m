@@ -36,12 +36,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   end
     
   methods (TestClassSetup)
-    function setupFolder(testCase)
-      % SETUPFOLDER Set up subject, queue and config folders for test
-      %  Creates a few folders for saving parameters and hardware.  Adds
-      %  teardowns for deletion of these folders.  Sets global INTEST flag
-      %  to true and adds teardown.  Also creates a custom paths file to
-      %  deactivate Alyx.
+    function setup(testCase)
+      % SETUP Set up test environment
+      %  Sets global INTEST flag, applies the repos fixture for setting up
+      %  folders, sets up timer and adds teardowns.
 
       % Set INTEST flag to true
       setTestFlag(true);
