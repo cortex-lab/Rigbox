@@ -91,10 +91,10 @@ paramStruct.expPanelFun % (1,27)
 % <using_ExpPanel.html Using ExpPanel> for more info.
 
 %%% type
-% A legacy parameter that defines what experiment class to use. Options
-% include 'ChoiceWorld' and 'custom', where the latter indicates a signals
-% experiment.  For these two options the experiment classes are
-% |exp.ChoiceWorld| and |exp.SignalsExp|, respectively (see note 2). 
+% A parameter that defines what experiment class to use. Options include
+% 'ChoiceWorld', 'Surround' and 'custom', where the latter indicates a
+% signals experiment.  For the first two options the experiment class is
+% |exp.ChoiceWorld|; for the last, |exp.SignalsExp| (see note 2).
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.
@@ -215,12 +215,12 @@ numTrialConditions(parameters) % There are 9 trial conditions
 [globalParams, trialParams] = parameters.assortForExperiment;
 trialParams % (1,9) struct
 
-% TOCONDITIONSERVER replicates the trial conditions be however many times
-% are specified by the 'numRepeats' parameter and if the `randomOrder`
-% input arg is true, these are shuffled into a random order.  This method
-% is used by the experiment class during setup.  In addition to returning
-% the assorted global and conditional parameters, a Condition Server
-% object, `cs` is also returned (see note 5)
+% TOCONDITIONSERVER replicates the trial conditions however many times are
+% specified by the 'numRepeats' parameter and if the `randomOrder` input
+% arg is true, these are shuffled into a random order.  This method is used
+% by the experiment class during setup.  In addition to returning the
+% assorted global and conditional parameters, a Condition Server object,
+% `cs` is also returned (see note 5)
 [cs, globalParams, trialParams] = parameters.toConditionServer(true);
 sum(parameters.Struct.numRepeats) % Total number of trials
 trialParams % (1,810) struct
@@ -542,6 +542,6 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
 % Author: Miles Wells
 %
-% v1.1.2
+% v1.1.3
 
 %#ok<*NOPTS,*ASGLU,*NASGU>

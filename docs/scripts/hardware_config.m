@@ -225,8 +225,8 @@ save(hardware, 'stimWindow', '-append') % Save the stimWindow to file
 
 %%% Basic screen viewing model
 % The basic viewing model class deals with single screens positioned
-% straight in front of an observer (^):| _____
-% |                                        ^  
+% straight in front of an observer (^):| _____ |
+%                                          ^  
 doc hw.BasicScreenViewingModel
 
 % Let's set this up:
@@ -505,22 +505,34 @@ clear scale lh
 % Windows-2000/XP) should provide ok latency. DirectSound is the next worst
 % choice if you have hardware with DirectSound support. If everything else
 % fails, you'll be left with MME, a completely unusable API for precise or
-% low latency timing. 
+% low latency timing.  The below code shows how to view all audio device
+% settings and to save them into the hardware file.  NB: It is important to
+% rename the DeviceName field of the devices you with to use, as this field
+% is used to reference them in your Signals experiment definition.
 
 InitializePsychSound
-devs = PsychPortAudio('GetDevices')
-
-% Sanitize the names
-names = matlab.lang.makeValidName({devs.DeviceName}, 'ReplacementStyle', 'delete');
-names = iff(ismember('default', names), names, @()[{'default'} names(2:end)]);
-for i = 1:length(names); devs(i).DeviceName = names{i}; end
-audioDevices = devs;
+audioDevices = PsychPortAudio('GetDevices')
 
 save(hardware, 'audioDevices', '-append')
 
-% @TODO Substantiate
-% @body Info on PTB support, mention the helper for testing devices,
-% mention how audio device naming works
+%%% Selecting a default audio device
+% The function |hw.testAudioOutputDevices| can help you select a default
+% output audio device.  For each output device, white noise is played
+% through all channels.  If the user presses the space bar the current
+% device is returned, which may then be saved into the rig hardware file.
+% Press any other key to proceed to the next device.  If unsure which
+% device to use, press <space> during the first which produces sound.  This
+% will be the lowest latency device that produces sound.  The saveAsDefault
+% flag will automatically save the device into your hardware file with the
+% DeviceName as 'default':
+d = hw.testAudioOutputDevices('SaveAsDefault', true);
+
+%%%
+% *NB*: In recent years PsychToolbox dropped support for ASIO drivers.  If
+% you are using an ASIO device please ensure that you have version 3.0.14
+% or earlier installed.  For more information, see the
+% <https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/Hardware:-Audio-Devices
+% PsychToolbox Wiki>.
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
@@ -611,6 +623,6 @@ d = daq.getDevices % Availiable devices and their info
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.2
+% v1.2.1
 
 %#ok<*NOPTS,*NASGU,*ASGLU>

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Advanced Signals</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-23"><meta name="DC.source" content="advanced_signals.m"><style type="text/css">
+      --><title>Advanced Signals</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-20"><meta name="DC.source" content="advanced_signals.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Advanced Signals</h1><!--introduction--><p>This guide shows you some of the methods available for use outside of the Signals Experiment Framework (i.e. outside of an experiment definition function).  The intention is to explain the machinary of Signals and to demonstrate how to create experiments with a custom UI.  After reading this you should have a near complete understanding of how Signals works and thus how to create any experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Network architecture</a></li><li><a href="#2">Origin signals</a></li><li><a href="#4">Demonstration on sig.Signal/output() method</a></li><li><a href="#6">Timing in signals</a></li><li><a href="#7">Now let's increase the frequency to 10 ms...</a></li><li><a href="#8">When we clear the handle, the value is no longer displayed</a></li><li><a href="#9">Due to the timer, the value of 'time' continues to update</a></li><li><a href="#10">When the timer is stopped, the value of 'time' is no longer updated</a></li><li><a href="#11">Timing 2 - Scheduling</a></li><li><a href="#12">Demonstration of sig.Signal/log() method</a></li><li><a href="#13">Logging signals in a registry</a></li><li><a href="#14">Visual stimuli</a></li><li><a href="#15">subscriptable origin signals</a></li><li><a href="#16">flattenStruct</a></li><li><a href="#17">flatten</a></li><li><a href="#18">Implementing new Signal methods</a></li><li><a href="#19">Overloading a MATLAB function</a></li><li><a href="#20">Creating a method with scan</a></li><li><a href="#21">Creating a transfer function</a></li><li><a href="#22">Implementing in mexnet</a></li><li><a href="#23">Notes</a></li><li><a href="#31">FAQ</a></li><li><a href="#32">I'm seeing '-1 is not a valid network id' in the command prompt</a></li><li><a href="#33">Etc.</a></li></ul></div><h2 id="1">Network architecture</h2><p>Every signal is part of a network, managed through a <tt>sig.Net</tt> object. The network object holds all the ids of all the signals' nodes(1).</p><pre class="codeinput"><span class="comment">% Every signal has an underlying node; a |sig.node.Node| object that</span>
+  </style></head><body><div class="content"><h1>Advanced Signals</h1><!--introduction--><p>This guide shows you some of the methods available for use outside of the Signals Experiment Framework (i.e. outside of an experiment definition function).  The intention is to explain the machinary of Signals and to demonstrate how to create experiments with a custom UI.  After reading this you should have a near complete understanding of how Signals works and thus how to create any experiment.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Network architecture</a></li><li><a href="#2">Origin signals</a></li><li><a href="#4">Demonstration on sig.Signal/output() method</a></li><li><a href="#6">Timing in signals</a></li><li><a href="#7">Now let's increase the frequency to 10 ms...</a></li><li><a href="#8">When we clear the handle, the value is no longer displayed</a></li><li><a href="#9">Due to the timer, the value of 'time' continues to update</a></li><li><a href="#10">When the timer is stopped, the value of 'time' is no longer updated</a></li><li><a href="#11">Timing 2 - Scheduling</a></li><li><a href="#12">Demonstration of sig.Signal/log() method</a></li><li><a href="#13">Logging signals in a registry</a></li><li><a href="#14">Visual stimuli</a></li><li><a href="#15">Subscriptable Origin Signals</a></li><li><a href="#24">flattenStruct</a></li><li><a href="#26">flatten</a></li><li><a href="#28">fromUIEvent</a></li><li><a href="#30">onValue</a></li><li><a href="#32">Implementing new Signal methods</a></li><li><a href="#33">Overloading a MATLAB function</a></li><li><a href="#34">Creating a method with current methods</a></li><li><a href="#35">Creating a transfer function</a></li><li><a href="#36">Implementing in mexnet</a></li><li><a href="#37">Notes</a></li><li><a href="#46">FAQ</a></li><li><a href="#47">I'm seeing '-1 is not a valid network id' in the command prompt</a></li><li><a href="#48">Etc.</a></li></ul></div><h2 id="1">Network architecture</h2><p>Every signal is part of a network, managed through a <tt>sig.Net</tt> object. The network object holds all the ids of all the signals' nodes(1).</p><pre class="codeinput"><span class="comment">% Every signal has an underlying node; a |sig.node.Node| object that</span>
 <span class="comment">% contains a number of important properties:</span>
 <span class="comment">% * Net: a handle to the parent network (a sig.Net object)</span>
 <span class="comment">% * Inputs: an array of input nodes (other sig.node.Node objects)</span>
@@ -90,7 +90,7 @@ originSignal.Node.CurrValue <span class="comment">% The current value is now 'he
 <span class="comment">% You can see there are two names for this signal.  The string identifier</span>
 <span class="comment">% ('input') is the Signal object's name, stored in the Name property:</span>
 disp(originSignal.Name)
-</pre><p>Any Signals derived from this will include this identifier in their Name property (an example will follow shortly).  The variable name 'originSignal' is simply a handle to the Signal object and can be changed or cleared without affecting the object it references(3).</p><p>Although the value is stored in the Node's CurrValue field, it is not intended that you use this field directly.  The purpose of using a reactive network is that callbacks will access these values automatically if and when they change.  Accessing this property directly will most likely lead to unintended behaviour.</p><h2 id="4">Demonstration on sig.Signal/output() method</h2><p>The output method is a useful function for understanding the relationship between signals.  It simply displays a signal's output each time it takes a value.  The output method returns an object of the class <tt>TidyHandle</tt>, which is like a normal listener handle, however when its lifecyle ends it will delete itself.  What this means is that when the handle is no longer referenced anywhere (i.e. stored as a variable), the callback will no longer function.</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create a new signals network</span>
+</pre><p>Any Signals derived from this will include this identifier in their Name property (an example will follow shortly).  The variable name 'originSignal' is simply a handle to the Signal object and can be changed or cleared without affecting the object it references(3).</p><p>Although the value is stored in the Node's CurrValue field, it is not intended that you use this field directly.  The purpose of using a reactive network is that callbacks will access these values automatically if and when they change.  Accessing this property directly will most likely lead to unintended behaviour.  Retrieving the value this was is akin to removing something from a factory conveyor belt: once retrieved, the state is fixed and will no longer change.</p><h2 id="4">Demonstration on sig.Signal/output() method</h2><p>The output method is a useful function for understanding the relationship between signals.  It simply displays a signal's output each time it takes a value.  The output method returns an object of the class <tt>TidyHandle</tt>, which is like a normal listener handle, however when its lifecyle ends it will delete itself.  What this means is that when the handle is no longer referenced anywhere (i.e. stored as a variable), the callback will no longer function.</p><pre class="codeinput">net = sig.Net; <span class="comment">% Create a new signals network</span>
 clc <span class="comment">% Clear previous output for clarity</span>
 
 simpleSignal = net.origin(<span class="string">'simpleSignal'</span>);
@@ -208,7 +208,113 @@ elements = StructRef;
 elements.grating = grating;
 
 setgraphic(elements);
-</pre><h2 id="15">subscriptable origin signals</h2><h2 id="16">flattenStruct</h2><h2 id="17">flatten</h2><h2 id="18">Implementing new Signal methods</h2><h2 id="19">Overloading a MATLAB function</h2><h2 id="20">Creating a method with scan</h2><h2 id="21">Creating a transfer function</h2><h2 id="22">Implementing in mexnet</h2><h2 id="23">Notes</h2><p>1. The sig.Net class itself does not store the nodes in its properties, however the underlying mexnet does.  This network is created by calling the MEX function createNetwork.  New nodes are created by calling the MEX function addNode.  This is done for you in the sig.Net and sig.node.Node class constructors.</p><p>2. Two such examples of visualization functions are introduced later, <tt>sig.test.plot</tt> and <tt>sig.test.timeplot</tt>.</p><p>3. Signals objects that are entirely out of scope are cleaned up by MATLAB and the underlying C code.  That is, if a Signal is created, assigned to a variable, and that variable is cleared then the underlying node is deleted if there exist no dependent Signals:</p><pre class="codeinput">net = sig.Net;
+</pre><h2 id="15">Subscriptable Origin Signals</h2><p>SubscriptableOriginSignals are similar to those returned by the <tt>subscriptable</tt> method but with ability to assign values.  A subscriptable origin signal can be created with the <tt>subscriptableOrigin</tt> of <tt>sig.Net</tt>.  The underlying value of a subscriptable origin signal is a struct and each time a value is assigned via subscripts, the field is modified in the underlying struct.</p><pre class="codeinput">net = sig.Net;
+S = net.subscriptableOrigin(<span class="string">'subscriptable'</span>);
+<span class="comment">% Assign some values</span>
+S.one = 1;
+S.two = net.origin(<span class="string">'two'</span>);
+</pre><p>With each new field assigned, it is added to an underlying struct object. As you can see signals may be assigned to fields also.  In fact assigning this way is very similar to directly assigning to a struct:</p><pre>S.Node.CurrValue</pre><pre>ans =</pre><pre>  struct with fields:</pre><pre>    one: 1
+    two: [1&times;1 sig.node.OriginSignal]</pre><p>Regardless of a field's value or existence, referencing a field will return a Signal.  Once a field has been referenced, each time that field is assigned a value the derived signal will update with that value. <b>NB</b>: If the field is assigned before being referenced then its current value will be undefined:</p><pre class="codeinput">h = [<span class="keyword">...</span><span class="comment"> % Print the value class when S updates</span>
+  S.one.onValue(@(v)fprintf(<span class="string">'S.one is a ''%s''\n'</span>,class(v))), <span class="keyword">...</span>
+  S.two.onValue(@(v)fprintf(<span class="string">'S.two is a ''%s''\n'</span>,class(v))), <span class="keyword">...</span>
+  S.three.onValue(@(v)fprintf(<span class="string">'S.three is a ''%s''\n'</span>,class(v)))];
+
+S.two = net.origin(<span class="string">'two'</span>);
+S.three = S.two * 4;
+
+clear <span class="string">h</span>
+</pre><pre>  S.one is a 'double'
+  S.two is a 'sig.node.OriginSignal'</pre><pre>  S.one is a 'double'
+  S.two is a 'sig.node.OriginSignal'
+  S.three is a 'sig.node.Signal'</pre><p><b>NB</b>: Each time any field is assigned a value, all derived signals will update, even if they're referencing a different field.  Also note that if a field is assigned a signal, the signal derived will have a signal object as its current value:</p><pre class="codeinput">field = S.two;
+field.Node.CurrValue <span class="comment">% Currently empty</span>
+
+S.two = net.origin(<span class="string">'two'</span>); <span class="comment">% Assign a signal</span>
+field.Node.CurrValue <span class="comment">% an OriginSignal</span>
+</pre><p>To get the value of the signal, rather than the signal itself, you can use the <tt>flatten</tt> method on the derived signal or <tt>flattenStruct</tt> on the subscriptable origin signal itself (more details later):</p><pre class="codeinput">field = S.two.flatten();
+flat = S.flattenStruct();
+S.two = net.origin(<span class="string">'two'</span>); <span class="comment">% Assign a signal</span>
+field.Node.CurrValue <span class="comment">% empty</span>
+flat.Node.CurrValue.two <span class="comment">% empty</span>
+</pre><p>A struct can be assigned all at once using the <tt>post</tt> method:</p><pre class="codeinput">net = sig.Net;
+S = net.subscriptableOrigin(<span class="string">'subscriptable'</span>);
+a = S.a; <span class="comment">% Signal with the value of field 'a'</span>
+post(S, struct(<span class="string">'a'</span>, 1, <span class="string">'b'</span>, 2))
+
+a.Node.CurrValue <span class="comment">% 1</span>
+</pre><p><b>NB</b>: The dot syntax with the <tt>post</tt> method will not work here as it is ambiguous:</p><pre class="codeinput">S.post(struct(<span class="string">'a'</span>, 1, <span class="string">'b'</span>, 2)) <span class="comment">% Doesn't work as expected</span>
+</pre><p>What is the difference between a SubscriptableOriginSignal and a subscriptable OriginSignal? With the former, you can do subscripted assignment; with the latter you can only assign values with post:</p><pre class="codeinput">s = net.origin(<span class="string">'structSig'</span>);
+S = s.subscriptable(); <span class="comment">% Returns SubscriptableSignal</span>
+a = S.a; <span class="comment">% Signal with the value of field 'a'</span>
+
+s.post(struct(<span class="string">'a'</span>, 1, <span class="string">'b'</span>, 2));
+a.Node.CurrValue <span class="comment">% 1</span>
+
+S.a = 2 <span class="comment">% ERROR Unrecognized property 'a' for class 'sig.node.SubscriptableSignal'.</span>
+s.a = 2 <span class="comment">% ERROR Unrecognized property 'a' for class 'sig.node.OriginSignal'.</span>
+</pre><p>Also deep (i.e. 'multi-level') dot syntax subscripted references are not possible with a plain SubscriptableSignal, but are with SubscriptableOriginSignals.  Note however that unlike with first-level subscripting, an error will be thrown if the nested field does not exist.</p><pre class="codeinput">net = sig.Net;
+S = net.subscriptableOrigin(<span class="string">'subscriptable'</span>);
+s = struct(<span class="string">'a'</span>, struct(<span class="string">'b'</span>, struct(<span class="string">'c'</span>, pi)));
+a = S.a.b.c;
+
+h = output(a);
+post(S,s) <span class="comment">% 3.1416</span>
+</pre><p>SubscriptableOriginSignals are used primarily for parameterizing visual stimuli, for example it is returned by <tt>vis.grating</tt>.</p><h2 id="24">flattenStruct</h2><p>The <tt>flattenStruct</tt> method of SubscriptableOriginSignals returns a signal whose value is a struct where any field values that were signals objects are replaced by the current values of those signals.  The signal returned by this method is a standard non-subscriptable signal and therefore cannot have values assigned.  Signals can be derived from this flattend struct signal by calling the <tt>subscriptable</tt> field...</p><pre class="codeinput">net = sig.Net;
+a = net.origin(<span class="string">'a'</span>); <span class="comment">% a Signal</span>
+S = net.subscriptableOrigin(<span class="string">'subscriptable'</span>); <span class="comment">% a SubsciptableOriginSignal</span>
+flat = S.flattenStruct; <span class="comment">% a flattened signal that will hold a struct</span>
+flat_sub = flat.subscriptable; <span class="comment">% a SubscriptableSignal</span>
+A = flat_sub.A; <span class="comment">% Should hold the value of 'a'</span>
+
+S.A = a; <span class="comment">% assign signal to subscriptable origin signal</span>
+a.post(5); <span class="comment">% post a value</span>
+flat.Node.CurrValue <span class="comment">% struct with fields A: 5</span>
+A.Node.CurrValue <span class="comment">% 5</span>
+</pre><p>Note that as usual the order is important as signals in general will only take a value at the time their inputs update, therefore if we created 'flat' after posting to 'a', the value of 'flat' would be empty because the update happened before 'flat' existed.</p><p>The flattened signal will update whenever a field is updated in the parent signal.  There is currently a bug where the flattened signal will update even when not all of the field values have a current value.  This will change in the future, however for now you can use the following to ensure that flattened signal updates only when all fields have values:</p><pre class="codeinput">toColumn = @(A)A(:);
+isInitialized = @(l)~any(toColumn(cellfun(<span class="string">'isempty'</span>, struct2cell(l))));
+flat = S.flattenStruct.filter(isInitialized);
+<span class="comment">% In more recent version of MATLAB:</span>
+isInitialized = @(l)~any(cellfun(<span class="string">'isempty'</span>, struct2cell(l)), <span class="string">'all'</span>);
+flat = S.flattenStruct.filter(isInitialized);
+</pre><h2 id="26">flatten</h2><p>The <tt>flatten</tt> method is useful for when you have a signal that is itself holding a signal object.  Calling <tt>flatten</tt> on this will return a signal that updates with the underlying value</p><pre class="codeinput">net = sig.Net;
+S = net.subscriptableOrigin(<span class="string">'subscriptable'</span>); <span class="comment">% Create subscriptable</span>
+sig = net.origin(<span class="string">'signal'</span>); <span class="comment">% Some example signal</span>
+sig.post(pi); <span class="comment">% Give it a value</span>
+
+a = S.field; <span class="comment">% Derive a new signal from a field</span>
+a_flat = S.field.flatten(); <span class="comment">% Derive a new signal and flatten it</span>
+
+<span class="comment">% Display the class of 'a' and 'a_flat' signals</span>
+h = [a.onValue(@(v)fprintf(<span class="string">'a is a ''%s''\n'</span>,class(v))), <span class="keyword">...</span>
+  a_flat.onValue(@(v)fprintf(<span class="string">'a_flat is a ''%s''\n'</span>,class(v)))];
+
+S.field = 12; <span class="comment">% Assign a double to field</span>
+S.field = sig; <span class="comment">% Now see difference when we assign a signal</span>
+</pre><pre>  a is a 'double'
+  a_flat is a 'double'</pre><pre>  a is a 'sig.node.OriginSignal'
+  a_flat is a 'double'</pre><p><b>NB</b>: Flatten only works over one level of nesting, that is you can't flatten a signal that holds a signal that holds a signal.</p><h2 id="28">fromUIEvent</h2><p>The <tt>fromUIEvent</tt> method of <tt>sig.Net</tt> will return a Signal that updates each time a UI element callback is triggered.  A SubscriptableOriginSignal is returned whose fields are those of the event.EventData object returned by the source object:</p><pre class="codeinput"><span class="comment">% Create a signal of WindowKeyPressFcn events from the figure</span>
+figh = figure; net = sig.Net;
+keyPresses = net.fromUIEvent(figh, <span class="string">'WindowKeyPressFcn'</span>);
+h = output(keyPresses.Key); <span class="comment">% Output key name</span>
+</pre><p>This method is useful for creating experiments outside of the Signals Experiment Framework that require interaction with a GUI.  Any MATLAB handle property ending in 'Fcn' may be made intoto a Signal, and more broadly anything that takes a callback function with the (source, event) signature.</p><h2 id="30">onValue</h2><p>We saw above how to listen to UI events with Signals, however sometimes we also need to set UI properties with a Signal or more broadly, call a function with a Signal's value without assigning an output.  The <tt>onValue</tt> Signal method takes a function handle that will be called with the Signal's value each time it updates.  Any output of this function handle is discarded (to keep it, use <tt>map</tt> instead).</p><p>The method itself returns a TidyHandle which must be kept in scope for the function handle to be called.  In other words, when the TidyHandle is cleared from the workspace, the on value callback no longer occurs, much like with a regular listener handle.</p><pre class="codeinput"><span class="comment">% Example: Set the figure background colour each time a signal updates:</span>
+f = figure;
+net = sig.Net;
+s = net.origin(<span class="string">'colour'</span>);
+h = s.onValue(@(c) set(f, <span class="string">'Color'</span>, c));
+s.post(<span class="string">'w'</span>) <span class="comment">% Set colour to white</span>
+</pre><p>For an example of how to interact with plots and UI elements in an experiment, see <tt>docs\examples\ringach98.m</tt>.</p><h2 id="32">Implementing new Signal methods</h2><p>Below is some tips on developing Signals further.  The most common and simplest extention of Signals is overloading a builtin MATLAB function to work with Signals without having to use <tt>map</tt>.  This makes code more readable and intuitive. Second, you may want to add a 'functional' method similar to <tt>scan</tt> and <tt>keepWhen</tt>.  There are a number of ways to implement such a function and we'll go into each in order of increasing performance and descending ease.</p><p>If you are adding a method that returns one Signal based on one or more others, it should generally be added to both the <tt>sig.node.Signal</tt> class, the <tt>sig.Signal</tt> abstract class, and the <tt>sig.VoidSignal</tt> class.</p><h2 id="33">Overloading a MATLAB function</h2><p>As mentioned above, overloading MATLAB functions makes your expDef more readable as you can do away with the <tt>map</tt> method.  Although there is no limit to how many methods you can add to Signals, it's probably not worth the effort for functions that are very specific or rarely used, however feel free to add any that you think are useful.</p><p>Below is a checklist of things to do when adding a function:</p><div><ol><li>Look up some information about the builtin function before adding it. If it is a relatively new function (e.g. introduced in the last version of MATLAB) then add a MATLAB version check to the Signals method: <tt>assert(verLessThan('matlab','9.7'), 'matlab version 9.7 required')</tt>.  If you're planning on adding a number of functions from an optional toolbox (e.g. the Financial Toolbox), consider adding them to a seperate class (see note 8).</li><li>The method should be added to <tt>sig.Signal</tt> and should have the same name and signature as the function you're implementing.</li><li>Using other methods as a guide implement your function by calling <tt>map</tt>, <tt>map2</tt> or <tt>mapn</tt> and returning the output. You must provide a format specification string to <tt>map</tt>.</li><li>Add documentation to the function.  This doesn't have to be as in-depth as the built in one as users will know to check there.  Make sure to mention any differences between the overloaded method and the original function, especially if there are differences in inputs.</li><li>Add a test to <tt>tests/Signals_test.m</tt>.</li><li>Add the method to <tt>sig.VoidSignal</tt>.  The method signature must be the same as the one in <tt>sig.Signal</tt>. It should return the first input only.</li></ol></div><h2 id="34">Creating a method with current methods</h2><p>The simplest way of implementing a method is to create the method using some combination of current methods. For example the <tt>buffer</tt> method simply chains <tt>bufferUpTo</tt> and <tt>keepWhen</tt>.  Similarly, if you come up with a useful scan function, consider making it into a method.  Scan functions can be added to the <tt>+sig.scan</tt> package.  These can be normal functions such as <tt>sig.scan.lastTrue</tt> or high-order functions such as <tt>sig.scan.quiescienceWatch</tt>.  The below curried function was how <tt>buffer</tt> was implemented before it was implemented as a transfer function:</p><pre class="language-matlab"><span class="keyword">function</span> f = buffering(maxSamples)
+<span class="comment">%SIG.SCAN.BUFFERING Implement buffering with scan</span>
+<span class="comment">%   Returns a function which grows an array up to the size of</span>
+<span class="comment">%   'maxSamples'.</span>
+</pre><pre class="language-matlab">f = @buffer;
+</pre><pre>   function buff = buffer(buff, val)
+     if size(buff, 2) == maxSamples
+       buff = cat(2, buff(:,2:end), val);
+     else
+       buff = [buff val];
+     end
+   end</pre><pre class="language-matlab"><span class="keyword">end</span>
+</pre><p>When adding a new method be sure to add full documentation and a test to <tt>tests/Signals_test.m</tt>.  Additionally the format specification string may be changed.  Once you've added the method to <tt>sig.node.Signal</tt>, it should be added to <tt>sig.VoidSignal</tt> also (see above section).</p><h2 id="35">Creating a transfer function</h2><p>Implementing methods with existing Signals, however implementing your method as a transfer function will improve performance.  Transfer functions are called directly by the C code when any input signal updates, thus reducing the overhead.</p><p>Below are a list of things to do:</p><div><ol><li>Create a function in the <tt>+sig.transfer</tt> package and name it the same as the Signals method that you will implement.  The function must take the following as inputs: network id, inputs node id(s), output node id, a method-specific arg.  These inputs must be in the signature even if they're not required for the operation.  The output args must be the output value and a flag indicating whether the value is to be set.  In general the set flag should be false when the one or more of the inputs don't have a value set. The input node id that triggered the function call will have a current working value, the others will either have a current value set or no values.  Take a look at the other transfer functions to get an idea of the logic.  The simplest transfer function is <tt>sig.transfer.identity</tt>.</li><li>Add the method to <tt>sig.node.Signal</tt>.  The method should call <tt>sig.node.Signal/applyTransferFunction</tt> with the name of the transfer function you've created.  It should also set a format specification string, which will be passed to <tt>sprintf</tt> when getting the signal's Name property.</li><li>Be sure to add documentation to both the method and the transfer function, and ideally the <a href="./using_signals.html">using signals</a> guide.</li><li>Add the method to <tt>sig.Signal</tt> and <tt>sig.VoidSignal</tt>.</li><li>Create a test in <tt>tests/Signals_test</tt>.  This test should test both the transfer function and the method.</li></ol></div><h2 id="36">Implementing in mexnet</h2><p>The final way to implement a signals method is to add the operation to the C code.  This is by far the highest performance implementation and is ideal for implementing operations on basic datatypes.  The C code can make use of MATLAB's MEX library to do things like matrix arithmetic, error handling and type checking.  Below are some steps to implementing an operation in mexnet:</p><div><ol><li>Add your operation to the <tt>transfer</tt> function of <tt>mexnet-vs\network\network.c</tt>.  The transfer function contains a switch for the op code called by Signals.  Add a new op code case and add a call to your transfer function there.</li><li>Recompile the MEX code.</li><li>Add your new op code to the switch block in <tt>sig.node.transfererOpCode</tt>.  This is called by the constructor <tt>sig.node.Node</tt> to return the op code, which is then passed to mexnet. The transfer function name can be anything, as it is only used as a key to retrieve the op code.</li><li>Add your new method to <tt>sig.node.Signal</tt>.  This should call <tt>sig.node.Signal/applyTransferFunction</tt> with the name you added to the switch block in transfererOpCode.  It should also add a format specification string.</li><li>Finally, add documentation and tests.  Ideally, also add a demonstration of your method to the <a href="./using_signals.html">using signals</a> guide.</li></ol></div><h2 id="37">Notes</h2><p>1. The sig.Net class itself does not store the nodes in its properties, however the underlying mexnet does.  This network is created by calling the MEX function createNetwork.  New nodes are created by calling the MEX function addNode.  This is done for you in the sig.Net and sig.node.Node class constructors.</p><p>2. Two such examples of visualization functions are introduced later, <tt>sig.test.plot</tt> and <tt>sig.test.timeplot</tt>.</p><p>3. Signals objects that are entirely out of scope are cleaned up by MATLAB and the underlying C code.  That is, if a Signal is created, assigned to a variable, and that variable is cleared then the underlying node is deleted if there exist no dependent Signals:</p><pre class="codeinput">net = sig.Net;
 x = net.origin(<span class="string">'orphan'</span>);
 networkInfo(net.Id) <span class="comment">% Net with 1/4000 active nodes</span>
 clear <span class="string">x</span>
@@ -231,7 +337,7 @@ x.post({<span class="string">'bad'</span>}) <span class="comment">% Undefined op
 </pre><p>The below line demonstrates how a signal can change type:</p><pre class="codeinput">s = merge(str, int, mat);
 </pre><p>7. Rule exceptions: merge and scan pars There are only two exceptions to this.</p><p>merge - a merge signal will take the value of the last updated input signal, even if not all of the inputs have taken a value.  To only take values once all are updated, use the at/then methods:</p><pre class="codeinput">s = merge(a, b, c).at(map([a b c], true)); <span class="comment">% map(true) for if a, b, c = 0</span>
 </pre><p>scan - any signals passed into scan after the 'pars' named parameter do not cause the scan function to be re-evaluated when they update.  See section on scan above for more info.</p><pre class="codeinput">s = a.scan(f, [], <span class="string">'pars'</span>, b, c); <span class="comment">% b and c values used in f when a updates</span>
-</pre><h2 id="31">FAQ</h2><h2 id="32">I'm seeing '-1 is not a valid network id' in the command prompt</h2><p>Currently there is a limit of 10 networks at any one time.  If you see this you most likely have more than 10 in your workspace.  Run clear all and then re-run your code.</p><h2 id="33">Etc.</h2><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS&gt;</span>
+</pre><p>8. Adding toolbox specific methods to a mixin class will allow them to be added by the constructor only if the toolbox in question is installed. See <tt>fun.Mappable</tt>.</p><h2 id="46">FAQ</h2><h2 id="47">I'm seeing '-1 is not a valid network id' in the command prompt</h2><p>Currently there is a limit of 10 networks at any one time.  If you see this you most likely have more than 10 in your workspace.  Run clear all and then re-run your code.</p><h2 id="48">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.2</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU,*NOPTS&gt;</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Advanced Signals
@@ -316,7 +422,9 @@ disp(originSignal.Name)
 % intended that you use this field directly.  The purpose of using a
 % reactive network is that callbacks will access these values automatically
 % if and when they change.  Accessing this property directly will most
-% likely lead to unintended behaviour.
+% likely lead to unintended behaviour.  Retrieving the value this was is
+% akin to removing something from a factory conveyor belt: once retrieved,
+% the state is fixed and will no longer change.
 
 %% Demonstration on sig.Signal/output() method
 % The output method is a useful function for understanding the relationship
@@ -493,20 +601,359 @@ elements.grating = grating;
 
 setgraphic(elements);
 
-%% subscriptable origin signals
+%% Subscriptable Origin Signals
+% SubscriptableOriginSignals are similar to those returned by the
+% |subscriptable| method but with ability to assign values.  A
+% subscriptable origin signal can be created with the |subscriptableOrigin|
+% of |sig.Net|.  The underlying value of a subscriptable origin signal is a
+% struct and each time a value is assigned via subscripts, the field is
+% modified in the underlying struct.
+
+net = sig.Net;
+S = net.subscriptableOrigin('subscriptable');
+% Assign some values
+S.one = 1;
+S.two = net.origin('two');
+
+%%%
+% With each new field assigned, it is added to an underlying struct object.
+% As you can see signals may be assigned to fields also.  In fact assigning
+% this way is very similar to directly assigning to a struct:
+%
+%  S.Node.CurrValue
+% 
+%  ans = 
+% 
+%    struct with fields:
+% 
+%      one: 1
+%      two: [1×1 sig.node.OriginSignal]
+%
+% Regardless of a field's value or existence, referencing a field will
+% return a Signal.  Once a field has been referenced, each time that field
+% is assigned a value the derived signal will update with that value.
+% *NB*: If the field is assigned before being referenced then its current
+% value will be undefined:
+
+h = [... % Print the value class when S updates
+  S.one.onValue(@(v)fprintf('S.one is a ''%s''\n',class(v))), ...
+  S.two.onValue(@(v)fprintf('S.two is a ''%s''\n',class(v))), ...
+  S.three.onValue(@(v)fprintf('S.three is a ''%s''\n',class(v)))];
+
+S.two = net.origin('two');
+S.three = S.two * 4;
+
+clear h
+%%%
+%    S.one is a 'double'
+%    S.two is a 'sig.node.OriginSignal'
+%
+%    S.one is a 'double'
+%    S.two is a 'sig.node.OriginSignal'
+%    S.three is a 'sig.node.Signal'
+%
+% *NB*: Each time any field is assigned a value, all derived signals will
+% update, even if they're referencing a different field.  Also note that
+% if a field is assigned a signal, the signal derived will have a signal
+% object as its current value:
+field = S.two;
+field.Node.CurrValue % Currently empty
+
+S.two = net.origin('two'); % Assign a signal
+field.Node.CurrValue % an OriginSignal
+
+%%%
+% To get the value of the signal, rather than the signal itself, you can
+% use the |flatten| method on the derived signal or |flattenStruct| on the
+% subscriptable origin signal itself (more details later):
+field = S.two.flatten();
+flat = S.flattenStruct();
+S.two = net.origin('two'); % Assign a signal
+field.Node.CurrValue % empty
+flat.Node.CurrValue.two % empty
+
+%%%
+% A struct can be assigned all at once using the |post| method:
+net = sig.Net;
+S = net.subscriptableOrigin('subscriptable');
+a = S.a; % Signal with the value of field 'a'
+post(S, struct('a', 1, 'b', 2))
+
+a.Node.CurrValue % 1
+%%%
+% *NB*: The dot syntax with the |post| method will not work here as it is
+% ambiguous:
+S.post(struct('a', 1, 'b', 2)) % Doesn't work as expected
+
+%%%
+% What is the difference between a SubscriptableOriginSignal and a
+% subscriptable OriginSignal? With the former, you can do subscripted
+% assignment; with the latter you can only assign values with post:
+s = net.origin('structSig');
+S = s.subscriptable(); % Returns SubscriptableSignal
+a = S.a; % Signal with the value of field 'a'
+
+s.post(struct('a', 1, 'b', 2));
+a.Node.CurrValue % 1
+
+S.a = 2 % ERROR Unrecognized property 'a' for class 'sig.node.SubscriptableSignal'.
+s.a = 2 % ERROR Unrecognized property 'a' for class 'sig.node.OriginSignal'.
+%%%
+% Also deep (i.e. 'multi-level') dot syntax subscripted references are not
+% possible with a plain SubscriptableSignal, but are with
+% SubscriptableOriginSignals.  Note however that unlike with first-level
+% subscripting, an error will be thrown if the nested field does not exist.
+net = sig.Net;
+S = net.subscriptableOrigin('subscriptable');
+s = struct('a', struct('b', struct('c', pi)));
+a = S.a.b.c;
+
+h = output(a);
+post(S,s) % 3.1416
+
+
+%%%
+% SubscriptableOriginSignals are used primarily for parameterizing visual
+% stimuli, for example it is returned by |vis.grating|.
 
 %% flattenStruct
+% The |flattenStruct| method of SubscriptableOriginSignals returns a signal
+% whose value is a struct where any field values that were signals objects
+% are replaced by the current values of those signals.  The signal returned
+% by this method is a standard non-subscriptable signal and therefore
+% cannot have values assigned.  Signals can be derived from this flattend
+% struct signal by calling the |subscriptable| field...
+net = sig.Net;
+a = net.origin('a'); % a Signal
+S = net.subscriptableOrigin('subscriptable'); % a SubsciptableOriginSignal
+flat = S.flattenStruct; % a flattened signal that will hold a struct
+flat_sub = flat.subscriptable; % a SubscriptableSignal
+A = flat_sub.A; % Should hold the value of 'a'
+
+S.A = a; % assign signal to subscriptable origin signal
+a.post(5); % post a value
+flat.Node.CurrValue % struct with fields A: 5
+A.Node.CurrValue % 5
+
+%%%
+% Note that as usual the order is important as signals in general will only
+% take a value at the time their inputs update, therefore if we created
+% 'flat' after posting to 'a', the value of 'flat' would be empty because
+% the update happened before 'flat' existed.
+%
+% The flattened signal will update whenever a field is updated in the
+% parent signal.  There is currently a bug where the flattened signal will
+% update even when not all of the field values have a current value.  This
+% will change in the future, however for now you can use the following to
+% ensure that flattened signal updates only when all fields have values:
+toColumn = @(A)A(:);
+isInitialized = @(l)~any(toColumn(cellfun('isempty', struct2cell(l))));
+flat = S.flattenStruct.filter(isInitialized);
+% In more recent version of MATLAB:
+isInitialized = @(l)~any(cellfun('isempty', struct2cell(l)), 'all');
+flat = S.flattenStruct.filter(isInitialized);
 
 %% flatten
+% The |flatten| method is useful for when you have a signal that is itself
+% holding a signal object.  Calling |flatten| on this will return a signal
+% that updates with the underlying value
+net = sig.Net;
+S = net.subscriptableOrigin('subscriptable'); % Create subscriptable
+sig = net.origin('signal'); % Some example signal
+sig.post(pi); % Give it a value
+
+a = S.field; % Derive a new signal from a field
+a_flat = S.field.flatten(); % Derive a new signal and flatten it
+
+% Display the class of 'a' and 'a_flat' signals
+h = [a.onValue(@(v)fprintf('a is a ''%s''\n',class(v))), ...
+  a_flat.onValue(@(v)fprintf('a_flat is a ''%s''\n',class(v)))];
+
+S.field = 12; % Assign a double to field
+S.field = sig; % Now see difference when we assign a signal
+%%%
+%    a is a 'double'
+%    a_flat is a 'double'
+%
+%    a is a 'sig.node.OriginSignal'
+%    a_flat is a 'double'
+%
+% *NB*: Flatten only works over one level of nesting, that is you can't
+% flatten a signal that holds a signal that holds a signal.
+
+%% fromUIEvent
+% The |fromUIEvent| method of |sig.Net| will return a Signal that updates
+% each time a UI element callback is triggered.  A
+% SubscriptableOriginSignal is returned whose fields are those of the
+% event.EventData object returned by the source object:
+
+% Create a signal of WindowKeyPressFcn events from the figure
+figh = figure; net = sig.Net;
+keyPresses = net.fromUIEvent(figh, 'WindowKeyPressFcn'); 
+h = output(keyPresses.Key); % Output key name
+
+%%%
+% This method is useful for creating experiments outside of the Signals
+% Experiment Framework that require interaction with a GUI.  Any MATLAB
+% handle property ending in 'Fcn' may be made intoto a Signal, and more
+% broadly anything that takes a callback function with the (source, event)
+% signature.
+
+%% onValue
+% We saw above how to listen to UI events with Signals, however sometimes
+% we also need to set UI properties with a Signal or more broadly, call a
+% function with a Signal's value without assigning an output.  The
+% |onValue| Signal method takes a function handle that will be called with
+% the Signal's value each time it updates.  Any output of this function
+% handle is discarded (to keep it, use |map| instead).  
+%
+% The method itself returns a TidyHandle which must be kept in scope for
+% the function handle to be called.  In other words, when the TidyHandle is
+% cleared from the workspace, the on value callback no longer occurs, much
+% like with a regular listener handle.
+
+% Example: Set the figure background colour each time a signal updates:
+f = figure;
+net = sig.Net;
+s = net.origin('colour');
+h = s.onValue(@(c) set(f, 'Color', c));
+s.post('w') % Set colour to white
+
+%%%
+% For an example of how to interact with plots and UI elements in an
+% experiment, see |docs\examples\ringach98.m|.
 
 %% Implementing new Signal methods
-%%% Overloading a MATLAB function
+% Below is some tips on developing Signals further.  The most common and
+% simplest extention of Signals is overloading a builtin MATLAB function to
+% work with Signals without having to use |map|.  This makes code more
+% readable and intuitive. Second, you may want to add a 'functional' method
+% similar to |scan| and |keepWhen|.  There are a number of ways to
+% implement such a function and we'll go into each in order of increasing
+% performance and descending ease.
+%
+% If you are adding a method that returns one Signal based on one or more
+% others, it should generally be added to both the |sig.node.Signal| class,
+% the |sig.Signal| abstract class, and the |sig.VoidSignal| class.
 
-%%% Creating a method with scan
+%%% Overloading a MATLAB function
+% As mentioned above, overloading MATLAB functions makes your expDef more
+% readable as you can do away with the |map| method.  Although there is no
+% limit to how many methods you can add to Signals, it's probably not worth
+% the effort for functions that are very specific or rarely used, however
+% feel free to add any that you think are useful.
+%
+% Below is a checklist of things to do when adding a function:
+% 
+% # Look up some information about the builtin function before adding it.
+% If it is a relatively new function (e.g. introduced in the last version
+% of MATLAB) then add a MATLAB version check to the Signals method:
+% |assert(verLessThan('matlab','9.7'), 'matlab version 9.7 required')|.  If
+% you're planning on adding a number of functions from an optional toolbox
+% (e.g. the Financial Toolbox), consider adding them to a seperate class
+% (see note 8).
+% # The method should be added to |sig.Signal| and should have the same
+% name and signature as the function you're implementing.  
+% # Using other methods as a guide implement your function by calling
+% |map|, |map2| or |mapn| and returning the output. You must provide a
+% format specification string to |map|.
+% # Add documentation to the function.  This doesn't have to be as in-depth
+% as the built in one as users will know to check there.  Make sure to
+% mention any differences between the overloaded method and the original
+% function, especially if there are differences in inputs.
+% # Add a test to |tests/Signals_test.m|. 
+% # Add the method to |sig.VoidSignal|.  The method signature must be the
+% same as the one in |sig.Signal|. It should return the first
+% input only.
+
+%%% Creating a method with current methods
+% The simplest way of implementing a method is to create the method using
+% some combination of current methods. For example the |buffer| method
+% simply chains |bufferUpTo| and |keepWhen|.  Similarly, if you come up
+% with a useful scan function, consider making it into a method.  Scan
+% functions can be added to the |+sig.scan| package.  These can be normal
+% functions such as |sig.scan.lastTrue| or high-order functions such as
+% |sig.scan.quiescienceWatch|.  The below curried function was how |buffer|
+% was implemented before it was implemented as a transfer function:
+%
+%   function f = buffering(maxSamples)
+%   %SIG.SCAN.BUFFERING Implement buffering with scan
+%   %   Returns a function which grows an array up to the size of
+%   %   'maxSamples'.
+% 
+%   f = @buffer;
+% 
+%     function buff = buffer(buff, val)
+%       if size(buff, 2) == maxSamples
+%         buff = cat(2, buff(:,2:end), val);
+%       else
+%         buff = [buff val];
+%       end
+%     end
+% 
+%   end
+%
+% When adding a new method be sure to add full documentation and a test to
+% |tests/Signals_test.m|.  Additionally the format specification string may
+% be changed.  Once you've added the method to |sig.node.Signal|, it should
+% be added to |sig.VoidSignal| also (see above section).
 
 %%% Creating a transfer function
+% Implementing methods with existing Signals, however implementing your
+% method as a transfer function will improve performance.  Transfer
+% functions are called directly by the C code when any input signal
+% updates, thus reducing the overhead.
+%
+% Below are a list of things to do:
+% 
+% # Create a function in the |+sig.transfer| package and name it the same
+% as the Signals method that you will implement.  The function must take
+% the following as inputs: network id, inputs node id(s), output node id, a
+% method-specific arg.  These inputs must be in the signature even if
+% they're not required for the operation.  The output args must be the
+% output value and a flag indicating whether the value is to be set.  In
+% general the set flag should be false when the one or more of the inputs
+% don't have a value set. The input node id that triggered the function
+% call will have a current working value, the others will either have a
+% current value set or no values.  Take a look at the other transfer
+% functions to get an idea of the logic.  The simplest transfer function is
+% |sig.transfer.identity|.
+% # Add the method to |sig.node.Signal|.  The method should call
+% |sig.node.Signal/applyTransferFunction| with the name of the transfer
+% function you've created.  It should also set a format specification
+% string, which will be passed to |sprintf| when getting the signal's Name
+% property.
+% # Be sure to add documentation to both the method and the transfer
+% function, and ideally the <./using_signals.html using signals> guide.
+% # Add the method to |sig.Signal| and |sig.VoidSignal|.
+% # Create a test in |tests/Signals_test|.  This test should test both the
+% transfer function and the method.
 
 %%% Implementing in mexnet
+% The final way to implement a signals method is to add the operation to
+% the C code.  This is by far the highest performance implementation and is
+% ideal for implementing operations on basic datatypes.  The C code can
+% make use of MATLAB's MEX library to do things like matrix arithmetic,
+% error handling and type checking.  Below are some steps to implementing
+% an operation in mexnet:
+%
+% # Add your operation to the |transfer| function of
+% |mexnet-vs\network\network.c|.  The transfer function contains a switch
+% for the op code called by Signals.  Add a new op code case and add a
+% call to your transfer function there.  
+% # Recompile the MEX code.
+% # Add your new op code to the switch block in
+% |sig.node.transfererOpCode|.  This is called by the constructor
+% |sig.node.Node| to return the op code, which is then passed to mexnet.
+% The transfer function name can be anything, as it is only used as a key
+% to retrieve the op code.
+% # Add your new method to |sig.node.Signal|.  This should call
+% |sig.node.Signal/applyTransferFunction| with the name you added to the
+% switch block in transfererOpCode.  It should also add a format
+% specification string.  
+% # Finally, add documentation and tests.  Ideally, also add a
+% demonstration of your method to the <./using_signals.html using signals>
+% guide.
 
 %% Notes
 % 1. The sig.Net class itself does not store the nodes in its properties,
@@ -591,6 +1038,11 @@ s = merge(a, b, c).at(map([a b c], true)); % map(true) for if a, b, c = 0
 % section on scan above for more info.
 s = a.scan(f, [], 'pars', b, c); % b and c values used in f when a updates
 
+%%%
+% 8. Adding toolbox specific methods to a mixin class will allow them to be
+% added by the constructor only if the toolbox in question is installed.
+% See |fun.Mappable|.
+
 %% FAQ
 %%% I'm seeing '-1 is not a valid network id' in the command prompt
 % Currently there is a limit of 10 networks at any one time.  If you see
@@ -598,6 +1050,9 @@ s = a.scan(f, [], 'pars', b, c); % b and c values used in f when a updates
 % and then re-run your code.
 
 %% Etc.
+% Author: Miles Wells
+%
+% v0.0.2
 
 %#ok<*NASGU,*NOPTS>
 ##### SOURCE END #####
