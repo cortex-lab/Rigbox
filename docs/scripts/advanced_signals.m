@@ -9,9 +9,10 @@
 %% Network architecture
 % Every signal is part of a network, managed through a |sig.Net| object.
 % The network object holds all the ids of all the signals' nodes(1).
-
+%
 % Every signal has an underlying node; a |sig.node.Node| object that
 % contains a number of important properties:
+%
 % * Net: a handle to the parent network (a sig.Net object)
 % * Inputs: an array of input nodes (other sig.node.Node objects)
 % * Id: an integer node ID used by the low level C code
@@ -120,6 +121,8 @@ simpleSignal.post(true)
 net = sig.Net; % Create a new signals network
 clc % Clear previous output for clarity
 time = net.origin('t'); % Create a time signal
+
+%%%
 % NB: The onValue method is very similar to the output method, but allows
 % you to define any callback function to be called each time the signal
 % takes a value (so long as the handle is still around).  Here we are using
