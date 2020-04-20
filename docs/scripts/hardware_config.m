@@ -527,8 +527,12 @@ save(hardware, 'audioDevices', '-append')
 % DeviceName as 'default':
 d = hw.testAudioOutputDevices('SaveAsDefault', true);
 
-% @todo Substantiate 'Audio Devices' section
-% @body Info on PTB support; mention how audio device naming works
+%%%
+% *NB*: In recent years PsychToolbox dropped support for ASIO drivers.  If
+% you are using an ASIO device please ensure that you have version 3.0.14
+% or earlier installed.  For more information, see the
+% <https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/Hardware:-Audio-Devices
+% PsychToolbox Wiki>.
 
 %% Loading your hardware file
 % To load your rig hardware objects for testing at a rig, you can use
@@ -619,6 +623,6 @@ d = daq.getDevices % Availiable devices and their info
 %% Etc.
 % Author: Miles Wells
 %
-% v1.2.0
+% v1.2.1
 
 %#ok<*NOPTS,*NASGU,*ASGLU>
