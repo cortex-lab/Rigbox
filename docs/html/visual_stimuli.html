@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>visual_stimuli</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="visual_stimuli.m"><style type="text/css">
+      --><title>visual_stimuli</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-20"><meta name="DC.source" content="visual_stimuli.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Visual stimuli in Signals</a></li><li><a href="#3">Shapes</a></li><li><a href="#5">Example 1: Coloured shapes</a></li><li><a href="#7">Example 2: Kalatsky stimuli</a></li><li><a href="#9">Images</a></li><li><a href="#11">Example 1: A static image tiled</a></li><li><a href="#13">Example 2: Dynamic images</a></li><li><a href="#15">Example 3: A windowed image</a></li><li><a href="#17">Gratings</a></li><li><a href="#19">Example 1: A fullscreen sine wave grating</a></li><li><a href="#21">Example 2: A fullscreen square wave grating</a></li><li><a href="#23">Example 3: A rotating Gabor patch</a></li><li><a href="#25">Example 4: A plaid</a></li><li><a href="#27">Checkerboards</a></li><li><a href="#29">Example 1: A fullscreen checkerboard</a></li><li><a href="#31">Example 2: Pulsating noise</a></li><li><a href="#33">Example 3: A reversing checkerboard pattern</a></li><li><a href="#35">Grid</a></li><li><a href="#38">Adding stimuli to the renderer</a></li><li><a href="#39">FAQ</a></li><li><a href="#40">Is there a way to create a variable number of visual stimuli?</a></li><li><a href="#41">I don't have any errors but my stimulus won't appear.  Why?</a></li><li><a href="#42">Changing a parameter has no affect on the stimulus.  Why?</a></li><li><a href="#43">How do I create a novel stimulus?</a></li><li><a href="#44">Notes</a></li><li><a href="#45">Etc.</a></li></ul></div><h2 id="1">Visual stimuli in Signals</h2><p>This tutorial will demonstrate how to create various visual stimuli in Signals.  Below is an exhaustive list of pre-built stimuli in Signals. They are all located in <tt>signals/+vis</tt>.</p><p>The first input to each function must be a signal.  This is only used to find what network your using, so it can be any signal.  In the below examples we'll create a stimulus window, a Time signal that's controlled with a start/stop button, and a rendering function that will work in a similar way to the visual stimulus signal in your expDef (see 'Adding stimuli to the renderer' section).  This code can be used for playing around with visual stimuli without having to write a whole expDef (See note 1 for how to run the examples)</p><pre class="codeinput">PsychDebugWindowConfiguration <span class="comment">% Make our screen transparant</span>
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Visual stimuli in Signals</a></li><li><a href="#3">Shapes</a></li><li><a href="#5">Example 1: Coloured shapes</a></li><li><a href="#7">Example 2: Kalatsky stimuli</a></li><li><a href="#9">Images</a></li><li><a href="#11">Example 1: A static image tiled</a></li><li><a href="#13">Example 2: Dynamic images</a></li><li><a href="#15">Example 3: A windowed image</a></li><li><a href="#17">Gratings</a></li><li><a href="#19">Example 1: A fullscreen sine wave grating</a></li><li><a href="#21">Example 2: A fullscreen square wave grating</a></li><li><a href="#23">Example 3: A rotating Gabor patch</a></li><li><a href="#25">Example 4: A plaid</a></li><li><a href="#27">Checkerboards</a></li><li><a href="#29">Example 1: A fullscreen checkerboard</a></li><li><a href="#31">Example 2: Pulsating noise</a></li><li><a href="#33">Example 3: A reversing checkerboard pattern</a></li><li><a href="#35">Grid</a></li><li><a href="#38">Adding stimuli to the renderer</a></li><li><a href="#39">FAQ</a></li><li><a href="#40">How do I set the background colour?</a></li><li><a href="#41">Is there a way to create a variable number of visual stimuli?</a></li><li><a href="#42">I don't have any errors but my stimulus won't appear.  Why?</a></li><li><a href="#43">Changing a parameter has no affect on the stimulus.  Why?</a></li><li><a href="#44">How do I create a novel stimulus?</a></li><li><a href="#45">Notes</a></li><li><a href="#46">Etc.</a></li></ul></div><h2 id="1">Visual stimuli in Signals</h2><p>This tutorial will demonstrate how to create various visual stimuli in Signals.  Below is an exhaustive list of pre-built stimuli in Signals. They are all located in <tt>signals/+vis</tt>.</p><p>The first input to each function must be a signal.  This is only used to find what network your using, so it can be any signal.  In the below examples we'll create a stimulus window, a Time signal that's controlled with a start/stop button, and a rendering function that will work in a similar way to the visual stimulus signal in your expDef (see 'Adding stimuli to the renderer' section).  This code can be used for playing around with visual stimuli without having to write a whole expDef (See note 1 for how to run the examples)</p><pre class="codeinput">PsychDebugWindowConfiguration <span class="comment">% Make our screen transparant</span>
 [t, setgraphic] = sig.test.playgroundPTB;
 vs = StructRef; <span class="comment">% This mimicks the fourth input arg of your expDef</span>
 <span class="comment">% [Run setgraphic(vs) after assigning your stim]</span>
@@ -345,7 +345,9 @@ checker.altitudeRange = [-35 35];
 <span class="comment">% Assign to our visual stimulus object for rendering</span>
 vs.noise = checker;
 </pre><p><img vspace="5" hspace="5" src="./images/checkers.png" alt=""> </p><h2 id="31">Example 2: Pulsating noise</h2><p>Next we'll define some quickly changing noise that pulsates at a given frequency.  We'll also set the colour to deactivate the red gun.</p><pre class="codeinput"><span class="comment">% To effectively remove the red gun, we also need to set the background.</span>
-<span class="comment">% This can also be done when you start srv.expServer.</span>
+<span class="comment">% From Rigbox version 2.6 onwards you can set the background colour using</span>
+<span class="comment">% the 'bgColour' parameter.  This can also be done when you start</span>
+<span class="comment">% srv.expServer (see FAQ - 'How do I set the background colour').</span>
 ptr = Screen(<span class="string">'Windows'</span>);
 Screen(ptr, <span class="string">'FillRect'</span>, [0 1 1]*255)
 Screen(ptr, <span class="string">'Flip'</span>);
@@ -441,10 +443,20 @@ stimulus.show = 1;
 stimulus.window = <span class="string">'none'</span>;
 stimulus.grating = <span class="string">'sinusoid'</span>;
 vs.stim = stimulus;
-</pre><h2 id="39">FAQ</h2><h2 id="40">Is there a way to create a variable number of visual stimuli?</h2><p>Not precisely.  You can not copy visual stimulus objects in Signals, and all stimulus objects must be loaded within the experiment definition, before your parameter signals are set.  The best option is to create a large number of stimulus objects with a for loop, then set the `show` properties to true for however many you want to use.</p><h2 id="41">I don't have any errors but my stimulus won't appear.  Why?</h2><p>As with most signals, stimuli will not appear unless all their parameters have a value.  For example, if you define your stimulus azimuth as <tt>events.expStart.delay(5).then(30)</tt>, then the azimuth is <i>undefined</i> until 5 seconds after expStart updates.  This is because it doesn't have any previous value and its inputs haven't yet updated so the renderer can't draw the stimulus.  Plotting these signals or temporarily logging them as events will help you determine which input signals are not updating as expected.</p><h2 id="42">Changing a parameter has no affect on the stimulus.  Why?</h2><p>Check that the parameter name is correct.  You can assign to any field without error, but only the ones mentioned in the function help will do anything.  Here's an example:</p><pre class="codeinput">elem = vis.grating(t);
+</pre><h2 id="39">FAQ</h2><h2 id="40">How do I set the background colour?</h2><p>The background colour is currently set when starting <tt>srv.expServer</tt>. The background colour should be defined as a value between 0 and 255 (or a 3-element vector for RGB).</p><p>For the windowed grating stimuli, the background colour should match the stimulus colour in order to maintain its properties.  From Rigbox v2.6 onwards the background colour can be both set and retrieved via the 'bgColour' parameter.  This parameter should be set as values between 0 and 255, although the value during the experiment may be different if the PTB window uses a different bit depth.  NB: The parameter cannot be trial conditional, and therefore must be wither a scalar value or a 3x1 array.</p><p>When using the 'bgColour' parameter, remember that the values will most likely be in the range 0-255, whereas the visual stimulus colour property should be in the range 0-1:</p><pre class="language-matlab">grating = vis.grating(t);
+<span class="comment">% This is found in the ColourRange property of the stimWindow object,</span>
+<span class="comment">% however for most users this will be 255</span>
+colourRange = 255;
+grating.colour = p.bgColour / colourRange; <span class="comment">% normalize</span>
+<span class="keyword">...</span>
+<span class="keyword">try</span>
+  p.bgColour = 0.5*255*ones(3, 1); <span class="comment">% a mid-grey</span>
+<span class="keyword">catch</span>
+<span class="keyword">end</span>
+</pre><h2 id="41">Is there a way to create a variable number of visual stimuli?</h2><p>Not precisely.  You can not copy visual stimulus objects in Signals, and all stimulus objects must be loaded within the experiment definition, before your parameter signals are set.  The best option is to create a large number of stimulus objects with a for loop, then set the `show` properties to true for however many you want to use.</p><h2 id="42">I don't have any errors but my stimulus won't appear.  Why?</h2><p>As with most signals, stimuli will not appear unless all their parameters have a value.  For example, if you define your stimulus azimuth as <tt>events.expStart.delay(5).then(30)</tt>, then the azimuth is <i>undefined</i> until 5 seconds after expStart updates.  This is because it doesn't have any previous value and its inputs haven't yet updated so the renderer can't draw the stimulus.  Plotting these signals or temporarily logging them as events will help you determine which input signals are not updating as expected.</p><h2 id="43">Changing a parameter has no affect on the stimulus.  Why?</h2><p>Check that the parameter name is correct.  You can assign to any field without error, but only the ones mentioned in the function help will do anything.  Here's an example:</p><pre class="codeinput">elem = vis.grating(t);
 elem.spatialFrequency = 0.01; <span class="comment">% Doesn't do anything!!</span>
 elem.spatialFreq = 0.01; <span class="comment">% This is the correct field name to set the sf</span>
-</pre><h2 id="43">How do I create a novel stimulus?</h2><p>The <a href="./using_visual_stimuli.html">advanced visual stimuli</a> guide and looking at the code for the above functions should provide sufficiant information to create a novel parameterizable stimulus.  You're welcome to <a href="https://github.com/cortex-lab/Rigbox#contributing">create an issue on Github</a> asking for help in doing this.  In the short term you can always create your stimulus as an image and use <tt>vis.image</tt>.</p><h2 id="44">Notes</h2><p>(1) Once you've assigned your stimuli to 'vs', run <tt>setgraphic(vs)</tt> to render your image, and click the 'Play' button to start updating your clock signal (t).  Whenever you add a new stimulus to 'vs', you call setgraphic again.  When play button is pressed, you can edit the stimulus parameters and watch them update live in the stimulus window.  You can close the window by pressing the <tt>X</tt> in the corner of the figure or run <tt>close all</tt>.</p><p>(2) If you're interested in how the images were saved, here is the code used:</p><pre class="codeinput">setgraphic(vs) <span class="comment">% Render the visual stimuli</span>
+</pre><h2 id="44">How do I create a novel stimulus?</h2><p>The <a href="./using_visual_stimuli.html">advanced visual stimuli</a> guide and looking at the code for the above functions should provide sufficiant information to create a novel parameterizable stimulus.  You're welcome to <a href="https://github.com/cortex-lab/Rigbox#contributing">create an issue on Github</a> asking for help in doing this.  In the short term you can always create your stimulus as an image and use <tt>vis.image</tt>.</p><h2 id="45">Notes</h2><p>(1) Once you've assigned your stimuli to 'vs', run <tt>setgraphic(vs)</tt> to render your image, and click the 'Play' button to start updating your clock signal (t).  Whenever you add a new stimulus to 'vs', you call setgraphic again.  When play button is pressed, you can edit the stimulus parameters and watch them update live in the stimulus window.  You can close the window by pressing the <tt>X</tt> in the corner of the figure or run <tt>close all</tt>.</p><p>(2) If you're interested in how the images were saved, here is the code used:</p><pre class="codeinput">setgraphic(vs) <span class="comment">% Render the visual stimuli</span>
 <span class="comment">% Programmatically press the play button</span>
 startstop = get(findobj(gcf, <span class="string">'String'</span>, <span class="string">'Play'</span>), <span class="string">'Callback'</span>);
 startstop() <span class="comment">% Play button callback</span>
@@ -452,7 +464,7 @@ imageArray = Screen(<span class="string">'GetImage'</span>, Screen(<span class="
 htmlPath = fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'html'</span>, <span class="string">'images'</span>);
 filename = [htmlPath filesep <span class="string">'plaid.png'</span>];
 imwrite(imresize(imageArray, 0.5), filename, <span class="string">'png'</span>) <span class="comment">% Save at half-size</span>
-</pre><h2 id="45">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.2</p><p>Next section <a href="./advanced_signals.html">Advanced Signals</a>.</p><p>See also <a href="./using_signals.html">Using Signals</a>.  For technical information on the Signals viewing model, see <a href="./using_visual_stimuli.html">this page</a>.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><h2 id="46">Etc.</h2><p>Author: Miles Wells</p><p>v0.0.3</p><p>Next section <a href="./advanced_signals.html">Advanced Signals</a>.</p><p>See also <a href="./using_signals.html">Using Signals</a>.  For technical information on the Signals viewing model, see <a href="./using_visual_stimuli.html">this page</a>.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Visual stimuli in Signals
 % This tutorial will demonstrate how to create various visual stimuli in
@@ -941,7 +953,9 @@ vs.noise = checker;
 % frequency.  We'll also set the colour to deactivate the red gun.
 
 % To effectively remove the red gun, we also need to set the background.
-% This can also be done when you start srv.expServer.
+% From Rigbox version 2.6 onwards you can set the background colour using
+% the 'bgColour' parameter.  This can also be done when you start
+% srv.expServer (see FAQ - 'How do I set the background colour').
 ptr = Screen('Windows');
 Screen(ptr, 'FillRect', [0 1 1]*255)
 Screen(ptr, 'Flip');
@@ -1100,6 +1114,35 @@ grid.show = true;
 %
 
 %% FAQ
+%%% How do I set the background colour?
+% The background colour is currently set when starting |srv.expServer|. The
+% background colour should be defined as a value between 0 and 255 (or a
+% 3-element vector for RGB).  
+%
+% For the windowed grating stimuli, the background colour should match the
+% stimulus colour in order to maintain its properties.  From Rigbox v2.6
+% onwards the background colour can be both set and retrieved via the
+% 'bgColour' parameter.  This parameter should be set as values between 0
+% and 255, although the value during the experiment may be different if
+% the PTB window uses a different bit depth.  NB: The parameter cannot be
+% trial conditional, and therefore must be wither a scalar value or a 3x1
+% array.  
+%
+% When using the 'bgColour' parameter, remember that the values will most
+% likely be in the range 0-255, whereas the visual stimulus colour property
+% should be in the range 0-1:
+%
+%   grating = vis.grating(t);
+%   % This is found in the ColourRange property of the stimWindow object,
+%   % however for most users this will be 255
+%   colourRange = 255; 
+%   grating.colour = p.bgColour / colourRange; % normalize
+%   ...
+%   try
+%     p.bgColour = 0.5*255*ones(3, 1); % a mid-grey
+%   catch
+%   end
+
 %%% Is there a way to create a variable number of visual stimuli?
 % Not precisely.  You can not copy visual stimulus objects in Signals, and
 % all stimulus objects must be loaded within the experiment definition,
@@ -1157,7 +1200,7 @@ imwrite(imresize(imageArray, 0.5), filename, 'png') % Save at half-size
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.2
+% v0.0.3
 %
 % Next section <./advanced_signals.html Advanced Signals>.
 %

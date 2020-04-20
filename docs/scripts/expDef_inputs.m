@@ -293,6 +293,15 @@ events.expStop = endReason;
 % numRepeats is a special parameter that does not need defining in your
 % expDef.  By default there are 1000 trials in total.  You can change the
 % number in the Parameter Editor.
+%
+% _v2.6_ bgColour is another parameter that does not need defining.  It
+% will take the value of the background colour that was set when
+% |srv.expServer| was started ([127; 127; 127] by default), and can be used
+% to match the colour of your stimuli to the background (useful for
+% windowed stimuli).  You can also set this parameter to override the
+% expServer background, however this may only be a global parameter and
+% therefore may not vary by trial (although this may be implemented in the
+% future).
 
 %% Visual stimuli
 % The fourth input is a special object for dispatching visual stimuli to
@@ -448,7 +457,7 @@ availiable_devs = {rig.audioDevices.DeviceName}'
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.2
+% v0.0.3
 
 %%%
 % Next section <./visual_stimuli.html Creating stimuli>.

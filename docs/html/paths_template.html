@@ -1,0 +1,262 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>paths_template</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-20"><meta name="DC.source" content="paths_template.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Essential paths</a></li><li><a href="#4">Non-essential paths</a></li><li><a href="#5">user-defined repositories</a></li><li><a href="#6">load rig-specific overrides from config file, if any</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> p = paths(rig)
+</pre><pre class="codeinput"><span class="comment">%DAT.PATHS Returns struct containing important paths</span>
+<span class="comment">%   p = DAT.PATHS([RIG]) Returns a struct of paths that are used by Rigbox</span>
+<span class="comment">%   to determine the location of config and experiment files.  The rig</span>
+<span class="comment">%   input is used to generate rig specific paths, including custom paths.</span>
+<span class="comment">%   The default is the hostname of this computer.</span>
+<span class="comment">%</span>
+<span class="comment">%   NB: Aside from 'updateSchedule', all fields must be char arrays, not</span>
+<span class="comment">%   strings.</span>
+<span class="comment">%</span>
+<span class="comment">%   The main and local repositories are essential for determining where to</span>
+<span class="comment">%   save experimental data.</span>
+<span class="comment">%</span>
+<span class="comment">%   If using a seperate MC computer, the main repository must be accessible</span>
+<span class="comment">%   to both the stimulus and master computers.</span>
+<span class="comment">%</span>
+<span class="comment">% Part of Rigbox</span>
+
+<span class="comment">% 2013-03 CB created</span>
+
+thishost = hostname;
+
+<span class="keyword">if</span> nargin &lt; 1 || isempty(rig)
+  rig = thishost;
+<span class="keyword">end</span>
+
+<span class="comment">% Some base locations for storing data.  Listing them here means that if we</span>
+<span class="comment">% change server, only one variable needs changing</span>
+server1Name = <span class="string">'C:\RemoteExpData'</span>;
+server2Name = userpath; <span class="comment">% Usually ~/Documents/MATLAB</span>
+basketName = <span class="string">'\\basket.cortexlab.net'</span>; <span class="comment">% for working analyses</span>
+lugaroName = <span class="string">'\\lugaro.cortexlab.net'</span>; <span class="comment">% for tape backup</span>
+</pre><h2 id="3">Essential paths</h2><p>Below are the paths that are essential for running experiments.  If using both an MC and SC, the same mainRepository must be accessible to both computers.  In addition, the expDefinitions folder should be shared, or at least there should be the same copy of the expDefs on both computers.</p><pre class="codeinput"><span class="comment">% Path to base folder that contains the Rigbox code</span>
+p.rigbox = fileparts(which(<span class="string">'addRigboxPaths'</span>));
+<span class="comment">% Repository for local copy of everything generated on this rig</span>
+p.localRepository = <span class="string">'C:\LocalExpData'</span>;
+
+<span class="comment">% Under the new system of having data grouped by subject</span>
+<span class="comment">% rather than data type, all experimental data are saved here.</span>
+p.mainRepository = fullfile(server1Name, <span class="string">'Subjects'</span>);
+<span class="comment">% Optional alternate named repos may be defined using the repo name</span>
+<span class="comment">% followed by a number. These are searched in addition to the master repo.</span>
+<span class="comment">% This is useful when distributing data over multiple locations, or</span>
+<span class="comment">% transitioning to a new remote location</span>
+p.main2Repository = fullfile(server2Name, <span class="string">'Data'</span>, <span class="string">'Subjects'</span>);
+
+<span class="comment">% Directory for organisation-wide configuration files, for now these should</span>
+<span class="comment">% all remain on zserver</span>
+p.globalConfig = fullfile(server2Name, <span class="string">'Code'</span>, <span class="string">'RigConfig'</span>);
+<span class="comment">% Directory for rig-specific configuration files</span>
+p.rigConfig = fullfile(p.globalConfig, rig);
+<span class="comment">% Repository for all experiment definitions</span>
+p.expDefinitions = fullfile(p.rigbox, <span class="string">'signals'</span>, <span class="string">'docs'</span>, <span class="string">'examples'</span>);
+</pre><h2 id="4">Non-essential paths</h2><p>Database url and local queue for cached posts.  If empty or undefined, the AlyxPanel and all Alyx interactions are disabled.  NB: If the protocol isn't specified, <a href="https://">https://</a> is automatically prepended. p.databaseURL = 'https://alyx.cortexlab.net'; % Uncomment to activate</p><pre class="codeinput">p.localAlyxQueue = <span class="string">'C:\localAlyxQueue'</span>; <span class="comment">% Location of cached posts</span>
+<span class="comment">% Location of git for automatic updates</span>
+p.gitExe = <span class="string">'C:\Program Files\Git\cmd\git.exe'</span>;
+<span class="comment">% Day on which to update code (0 = Everyday, 1 = Sunday, etc.)</span>
+p.updateSchedule = 2; <span class="comment">% Update every Monday</span>
+
+<span class="comment">% Alternate file repository: unlike alternates defined with a number (e.g.</span>
+<span class="comment">% 'main2Repository'), 'altRepository' is returned as an alternate to every</span>
+<span class="comment">% named repo</span>
+<span class="comment">% p.altRepository = fullfile(server1Name, 'expInfo');</span>
+<span class="comment">% p.alt2Repository = fullfile(server2Name, 'Data', 'expInfo');</span>
+</pre><h2 id="5">user-defined repositories</h2><p>The following paths are not used in the main Rigbox code, however may be added to this file when using the +dat package for one's own analysis. Some examples below:</p><pre class="codeinput"><span class="comment">% Repository for working analyses that are not meant to be stored</span>
+<span class="comment">% permanently</span>
+p.workingAnalysisRepository = fullfile(basketName, <span class="string">'data'</span>);
+<span class="comment">% For tape backups, first files go here:</span>
+p.tapeStagingRepository = fullfile(lugaroName, <span class="string">'bigdrive'</span>, <span class="string">'staging'</span>);
+<span class="comment">% Then they go here:</span>
+p.tapeArchiveRepository = fullfile(lugaroName, <span class="string">'bigdrive'</span>, <span class="string">'toarchive'</span>);
+</pre><h2 id="6">load rig-specific overrides from config file, if any</h2><p>If there is a paths.mat file in the folder location defined on line 43, it is loaded and any paths there are override the above defaults</p><pre class="codeinput">customPathsFile = fullfile(p.rigConfig, <span class="string">'paths.mat'</span>);
+<span class="keyword">if</span> file.exists(customPathsFile)
+  customPaths = loadVar(customPathsFile, <span class="string">'paths'</span>);
+  <span class="keyword">if</span> isfield(customPaths, <span class="string">'expInfoRepository'</span>)
+    <span class="comment">% 'expInfo' is deprecated, change to 'main'</span>
+    p.mainRepository = customPaths.expInfoRepository;
+    customPaths = rmfield(customPaths, <span class="string">'expInfoRepository'</span>);
+  <span class="keyword">end</span>
+  <span class="comment">% merge paths structures, with precedence on the loaded custom paths</span>
+  p = mergeStructs(customPaths, p);
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function p = paths(rig)
+%DAT.PATHS Returns struct containing important paths
+%   p = DAT.PATHS([RIG]) Returns a struct of paths that are used by Rigbox
+%   to determine the location of config and experiment files.  The rig
+%   input is used to generate rig specific paths, including custom paths.
+%   The default is the hostname of this computer.
+%
+%   NB: Aside from 'updateSchedule', all fields must be char arrays, not
+%   strings.
+%
+%   The main and local repositories are essential for determining where to
+%   save experimental data.
+%
+%   If using a seperate MC computer, the main repository must be accessible
+%   to both the stimulus and master computers.
+%
+% Part of Rigbox
+
+% 2013-03 CB created
+
+thishost = hostname;
+
+if nargin < 1 || isempty(rig)
+  rig = thishost;
+end
+
+% Some base locations for storing data.  Listing them here means that if we
+% change server, only one variable needs changing
+server1Name = 'C:\RemoteExpData';
+server2Name = userpath; % Usually ~/Documents/MATLAB
+basketName = '\\basket.cortexlab.net'; % for working analyses
+lugaroName = '\\lugaro.cortexlab.net'; % for tape backup
+
+%% Essential paths
+% Below are the paths that are essential for running experiments.  If using
+% both an MC and SC, the same mainRepository must be accessible to both
+% computers.  In addition, the expDefinitions folder should be shared, or
+% at least there should be the same copy of the expDefs on both computers.
+
+% Path to base folder that contains the Rigbox code
+p.rigbox = fileparts(which('addRigboxPaths'));
+% Repository for local copy of everything generated on this rig
+p.localRepository = 'C:\LocalExpData';
+
+% Under the new system of having data grouped by subject
+% rather than data type, all experimental data are saved here.
+p.mainRepository = fullfile(server1Name, 'Subjects');
+% Optional alternate named repos may be defined using the repo name
+% followed by a number. These are searched in addition to the master repo.
+% This is useful when distributing data over multiple locations, or
+% transitioning to a new remote location
+p.main2Repository = fullfile(server2Name, 'Data', 'Subjects');
+
+% Directory for organisation-wide configuration files, for now these should
+% all remain on zserver
+p.globalConfig = fullfile(server2Name, 'Code', 'RigConfig');
+% Directory for rig-specific configuration files
+p.rigConfig = fullfile(p.globalConfig, rig);
+% Repository for all experiment definitions
+p.expDefinitions = fullfile(p.rigbox, 'signals', 'docs', 'examples');
+
+%% Non-essential paths
+% Database url and local queue for cached posts.  If empty or undefined,
+% the AlyxPanel and all Alyx interactions are disabled.  NB: If the
+% protocol isn't specified, https:// is automatically prepended.
+% p.databaseURL = 'https://alyx.cortexlab.net'; % Uncomment to activate
+p.localAlyxQueue = 'C:\localAlyxQueue'; % Location of cached posts
+% Location of git for automatic updates
+p.gitExe = 'C:\Program Files\Git\cmd\git.exe'; 
+% Day on which to update code (0 = Everyday, 1 = Sunday, etc.)
+p.updateSchedule = 2; % Update every Monday
+
+% Alternate file repository: unlike alternates defined with a number (e.g.
+% 'main2Repository'), 'altRepository' is returned as an alternate to every
+% named repo
+% p.altRepository = fullfile(server1Name, 'expInfo');
+% p.alt2Repository = fullfile(server2Name, 'Data', 'expInfo');
+
+%% user-defined repositories
+% The following paths are not used in the main Rigbox code, however may be
+% added to this file when using the +dat package for one's own analysis.
+% Some examples below:
+
+% Repository for working analyses that are not meant to be stored
+% permanently
+p.workingAnalysisRepository = fullfile(basketName, 'data');
+% For tape backups, first files go here:
+p.tapeStagingRepository = fullfile(lugaroName, 'bigdrive', 'staging'); 
+% Then they go here:
+p.tapeArchiveRepository = fullfile(lugaroName, 'bigdrive', 'toarchive');
+
+%% load rig-specific overrides from config file, if any
+% If there is a paths.mat file in the folder location defined on line 43,
+% it is loaded and any paths there are override the above defaults 
+customPathsFile = fullfile(p.rigConfig, 'paths.mat');
+if file.exists(customPathsFile)
+  customPaths = loadVar(customPathsFile, 'paths');
+  if isfield(customPaths, 'expInfoRepository')
+    % 'expInfo' is deprecated, change to 'main'
+    p.mainRepository = customPaths.expInfoRepository;
+    customPaths = rmfield(customPaths, 'expInfoRepository');
+  end
+  % merge paths structures, with precedence on the loaded custom paths
+  p = mergeStructs(customPaths, p);
+end
+
+end
+##### SOURCE END #####
+--></body></html>
