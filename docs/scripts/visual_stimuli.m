@@ -485,7 +485,9 @@ vs.noise = checker;
 % frequency.  We'll also set the colour to deactivate the red gun.
 
 % To effectively remove the red gun, we also need to set the background.
-% This can also be done when you start srv.expServer.
+% From Rigbox version 2.6 onwards you can set the background colour using
+% the 'bgColour' parameter.  This can also be done when you start
+% srv.expServer (see FAQ - 'How do I set the background colour').
 ptr = Screen('Windows');
 Screen(ptr, 'FillRect', [0 1 1]*255)
 Screen(ptr, 'Flip');
@@ -644,6 +646,35 @@ grid.show = true;
 %
 
 %% FAQ
+%%% How do I set the background colour?
+% The background colour is currently set when starting |srv.expServer|. The
+% background colour should be defined as a value between 0 and 255 (or a
+% 3-element vector for RGB).  
+%
+% For the windowed grating stimuli, the background colour should match the
+% stimulus colour in order to maintain its properties.  From Rigbox v2.6
+% onwards the background colour can be both set and retrieved via the
+% 'bgColour' parameter.  This parameter should be set as values between 0
+% and 255, although the value during the experiment may be different if
+% the PTB window uses a different bit depth.  NB: The parameter cannot be
+% trial conditional, and therefore must be wither a scalar value or a 3x1
+% array.  
+%
+% When using the 'bgColour' parameter, remember that the values will most
+% likely be in the range 0-255, whereas the visual stimulus colour property
+% should be in the range 0-1:
+%
+%   grating = vis.grating(t);
+%   % This is found in the ColourRange property of the stimWindow object,
+%   % however for most users this will be 255
+%   colourRange = 255; 
+%   grating.colour = p.bgColour / colourRange; % normalize
+%   ...
+%   try
+%     p.bgColour = 0.5*255*ones(3, 1); % a mid-grey
+%   catch
+%   end
+
 %%% Is there a way to create a variable number of visual stimuli?
 % Not precisely.  You can not copy visual stimulus objects in Signals, and
 % all stimulus objects must be loaded within the experiment definition,
@@ -701,7 +732,7 @@ imwrite(imresize(imageArray, 0.5), filename, 'png') % Save at half-size
 %% Etc.
 % Author: Miles Wells
 %
-% v0.0.2
+% v0.0.3
 %
 % Next section <./advanced_signals.html Advanced Signals>.
 %

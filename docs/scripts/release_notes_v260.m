@@ -114,18 +114,37 @@
 % * |advancedChoiceWorld| - Minor in-line documentation improvements
 % * |getOr| - Added comparisons with |pick| function
 % * |sig.node.SubscriptableSignal| - Improved documentation
+% * |sig.node.transfererOpCode| - Fully documented with examples and inline
+% comments
 % * |sig.transfer.merge| - Fully documented with examples and inline
 % comments
+% * |sig.transfer.keepWhen| - Fully documented with examples and inline
+% comments
+% * |sig.transfer.flatten| - Fully documented with examples and inline
+% comments
+% * |sig.transfer.identity| - Fully documented with examples and inline
+% comments
+% * |sig.transfer.nop| - Fully documented with example
 % * |sig.Signal| - Improved documentation of methods; more consistant with
 % other classes
+% * |sig.node.OriginSignal| - Class now fully documented, including all
+% methods
+% * |sig.node.SubscriptableOriginSignal| - Class now documented
+% * |sig.Net/fromUIEvent| - Now documented, including example
 %
 % Updates to guides:
 % 
 % * |using_signals| - 
 % * |visual_stimuli| - Exhaustive descriptions and demonstrations of every
-% visual stimulus function, along with screenshots of the stimuli
+% visual stimulus function, along with screenshots of the stimuli.  FAQ
+% about visual stimuli
 % * |SignalsPrimer*| - These have been removed, and the information reused
-% and improved in |using_signals| and |expDef_inputs|.
+% and improved in |using_signals| and |expDef_inputs|
+% * |expDef_inputs| - A guide to all the inputs to a standard expDef and
+% how to use them in your experiments
+% * |advanced_signals| - Information about signals methods used in
+% SignalExp and visual stimuli, for instance |flattenStruct| and |output|.
+% Information on how to add new Signals methods.
 % 
 % *Bug fixes*
 % 
@@ -135,6 +154,7 @@
 % subsref error)!
 % * |sig.transfer.map| - Correct error ID
 % * |sig.transfer.scan| - Correct error ID
+% * |sig.transfer.nop| - Correct output values
 % * |signals_test| - Fixed bug where states carried over between tests
 %
 % *Enhancements*
@@ -170,11 +190,19 @@
 % * |sig.test.timeplot| - Subscriptable Signals now correctly represented
 % in plots (shows the field names as plot annotations)
 % * |toStr| - Will correctly stringify map.Containers objects
+% * |sig.node.OriginSignal| - Old code removed
+% * |sig.node.SubscriptableSignal| - When Deep flag is true, multi-level
+% dot syntax subscripting can be achieved
+% * |sig.node.SubscriptableOriginSignal| - Now supports multi-level dot
+% syntax subscripting, e.g. |s = structSig.f1.f2.fn|
 %
 % *Tests*
 %
 % * bufferUpTo - Added test
 % * buffer - Added test
+% * nop - Added test
+% * identity - Added test
+% * flatten - Added test
 % * filter - Added test
 % * merge - Added test
 % * setEpochTrigger - Added test

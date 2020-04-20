@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Parameters</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="Parameters.m"><style type="text/css">
+      --><title>Parameters</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-17"><meta name="DC.source" content="Parameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -105,7 +105,7 @@ paramStruct.expPanelFun <span class="comment">% (1,27)</span>
 
 <span class="comment">% Parameters may take a number of different value types, including</span>
 <span class="comment">% numerical, string and char arrays.</span>
-</pre><h2 id="3">Special parameters</h2><p>There are a few parameters added by <tt>exp.inferParameters</tt>, <tt>exp.Parameters</tt> and <tt>eui.ParamEditor</tt> that should not be set in your experiment definition:</p><h2 id="4">numRepeats</h2><p>The number of times each condition shall be repeated.  By default there are 1000 'trials', split evenly across each condition (parameter column). When trial number &gt; sun(numRepeats), the experiment will automatically end.  If numRepeats is a global parameter (i.e. a scalar value) each condition will be repeated the same number of times.</p><h2 id="5">randomiseConditions</h2><p>When true (default) the conditional trial parameters are shuffled at the start of the experiment and thus occur in a random order.</p><h2 id="6">defFunction</h2><p>For signals experiments this parameter is the file path of the experiment definition.  This is required for the stimulus computer to load the correct experiment.  It does not appear as a parameter during the experiment.</p><h2 id="7">expPanelFun</h2><p>A char or function handle of the experiment panel class to use for visualization during the experiment in MC.  This allows users to display custom plots, etc. for monitoring different experiments.  See <a href="using_ExpPanel.html">Using ExpPanel</a> for more info.</p><h2 id="8">type</h2><p>A legacy parameter that defines what experiment class to use. Options include 'ChoiceWorld' and 'custom', where the latter indicates a signals experiment.  For these two options the experiment classes are <tt>exp.ChoiceWorld</tt> and <tt>exp.SignalsExp</tt>, respectively (see note 2).</p><h2 id="9">services</h2><p>A cellstr array of service names to be activaed during experiment setup. These are external systems that can be triggered via websockets and UDPs. (See note 3)</p><h2 id="10">waterType</h2><p>The type of water reward to administer during the experiment.  This could allow one to switch between different DAQ outputs and will change the water_type field when posting to Alyx.  This feature is not yet fully implemented.</p><h2 id="11">isPassive</h2><p>When true the experiment is a re-play of a previous one.  This feature is not yet fully implemented.</p><p>In addition to these, parameters can be attributed descriptions and units by setting fields with the same name the end in 'Description' and 'Units' respectively. These are displayed in the ParamEditor GUI.  See below.</p><pre class="codeinput">paramStruct.wheelGain <span class="comment">% An example parameter that needs a description</span>
+</pre><h2 id="3">Special parameters</h2><p>There are a few parameters added by <tt>exp.inferParameters</tt>, <tt>exp.Parameters</tt> and <tt>eui.ParamEditor</tt> that should not be set in your experiment definition:</p><h2 id="4">numRepeats</h2><p>The number of times each condition shall be repeated.  By default there are 1000 'trials', split evenly across each condition (parameter column). When trial number &gt; sun(numRepeats), the experiment will automatically end.  If numRepeats is a global parameter (i.e. a scalar value) each condition will be repeated the same number of times.</p><h2 id="5">randomiseConditions</h2><p>When true (default) the conditional trial parameters are shuffled at the start of the experiment and thus occur in a random order.</p><h2 id="6">defFunction</h2><p>For signals experiments this parameter is the file path of the experiment definition.  This is required for the stimulus computer to load the correct experiment.  It does not appear as a parameter during the experiment.</p><h2 id="7">expPanelFun</h2><p>A char or function handle of the experiment panel class to use for visualization during the experiment in MC.  This allows users to display custom plots, etc. for monitoring different experiments.  See <a href="using_ExpPanel.html">Using ExpPanel</a> for more info.</p><h2 id="8">type</h2><p>A parameter that defines what experiment class to use. Options include 'ChoiceWorld', 'Surround' and 'custom', where the latter indicates a signals experiment.  For the first two options the experiment class is <tt>exp.ChoiceWorld</tt>; for the last, <tt>exp.SignalsExp</tt> (see note 2).</p><h2 id="9">services</h2><p>A cellstr array of service names to be activaed during experiment setup. These are external systems that can be triggered via websockets and UDPs. (See note 3)</p><h2 id="10">waterType</h2><p>The type of water reward to administer during the experiment.  This could allow one to switch between different DAQ outputs and will change the water_type field when posting to Alyx.  This feature is not yet fully implemented.</p><h2 id="11">isPassive</h2><p>When true the experiment is a re-play of a previous one.  This feature is not yet fully implemented.</p><p>In addition to these, parameters can be attributed descriptions and units by setting fields with the same name the end in 'Description' and 'Units' respectively. These are displayed in the ParamEditor GUI.  See below.</p><pre class="codeinput">paramStruct.wheelGain <span class="comment">% An example parameter that needs a description</span>
 paramStruct.wheelGainDescription = [<span class="string">'Visual stimulus translation per '</span>,<span class="keyword">...</span>
   <span class="string">'movement at wheel surface (for stimuli ahead)'</span>];
 paramStruct.visWheelGainUnits = <span class="string">'&deg;/mm'</span>;
@@ -181,12 +181,12 @@ numTrialConditions(parameters) <span class="comment">% There are 9 trial conditi
 [globalParams, trialParams] = parameters.assortForExperiment;
 trialParams <span class="comment">% (1,9) struct</span>
 
-<span class="comment">% TOCONDITIONSERVER replicates the trial conditions be however many times</span>
-<span class="comment">% are specified by the 'numRepeats' parameter and if the `randomOrder`</span>
-<span class="comment">% input arg is true, these are shuffled into a random order.  This method</span>
-<span class="comment">% is used by the experiment class during setup.  In addition to returning</span>
-<span class="comment">% the assorted global and conditional parameters, a Condition Server</span>
-<span class="comment">% object, `cs` is also returned (see note 5)</span>
+<span class="comment">% TOCONDITIONSERVER replicates the trial conditions however many times are</span>
+<span class="comment">% specified by the 'numRepeats' parameter and if the `randomOrder` input</span>
+<span class="comment">% arg is true, these are shuffled into a random order.  This method is used</span>
+<span class="comment">% by the experiment class during setup.  In addition to returning the</span>
+<span class="comment">% assorted global and conditional parameters, a Condition Server object,</span>
+<span class="comment">% `cs` is also returned (see note 5)</span>
 [cs, globalParams, trialParams] = parameters.toConditionServer(true);
 sum(parameters.Struct.numRepeats) <span class="comment">% Total number of trials</span>
 trialParams <span class="comment">% (1,810) struct</span>
@@ -312,10 +312,10 @@ Num Repeats = 1 (global)</pre><pre># | A | B | C |
   +---+---+---+
 (Note the blocks of repeated conditions are shuffled)</pre><pre class="codeinput"><span class="comment">% Author: Miles Wells</span>
 <span class="comment">%</span>
-<span class="comment">% v1.1.2</span>
+<span class="comment">% v1.1.3</span>
 
 <span class="comment">%#ok&lt;*NOPTS,*ASGLU,*NASGU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Parameters
 % This document contains information on how experiment parameters work in
@@ -410,10 +410,10 @@ paramStruct.expPanelFun % (1,27)
 % <using_ExpPanel.html Using ExpPanel> for more info.
 
 %%% type
-% A legacy parameter that defines what experiment class to use. Options
-% include 'ChoiceWorld' and 'custom', where the latter indicates a signals
-% experiment.  For these two options the experiment classes are
-% |exp.ChoiceWorld| and |exp.SignalsExp|, respectively (see note 2). 
+% A parameter that defines what experiment class to use. Options include
+% 'ChoiceWorld', 'Surround' and 'custom', where the latter indicates a
+% signals experiment.  For the first two options the experiment class is
+% |exp.ChoiceWorld|; for the last, |exp.SignalsExp| (see note 2).
 
 %%% services
 % A cellstr array of service names to be activaed during experiment setup.
@@ -534,12 +534,12 @@ numTrialConditions(parameters) % There are 9 trial conditions
 [globalParams, trialParams] = parameters.assortForExperiment;
 trialParams % (1,9) struct
 
-% TOCONDITIONSERVER replicates the trial conditions be however many times
-% are specified by the 'numRepeats' parameter and if the `randomOrder`
-% input arg is true, these are shuffled into a random order.  This method
-% is used by the experiment class during setup.  In addition to returning
-% the assorted global and conditional parameters, a Condition Server
-% object, `cs` is also returned (see note 5)
+% TOCONDITIONSERVER replicates the trial conditions however many times are
+% specified by the 'numRepeats' parameter and if the `randomOrder` input
+% arg is true, these are shuffled into a random order.  This method is used
+% by the experiment class during setup.  In addition to returning the
+% assorted global and conditional parameters, a Condition Server object,
+% `cs` is also returned (see note 5)
 [cs, globalParams, trialParams] = parameters.toConditionServer(true);
 sum(parameters.Struct.numRepeats) % Total number of trials
 trialParams % (1,810) struct
@@ -861,7 +861,7 @@ flashedColumnParams = exp.flashedColumnParams; % Kalatsky-type
 
 % Author: Miles Wells
 %
-% v1.1.2
+% v1.1.3
 
 %#ok<*NOPTS,*ASGLU,*NASGU>
 
