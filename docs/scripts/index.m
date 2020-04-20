@@ -91,10 +91,6 @@
 % 
 % * <./using_dat_package.html The Data Package> - How to query data locations
 % and log experiments using the |+dat| package.
-% * <./SignalsPrimer.html How Signals works> - An in-depth guide to how
-% Signals works.  This shows you how to work with Signals outside of the
-% <Glossary.html Experiment Framework> and gives demonstrations of all
-% Signals methods ( |scan|, etc.)  
 % * <./Parameters.html Parameters> - How to create and edit
 % experiment parameters.
 % * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
