@@ -67,8 +67,9 @@ p.expDefinitions = fullfile(p.rigbox, 'signals', 'docs', 'examples');
 p.localAlyxQueue = 'C:\localAlyxQueue'; % Location of cached posts
 % Location of git for automatic updates
 p.gitExe = 'C:\Program Files\Git\cmd\git.exe'; 
-% Day on which to update code (0 = Everyday, 1 = Sunday, etc.)
-p.updateSchedule = 2; % Update every Monday
+% Day on which to update code (0 = Everyday, 1 = Sunday, etc.)  See
+% GIT.UPDATE for mor details.
+p.updateSchedule = 'Monday';
 
 % Alternate file repository: unlike alternates defined with a number (e.g.
 % 'main2Repository'), 'altRepository' is returned as an alternate to every

@@ -17,7 +17,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   properties (TestParameter)
     % Day that update is scheduled for `git.update`.
-    scheduled = {'everyday', 'today', 'tomorrow'}
+    scheduled = {'never', 'everyday', 'today', 'tomorrow'}
   end
   
   properties (Access = protected)
@@ -27,9 +27,9 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   methods (TestClassSetup)
     function setScheduled(testCase)
-      % Sets `Weekday` to a number in the interval [0,7] where 0 =
-      % everyday; 1-7 = Monday-Friday
-      values = {0, weekday(now), mod(weekday(now),7)+1};
+      % Sets `Weekday` to a number in the interval [0,7] where -1 = never,
+      % 0 = everyday; 1-7 = Monday-Friday
+      values = {-1, 0, weekday(now), mod(weekday(now),7)+1};
       testCase.Weekday = containers.Map(testCase.scheduled, values);
       
       % If a `FETCH_HEAD` file doesn't exist in `.git` (e.g. on new
@@ -64,10 +64,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   end
   
   methods (Test)    
-    function testInputs(testCase, scheduled, fetched)
+    function testNumericalInputs(testCase, scheduled, fetched)
       % Tests various input args for `git.update`.  If fetched == true,
       % function should recognize that code already updated.
-      diffDay = strcmp(scheduled, 'tomorrow');
+      diffDay = any(strcmp(scheduled, {'tomorrow', 'never'}));
       input = testCase.Weekday(scheduled); % Get day code
       exitCode = git.update(input); % Run update
       % Test result
@@ -75,5 +75,32 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       failMsg = iff(fetched, 'Code pulled', 'Code not pulled');
       testCase.assertTrue(expected, failMsg)
     end    
+    
+    function testArrayInputs(testCase, fetched)
+      % Tests various array inputs for `git.update`.
+      [n, D] = arrayfun(@weekday, [now; now+1], 'uni', 0);
+      exitCode = git.update(D); % Run update with cellstr input
+      % Test result
+      expected = iff(fetched, exitCode == 2, exitCode == 0); 
+      failMsg = iff(fetched, 'Code pulled', 'Code not pulled');
+      testCase.assertTrue(expected, failMsg)
+      
+      % Run update with numerical array input
+      exitCode = git.update(cell2mat(n));
+      expected = iff(fetched, exitCode == 2, exitCode == 0); 
+      testCase.assertTrue(expected, failMsg)
+      
+      % Now test with a different day string input
+      [~, D] = mapToCell(@(x) weekday(x, 'long'), [now+1; now+2]);
+      exitCode = git.update(string(D)); % Run update with string
+      testCase.assertTrue(exitCode == 2, 'Code pulled')
+    end
+    
+    function testInvalidInputs(testCase)
+      % Tests for expected error messages on invalid input arg
+      errId = 'Rigbox:git:update:valueError';
+      testCase.verifyError(@()git.update(9), errId)
+      testCase.verifyError(@()git.update('Pankday'), errId)
+    end
   end
 end
