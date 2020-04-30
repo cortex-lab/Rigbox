@@ -46,21 +46,14 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       qDir = getOr(dat.paths, 'localAlyxQueue');
       assert(mkdir(qDir), 'Failed to create alyx queue')
       
-      addTeardown(testCase, @ClearTestCache)
+      % Supress warnings for file.modeDate mock, called by git.update
+      orig = warning('off', 'Rigbox:tests:modDate:dateNotSet');
+      addTeardown(testCase, @warning, orig)
+      
+      % Clear all cached and persistant variables at the end
+      testCase.applyFixture(ClearTestCache)
     end
     
-    function fixUpdates(~)
-      % FIXUPDATES Ensure git update doesn't pull code
-      %  Have FETCH_HEAD file appear recently modified to avoid triggering
-      %  any code updates.
-      %
-      % See also GIT.UPDATE
-      
-      % Make sure git update not triggered
-      root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
-      fetch_head = fullfile(root, '.git', 'FETCH_HEAD');
-      file.modDate(fetch_head, now); % Set recent fetch
-    end
   end
   
   methods (TestMethodSetup)

@@ -27,7 +27,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         save(fullfile(hwPaths{i}, 'hardware'), 'scale');
       end
       
-      addTeardown(testCase, @ClearTestCache) % Remove folders on teardown
+      testCase.applyFixture(ClearTestCache) % Remove folders on teardown
     end
   end
   
