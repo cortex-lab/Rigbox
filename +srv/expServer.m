@@ -1,10 +1,12 @@
-function expServer(useTimelineOverride, bgColour)
+function expServer(varargin)
 %SRV.EXPSERVER Start the presentation server
-%   Principle function for running experiments.  ExpServer listens for
+%   The principle function for running experiments.  expServer listens for
 %   commands via TCP/IP Web sockets to start, stop and pause stimulus
-%   presentation experiments.  
+%   presentation experiments.  expServer can also be called with an expRef
+%   for running a specific experiment.
+%   
 %
-%   Inputs:
+%   Inputs (Optional Name-Value Parameters):
 %     useTimelineOverride (logical) - Flag indicating whether to start
 %       Timeline.  If empty the default is the UseTimeline flag in the
 %       hardware file.  Timeline may still be toggled by pressing the 't'
@@ -12,6 +14,16 @@ function expServer(useTimelineOverride, bgColour)
 %     bgColour (1-by-3 double) - The background colour of the stimulus
 %       window.  If not specified the background colour specified in the
 %       harware file is used.
+%     expRef (char) - An experiment reference string for starting an
+%       experiment in 'single-shot mode'.
+%     preDelay (double) - The delay between initialization and experiment
+%       start.  This parameter is only used with the 'expRef' parameter.
+%       Default is 0.
+%     postDelay (double) - The delay between stop signal and experiment
+%       cleanup.  This parameter is only used with the 'expRef' parameter.
+%       Default is 0.
+%     alyx (Alyx) - An instance of Alyx for communicating with the
+%       database.  This parameter is only used with the 'expRef' parameter.
 %
 %   Key bindings:
 %     t - Toggle Timeline on and off.  The default state is defined in the
@@ -26,6 +38,12 @@ function expServer(useTimelineOverride, bgColour)
 %     b - Toggle the background colour between the default and white.
 %     g - Perform gamma correction
 %     
+%   Example 1: Run in listener mode with Timeline disabled
+%     srv.expServer('UseTimelineOverride', false)
+%
+%   Example 2: Run in single-shot mode with 10 second delay
+%     ref = dat.newExp('test', now, exp.choiceWorldParams);
+%     srv.expServer('expRef', ref, 'preDelay', 10)
 %
 % See also MC, io.WSJCommunicator, hw.devices, srv.prepareExp, hw.Timeline
 %
@@ -33,7 +51,7 @@ function expServer(useTimelineOverride, bgColour)
 
 % 2013-06 CB created
 
-%% Parameters
+%% Fixed Parameters
 global AGL GL GLU %#ok<NUSED>
 quitKey = KbName('q');
 rewardToggleKey = KbName('w');
@@ -42,9 +60,40 @@ rewardCalibrationKey = KbName('m');
 gammaCalibrationKey = KbName('g');
 timelineToggleKey = KbName('t');
 toggleBackground = KbName('b');
-rewardId = 1;
 % Function for constructing a full ID for warnings and errors
 fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':');
+
+%% User parameters
+p = inputParser;
+p.addParameter('expRef', [], @ischar)
+p.addParameter('alyx', Alyx('',''), @(v)isa(v,'Alyx'))
+p.addParameter('preDelay', 0, @isnumeric)
+p.addParameter('postDelay', 0, @isnumeric)
+p.addParameter('rewardId', 1, @isnumeric) % May be changed via keypress
+p.addParameter('useTimelineOverride', [])
+checkBgColour = @(x)validateattributes(x,...
+  "numeric", {'nonnegative', '<=', 255, 'vector'}, mfilename, 'bgColour');
+p.addParameter('bgColour', 127*[1 1 1], checkBgColour) % mid gray by default
+p.parse(varargin{:})
+
+singleShot = ~isempty(p.Results.expRef);
+if ~singleShot
+  % The following parameters are only relevent when an expRef is provided.
+  irrelevent = {'alyx', 'preDelay', 'postDelay'};
+  defined = ~ismember(irrelevent, p.UsingDefaults);
+  ignored = strcat('''', irrelevent(defined), '''');
+  if ~isempty(ignored)
+    delim = iff(numel(ignored) > 2, {', ', ' and '}, ' and ');
+    warning(...
+      fullID('ignoredParameters'), ...
+      'The input parameter(s) %s will be ignored', ...
+      strjoin(ignored, delim))
+  end
+end
+
+p = p.Results;
+rewardId = p.rewardId;
+bgColour = p.bgColour;
 
 %% Initialisation
 % Pull latest changes from remote
@@ -98,9 +147,6 @@ KbQueueStart();
 
 HideCursor();
 
-if nargin < 2
-  bgColour = 127*[1 1 1]; % mid gray by default
-end
 % open the stimulus window
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
@@ -111,16 +157,22 @@ fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
   KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
 log('Started presentation server on port %i', communicator.DefaultListenPort);
 
-if nargin < 1 || isempty(useTimelineOverride)
+if nargin < 1 || isempty(p.useTimelineOverride)
   % toggle use of timeline according to rig default setting
   toggleTimeline(rig.timeline.UseTimeline);
 else
-  toggleTimeline(useTimelineOverride);
+  toggleTimeline(p.useTimelineOverride);
 end
 
-running = true;
+%% If running single experiment mode immediately start the experiment
+if singleShot
+  assert(dat.expExists(p.expRef), fullID('expRefNotFound'), ...
+    'Experiment ref ''%s'' does not exist', p.expRef)
+  runExp(p.expRef, p.preDelay, p.postDelay, p.alyx);
+end
 
 %% Main loop for service
+running = ~singleShot;
 while running
   % Check for messages when out of event mode
   if communicator.IsMessageAvailable
