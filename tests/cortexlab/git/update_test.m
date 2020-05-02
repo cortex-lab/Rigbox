@@ -47,8 +47,10 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       % SETMOCKS Map some outputs for calls to functions used by update
       %  Using these mocks we can simulate the result of system commands
       %  without actually pulling and updating the code.
-      global INTEST % Global flag indicating whether we're in a test
-      INTEST = true; % Suppress out-of-test warnings
+      TF = setTestFlag(true); % Suppress out-of-test warnings
+      % Clear up on teardown
+      testCase.addTeardown(@setTestFlag, TF)
+      testCase.applyFixture(ClearTestCache)
       
       % Set the date we want returned by modDate for the FETCH_HEAD file
       fetchFile = fullfile(testCase.GitDir, 'FETCH_HEAD');
@@ -57,9 +59,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       
       % Set the system command output
       system('*', {0, ''}); % Set all commands to return success
-      
-      % Clear up on teardown
-      testCase.addTeardown(@clear, 'INTEST', 'modDate', 'system')
     end
   end
   
