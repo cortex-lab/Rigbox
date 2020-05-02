@@ -77,6 +77,7 @@
 % * |exp.rangeParams| - Function removed (old and incomplete code)
 % * |git.listVersions| - Lists the previous versions of Rigbox availiable 
 % * |git.switchVersion| - Allows you to switched between Rigbox versions
+% * |git.repoVersion| - Returns release tag of repository, if available
 %
 % *Tests*
 %
@@ -86,6 +87,8 @@
 % * |srv.expServer| - Test refactoring
 % * |git.update| - Tests added for new array support
 % * |git.listVersions| - Full test coverage
+% * |git.repoVersion| - Full test coverage
+% * |git.switchVersion| - Full test coverage
 % * |exp.configureSignalsExperiment| - Full test coverage
 %
 
