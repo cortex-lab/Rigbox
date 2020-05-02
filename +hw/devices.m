@@ -49,7 +49,7 @@ paths = dat.paths(name);
 fn = fullfile(paths.rigConfig, 'hardware.mat');
 if ~file.exists(fn)
    warning('Rigbox:hw:devices:missingHardware', ...
-     ['hardware config not found for hostname ', hostname]);
+     ['hardware config not found for hostname ', name]);
    rig = [];
   return
 end

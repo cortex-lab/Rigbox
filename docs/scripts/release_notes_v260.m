@@ -14,6 +14,9 @@
 % * |srv.expServer| - Experiments can now be started by calling expServer
 % with an expRef.  This can be used for running experiments without MC.  A
 % fair amount of refactoring has taken place.
+% * |git.runCmd| - Command output type now matches input type (e.g. if
+% input command is char, output will be char; a string -> string; a cell ->
+% cell)
 %
 % *Documentaion*
 %
@@ -33,13 +36,15 @@
 % * |paths_config| - Added note about adding paths as chars: strings not
 % supported
 % * |id_index| - Added info on 'deprecated' and 'bgColourSize'
+% * |update_code| - Added new guide on how to update the code, undo updates
+% and switch between versions
 % 
 %
 % *Bug fixes*
 % 
-% * hw.ptb.Window/asyncFlipEnd - Fixed value unassigned error when no lag
-% * namedArg - Fixed uniform output error when inputs non-scalar 
-% * pick - Fixed uniform output error when default value a cell or string 
+% * |hw.ptb.Window/asyncFlipEnd| - Fixed value unassigned error when no lag
+% * |namedArg| - Fixed uniform output error when inputs non-scalar 
+% * |pick| - Fixed uniform output error when default value a cell or string 
 %
 %
 % *Enhancements*
@@ -70,15 +75,18 @@
 % be set once, at the start of the experiment.
 % * |exp.rangeEventHandlers| - Function removed (old and incomplete code)
 % * |exp.rangeParams| - Function removed (old and incomplete code)
+% * |git.listVersions| - Lists the previous versions of Rigbox availiable 
+% * |git.switchVersion| - Allows you to switched between Rigbox versions
 %
 % *Tests*
 %
-% * distribute - Test added
-% * pick - Test added for when default value is a cell or string
-% * namedArg - Test added for when inputs are nonscalar cell arrays
-% * srv.expServer - Test refactoring
-% * git.update - Tests added for new array support
-% * exp.configureSignalsExperiment - Full test coverage
+% * |distribute| - Test added
+% * |pick| - Test added for when default value is a cell or string
+% * |namedArg| - Test added for when inputs are nonscalar cell arrays
+% * |srv.expServer| - Test refactoring
+% * |git.update| - Tests added for new array support
+% * |git.listVersions| - Full test coverage
+% * |exp.configureSignalsExperiment| - Full test coverage
 %
 
 %% signals v1.3
@@ -195,6 +203,7 @@
 % dot syntax subscripting can be achieved
 % * |sig.node.SubscriptableOriginSignal| - Now supports multi-level dot
 % syntax subscripting, e.g. |s = structSig.f1.f2.fn|
+% * |VisualRenderer.class| - Added Java source code to java folder
 %
 % *Tests*
 %
