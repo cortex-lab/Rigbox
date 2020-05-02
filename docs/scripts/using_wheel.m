@@ -105,7 +105,7 @@ RPM = velAng*60 / 2*pi;
 posDeg = rad2deg(posRad);
 velDeg = rad2deg(velAng);
 % or...
-posDeg = pos / res*360;
+posDeg = pos * res/360;
 
 %% Convert to azimuth (visual degrees)
 % If you know the response threshold in visual degrees, you can convert
