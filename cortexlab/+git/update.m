@@ -1,13 +1,14 @@
 function exitCode = update(scheduled)
 % GIT.UPDATE Pulls latest Rigbox code 
-%   `git.update` pulls the latest code from the remote Rigbox Github 
-%   repository if it is run on a specific day of the week (provided the 
-%   remote code was last fetched over a day ago), or immediately (provided 
-%   the remote code was last fetched over an hour ago), according to 
-%   `scheduled`. If run without an input arg, code is pulled according to 
-%   the `updateSchedule` field in the struct returned by `dat.paths`, or 
-%   immediately if the `updateSchedule` field is not found in `dat.paths`
-%   (provided the remote code was last fetched over an hour ago).
+%   EXITCODE = GIT.UPDATE(SCHEDULED) pulls the latest code from the remote
+%   Rigbox Github repository if it is run on a specific day of the week
+%   (provided the remote code was last fetched over a day ago), or
+%   immediately (provided the remote code was last fetched over an hour
+%   ago), according to `scheduled`. If run without an input arg, code is
+%   pulled according to the `updateSchedule` field in the struct returned
+%   by `dat.paths`, or immediately if the `updateSchedule` field is not
+%   found in `dat.paths` (provided the remote code was last fetched over an
+%   hour ago).
 %   
 %   Inputs:
 %     scheduled (int|string|char|cellstr): an optional input as an
@@ -15,7 +16,7 @@ function exitCode = update(scheduled)
 %       updated. When 0 or 'Everyday', the remote code will be pulled
 %       provided the last fetch was over an hour ago. When in the interval
 %       [1,7], code will be pulled on a corresponding day according to
-%     weekday (Sunday=1, Monday=2, ... Saturday = 7), provided the last
+%       weekday (Sunday=1, Monday=2, ... Saturday = 7), provided the last
 %       fetch was over a day ago. Code will also be pulled if it is not the
 %       scheduled day, but the last fetch was over a week ago. If scheduled
 %       is 0, the function will pull changes provided the last fetch was
@@ -97,7 +98,7 @@ disp('Updating code...')
 % Create Windows system commands for git stashing, initializing submodules,
 % and pulling
 stash = ['stash push -m "stash Rigbox working changes before '... 
-               'scheduled git update"'];
+         'scheduled git update"'];
 stashSubs = 'submodule foreach "git stash push"';
 init = 'submodule update --init';
 pull = 'pull --recurse-submodules --strategy-option=theirs';
