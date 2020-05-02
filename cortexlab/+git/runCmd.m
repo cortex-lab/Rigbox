@@ -12,7 +12,7 @@ function [exitCode, cmdOut] = runCmd(cmd, varargin)
 %
 % Outputs:
 %   exitCode: A flag array indicating whether each command was run 
-%             succesfully (0) or there was an error (1).
+%             successfully (0) or there was an error (1).
 %   cmdOut: A cellstr array of the output of the command(s).
 %
 % Example: Get the status and log for the git repository in the working 
