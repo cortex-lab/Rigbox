@@ -1,7 +1,7 @@
 %% Working with block files
 % Block files are the 'raw' data files produced by Experiments.  They end
-% in '_block.mat'.  They are structs 
-
+% in '_block.mat'.  They are structs that hold all the experiment and trial
+% related information.
 
 %% Loading a block file
 % Block files are MAT files and can thefore be loaded from their location
