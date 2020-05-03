@@ -37,11 +37,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       assert(mkdir(fullfile(mainRepo, 'test')), ...
         'Failed to create subject folder')
             
-      % Save a custom path disabling Alyx
-      paths.databaseURL = [];
-      configDir = getOr(dat.paths, 'rigConfig');
-      save(fullfile(configDir, 'paths.mat'), 'paths')
-      
       % Alyx queue location
       qDir = getOr(dat.paths, 'localAlyxQueue');
       assert(mkdir(qDir), 'Failed to create alyx queue')
@@ -75,6 +70,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'AddedMethods', methods(exp.Experiment)');
 
       % Inject our mocks via calls to hw.devices
+      testCase.Rig.paths = rmfield(dat.paths, 'databaseURL'); % Add paths to object
       hw.devices('testRig', false, testCase.Rig);
       
       % Set some default behaviours for some of the objects
@@ -95,7 +91,8 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
 
       % Clear mock histories just to be safe
       clearHistory = @(mock) testCase.clearMockHistory(mock);
-      structfun(@(mock) testCase.addTeardown(clearHistory, mock), testCase.Rig);
+      structfun(@(mock) testCase.addTeardown(clearHistory, mock), ...
+        rmfield(testCase.Rig, 'paths')); % All Rig fields mocks except 'paths'
       testCase.addTeardown(@clear, ...
         'KbQueueCheck', 'configureDummyExperiment', 'devices')
     end
@@ -308,7 +305,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'ClosedValue', rand);
       generators = [s() s()];
       
-      % Assign output for 'ClosedValue' property
+      % Assign output for 'SignalGenerators' property
       testCase.assignOutputsWhen(...
         get(testCase.RigBehaviours.daqController.SignalGenerators), generators)
       
@@ -456,7 +453,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       import matlab.mock.actions.Invoke
       
       %%% Test warning free %%%
-      testCase.assertEmpty(getOr(dat.paths, 'databaseURL'), ...
+      testCase.assertEmpty(getOr(testCase.Rig.paths, 'databaseURL'), ...
         'Expected databaseURL field to be unset for this test')
       testCase.verifyWarningFree(@srv.expServer)
       
@@ -471,15 +468,11 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       %     - 'Alyx:registerFile:UnableToValidate'
       %     - 'Alyx:flushQueue:NotConnected'
       
-      % Set custom paths.  First add teardown to restore behaviour, then
-      % delete paths file
-      customPath = fullfile(getOr(dat.paths, 'rigConfig'), 'paths.mat');
-      paths.databaseURL = [];
-      testCase.addTeardown(@superSave, customPath, struct('paths', paths))
-      % Remove custom paths
-      delete(customPath)
+      % Add dataseURL back to paths
       testCase.assertNotEmpty(getOr(dat.paths, 'databaseURL'), ...
         'Expected databaseURL field to be unset for this test')
+      testCase.Rig.paths = dat.paths; % Add paths to object
+      hw.devices('testRig', false, testCase.Rig);
       
       % Inject our our mock experiment via function call in srv.prepareExp
       exp.configureDummyExperiment([], [], testCase.Experiment);
@@ -945,6 +938,95 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         experiment.AlyxInstance.setToValue(aiBehaviour), ...
         experiment.run(inputs.expRef)], ...
         Occurred('RespectingOrder', true))
+    end
+      
+    function test_viewHelp(testCase)
+      % Test behaviour when help key pressed.  Help text should be printed
+      % to the command window and to the screen.
+      import matlab.mock.constraints.Occurred
+      % Simulate pressing help key then quit
+      KbQueueCheck(-1, sequence({'h', 'q'}));
+
+      T = evalc('srv.expServer');
+      testCase.verifyMatches(T, 'Displaying help', ...
+        'Failed to print help to the command window')
+      % Retrieve mock history for the Window
+      behaviour = testCase.RigBehaviours.stimWindow;
+      testCase.verifyThat([...
+        get(behaviour.White), ...
+        withAnyInputs(behaviour.drawText),...
+        withAnyInputs(behaviour.flip)], ...
+        Occurred('RespectingOrder', true))
+    end
+    
+    function test_viewCalibration(testCase)
+      % Test behaviour when view calibration key pressed.  The plot should
+      % be printed to the screen if a calibration is available for the
+      % currently selected controller.  NB: Doesn't check whether the most
+      % recent calibration is used.
+      import matlab.mock.constraints.Occurred
+      
+      % Set some calibration data
+      n = 5; % Number of simulated deliveries
+      durationSecs = linspace(20e-3, 150e-3, n);
+      volumeMicroLitres = linspace(0.5, 3.5, n);
+      % Create some generators to test function with.  Unlike those returned by
+      % mockRig, these will be subclasses of the hw.RewardValveControl class and
+      % therefore we can keep them in a heterogeneous array. We must use objects
+      % here as expServer tests for particular properties.
+      generators = hw.RewardValveControl.empty(0,2);
+      calibrations = struct('dateTime', [], 'measuredDeliveries', []);
+      for i = 1:2
+        generators(i) = createMock(testCase, ?hw.RewardValveControl);
+        for j = 1:2
+          % Two calibrations each; one yesterday, one the day before
+          calibrations(i).dateTime = now-i;
+          % Create a 1xn struct of measured deliveries
+          mkStruct = @(a,b)struct('durationSecs',a,'volumeMicroLitres',b);
+          calibrations(i).measuredDeliveries = arrayfun(mkStruct, ...
+            durationSecs, volumeMicroLitres + rand); % Change volumes a bit
+        end
+        generators(i).Calibrations = calibrations; % Assign our calibrations
+      end
+      % Assign generators to daqController mock
+      testCase.assignOutputsWhen(...
+        get(testCase.RigBehaviours.daqController.SignalGenerators), generators)
+            
+      % Simulate pressing view toggle, then switching controller, then quit
+      KbQueueCheck(-1, sequence({'v', 'v', '2', 'v', 'q'}));
+      srv.expServer;
+
+      % Retrieve mock history for the Window
+      behaviour = testCase.RigBehaviours.stimWindow;
+      testCase.verifyThat([...
+        withAnyInputs(behaviour.makeTexture),...
+        withAnyInputs(behaviour.drawTexture),...
+        withAnyInputs(behaviour.flip)], ...
+        Occurred('RespectingOrder', false), 'Failed to print to Window')
+      
+      % Check that both signal generators were check exactly once.  Assumes
+      % that if it check the Calibrations property, it probably used it.
+      for i = 1:2
+        history = testCase.getMockHistory(generators(1));
+        expected = ...
+          numel(history) == 1 && ...
+          isa(history, 'matlab.mock.history.SuccessfulMethodCall') && ...
+          strcmp(history.Name,"findprop") && ...
+          strcmp(history.Inputs{2}, 'Calibrations');
+        testCase.verifyTrue(expected, 'Failed to query reward controller')
+      end
+      
+      % Finally check how it deals with missing reward controllers
+      testCase.clearMockHistory(testCase.Rig.stimWindow)
+      generators(1).Calibrations = []; % No calibrations for controller
+      % Assign only one generator to daqController mock
+      testCase.assignOutputsWhen(...
+        get(testCase.RigBehaviours.daqController.SignalGenerators), generators(1))
+      % Simulate selection of 2nd reward controller
+      KbQueueCheck(-1, sequence({'v', '2', 'v', 'q'}));
+      T = evalc('srv.expServer');
+      testCase.verifyMatches(T, 'No reward calibration')
+      testCase.verifyNotCalled(withAnyInputs(behaviour.drawTexture))
     end
   end
   
