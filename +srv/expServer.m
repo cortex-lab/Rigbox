@@ -26,6 +26,8 @@ function expServer(varargin)
 %       database.  This parameter is only used with the 'expRef' parameter.
 %
 %   Key bindings:
+%     q - Quit expServer.
+%     h - View list of key bindings.
 %     t - Toggle Timeline on and off.  The default state is defined in the
 %       hardware file but may be overridden as the first input argument.
 %     w - Toggle reward on and off.  This switches the output of the first
@@ -34,9 +36,12 @@ function expServer(varargin)
 %       file.
 %     space - Deliver default reward, specified by the DefaultCommand
 %       property in the hardware file.
-%     m - Perform water calibration. 
+%     m - Perform reward calibration for the current reward controller.
+%     v - View the current water calibration for current reward controller.
 %     b - Toggle the background colour between the default and white.
 %     g - Perform gamma correction
+%     1 - Select first reward controller.
+%     2 - Select second reward controller.
 %     
 %   Example 1: Run in listener mode with Timeline disabled
 %     srv.expServer('UseTimelineOverride', false)
@@ -53,13 +58,20 @@ function expServer(varargin)
 
 %% Fixed Parameters
 global AGL GL GLU %#ok<NUSED>
-quitKey = KbName('q');
-rewardToggleKey = KbName('w');
-rewardPulseKey = KbName('space');
-rewardCalibrationKey = KbName('m');
-gammaCalibrationKey = KbName('g');
-timelineToggleKey = KbName('t');
-toggleBackground = KbName('b');
+key = struct(...
+  'quit', KbName('q'), ...
+  'help', KbName('h'), ...
+  'rewardToggle', KbName('w'), ...
+  'rewardPulse', KbName('space'), ...
+  'rewardCalibration', KbName('m'), ...
+  'viewCalibration', KbName('v'), ...
+  'gammaCalibration', KbName('g'), ...
+  'timelineToggle', KbName('t'), ...
+  'toggleBackground', KbName('b'), ...
+  'selectFirst', KbName('1'), ...
+  'selectSecond', KbName('2'));
+
+rewardId = 1;
 % Function for constructing a full ID for warnings and errors
 fullID = @(id) strjoin([{'Rigbox:srv:expServer'}, ensureCell(id)],':');
 
@@ -151,11 +163,8 @@ HideCursor();
 rig.stimWindow.BackgroundColour = bgColour;
 rig.stimWindow.open();
 
-fprintf('\n<q> quit, <w> toggle reward, <t> toggle timeline\n');
-fprintf(['<%s> reward pulse, <%s> perform reward calibration\n' ...
-  '<%s> perform gamma calibration\n'], KbName(rewardPulseKey), ...
-  KbName(rewardCalibrationKey), KbName(gammaCalibrationKey));
-log('Started presentation server on port %i', communicator.DefaultListenPort);
+fprintf('\n<%s> quit, <%s> help\n', key.quit, key.help);
+log('Started presentation server on port %i', communicator.DefaultListenPort)
 
 if nargin < 1 || isempty(p.useTimelineOverride)
   % toggle use of timeline according to rig default setting
@@ -170,6 +179,7 @@ if singleShot
     'Experiment ref ''%s'' does not exist', p.expRef)
   runExp(p.expRef, p.preDelay, p.postDelay, p.alyx);
 end
+calibrationDisplayed = false;
 
 %% Main loop for service
 running = ~singleShot;
@@ -183,19 +193,24 @@ while running
   [~, firstPress] = KbQueueCheck;
   
   % check if the quit key was pressed
-  if firstPress(quitKey) > 0
-    log('Quitting (quit key pressed)');
+  if firstPress(key.quit) > 0
+    log('Quitting (quit key pressed)')
     running = false;
   end
   
+  % check if help key was pressed
+  if firstPress(key.help) > 0
+    showHelp();
+  end
+  
   % check if the quit key was pressed
-  if firstPress(timelineToggleKey) > 0
+  if firstPress(key.timelineToggle) > 0
     toggleTimeline();
   end
   
   % check for reward toggle
-  if firstPress(rewardToggleKey) > 0
-    log('Toggling reward valve');
+  if firstPress(key.rewardToggle) > 0
+    log('Toggling reward valve')
     curr = rig.daqController.Value(rewardId);
     sig = rig.daqController.SignalGenerators(rewardId);
     if curr == sig.OpenValue
@@ -206,35 +221,41 @@ while running
   end
   
   % check for reward pulse
-  if firstPress(rewardPulseKey) > 0
+  if firstPress(key.rewardPulse) > 0
     log('Delivering default reward');
     def = [rig.daqController.SignalGenerators(rewardId).DefaultCommand];
     rig.daqController.command(def);
   end
   
   % check for reward calibration
-  if firstPress(rewardCalibrationKey) > 0
-    log('Performing a reward delivery calibration');
+  if firstPress(key.rewardCalibration) > 0
+    log('Performing a reward delivery calibration')
     calibrateWaterDelivery();
   end
   
+  % check for view calibration
+  if firstPress(key.viewCalibration) > 0
+    calibrationDisplayed = ~calibrationDisplayed;
+    iff(calibrationDisplayed, @() viewWaterCalibration, @() rig.stimWindow.flip)
+  end
+  
   % check for gamma calibration
-  if firstPress(gammaCalibrationKey) > 0
-      log('Performing a gamma calibration');
-      calibrateGamma();
+  if firstPress(key.gammaCalibration) > 0
+    log('Performing a gamma calibration')
+    calibrateGamma();
   end
   
-  if firstPress(toggleBackground) > 0
-      log('Changing background to white');
-      whiteScreen();
+  if firstPress(key.toggleBackground) > 0
+    log('Changing background to white')
+    % WHITESCREEN Changes screen background to white
+    rig.stimWindow.BackgroundColour = rig.stimWindow.White;
+    rig.stimWindow.flip();
+    rig.stimWindow.BackgroundColour = bgColour;
   end
   
-  if firstPress(KbName('1')) > 0
-    rewardId = 1;
-  end
-  if firstPress(KbName('2')) > 0
-    rewardId = 2;
-  end
+  % Toggle reward ID
+  if firstPress(key.selectFirst) > 0, rewardId = 1; end
+  if firstPress(key.selectSecond) > 0, rewardId = 2; end
   
   % pause a little while to allow other OS processing
   pause(5e-3);
@@ -362,7 +383,7 @@ ShowCursor();
     fid = fopen(hwInfo, 'w');
     fprintf(fid, '%s', obj2json(rig));
     fclose(fid);
-    if ~strcmp(dat.parseExpRef(expRef), 'default') && ~isempty(getOr(dat.paths, 'databaseURL'))
+    if ~strcmp(dat.parseExpRef(expRef), 'default') && ~isempty(getOr(rig.paths, 'databaseURL'))
       try
         alyx.registerFile(hwInfo);
       catch ex
@@ -381,27 +402,107 @@ ShowCursor();
   end
 
   function calibrateWaterDelivery()
+    % CALIBRATEWATERDELIVERY Performs measured reward deliveries for calibration
+    %   Runs a water calibration for the currently selected reward ID,
+    %   saves to the hardware file and displays a plot of the calibration.
+    %
+    % See also viewWaterCalibration, hw.calibrate
+    assert(isfield(rig, 'scale'), fullID('noScaleObject'), ...
+      'reward calibrations require a scale object in the hardware file')
     daqController = rig.daqController;
     chan = daqController.ChannelNames(rewardId);
-    %perform measured deliveries
+    
+    % Perform measured deliveries
     rig.scale.init();
     calibration = hw.calibrate(chan, daqController, rig.scale, 20e-3, 150e-3);
     rig.scale.cleanup();
-    %different delivery durations appear in each column, repeats in each row
-    %from the data, make a measuredDelivery structure
+    
+    % Different delivery durations appear in each column, repeats in each
+    % row from the data, make a measuredDelivery structure
     ul = [calibration.volumeMicroLitres];
-    log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul));
+    log('Delivered volumes ranged from %.1ful to %.1ful', min(ul), max(ul))
     
-    rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
-    
+    % Save the calibration into the rig hardware file
+    rigHwFile = fullfile(rig.paths.rigConfig, 'hardware.mat');
     save(rigHwFile, 'daqController', '-append');
+    
+    % Show a plot of the new calibration
+    viewWaterCalibration()
+    calibrationDisplayed = true;
   end
 
-  function whiteScreen()
-    % WHITESCREEN Changes screen background to white
-    rig.stimWindow.BackgroundColour = rig.stimWindow.White;
+  function viewWaterCalibration()
+    % VIEWWATERCALIBRATION Displays a plot of the most recent reward calibration
+    %  Prints a plot of valve open time vs reward volume from the last
+    %  saved calibration of the currently selected reward controller.
+    %
+    % See also calibrateWaterDelivery
+    
+    % Check if calibration is available for current reward Signal Generator
+    sigGens = rig.daqController.SignalGenerators;
+    noCalibration = ...
+      rewardId > length(sigGens) || ...
+      ~isprop(sigGens(rewardId), 'Calibrations') || ...
+      isempty(sigGens(rewardId).Calibrations);
+    
+    if noCalibration
+      % If empty, log missing calibration and return.
+      log('No reward calibration found for reward controller')
+      return
+    end
+    
+    % Fetch the most recent calibration
+    log('Displaying calibration')
+    [newestDate, I] = max([sigGens(rewardId).Calibrations.dateTime]);
+    c = sigGens(rewardId).Calibrations(I);
+    
+    % Create a figure and plot the data
+    fig = figure('Color', 'w', 'Visible', 'off');
+    plot([c.measuredDeliveries.durationSecs], ...
+         [c.measuredDeliveries.volumeMicroLitres], 'x-');
+    
+    % Set some labels, etc.
+    xlabel('Duration (sec)');
+    ylabel('Volume (\muL)');
+    set(gca, 'FontSize', 16, 'YLim', [0 5])
+    title(datestr(newestDate))
+    
+    % Draw the plot to the screen
+    cdata = getOr(getframe(fig), 'cdata'); % Get the cdata from the plot
+    imageDisplay = rig.stimWindow.makeTexture(cdata); % Load texture
+    rig.stimWindow.BackgroundColour = rig.stimWindow.White; % Match background
+    rig.stimWindow.drawTexture(imageDisplay); % Draw plot texture
+    rig.stimWindow.flip; % Show on screen
+    rig.stimWindow.BackgroundColour = bgColour; % Restore background colour
+    close(fig) % Close our invisible figure
+  end
+
+  function showHelp()
+    % VIEWHELP Print the hotkeys for expServer
+    %   Displays the list of keys and their functions to the log and to the
+    %   Stimulus Window.
+    
+    % Convert key codes to key names
+    keyNames = mapToCell(@KbName, struct2cell(key));
+    msg = sprintf(['Displaying help\n\r',...
+      '<%s> quit \n', ...
+      '<%s> help \n', ...
+      '<%s> toggle reward \n', ...
+      '<%s> reward pulse \n', ...
+      '<%s> perform reward calibration \n', ...
+      '<%s> view reward calibration \n', ...
+      '<%s> perform gamma calibration \n', ...
+      '<%s> toggle timeline \n', ...
+      '<%s> toggle white screen \n', ...
+      '<%s> select 1st reward controller \n', ...
+      '<%s> select 2nd reward controller'], keyNames{:});
+    
+    % Draw white text to centre of screen at 40 chars per line, 1px
+    % spacing, 20px text size
+    w = rig.stimWindow.White; % Set a white background
+    rig.stimWindow.drawText(msg, 'centerblock', 'center', w, 20, 1, 40);
     rig.stimWindow.flip();
-    rig.stimWindow.BackgroundColour = bgColour;
+    log(msg) % Display in command window too
   end
 
   function calibrateGamma()
@@ -445,7 +546,7 @@ ShowCursor();
     % SAVEGAMMA Save calibration struct to saved stimWindow object
     %  Loads saved stimWindow object from this rig's hardware file, updates
     %  the Calibration property with input, then saves.
-    rigHwFile = fullfile(pick(dat.paths, 'rigConfig'), 'hardware.mat');
+    rigHwFile = fullfile(rig.paths.rigConfig, 'hardware.mat');
     stimWindow = load(rigHwFile,'stimWindow');
     stimWindow = stimWindow.stimWindow;
     stimWindow.Calibration = cal;
