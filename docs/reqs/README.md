@@ -1,0 +1,1 @@
+This folder contains files to download, install, and set-up required Rigbox dependencies.
