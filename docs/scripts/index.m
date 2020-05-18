@@ -1,8 +1,8 @@
 %% Rigging Toolbox Documentation
-% Welcome to the main Rigging Toolbox (Rigbox) documentation.  Here you can
+% Welcome to Rigbox's online docs.  Here you can
 % find detailed documentation and guides on how to set up Rigbox, including
 % writing new experiments, setting up recording devices, running
-% experiments and processing the resulting data.
+% experiments, and processing the resulting data.
 % 
 % For instructions on how to run the examples from the
 % <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>, see
@@ -10,19 +10,19 @@
 
 %% Installing Rigbox
 % Below are some instructions for installing Rigbox. There are two guides,
-% the first is a thorough guide for users unfarmilliar with MATLAB and Git.
+% the first is a thorough guide for users unfamiliar with MATLAB and Git.
 % The second is for 'power users' who have a basic understanding of these
 % things.
 % 
-% # <./install.html Detailed install instructions>
-% # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
+% # <./detailed_installation.html Detailed installation instructions>
+% # <https://github.com/cortex-lab/Rigbox#installation Installing
 % for power users>
 % 
 
 %% Setting up experiments
-% Below is a set of steps for setting up a full experiment in Rigbox.  A
-% full experiment being one where you record quality, reliable data that
-% gets saved into the <./glossary.html main experiment repository>.
+% Below is a set of steps for setting up Rigbox (after installation) in 
+% order to run a full experiment. To run test/example experiments, see 
+% <./paper_examples.html here>
 % 
 % Briefly, before you can run a full experiment you must 1) set up your
 % paths so that Rigbox knows from where to load rig settings and
@@ -39,7 +39,7 @@
 
 %% Running full experiments
 % Before you can run a complete experiment, you must set up Rigbox (see
-% above section).  Once this is done there you can follow on of the below
+% above section).  Once this is done, you can follow the below
 % sections to run a full experiment.
 
 %% Creating experiments
