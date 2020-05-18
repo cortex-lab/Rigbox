@@ -5,7 +5,7 @@ Contents:
 
 `DownloadPsychtoolbox.m` - A MATLAB function that can be run to download and install Psychtoolbox.
 
-`gstreamer-1.0-mingw-x86_64-1.16.2.msi` - The Windows 10 64-bit installer for gstreamer version 1.16.2.
+`gstreamer-1.0-msvc-x86_64-1.16.2.msi` - The Windows 10 64-bit installer for gstreamer version 1.16.2.
 
 `gui_layout_toolbox_2.3.4.mltbx` - The MATLAB installer for GUI Layout Toolbox version 2.3.4.
 
