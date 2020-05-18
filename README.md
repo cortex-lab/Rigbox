@@ -24,7 +24,7 @@ For most experiments, typical, contemporary, factory-built desktops running Wind
 
 Below are the **minimum** computer software dependencies that must be installed before installing Rigbox:
 
-* OS: 64 Bit Windows 7 or later
+* OS: 64 Bit Windows 10
 * Libraries: Visual C++ Redistributable Packages for Visual Studio [2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 * MATLAB: [2018b or later](mathworks.com/downloads/), including the Data Acquisition Toolbox
 * Community MATLAB toolboxes:
@@ -35,29 +35,29 @@ Similar to the hardware requirements, software requirements for a SC will depend
 
 ## Installation
 
-Before starting, ensure you have read and installed the above [requirements](#requirements).
+Before starting, ensure you have read and installed the above [requirements](#requirements). You can also install these requirements by running the `installRigboxReqs` function in MATLAB, and following the instructions that appear in the MATLAB command window.
 
-Below we provide brief instructions for installing Rigbox via Git. For a detailed installation guide, including installing Rigbox's software dependencies, see [here](https://cortex-lab.github.io/Rigbox/detailed_installation.html).
+Below we provide brief instructions for installing Rigbox via Git. These instructions explain how to 1) clone the repository from GitHub to your computer, and 2) appropriately add Rigbox to MATLAB's paths. For a detailed installation guide, including installing Rigbox's software requirements, see [here](https://cortex-lab.github.io/Rigbox/detailed_installation.html).
 
-1. Clone the repository from GitHub. In your git terminal, run:
+1. In your git terminal, run:
 ```
 git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 ```
 
-2. Add all required Rigbox folders and functions to your MATLAB path. In MATLAB, navigate to the Rigbox root directory (where Rigbox was cloned), and run:
+2. In MATLAB, navigate to the Rigbox root directory (where Rigbox was cloned), and run:
 `addRigboxPaths()`, OR `addRigboxPaths('SavePaths', false)` if you don't want to save the paths for future MATLAB sessions. 
 (*Note*: Do **not** manually add all Rigbox folders and subfolders to the paths.)
 
 ## Getting started
 
+To ensure the installation completed successfully, try running the [example experiments from the Rigbox paper](https://cortex-lab.github.io/Rigbox/paper_examples.html).
+
 Rigbox uses the [*Signals*](https://github.com/cortex-lab/signals) framework for programatically designing and running behavioral tasks. See the *Signals* [docs](https://github.com/cortex-lab/signals/tree/master/docs) for more information on *Signals* and how to run example test experiments on a single computer via Rigbox's `+eui/SignalsTest.m` GUI.
 
 ![](https://github.com/cortex-lab/Rigbox/blob/master/docs/html/images/SignalsTest%20GUI%20Example.gif)
-(The above is an example of running the `signals/docs/examples/exp defs/advancedChoiceWorld.m` file in the `+eui/SignalsTest.m` GUI)
+(The above is an example of running the `signals/docs/examples/exp defs/advancedChoiceWorld.m` file in the `+eui/SignalsTest.m` GUI.)
 
-To run the example experiments from the Rigbox paper, see [Running Paper Examples](https://cortex-lab.github.io/Rigbox/paper_examples.html).
-
-Online documentation, including detailed set-up and usage guides for running experiments on a MC and SC, can be found at [cortex-lab.github.io/Rigbox](https://cortex-lab.github.io/Rigbox/). 
+Rigbox's online documentation, including detailed set-up and usage guides for running experiments on a MC and SC, can be found at [cortex-lab.github.io/Rigbox](https://cortex-lab.github.io/Rigbox/).
 
 ## Updating the code
 
@@ -79,7 +79,7 @@ Please cite [the Rigbox publication](https://www.biorxiv.org/content/10.1101/672
 ## Acknowledgements
 
 * [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) for code pertaining to Rigbox's UI
-* [Psychophsics Toolbox](http://psychtoolbox.org) for code pertaining to visual stimulus presentation
+* [Psychophysics Toolbox](http://psychtoolbox.org) for code pertaining to visual stimulus presentation
 * [NI-DAQmx](https://uk.mathworks.com/hardware-support/nidaqmx.html) for code pertaining to inerfacing with a NI-DAQ device
 * [TooTallNate](https://github.com/TooTallNate/Java-WebSocket) for code pertaining to using Java Websockets
 * [Timothy E. Holy](http://holylab.wustl.edu/) for the `distinguishable_colors` function
