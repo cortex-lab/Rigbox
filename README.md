@@ -35,7 +35,7 @@ Similar to the hardware requirements, software requirements for a SC will depend
 
 ## Installation
 
-Before starting, ensure you have read and installed the above [requirements](#requirements). You can also install these requirements by running the `installRigboxReqs` script in MATLAB, and following the instructions that appear in the MATLAB command window.
+Before starting, ensure you have read and installed the above [requirements](#requirements). You can also install these requirements by running the `installRigboxReqs` function in MATLAB, and following the instructions that appear in the MATLAB command window.
 
 Below we provide brief instructions for installing Rigbox via Git. These instructions explain how to 1) clone the repository from GitHub to your computer, and 2) appropriately add Rigbox to MATLAB's paths. For a detailed installation guide, including installing Rigbox's software requirements, see [here](https://cortex-lab.github.io/Rigbox/detailed_installation.html).
 
