@@ -1,4 +1,4 @@
-%% Rigging Toolbox Documentation
+%% Rigbox Documentation
 % Welcome to Rigbox's online docs.  Here you can
 % find detailed documentation and guides on how to set up Rigbox, including
 % writing new experiments, setting up recording devices, running
@@ -22,7 +22,7 @@
 %% Setting up experiments
 % Below is a set of steps for setting up Rigbox (after installation) in 
 % order to run a full experiment. To run test/example experiments, see 
-% <./paper_examples.html here>
+% <./paper_examples.html here.>
 % 
 % Briefly, before you can run a full experiment you must 1) set up your
 % paths so that Rigbox knows from where to load rig settings and
