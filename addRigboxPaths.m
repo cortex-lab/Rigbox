@@ -95,7 +95,7 @@ if p.strict
   end
 end
 
-%%% Paths for adding 
+%%% Add paths %%%
 % Add the main Rigbox directory, containing the main packages for running
 % the experiment server and mc
 root = fileparts(mfilename('fullpath')); 
@@ -172,4 +172,12 @@ elseif ~cbtoolsInJavaPath
   warning('Rigbox:setup:javaNotSetup',...
     'Cannot use java classes without saving new classpath');
 end
+
+fprintf(... %#ok<*LTARG>
+  ['\nAfter restarting MATLAB, navigate to the \n'...
+   '`Rigbox/docs/signals/docs/examples` folder, and run the command: \n'...
+   '`eui.SignalsTest(''signalsPong'')` in MATLAB. If Rigbox \n'...
+   'installation and paths set-up was successful, this command should \n'...
+   'launch a GUI to play the game of pong in Signals, where the player \n'...
+   'paddle can be controlled via the mouse.\n']);
 end
