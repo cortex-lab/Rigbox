@@ -9,7 +9,7 @@ Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral
 
 For exploring Rigbox's features and running test experiments, Rigbox only needs to be installed on a single computer.
 
-For running experiments, Rigbox should be installed on two computers: one computer (which we refer to as the "Stimulus Computer" or "SC") communicates with an experiment rig's hardware and presents stimuli, and the other computer (which we refer to as the "Master Computer" or "MC") runs a GUI that the experimenter can use to start, monitor, parameterize, and stop the experiment.
+For running full experiments, Rigbox should be installed on two computers: one computer (which we refer to as the "Stimulus Computer" or "SC") communicates with an experiment rig's hardware and presents stimuli, and the other computer (which we refer to as the "Master Computer" or "MC") runs a GUI that the experimenter can use to start, monitor, parameterize, and stop the experiment.
 
 ### Hardware
 
