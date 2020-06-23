@@ -66,25 +66,56 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Burgess steering wheel task</h1><!--introduction--><p>Our laboratory developed a steering wheel setup to probe mouse behavior(1). In this setup, a mouse turns a steering wheel with its front paws to indicate whether a visual stimulus appears to its left or to its right.</p><p>This setup is being adopted in multiple laboratories, from Stanford to Tokyo, and is being deployed by the International Brain Laboratory.</p><p>To facilitate this deployment, we provide instructions to build the setup with components that are entirely off-the-shelf or 3-D printed.  You can find the hardware setup instructions <a href="Burgess_hardware_setup.html">here</a>.</p><p><img vspace="5" hspace="5" src="SteeringWheelBack.png" alt=""> </p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Installing Rigbox</a></li><li><a href="#3">Setup</a></li><li><a href="#4">Window</a></li><li><a href="#5">Viewing model</a></li><li><a href="#6">Inputs</a></li><li><a href="#7">Outputs</a></li><li><a href="#8">Timeline</a></li><li><a href="#9">Scale</a></li><li><a href="#10">Audio</a></li><li><a href="#11">Websockets</a></li><li><a href="#12">Calibrations</a></li><li><a href="#13">Notes</a></li><li><a href="#14">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document gives instructions on how to build a basic version of the steering wheel setup to probe mouse behavior, introduced by Burgess et al. The goal is to make it easy for other laboratories, including those that make the International Brain Laboratory, to replicate the task and extend it in various directions. To this end, these instructions rely entirely on materials that can be bought off the shelf, or ordered online based on 3-D drawings. In this steering wheel setup, we place a steering wheel under the front paws of a head-fixed mouse, and we couple the wheel's rotation to the horizontal position of a visual stimulus on the screens. Turning the wheel left or right moves the stimulus left or right. The mouse is then trained to decide whether a stimulus appears on its left or its right. Using the wheel, the mouse indicates its choice by moving the stimulus to the center. A correct decision is rewarded with a drop of water and short intertrial interval, while an incorrect decision is penalized with a longer timeout and auditory noise. We use this setup throughout our laboratory, and deploy it in training rigs and experimental rigs. Training rigs are used to train head-fixed mice on the steering-wheel task and acquire behavioral data. Experimental rigs have additional apparatus to collect electrophysiological and imaging data, measure eye movements and licking activity, provide optogenetic perturbations, and so on. Up until recently, constructing these setups required a machine shop that could provide custom-made components. However, for the purposes of spreading this setup to other laboratories, we here describe a new version that does not require a machine shop: all components can be ordered online or 3D-printed.</p><h2 id="2">Installing Rigbox</h2><p>Before configuring the settings, please follow the <a href="install.html">installation instructions</a> to install Rigbox and its dependencies.</p><h2 id="3">Setup</h2><p>Follow teh <a href="./paths_config.html">setting up dat.paths</a> guide to set up rig paths.  This sets the location of the data repositories and hardware settings files.</p><p>The below code will create a hardware settings file for the Burgess wheel task.  For details of what the code does, or to customize the hardware, see the <a href="./hardware_config.html">hardware config guide</a>.  <b>*NB</b>*: The below code must be run on the stimulus computer.</p><pre class="codeinput">hardware = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
-</pre><h2 id="4">Window</h2><pre class="codeinput">stimWindow = hw.ptb.Window;
+  </style></head><body><div class="content"><h1>Burgess steering wheel task</h1><!--introduction--><p>Our laboratory developed a steering wheel setup to probe mouse behavior(1). In this setup, a mouse turns a steering wheel with its front paws to indicate whether a visual stimulus appears to its left or to its right.</p><p>This setup is being adopted in multiple laboratories, from Stanford to Tokyo, and is being deployed by the International Brain Laboratory.</p><p>To facilitate this deployment, we provide instructions to build the setup with components that are entirely off-the-shelf or 3-D printed.  You can find the hardware setup instructions <a href="Burgess_hardware_setup.html">here</a>.</p><p><img vspace="5" hspace="5" src="SteeringWheelBack.png" alt=""> </p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Installing Rigbox</a></li><li><a href="#3">Setup</a></li><li><a href="#4">Calibrations</a></li><li><a href="#5">Notes</a></li><li><a href="#6">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document gives instructions on how to build a basic version of the steering wheel setup to probe mouse behavior, introduced by Burgess et al. The goal is to make it easy for other laboratories, including those that make the International Brain Laboratory, to replicate the task and extend it in various directions. To this end, these instructions rely entirely on materials that can be bought off the shelf, or ordered online based on 3-D drawings. In this steering wheel setup, we place a steering wheel under the front paws of a head-fixed mouse, and we couple the wheel's rotation to the horizontal position of a visual stimulus on the screens. Turning the wheel left or right moves the stimulus left or right. The mouse is then trained to decide whether a stimulus appears on its left or its right. Using the wheel, the mouse indicates its choice by moving the stimulus to the center. A correct decision is rewarded with a drop of water and short intertrial interval, while an incorrect decision is penalized with a longer timeout and auditory noise. We use this setup throughout our laboratory, and deploy it in training rigs and experimental rigs. Training rigs are used to train head-fixed mice on the steering-wheel task and acquire behavioral data. Experimental rigs have additional apparatus to collect electrophysiological and imaging data, measure eye movements and licking activity, provide optogenetic perturbations, and so on. Up until recently, constructing these setups required a machine shop that could provide custom-made components. However, for the purposes of spreading this setup to other laboratories, we here describe a new version that does not require a machine shop: all components can be ordered online or 3D-printed.</p><h2 id="2">Installing Rigbox</h2><p>Before configuring the settings, please follow the <a href="install.html">installation instructions</a> to install Rigbox and its dependencies.</p><h2 id="3">Setup</h2><p>Follow teh <a href="./paths_config.html">setting up dat.paths</a> guide to set up rig paths.  This sets the location of the data repositories and hardware settings files.</p><p>The below code will create a hardware settings file for the Burgess wheel task.  It can be run from the command window by typing <tt>hw.setupBurgessDefaults</tt>.  For details of what the code does, or to customize the hardware, see the <a href="./hardware_config.html">hardware config guide</a>. <b>*NB</b>*: The below code must be run on the stimulus computer.</p><pre class="language-matlab">
+<span class="comment">%%% DEFAULT HARDWARE CONFIGURATION FOR THE BURGESS WHEEL TASK %%%</span>
+<span class="comment">% Saves the config settings for a rig that's set up following the Burgess</span>
+<span class="comment">% hardware setup instructions for running the steering wheel task.  This</span>
+<span class="comment">% script should be run on a stimulus computer.  Note that it will overwrite</span>
+<span class="comment">% the hardware or remote config files if they already exist.</span>
+<span class="comment">%</span>
+<span class="comment">% See also docs/scripts/Burgess_setup.m</span>
+
+<span class="comment">% The hardware device settings are stored in a MAT file named 'hardware',</span>
+<span class="comment">% defined in dat.paths</span>
+hardware = fullfile(getOr(dat.paths, <span class="string">'rigConfig'</span>), <span class="string">'hardware.mat'</span>);
+<span class="comment">% The stimulus controllers are loaded from a MAT file with the name</span>
+<span class="comment">% 'remote' in the globalConfig directory, defined in dat.paths:</span>
+remote = fullfile(getOr(dat.paths, <span class="string">'globalConfig'</span>), <span class="string">'remote.mat'</span>);
+
+<span class="comment">% Check whether these files already exist</span>
+<span class="keyword">if</span> any(file.exists({hardware, remote}))
+  prompt = [<span class="string">'A hardware and/or remote settings file already exists. '</span> <span class="keyword">...</span>
+            <span class="string">'Do you want to overwrite them? Y/N [N]: '</span>];
+  str = input(prompt, <span class="string">'s'</span>);
+  <span class="keyword">if</span> isempty(str) || strcmpi(str, <span class="string">'n'</span>)
+    <span class="keyword">return</span>
+  <span class="keyword">elseif</span> ~strcmpi(str, <span class="string">'y'</span>)
+    error(<span class="string">'User input not understood'</span>)
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">%%% Window</span>
+stimWindow = hw.ptb.Window;
 <span class="comment">% This setting assumes the stimulus monitors are the primary screen (i.e.</span>
 <span class="comment">% the Windows menu bar is shown on these monitors.</span>
-stimWindow.ScreenNum = 0;
+stimWindow.ScreenNum = 0; 
 stimWindow.positionSyncRegion(<span class="string">'NorthEast'</span>, 100, 100)
 stimWindow.PxDepth = Screen(<span class="string">'PixelSize'</span>, stimWindow.ScreenNum);
 stimWindow.BackgroundColour = 127*[1 1 1];
 stimWindow.MonitorId = <span class="string">'LG LP097QX1'</span>; <span class="comment">% The screens used in Burgess et al.</span>
 
 save(hardware, <span class="string">'stimWindow'</span>) <span class="comment">% Save the stimWindow to file</span>
-</pre><h2 id="5">Viewing model</h2><p>First define some physical dimentions in cm:</p><pre class="codeinput">screenDimsCm = [19.6 14.7]; <span class="comment">%[width_cm heigh_cm], each screen is the same</span>
-centerPt = [0, 0, 9.5] <span class="comment">% [x, y, z], observer position in cm. z = dist from screen</span>
-centerPt(2,:) = [0, 0, 10]<span class="comment">% Middle screen, observer slightly further back</span>
-centerPt(3,:) = centerPt; <span class="comment">% Observer equidistant from left and right motitors</span>
+
+<span class="comment">%%% Viewing model</span>
+<span class="comment">% First define some physical dimentions in cm:</span>
+screenDimsCm = [19.6 14.7]; <span class="comment">%[width_cm heigh_cm], each screen is the same</span>
+centerPt = [0, 0, 9.5]; <span class="comment">% [x, y, z], observer position in cm. z = dist from screen</span>
+centerPt(2,:) = [0, 0, 10];<span class="comment">% Middle screen, observer slightly further back</span>
+centerPt(3,:) = centerPt; <span class="comment">% Observer equidistant from left and right motitors </span>
 angle = [-90; 0; 90]; <span class="comment">% The angle of the screen relative to the observer</span>
 
 <span class="comment">% Define the pixel dimentions for the monitors</span>
-r = Screen(<span class="string">'Resolution'</span>, stimWindow.ScreenNum) <span class="comment">% Returns the current resolution</span>
+r = Screen(<span class="string">'Resolution'</span>, stimWindow.ScreenNum); <span class="comment">% Returns the current resolution</span>
 pxW = r.width; <span class="comment">% e.g. 1280</span>
 pxH = r.height; <span class="comment">% e.g. 1024</span>
 
@@ -94,9 +125,13 @@ screens(2) = vis.screen(centerPt(2,:), angle(2), screenDimsCm, [pxW 0 2*pxW pxH]
 screens(3) = vis.screen(centerPt(3,:), angle(3), screenDimsCm, [2*pxW  0 3*pxW pxH]); <span class="comment">% right screen</span>
 
 save(hardware, <span class="string">'screens'</span>, <span class="string">'-append'</span>);
-</pre><h2 id="6">Inputs</h2><pre class="codeinput">mouseInput = hw.DaqRotaryEncoder;
+
+<span class="comment">%%% Inputs</span>
+mouseInput = hw.DaqRotaryEncoder;
 save(hardware, <span class="string">'mouseInput'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="7">Outputs</h2><pre class="codeinput">daqController = hw.DaqController;
+
+<span class="comment">%%% Outputs</span>
+daqController = hw.DaqController;
 <span class="comment">% Add a new channel</span>
 daqController.ChannelNames = {<span class="string">'rewardValve'</span>};
 <span class="comment">% Define the channel ID to output on</span>
@@ -107,24 +142,37 @@ daqController.SignalGenerators(1) = hw.RewardValveControl;
 
 <span class="comment">% Save your hardware file</span>
 save(hardware, <span class="string">'daqController'</span>, <span class="string">'-append'</span>);
-</pre><h2 id="8">Timeline</h2><p>Timeline will be off by default</p><pre class="codeinput">timeline = hw.Timeline
+
+<span class="comment">%%% Timeline</span>
+<span class="comment">% Timeline will be off by default</span>
+timeline = hw.Timeline;
 timeline.UseTimeline = False;
 <span class="comment">% Save your hardware.mat file</span>
 save(hardware, <span class="string">'timeline'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="9">Scale</h2><p>Assumes the scale model 'ES-300HA' connected on COM1</p><pre class="codeinput">scale = hw.WeighingScale
-save(hardware, <span class="string">'scale'</span>, <span class="string">'-append'</span>)
-</pre><h2 id="10">Audio</h2><p>This function plays white noise through all channels for 2 seconds, for each available output device.  The lowest latency devices are selected first. Press the space bar when you hear noise coming through your speakers and the current device will be saved into your hardware file. Press any other key to proceed to the next device.</p><pre class="codeinput">hw.testAudioOutputDevices(<span class="string">'SaveAsDefault'</span>, true);
-</pre><h2 id="11">Websockets</h2><p>The stimulus controllers are loaded from a MAT file with the name 'remote' in the globalConfig directory, defined in dat.paths:</p><pre class="codeinput">p = fullfile(getOr(dat.paths, <span class="string">'globalConfig'</span>), <span class="string">'remote.mat'</span>);
 
+<span class="comment">%%% Scale</span>
+<span class="comment">% Assumes the scale model 'ES-300HA' connected on COM1</span>
+scale = hw.WeighingScale;
+save(hardware, <span class="string">'scale'</span>, <span class="string">'-append'</span>)
+
+<span class="comment">%%% Audio</span>
+fprintf([<span class="string">'To select the correct audio device, we will cycle through each '</span><span class="keyword">...</span>
+      <span class="string">'audio device playing white noise through all channels for 2 '</span><span class="keyword">...</span>
+      <span class="string">'seconds.\nThe lowest latency devices are selected first.\n'</span><span class="keyword">...</span>
+      <span class="string">'Press the space bar when you hear noise coming through your '</span><span class="keyword">...</span>
+      <span class="string">'speakers and the current device will be saved into your '</span><span class="keyword">...</span>
+      <span class="string">'hardware file.\nPress any other key to proceed to the next device.\n'</span>])
+input(<span class="string">'Press enter to continue'</span>)
+hw.testAudioOutputDevices(<span class="string">'SaveAsDefault'</span>, true);
+
+<span class="comment">%%% Websockets</span>
 <span class="comment">% Let's create a new stimulus controller</span>
 name = ipaddress(hostname);
 stimulusControllers = srv.StimulusControl.create(name);
 <span class="comment">% Save your new configuration</span>
-save(p, <span class="string">'stimulusControllers'</span>)
-</pre><h2 id="12">Calibrations</h2><p>Once the hardware file has been set up, you can start the experiment server by running <tt>srv.expServer</tt>.  A grey Psychtoolbox window should appear on the three screens.</p><p>To calibrate the screens, press the <tt>g</tt> key and follow the steps. To calibrate the reward valve, ensure you have a set of scales connected to the computer (to the port set above in the previous section) and place them below the water spout.  Place a container on the scales to collect the water.  Press the <tt>c</tt> key to start the calibration.</p><h2 id="13">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="14">Etc.</h2><p>Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini v1.1.2</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS&gt;</span>
-<span class="comment">%#ok&lt;*NASGU&gt;</span>
-<span class="comment">%#ok&lt;*ASGLU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+save(remote, <span class="string">'stimulusControllers'</span>)
+
+</pre><h2 id="4">Calibrations</h2><p>Once the hardware file has been set up, you can start the experiment server by running <tt>srv.expServer</tt>.  A grey Psychtoolbox window should appear on the three screens.</p><p>To calibrate the screens, press the <tt>g</tt> key and follow the steps. To calibrate the reward valve, ensure you have a set of scales connected to the computer (to the port set above in the previous section) and place them below the water spout.  Place a container on the scales to collect the water.  Press the <tt>c</tt> key to start the calibration.</p><h2 id="5">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="6">Etc.</h2><p>Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini v1.1.3</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Burgess steering wheel task
 % Our laboratory developed a steering wheel setup to probe mouse
@@ -179,90 +227,14 @@ save(p, <span class="string">'stimulusControllers'</span>)
 % settings files.
 %
 % The below code will create a hardware settings file for the Burgess wheel
-% task.  For details of what the code does, or to customize the hardware,
-% see the <./hardware_config.html hardware config guide>.  **NB**: The
-% below code must be run on the stimulus computer.
-hardware = fullfile(getOr(dat.paths, 'rigConfig'), 'hardware.mat');
-
-%%% Window
-stimWindow = hw.ptb.Window;
-% This setting assumes the stimulus monitors are the primary screen (i.e.
-% the Windows menu bar is shown on these monitors.
-stimWindow.ScreenNum = 0; 
-stimWindow.positionSyncRegion('NorthEast', 100, 100)
-stimWindow.PxDepth = Screen('PixelSize', stimWindow.ScreenNum);
-stimWindow.BackgroundColour = 127*[1 1 1];
-stimWindow.MonitorId = 'LG LP097QX1'; % The screens used in Burgess et al.
-
-save(hardware, 'stimWindow') % Save the stimWindow to file
-
-%%% Viewing model
-% First define some physical dimentions in cm:
-screenDimsCm = [19.6 14.7]; %[width_cm heigh_cm], each screen is the same
-centerPt = [0, 0, 9.5] % [x, y, z], observer position in cm. z = dist from screen
-centerPt(2,:) = [0, 0, 10]% Middle screen, observer slightly further back
-centerPt(3,:) = centerPt; % Observer equidistant from left and right motitors 
-angle = [-90; 0; 90]; % The angle of the screen relative to the observer
-
-% Define the pixel dimentions for the monitors
-r = Screen('Resolution', stimWindow.ScreenNum) % Returns the current resolution
-pxW = r.width; % e.g. 1280
-pxH = r.height; % e.g. 1024
-
-% Plug these values into the screens function:
-screens(1) = vis.screen(centerPt(1,:), angle(1), screenDimsCm, [0 0 pxW pxH]);        % left screen
-screens(2) = vis.screen(centerPt(2,:), angle(2), screenDimsCm, [pxW 0 2*pxW pxH]);    % ahead screen
-screens(3) = vis.screen(centerPt(3,:), angle(3), screenDimsCm, [2*pxW  0 3*pxW pxH]); % right screen
-
-save(hardware, 'screens', '-append');
-
-%%% Inputs
-mouseInput = hw.DaqRotaryEncoder;
-save(hardware, 'mouseInput', '-append')
-
-%%% Outputs
-daqController = hw.DaqController;
-% Add a new channel
-daqController.ChannelNames = {'rewardValve'};
-% Define the channel ID to output on
-daqController.DaqChannelIds = {'ai0'};
-% Add a signal generator that will return the correct samples for
-% delivering a reward of a specified volume
-daqController.SignalGenerators(1) = hw.RewardValveControl;
-
-% Save your hardware file
-save(hardware, 'daqController', '-append');
-
-%%% Timeline
-% Timeline will be off by default
-timeline = hw.Timeline
-timeline.UseTimeline = False;
-% Save your hardware.mat file
-save(hardware, 'timeline', '-append')
-
-%%% Scale
-% Assumes the scale model 'ES-300HA' connected on COM1
-scale = hw.WeighingScale 
-save(hardware, 'scale', '-append')
-
-%%% Audio
-% This function plays white noise through all channels for 2 seconds, for
-% each available output device.  The lowest latency devices are selected
-% first. Press the space bar when you hear noise coming through your
-% speakers and the current device will be saved into your hardware file.
-% Press any other key to proceed to the next device.
-hw.testAudioOutputDevices('SaveAsDefault', true);
-
-%%% Websockets
-% The stimulus controllers are loaded from a MAT file with the name
-% 'remote' in the globalConfig directory, defined in dat.paths:
-p = fullfile(getOr(dat.paths, 'globalConfig'), 'remote.mat');
-
-% Let's create a new stimulus controller
-name = ipaddress(hostname);
-stimulusControllers = srv.StimulusControl.create(name);
-% Save your new configuration
-save(p, 'stimulusControllers')
+% task.  It can be run from the command window by typing
+% |hw.setupBurgessDefaults|.  For details of what the code does, or to
+% customize the hardware, see the <./hardware_config.html hardware config
+% guide>.  
+% **NB**: The below code must be run on the stimulus computer.
+% 
+% <include>../../cortexlab/+hw/setupBurgessDefaults.m</include>
+%
 
 %% Calibrations
 % Once the hardware file has been set up, you can start the experiment
@@ -280,10 +252,6 @@ save(p, 'stimulusControllers')
 
 %% Etc.
 % Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini
-% v1.1.2
-
-%#ok<*NOPTS>
-%#ok<*NASGU>
-%#ok<*ASGLU>
+% v1.1.3
 ##### SOURCE END #####
 --></body></html>
