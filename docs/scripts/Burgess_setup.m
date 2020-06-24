@@ -1,4 +1,4 @@
-%% Burgess steering wheel task
+%% Instructions for steering wheel setup: software
 % Our laboratory developed a steering wheel setup to probe mouse
 % behavior(1). In this setup, a mouse turns a steering wheel with its front
 % paws to indicate whether a visual stimulus appears to its left or to its
@@ -46,7 +46,7 @@
 % installation instructions> to install Rigbox and its dependencies.
 
 %% Setup
-% Follow teh <./paths_config.html setting up dat.paths> guide to set up rig
+% Follow the <./paths_config.html setting up dat.paths> guide to set up rig
 % paths.  This sets the location of the data repositories and hardware
 % settings files.
 %
@@ -70,10 +70,24 @@
 % the computer (to the port set above in the previous section) and place
 % them below the water spout.  Place a container on the scales to collect
 % the water.  Press the |c| key to start the calibration.
+%
+% Press the |q| key to quit.
+
+%% Running an experiment
+% To run a test experiment (the ChoiceWorld experiment described in the
+% paper), type the following into the MATLAB command window:
+%
+%   cd(fullfile(getOr(dat.paths, 'rigbox'), 'signals', 'docs', 'examples'))
+%   eui.SignalsTest('advancedChoiceWorld')
+%
+% More information on using this GUI and creating/modifying experiments can
+% be found under the 'Creating experiments' guide on the <index.html
+% documentation homepage>.
 
 %% Notes
 % (1) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
 
 %% Etc.
 % Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini
-% v1.1.3
+%
+% v1.5.0

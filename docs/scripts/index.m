@@ -34,8 +34,8 @@
 % # <./hardware_config.html How to configure hardware on the stimulus computer>
 % # <./websocket_config.html Setting up communication between the stimulus computer and MC>
 % # <./using_single_rig.html Setting up |mc| and |srv.expServer| on the same computer>
-% # <./Burgess_hardware_setup.html Setting up hardware for the Burgess steering wheel task> 
-% # <./Burgess_setup.html Configuring harware for the Burgess steering wheel task>
+% # <./Burgess_hardware_setup.html Burgess steering wheel task: hardware setup instructions> 
+% # <./Burgess_setup.html Burgess steering wheel task: software setup instructions>
 
 %% Running full experiments
 % Before you can run a complete experiment, you must set up Rigbox (see
@@ -116,4 +116,4 @@
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.3
+% v0.1.4

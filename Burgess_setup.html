@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Burgess steering wheel task</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-23"><meta name="DC.source" content="Burgess_setup.m"><style type="text/css">
+      --><title>Instructions for steering wheel setup: software</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-24"><meta name="DC.source" content="Burgess_setup.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Burgess steering wheel task</h1><!--introduction--><p>Our laboratory developed a steering wheel setup to probe mouse behavior(1). In this setup, a mouse turns a steering wheel with its front paws to indicate whether a visual stimulus appears to its left or to its right.</p><p>This setup is being adopted in multiple laboratories, from Stanford to Tokyo, and is being deployed by the International Brain Laboratory.</p><p>To facilitate this deployment, we provide instructions to build the setup with components that are entirely off-the-shelf or 3-D printed.  You can find the hardware setup instructions <a href="Burgess_hardware_setup.html">here</a>.</p><p><img vspace="5" hspace="5" src="SteeringWheelBack.png" alt=""> </p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Installing Rigbox</a></li><li><a href="#3">Setup</a></li><li><a href="#4">Calibrations</a></li><li><a href="#5">Notes</a></li><li><a href="#6">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document gives instructions on how to build a basic version of the steering wheel setup to probe mouse behavior, introduced by Burgess et al. The goal is to make it easy for other laboratories, including those that make the International Brain Laboratory, to replicate the task and extend it in various directions. To this end, these instructions rely entirely on materials that can be bought off the shelf, or ordered online based on 3-D drawings. In this steering wheel setup, we place a steering wheel under the front paws of a head-fixed mouse, and we couple the wheel's rotation to the horizontal position of a visual stimulus on the screens. Turning the wheel left or right moves the stimulus left or right. The mouse is then trained to decide whether a stimulus appears on its left or its right. Using the wheel, the mouse indicates its choice by moving the stimulus to the center. A correct decision is rewarded with a drop of water and short intertrial interval, while an incorrect decision is penalized with a longer timeout and auditory noise. We use this setup throughout our laboratory, and deploy it in training rigs and experimental rigs. Training rigs are used to train head-fixed mice on the steering-wheel task and acquire behavioral data. Experimental rigs have additional apparatus to collect electrophysiological and imaging data, measure eye movements and licking activity, provide optogenetic perturbations, and so on. Up until recently, constructing these setups required a machine shop that could provide custom-made components. However, for the purposes of spreading this setup to other laboratories, we here describe a new version that does not require a machine shop: all components can be ordered online or 3D-printed.</p><h2 id="2">Installing Rigbox</h2><p>Before configuring the settings, please follow the <a href="install.html">installation instructions</a> to install Rigbox and its dependencies.</p><h2 id="3">Setup</h2><p>Follow teh <a href="./paths_config.html">setting up dat.paths</a> guide to set up rig paths.  This sets the location of the data repositories and hardware settings files.</p><p>The below code will create a hardware settings file for the Burgess wheel task.  It can be run from the command window by typing <tt>hw.setupBurgessDefaults</tt>.  For details of what the code does, or to customize the hardware, see the <a href="./hardware_config.html">hardware config guide</a>. <b>*NB</b>*: The below code must be run on the stimulus computer.</p><pre class="language-matlab">
+  </style></head><body><div class="content"><h1>Instructions for steering wheel setup: software</h1><!--introduction--><p>Our laboratory developed a steering wheel setup to probe mouse behavior(1). In this setup, a mouse turns a steering wheel with its front paws to indicate whether a visual stimulus appears to its left or to its right.</p><p>This setup is being adopted in multiple laboratories, from Stanford to Tokyo, and is being deployed by the International Brain Laboratory.</p><p>To facilitate this deployment, we provide instructions to build the setup with components that are entirely off-the-shelf or 3-D printed.  You can find the hardware setup instructions <a href="Burgess_hardware_setup.html">here</a>.</p><p><img vspace="5" hspace="5" src="SteeringWheelBack.png" alt=""> </p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Introduction</a></li><li><a href="#2">Installing Rigbox</a></li><li><a href="#3">Setup</a></li><li><a href="#4">Calibrations</a></li><li><a href="#5">Running an experiment</a></li><li><a href="#6">Notes</a></li><li><a href="#7">Etc.</a></li></ul></div><h2 id="1">Introduction</h2><p>This document gives instructions on how to build a basic version of the steering wheel setup to probe mouse behavior, introduced by Burgess et al. The goal is to make it easy for other laboratories, including those that make the International Brain Laboratory, to replicate the task and extend it in various directions. To this end, these instructions rely entirely on materials that can be bought off the shelf, or ordered online based on 3-D drawings. In this steering wheel setup, we place a steering wheel under the front paws of a head-fixed mouse, and we couple the wheel's rotation to the horizontal position of a visual stimulus on the screens. Turning the wheel left or right moves the stimulus left or right. The mouse is then trained to decide whether a stimulus appears on its left or its right. Using the wheel, the mouse indicates its choice by moving the stimulus to the center. A correct decision is rewarded with a drop of water and short intertrial interval, while an incorrect decision is penalized with a longer timeout and auditory noise. We use this setup throughout our laboratory, and deploy it in training rigs and experimental rigs. Training rigs are used to train head-fixed mice on the steering-wheel task and acquire behavioral data. Experimental rigs have additional apparatus to collect electrophysiological and imaging data, measure eye movements and licking activity, provide optogenetic perturbations, and so on. Up until recently, constructing these setups required a machine shop that could provide custom-made components. However, for the purposes of spreading this setup to other laboratories, we here describe a new version that does not require a machine shop: all components can be ordered online or 3D-printed.</p><h2 id="2">Installing Rigbox</h2><p>Before configuring the settings, please follow the <a href="install.html">installation instructions</a> to install Rigbox and its dependencies.</p><h2 id="3">Setup</h2><p>Follow the <a href="./paths_config.html">setting up dat.paths</a> guide to set up rig paths.  This sets the location of the data repositories and hardware settings files.</p><p>The below code will create a hardware settings file for the Burgess wheel task.  It can be run from the command window by typing <tt>hw.setupBurgessDefaults</tt>.  For details of what the code does, or to customize the hardware, see the <a href="./hardware_config.html">hardware config guide</a>. <b>*NB</b>*: The below code must be run on the stimulus computer.</p><pre class="language-matlab">
 <span class="comment">%%% DEFAULT HARDWARE CONFIGURATION FOR THE BURGESS WHEEL TASK %%%</span>
 <span class="comment">% Saves the config settings for a rig that's set up following the Burgess</span>
 <span class="comment">% hardware setup instructions for running the steering wheel task.  This</span>
@@ -172,9 +172,11 @@ stimulusControllers = srv.StimulusControl.create(name);
 <span class="comment">% Save your new configuration</span>
 save(remote, <span class="string">'stimulusControllers'</span>)
 
-</pre><h2 id="4">Calibrations</h2><p>Once the hardware file has been set up, you can start the experiment server by running <tt>srv.expServer</tt>.  A grey Psychtoolbox window should appear on the three screens.</p><p>To calibrate the screens, press the <tt>g</tt> key and follow the steps. To calibrate the reward valve, ensure you have a set of scales connected to the computer (to the port set above in the previous section) and place them below the water spout.  Place a container on the scales to collect the water.  Press the <tt>c</tt> key to start the calibration.</p><h2 id="5">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="6">Etc.</h2><p>Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini v1.1.3</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><h2 id="4">Calibrations</h2><p>Once the hardware file has been set up, you can start the experiment server by running <tt>srv.expServer</tt>.  A grey Psychtoolbox window should appear on the three screens.</p><p>To calibrate the screens, press the <tt>g</tt> key and follow the steps. To calibrate the reward valve, ensure you have a set of scales connected to the computer (to the port set above in the previous section) and place them below the water spout.  Place a container on the scales to collect the water.  Press the <tt>c</tt> key to start the calibration.</p><p>Press the <tt>q</tt> key to quit.</p><h2 id="5">Running an experiment</h2><p>To run a test experiment (the ChoiceWorld experiment described in the paper), type the following into the MATLAB command window:</p><pre class="language-matlab">cd(fullfile(getOr(dat.paths, <span class="string">'rigbox'</span>), <span class="string">'signals'</span>, <span class="string">'docs'</span>, <span class="string">'examples'</span>))
+eui.SignalsTest(<span class="string">'advancedChoiceWorld'</span>)
+</pre><p>More information on using this GUI and creating/modifying experiments can be found under the 'Creating experiments' guide on the <a href="index.html">documentation homepage</a>.</p><h2 id="6">Notes</h2><p>(1) <a href="https://doi.org/10.1016/j.celrep.2017.08.047">DOI:10.1016/j.celrep.2017.08.047</a></p><h2 id="7">Etc.</h2><p>Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini</p><p>v1.5.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-%% Burgess steering wheel task
+%% Instructions for steering wheel setup: software
 % Our laboratory developed a steering wheel setup to probe mouse
 % behavior(1). In this setup, a mouse turns a steering wheel with its front
 % paws to indicate whether a visual stimulus appears to its left or to its
@@ -222,7 +224,7 @@ save(remote, <span class="string">'stimulusControllers'</span>)
 % installation instructions> to install Rigbox and its dependencies.
 
 %% Setup
-% Follow teh <./paths_config.html setting up dat.paths> guide to set up rig
+% Follow the <./paths_config.html setting up dat.paths> guide to set up rig
 % paths.  This sets the location of the data repositories and hardware
 % settings files.
 %
@@ -246,12 +248,26 @@ save(remote, <span class="string">'stimulusControllers'</span>)
 % the computer (to the port set above in the previous section) and place
 % them below the water spout.  Place a container on the scales to collect
 % the water.  Press the |c| key to start the calibration.
+%
+% Press the |q| key to quit.
+
+%% Running an experiment
+% To run a test experiment (the ChoiceWorld experiment described in the
+% paper), type the following into the MATLAB command window:
+%
+%   cd(fullfile(getOr(dat.paths, 'rigbox'), 'signals', 'docs', 'examples'))
+%   eui.SignalsTest('advancedChoiceWorld')
+%
+% More information on using this GUI and creating/modifying experiments can
+% be found under the 'Creating experiments' guide on the <index.html
+% documentation homepage>.
 
 %% Notes
 % (1) <https://doi.org/10.1016/j.celrep.2017.08.047 DOI:10.1016/j.celrep.2017.08.047>
 
 %% Etc.
 % Authors: Lauren E Wool, Miles Wells, Hamish Forrest, and Matteo Carandini
-% v1.1.3
+%
+% v1.5.0
 ##### SOURCE END #####
 --></body></html>
