@@ -38,7 +38,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   methods (TestClassSetup)
     function killFigures(testCase)
       testCase.FigureVisibleDefault = get(0,'DefaultFigureVisible');
-      set(0,'DefaultFigureVisible','off');
+      set(0,'DefaultFigureVisible', 'off');
     end
     
     function loadData(testCase)
@@ -405,7 +405,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     end
     
     function test_giveWater(testCase)
-      testCase.Panel;
       % Tolerance for water verifications, required due to rounding
       tol2dp = 0.01; % rounding to 2 d.p.
       tol1dp = 0.1; % rounding to 1 d.p.
@@ -461,6 +460,51 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
           cell2mat(textscan(wtr_text.String(2,end-10:end), '%*s %.2f'))];
         vals(isnan(vals)) = 0;
       end
+    end
+    
+    function test_changeURL(testCase)
+      % We only need to test with one URL
+      if ~strcmp(testCase.Panel.AlyxInstance.BaseURL, testCase.BaseURL{1})
+        disp('Skipping test')
+        return
+      end
+      
+      % Test changing URL through method call (assumes we're logged in)
+      url = 'db.example.com';
+      testCase.Panel.changeURL(url);
+      actual = testCase.Panel.AlyxInstance.BaseURL;
+      testCase.verifyMatches(actual, url, 'failed to set database url')
+      
+      % Check new URL printed to log
+      logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
+      testCase.verifyMatches(logPanel.String{end}, url, 'failed to log new url')
+      
+      % Should now be logged out
+      testCase.verifyFalse(testCase.Panel.AlyxInstance.IsLoggedIn)
+      
+      % Now test uimenu callback and prompt
+      testCase.Mock.InTest = true;
+      testCase.Mock.UseDefaults = false;
+
+      % Find Change URL child menu
+      button = testCase.Parent.UIContextMenu.Children(1);
+      testCase.assertTrue(numel(button) == 1, 'UI menu not found');
+      
+      responses = {testCase.BaseURL{1}, testCase.BaseURL{1}}; % Call twice
+      testCase.Mock.Dialogs('Database URL') = fun.CellSeq.create(responses);
+
+      % Run uimenu callback
+      button.MenuSelectedFcn()
+      actual = testCase.Panel.AlyxInstance.BaseURL;
+      expected = testCase.BaseURL{1};
+      testCase.verifyMatches(actual, expected, 'failed to set database url')
+      testCase.verifyMatches(logPanel.String{end}, expected, 'failed to log new url')
+      
+      % When calling again with the same input we expect the function to
+      % return without changing or logging anything
+      nLogs = length(logPanel.String);
+      button.MenuSelectedFcn()
+      testCase.verifyEqual(length(logPanel.String), nLogs, 'unexpected update to log')
     end
     
     function test_giveFutureWater(testCase)
