@@ -49,6 +49,9 @@ classdef Window < hw.Window
     % When true test synchronization to retrace upon open. Defaults to
     % global preference (usually true).  See 'Screen SkipSyncTests?'
     PtbSyncTests
+    % When on, the PsychImaging pipeline is activated and a virtual
+    % framebuffer is used
+    VirtualFramebuffer matlab.lang.OnOffSwitchState = 'off'
   end
 
   properties (SetAccess = protected)
@@ -283,8 +286,15 @@ classdef Window < hw.Window
       % Perhaps this shouldn't be set after setting 'Verbosity'?
       
       % setup screen window
-      obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
-        obj.OpenBounds, obj.PxDepth);
+      if obj.VirtualFramebuffer == "on"
+        PsychImaging('PrepareConfiguration');
+        PsychImaging('AddTask', 'General', 'UseVirtualFramebuffer');
+        obj.PtbHandle = PsychImaging('OpenWindow', ...
+          obj.ScreenNum, obj.BackgroundColour, obj.OpenBounds, obj.PxDepth);
+      else
+        obj.PtbHandle = Screen('OpenWindow', ...
+          obj.ScreenNum, obj.BackgroundColour, obj.OpenBounds, obj.PxDepth);
+      end
       obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
       obj.Bounds = Screen('Rect', obj.PtbHandle);
 
