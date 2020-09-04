@@ -242,7 +242,7 @@
 % 
 % *Bug fixes*
 % 
-% *
+% * Fix for multiple base sessions getting created
 %
 % *Enhancements*
 %
@@ -250,7 +250,7 @@
 %
 % *Tests*
 %
-% * 
+% * Explicit test for correct base session creation
 
 %% wheelAnalysis
 %
