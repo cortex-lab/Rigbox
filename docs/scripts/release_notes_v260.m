@@ -78,6 +78,8 @@
 % * |git.listVersions| - Lists the previous versions of Rigbox availiable 
 % * |git.switchVersion| - Allows you to switched between Rigbox versions
 % * |git.repoVersion| - Returns release tag of repository, if available
+% * |eui.SignalsTest| - Warning instead of error when no stereo output
+% device found
 %
 % *Tests*
 %

@@ -196,10 +196,21 @@ classdef (Sealed) SignalsTest < handle %& exp.SignalsExp
         
         InitializePsychSound
         d = PsychPortAudio('GetDevices');
-        d = d([d.NrOutputChannels] == 2);
-        [~,I] = min([d.LowOutputLatency]);
-        obj.Hardware.audioDevices = d(I);
-        obj.Hardware.audioDevices.DeviceName = 'default';
+        
+        % Keep output devices
+        d = d([d.NrOutputChannels] > 0);
+        obj.Hardware.audioDevices = d([d.NrOutputChannels] > 0);
+        
+        % Select the lowest latency stereo output as the default
+        stereo = [d.NrOutputChannels] == 2;
+        [~,I] = min([d(stereo).LowOutputLatency]);
+        I = I + sum(~stereo(1:I));
+        if isempty(I)
+          warning('Rigbox:eui:SignalsTest:NoStereoOutput', ...
+            'No stereo output audio devices detected; default unassigned')
+        else
+          obj.Hardware.audioDevices(I).DeviceName = 'default';
+        end
       else
         obj.Hardware = rig;
       end
