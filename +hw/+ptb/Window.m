@@ -287,6 +287,7 @@ classdef Window < hw.Window
       
       % setup screen window
       if obj.VirtualFramebuffer == "on"
+        % Enable imaging pipeline and virtual framebuffer
         PsychImaging('PrepareConfiguration');
         PsychImaging('AddTask', 'General', 'UseVirtualFramebuffer');
         obj.PtbHandle = PsychImaging('OpenWindow', ...
