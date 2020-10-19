@@ -80,6 +80,8 @@
 % * |git.repoVersion| - Returns release tag of repository, if available
 % * |eui.AlyxPanel| - The database URL can now be set via a UI context menu
 % or by passing a URL to the constructor.
+% * |eui.SignalsTest| - Warning instead of error when no stereo output
+% device found
 %
 % *Tests*
 %
