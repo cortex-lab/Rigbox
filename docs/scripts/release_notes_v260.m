@@ -9,8 +9,6 @@
 % *Major changes*
 % 
 % * |hw.findDevice| - Renamed to |hw.testAudioOutputDevices|
-% * |exp.MovieWorld| - A new Experiment class designed for parameterizing
-% passive movie presentation experiments
 % * |srv.expServer| - Experiments can now be started by calling expServer
 % with an expRef.  This can be used for running experiments without MC.  A
 % fair amount of refactoring has taken place.
@@ -225,7 +223,7 @@
 % * size - Test now works for more recent versions of MATLAB (error ID
 % change)
 
-%% alyx-matlab
+%% alyx-matlab v2.5
 % *Major changes*
 % 
 % * 
@@ -234,7 +232,9 @@
 %
 % The following functions and classes are now documented:
 % 
-% * 
+% * |Alyx.newExp| - Updated docstring
+% * |AlyxMatlabPrimer| - Minor updates to the Alyx guide
+% 
 % 
 % Updates to guides:
 % 
@@ -242,15 +242,20 @@
 % 
 % *Bug fixes*
 % 
-% *
+% * |Alyx.newExp| - Fix for multiple base sessions being created
 %
 % *Enhancements*
+
+% * |Alyx.newExp| - Asserts that subject exists and that new experiment
+% folder was created.
+%                 - A more informative error for subject folder mismatches
+% * |Alyx.makeEndpoint| - String support
 %
-% * 
+% * Removed 
 %
 % *Tests*
 %
-% * 
+% * block2Alf - Full test coverage
 
 %% wheelAnalysis
 %
