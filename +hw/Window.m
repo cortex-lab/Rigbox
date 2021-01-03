@@ -1,5 +1,5 @@
 classdef Window < handle
-  %Window Some window on a device you can draw to
+  %WINDOW Some window on a device you can draw to
   %   This is an abstract base class for some device you draw to. All
   %   drawing should be done first to an "off-screen" buffer, and only 
   %   "flipped" onto screen when you request it. i.e. no drawing will be

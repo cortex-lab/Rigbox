@@ -15,7 +15,7 @@ params.set('size', 5, 'Height or width of bars (visual angle)', '°');
 params.set('orientation', 'v', 'Orientation of stimulus', 'horizontal or vetical');
 %timing
 % params.set('interStimulusInterval', [0.5;2], 'Time between stimulus presentations', 's');
-params.set('interStimulusInterval', [0.5 2.5], 'Time between stimulus presentations', 's'); %bh modified 16-Jun-2015 16:59:13
+params.set('interStimulusInterval', [0.5 2.5]', 'Time between stimulus presentations', 's'); %bh modified 16-Jun-2015 16:59:13
 % params.set('stimDuration', 0.5, 'Duration of stimulus presentation', 's');
 params.set('stimDuration', 0.5, 'Duration of stimulus presentation', 's'); %bh modified 16-Jun-2015 16:59:13
 

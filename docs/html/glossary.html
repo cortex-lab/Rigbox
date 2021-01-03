@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Glossary</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-17"><meta name="DC.source" content="glossary.m"><style type="text/css">
+      --><title>Glossary</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-07"><meta name="DC.source" content="glossary.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,15 +66,21 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Glossary</h1><!--introduction--><p>Below is a list of terms and their meaning, along with some links for finding out more information.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Block file</a></li><li><a href="#2">Experiment Definition (expDef)</a></li><li><a href="#3">Experiment Framework</a></li><li><a href="#4">Experiment Reference String (expRef)</a></li><li><a href="#5">expServer</a></li><li><a href="#6">Main Repository</a></li><li><a href="#7">Master Computer (MC)</a></li><li><a href="#8">mc</a></li><li><a href="#9">Stimulus Computer (SC)</a></li><li><a href="#10">Etc.</a></li></ul></div><h2 id="1">Block file</h2><p>The 'block' file is a MAT file that contains most of the data acquired during an experiment.  It is saved by the Experiment class upon experiment quit and follows the following file name pattern: <tt>yyyy-mm-dd_n_subject_Block.mat</tt>.</p><p>See also dat.paths, loading_experiment_data</p><h2 id="2">Experiment Definition (expDef)</h2><p>The experiment definition function (expDef) is a user-created function that the Signals Experiment class uses to map the hardware inputs to the outputs.  The function has the following signature:</p><pre class="language-matlab"><span class="keyword">function</span> exampleWorld(t, evts, p, vs, in, out, audio)
+  </style></head><body><div class="content"><h1>Glossary</h1><!--introduction--><p>Below is a list of terms and their meaning, along with some links for finding out more information.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">ALF</a></li><li><a href="#2">Alyx</a></li><li><a href="#3">Block file</a></li><li><a href="#4">Conditional parameter (trial condition)</a></li><li><a href="#5">Experiment Definition (expDef)</a></li><li><a href="#6">Experiment Framework</a></li><li><a href="#7">Experiment Reference String (expRef)</a></li><li><a href="#8">expServer</a></li><li><a href="#9">Global parameter</a></li><li><a href="#10">Main Repository</a></li><li><a href="#11">Master Computer (MC)</a></li><li><a href="#12">mc</a></li><li><a href="#13">Stimulus Computer (SC)</a></li><li><a href="#14">Etc.</a></li></ul></div><h2 id="1">ALF</h2><p>ALF stands for 'ALyx File'.</p><h2 id="2">Alyx</h2><h2 id="3">Block file</h2><p>The 'block' file is a MAT file that contains most of the data acquired during an experiment.  It is saved by the Experiment class upon experiment quit and follows the following file name pattern: <tt>yyyy-mm-dd_n_subject_Block.mat</tt>.</p><p>See also dat.paths, loading_experiment_data</p><h2 id="4">Conditional parameter (trial condition)</h2><p>A conditional parameter, or trial condition, is a user defined experiment parameter that is trial dependent.  That is, its value may change across trials.  It is defined as a parameter whose number of columns is greater than 1.</p><p>See the <a href="./Parameters.html">Parameters guide</a> for more information.  See also Global parameter definition.</p><h2 id="5">Experiment Definition (expDef)</h2><p>The experiment definition function (expDef) is a user-created function that the Signals Experiment class uses to map the hardware inputs to the outputs.  The function has the following signature:</p><pre class="language-matlab"><span class="keyword">function</span> exampleWorld(t, evts, p, vs, in, out, audio)
     [<span class="keyword">...</span><span class="comment">]</span>
 <span class="keyword">end</span>
-</pre><p>See also SignalsPrimer2?</p><h2 id="3">Experiment Framework</h2><p>The 'Experiment Framework' is everything defined by the <tt>exp.Experiment</tt> base class.  This class defines some basic methods (e.g. run, quit, saveDave, useRig) and 'experiment phases' (experimentInit, experimentStarted, experimentEnded) within which stuff happens and updates are broadcast to any listener such as MC.  An Experiment object stores and uses various objects throughout the experiment, for instance an <tt>exp.ConditionServer</tt> object that manages the trial parameter conditions and an <tt>io.Communicator</tt> that manages the sending of updates to remote listeners.  All experiments run in Rigbox (i.e. via mc and/or srv.expServer) use this framework.</p><p><tt>exp.SignalsExp</tt> extends this framework to use Signals for implementing a user defined experiment function (expDef).  NB: Signals can be set up and used outside of this framework.  For an example of this, see <tt>signals/docs/example/ringach98.m</tt></p><p>For more info, see the Experiment package:</p><pre class="codeinput">helpwin <span class="string">+exp</span>
-</pre><h2 id="4">Experiment Reference String (expRef)</h2><p>An 'experiment reference string' or 'expRef' (sometimes just 'ref') is a char array of the form <tt>yyyy_mm_dd_n_subject</tt>.  These are unique, human-readable references to an experiment session.  Whenever an experiment is started in <tt>mc</tt>, a new expRef is created, reflecting the folder structure of the main repository, where the parameter set is saved.</p><p>See <a href="./using_dat_package.html">The Data Package</a></p><h2 id="5">expServer</h2><p><tt>srv.expServer</tt> is the function that loads rig hardware and allows users to run experiments either locally or via MC.</p><h2 id="6">Main Repository</h2><p>The 'main experiment repository' or 'main repo' is the primary location where your experiment data is saved.  It is the 'mainRepository' field returned by <tt>dat.paths</tt> (defined in your <tt>+dat/paths.m</tt> file).  When new experiments are created, a parameter set is saved into this location according to the following directory structure: subject/date/number. <tt>srv.expServer</tt> looks in this location when loading parameters for a given experiment, and saves the main data files here.</p><p>See also dat_package, dat.expExists</p><h2 id="7">Master Computer (MC)</h2><p>The computer that controls the starting and stopping of experiments. This computer runs the <tt>mc</tt> function, which creates a GUI for doing this.</p><h2 id="8">mc</h2><p><tt>mc</tt> is the function used for logging, parameterizing and creating new experiments.</p><h2 id="9">Stimulus Computer (SC)</h2><p>The 'stimulus computer', 'stim server' or 'SC' is the computer that runs <tt>srv.expServer</tt> and produces visual and auditory stimuli.  All hardware devices used during an experiment are configured for this computer.</p><h2 id="10">Etc.</h2><p><a href="./index.html">Home</a></p><p>Author: Miles Wells</p><p>v1.0.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><p>See also SignalsPrimer2?</p><h2 id="6">Experiment Framework</h2><p>The 'Experiment Framework' is everything defined by the <tt>exp.Experiment</tt> base class.  This class defines some basic methods (e.g. run, quit, saveData, useRig) and 'experiment phases' (experimentInit, experimentStarted, experimentEnded) within which stuff happens and updates are broadcast to any listener such as MC.  Experiments are constructed using a set of parameters and a rig object. All experiments run in Rigbox (i.e. via mc and/or srv.expServer) use this framework.</p><p><tt>exp.SignalsExp</tt> extends this framework to use Signals for implementing a user defined experiment function (expDef).  NB: Signals can be set up and used outside of this framework.  For an example of this, see <tt>signals/docs/example/ringach98.m</tt></p><p>For more info, see the <a href="./Experiment_framework.html">Experiment Framework</a> page and the <a href="matlab:helpwin('+exp')">Experiment package</a> documentation by running the below command:</p><pre class="codeinput">helpwin <span class="string">+exp</span>
+</pre><h2 id="7">Experiment Reference String (expRef)</h2><p>An 'experiment reference string' or 'expRef' (sometimes just 'ref') is a char array of the form <tt>yyyy_mm_dd_n_subject</tt>.  These are unique, human-readable references to an experiment session.  Whenever an experiment is started in <tt>mc</tt>, a new expRef is created, reflecting the folder structure of the main repository, where the parameter set is saved.</p><p>See <a href="./using_dat_package.html">The Data Package</a></p><h2 id="8">expServer</h2><p><tt>srv.expServer</tt> is the function that loads rig hardware and allows users to run experiments either locally or via MC.</p><h2 id="9">Global parameter</h2><p>A global parameter is a user defined experiment parameter that is trial independent.  That is, its value may change across experiments but remains constant within an experiment.  It is defined as a parameter whose number of columns is equal to 1.</p><p>See the <a href="./Parameters.html">Parameters guide</a> for more information.  See also Conditional parameter definition.</p><h2 id="10">Main Repository</h2><p>The 'main experiment repository' or 'main repo' is the primary location where your experiment data is saved.  It is the 'mainRepository' field returned by <tt>dat.paths</tt> (defined in your <tt>+dat/paths.m</tt> file).  When new experiments are created, a parameter set is saved into this location according to the following directory structure: subject/date/number. <tt>srv.expServer</tt> looks in this location when loading parameters for a given experiment, and saves the main data files here.</p><p>See also dat_package, dat.expExists</p><h2 id="11">Master Computer (MC)</h2><p>The computer that controls the starting and stopping of experiments. This computer runs the <tt>mc</tt> function, which creates a GUI for doing this.</p><h2 id="12">mc</h2><p><tt>mc</tt> is the function used for logging, parameterizing and creating new experiments.</p><h2 id="13">Stimulus Computer (SC)</h2><p>The 'stimulus computer', 'stim server' or 'SC' is the computer that runs <tt>srv.expServer</tt> and produces visual and auditory stimuli.  All hardware devices used during an experiment are configured for this computer.</p><h2 id="14">Etc.</h2><p><a href="./index.html">Home</a></p><p>Author: Miles Wells</p><p>v1.0.1</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Glossary
 % Below is a list of terms and their meaning, along with some links for
 % finding out more information.
+
+%% ALF
+% ALF stands for 'ALyx File'.  
+
+%% Alyx
+%
 
 %% Block file
 % The 'block' file is a MAT file that contains most of the data acquired
@@ -83,6 +89,15 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 % |yyyy-mm-dd_n_subject_Block.mat|.
 %
 % See also dat.paths, loading_experiment_data
+
+%% Conditional parameter (trial condition)
+% A conditional parameter, or trial condition, is a user defined experiment
+% parameter that is trial dependent.  That is, its value may change across
+% trials.  It is defined as a parameter whose number of columns is greater
+% than 1.  
+%
+% See the <./Parameters.html Parameters guide> for more information.  See
+% also Global parameter definition.
 
 %% Experiment Definition (expDef)
 % The experiment definition function (expDef) is a user-created function
@@ -98,21 +113,20 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 %% Experiment Framework
 % The 'Experiment Framework' is everything defined by the |exp.Experiment|
 % base class.  This class defines some basic methods (e.g. run, quit,
-% saveDave, useRig) and 'experiment phases' (experimentInit,
+% saveData, useRig) and 'experiment phases' (experimentInit,
 % experimentStarted, experimentEnded) within which stuff happens and
-% updates are broadcast to any listener such as MC.  An Experiment object
-% stores and uses various objects throughout the experiment, for instance
-% an |exp.ConditionServer| object that manages the trial parameter
-% conditions and an |io.Communicator| that manages the sending of updates
-% to remote listeners.  All experiments run in Rigbox (i.e. via mc and/or
-% srv.expServer) use this framework.
+% updates are broadcast to any listener such as MC.  Experiments are
+% constructed using a set of parameters and a rig object. All experiments
+% run in Rigbox (i.e. via mc and/or srv.expServer) use this framework.
 %
 % |exp.SignalsExp| extends this framework to use Signals for implementing a
 % user defined experiment function (expDef).  NB: Signals can be set up and
 % used outside of this framework.  For an example of this, see
 % |signals/docs/example/ringach98.m|
 %
-% For more info, see the Experiment package:
+% For more info, see the <./Experiment_framework.html Experiment Framework>
+% page and the <matlab:helpwin('+exp') Experiment package> documentation by
+% running the below command:
 helpwin +exp
 
 %% Experiment Reference String (expRef)
@@ -128,6 +142,15 @@ helpwin +exp
 %% expServer
 % |srv.expServer| is the function that loads rig hardware and allows users
 % to run experiments either locally or via MC.
+
+%% Global parameter
+% A global parameter is a user defined experiment parameter that is trial
+% independent.  That is, its value may change across experiments but
+% remains constant within an experiment.  It is defined as a parameter
+% whose number of columns is equal to 1.  
+%
+% See the <./Parameters.html Parameters guide> for more information.  See
+% also Conditional parameter definition.
 
 %% Main Repository
 % The 'main experiment repository' or 'main repo' is the primary location
@@ -158,7 +181,7 @@ helpwin +exp
 %
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1
 
 ##### SOURCE END #####
 --></body></html>

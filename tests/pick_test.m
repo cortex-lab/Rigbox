@@ -71,3 +71,29 @@ assert(isequal(pick({s(1),s2},'a','def',1), [1 s2.a]), ...
   'Failed to select multiple structs with one key using default')
 assert(pick(hw.Timeline, 'fakeProp', 'def', 45) == 45, ...
   'Failed selecting property from object')
+
+% Test output with multiple defaults / defaults as array.
+% When the default is an array we don't distribute the elements to the
+% missing values.  If the key is not scalar, a cell should be returned.  
+% The default array is delt to every missing value:
+actual = pick(s2, {'a','d'}, 'def', 1:3);
+expected = {s2.a, 1:3};
+assert(isequal(actual, expected), ...
+  'failed to assign default array to missing value')
+
+% If the key is scalar, the values should be concatinated with the default:
+s = struct('d',(1:3)');
+s(3).d = [];
+actual = pick(s, 'd', 'def', [4,5,6]');
+assert(isequal(actual, [1 4 4; 2 5 5; 3 6 6]), ...
+  'failed to concatinate output')
+
+% If the default is a cell array or string array the same rules should
+% apply (both these types don't play well with cell2mat):
+strArr = ["non", "scalar"];
+actual = pick(s2, 'd', 'def', strArr);
+assert(isequal(actual, strArr), 'failed to return string array value')
+
+cellArr = cellstr(strArr);
+actual = pick(s2, 'd', 'def', cellArr);
+assert(isequal(actual, cellArr), 'failed to return unwrapped cell array')

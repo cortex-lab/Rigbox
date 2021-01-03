@@ -20,7 +20,7 @@ contrastRight = p.stimulusContrast(2);
 % duration of the preStimulusDelay.  The quiescence threshold is a tenth of
 % the rotary encoder resolution.
 preStimulusDelay = p.preStimulusDelay.map(@timeSampler).at(evts.newTrial); % at(evts.newTrial) fix for rig pre-delay 
-stimulusOn = sig.quiescenceWatch(preStimulusDelay, t, wheel, 10);
+stimulusOn = preStimulusDelay.setEpochTrigger(t, wheel, 10);
 interactiveDelay = p.interactiveDelay.map(@timeSampler);
 interactiveOn = stimulusOn.delay(interactiveDelay); % the closed-loop period starts when the stimulus comes on, plus an 'interactive delay'
 

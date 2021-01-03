@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Timeline</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="Timeline.m"><style type="text/css">
+      --><title>Timeline</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-12"><meta name="DC.source" content="Timeline.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><h1>Timeline</h1><img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt=""><!--introduction--><p>Timeline manages the acquisition and generation of experimental timing data using a NI-DAQ. The main timing signal, 'chrono', is a digital square wave that flips each time a new chunk of data is available from the DAQ. A callback function to this flip event collects the DAQ timestamp of the scan where each flip occured. The difference between this timestamp and the system time recorded when the flip command was given is recorded as the offset time and can be used to unify all timestamps across computers during an experiment. Thus, all event timestamps across all computers for a given experiment are recorded in times relative to the DAQ's clock.  These timestamps can be interchanged with MATLAB and system times during an experiment.  Timeline can acquire any number of hardware events and record their values with respect to this offset; for example, Timeline can use a photodiode to record the times at which the screen updates.</p><p>NB: Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Using Timeline</a></li><li><a href="#3">Using settings from a previous experiment</a></li><li><a href="#5">Inputs</a></li><li><a href="#11">Activating Inputs</a></li><li><a href="#13">Dealing with ghosting</a></li><li><a href="#15">Wiring information</a></li><li><a href="#17">Outputs</a></li><li><a href="#18">Acquire Live</a></li><li><a href="#19">Output Clock</a></li><li><a href="#20">Acquisitions</a></li><li><a href="#21">Live plotting</a></li><li><a href="#23">Clocks</a></li><li><a href="#24">Notes</a></li><li><a href="#25">Etc.</a></li></ul></div><h2 id="1">Using Timeline</h2><p>For more details on setting up Timeline, see <a href="./hardware_config.html">hardware_config</a>:</p><pre class="codeinput">opentoline(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="keyword">...</span>
-  <span class="string">'docs'</span>, <span class="string">'setup'</span>, <span class="string">'hardware_config.m'</span>), 58)
+  <span class="string">'docs'</span>, <span class="string">'scripts'</span>, <span class="string">'hardware_config.m'</span>), 58)
 </pre><p><b>NB</b> : Not all uncommented lines will run without error, particularly when a specific hardware configuration is required.  Always read the preceeding text before running each line.</p><pre class="codeinput"><span class="comment">% Let's set up a timeline object:</span>
 timeline = hw.Timeline;
 </pre><h2 id="3">Using settings from a previous experiment</h2><p>To set up a new timeline object using setting from a previous experiment, call the constructor with the variable saved in <tt>*_Timeline.mat</tt> for that experiment:</p><pre class="codeinput">ref = dat.constructExpRef(<span class="string">'example'</span>, now - 10, 2); <span class="comment">% Example experiment</span>
@@ -172,7 +172,7 @@ timeline.Outputs(end).InitialDelay = 3;
 <span class="comment">% TLOutput classes, simply create a new subclass with your desired</span>
 <span class="comment">% implementation.</span>
 </pre><h2 id="20">Acquisitions</h2><p>Timeline may be run automatically on the stimulus computer, or on a separate computer that's triggred by the stimulus computer via UDPs (for more info see <a href="./using_services.html">using_services</a>):</p><pre class="codeinput"><span class="comment">% Open the 'Using Services' script</span>
-open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'using_services.m'</span>))
+open(fullfile(getOr(dat.paths,<span class="string">'rigbox'</span>), <span class="string">'docs'</span>, <span class="string">'sctripts'</span>, <span class="string">'using_services.m'</span>))
 
 <span class="comment">% You can also start Timeline manually from the command prompt with</span>
 <span class="comment">% HW.TIMELINE/START.  An experiment reference string is required:</span>
@@ -216,7 +216,7 @@ timeline.FigureScale = [0 0 0.5 1]; <span class="comment">% Take up half screen 
 timeline.Inputs(I).axesScale = 2; <span class="comment">% 2x vertical scaling</span>
 </pre><h2 id="23">Clocks</h2><pre class="codeinput">doc <span class="string">hw.Clock</span>
 
-<span class="comment">% While timeline is running, timestampts can be returned using the TIME</span>
+<span class="comment">% While timeline is running, timestamps can be returned using the |time|</span>
 <span class="comment">% method:</span>
 timeline.time()
 <span class="comment">% If called with false, a system timestamp is returned when timeline is not</span>
@@ -242,12 +242,7 @@ clock.now()
 <span class="comment">% reference time:</span>
 clock.zero()
 clock.now()
-</pre><h2 id="24">Notes</h2><p>(1) For information on the MATLAB figure properties Position and Units, see <a href="https://uk.mathworks.com/help/matlab/ref/matlab.ui.figure-properties.html#prop_Position">their documentation page</a>.</p><h2 id="25">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><pre class="codeinput"><span class="comment">% INTERNAL</span>
-<span class="comment">% Image after Intro header:</span>
-<span class="comment">% &lt;img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt=""&gt;</span>
-<span class="comment">% execute off</span>
-
-<span class="comment">%#ok&lt;*NOPTS,*NASGU&gt;</span>
+</pre><h2 id="24">Notes</h2><p>(1) For information on the MATLAB figure properties Position and Units, see <a href="https://uk.mathworks.com/help/matlab/ref/matlab.ui.figure-properties.html#prop_Position">their documentation page</a>.</p><h2 id="25">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU&gt;</span>
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Timeline
@@ -274,7 +269,7 @@ clock.now()
 % For more details on setting up Timeline, see <./hardware_config.html
 % hardware_config>:
 opentoline(fullfile(getOr(dat.paths,'rigbox'), ...
-  'docs', 'setup', 'hardware_config.m'), 58)
+  'docs', 'scripts', 'hardware_config.m'), 58)
 
 %%
 % *NB* : Not all uncommented lines will run without error, particularly when a
@@ -475,7 +470,7 @@ timeline.Outputs(end).InitialDelay = 3;
 % more info see <./using_services.html using_services>):
 
 % Open the 'Using Services' script
-open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'using_services.m'))
+open(fullfile(getOr(dat.paths,'rigbox'), 'docs', 'sctripts', 'using_services.m'))
 
 % You can also start Timeline manually from the command prompt with
 % HW.TIMELINE/START.  An experiment reference string is required:
@@ -535,7 +530,7 @@ timeline.Inputs(I).axesScale = 2; % 2x vertical scaling
 %% Clocks
 doc hw.Clock
 
-% While timeline is running, timestampts can be returned using the TIME
+% While timeline is running, timestamps can be returned using the |time|
 % method:
 timeline.time()
 % If called with false, a system timestamp is returned when timeline is not
@@ -571,13 +566,7 @@ clock.now()
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.0
-%
-
-% INTERNAL
-% Image after Intro header:
-% <img  height="200" hspace="5" src="Fig7_timeline.png" style="float:right" alt="">
-% execute off
+% v1.1.1
 
 %#ok<*NOPTS,*NASGU>
 ##### SOURCE END #####

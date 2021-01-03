@@ -35,7 +35,7 @@ end
 if nargin > 1 && iscell(varargin{2}) % Set outputs
   outputs(command) = varargin{2};
   if isempty(INTEST) || ~INTEST
-    fprintf('Set date for %s.  Please set INTEST flag to true\n', command);
+    fprintf('Set system call for %s.  Please set INTEST flag to true\n', command);
   end
 else % Get outputs
   % Check the INTEST flag to ensure that calling mock was intended

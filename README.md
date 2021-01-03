@@ -1,7 +1,7 @@
 ----------
 # Rigbox
-![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fcoverage%2Frigbox%2Fmaster)
-![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fstatus%2Frigbox%2Fmaster)
+![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fcoverage%2Frigbox%2Fmaster)
+![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fstatus%2Frigbox%2Fmaster)
 
 Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. Rigbox's main goals are to simplify hardware/software interfacing, behavioral task design, and visual and auditory stimuli presentation. Additionally, Rigbox can time-align datastreams from multiple sources and communicate with a remote database to manage experiment data. Rigbox is mostly object-oriented and highly modular, which simplifies the process of designing experiments. For detailed information, see [the publication](https://www.biorxiv.org/content/10.1101/672204v3). 
 

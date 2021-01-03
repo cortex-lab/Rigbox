@@ -1,0 +1,171 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>The Clock object</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-07"><meta name="DC.source" content="clocks.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>The Clock object</h1><!--introduction--><p>This class is to help with abstracting code that needs to timestamp events. Subclasses of this implement timestamps using different clocks (e.g. using MATLAB's <tt>now</tt>, Psychtoolbox's <tt>GetSecs</tt>, or a DAQ timing clock).</p><p>During an experiment all times are recorded using a Clock object.  This object is stored by a number of different objects, ensuring that anything that records a time does so using the same clock.  The Clock object is always stored in an object's Clock property.  The following classes (and their subclasses) use a Clock:</p><div><ul><li>hw.Window</li><li>exp.Experiment (&amp; exp.SignalsExp)</li><li>hw.DataLogging</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Using the Clock</a></li><li><a href="#10">The Experiment Clock</a></li><li><a href="#11">Etc.</a></li></ul></div><h2 id="1">Using the Clock</h2><p>Below are some examples of how to use a Clock object.  <tt>hw.Clock</tt> is an abstract class with each subclass implementing <tt>absoluteTime</tt>.  We will instatiate <tt>hw.ptb.Clock</tt>, Rigbox's default Clock.  This uses the Psychtoolbox function <tt>GetSecs</tt> in its <tt>absoluteTime</tt> method.</p><pre class="codeinput">clock = hw.ptb.Clock
+</pre><pre>clock =</pre><pre>  Clock with properties:</pre><pre>    ReferenceTime: 0</pre><p>Timestamps are returned by calling the <tt>now</tt> method, which must return the time in <b>seconds</b> since some reference time, as counted by whatever clock the subclass uses:</p><pre class="codeinput">clock.now()
+</pre><pre class="language-matlab">ans =
+</pre><pre>    1.3128e+06</pre><p>This class also allows you to 'zero' the reference time at some moment. Time is then counted up from that moment on (and is negative for times before that point). Code that needs to track time can use this class to remain agnostic about what timing clock is acutally used. You could even use this e.g. as a neat way to run an experiment at a different speed.</p><pre class="codeinput">zero(clock);
+t = clock.now()
+</pre><pre class="language-matlab">t =
+</pre><pre>    3.3180e-04</pre><p>The Clock class also provides some ways to interconvert timestamps, for instance <tt>fromMatlab</tt> converts from a MATLAB serial date number to the same time but expressed in this clocks reference frame:</p><pre class="codeinput">yesterday = now-1;
+t = clock.fromMatlab(yesterday)
+</pre><pre class="language-matlab">t =
+</pre><pre>   -8.6400e+04</pre><p>There are also <tt>toPtb</tt> and <tt>fromPTB</tt> methods for subclasses that don't use GetSecs.</p><h2 id="10">The Experiment Clock</h2><p>When running an experiment via <tt>srv.expServer</tt>, the clock is retrieved via <tt>hw.devices</tt>.  If there is no 'clock' field in your hardware file, an instance of <tt>hw.ptb.Clock</tt> is returned.  If Timeline is enabled, a <tt>hw.TimelineClock</tt> instance is used instead.  For more info, see the <a href="./Timeline.html#23">Timeline guide</a>.</p><p>The clock is zero'd as soon as an expRef is received (e.g. when a new experiment is started in mc and the messeage is received by expServer). This happens in <tt>srv.expServer/runExp</tt>.  All experiment times are therefore relative to this moment.</p><h2 id="11">Etc.</h2><p><a href="./index.html">Home</a></p><p>Author: Miles Wells</p><p>v0.1.0</p><pre class="codeinput"><span class="comment">%#ok&lt;*NOPTS,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% The Clock object
+% This class is to help with abstracting code that needs to timestamp
+% events. Subclasses of this implement timestamps using different clocks 
+% (e.g. using MATLAB's |now|, Psychtoolbox's |GetSecs|, or a DAQ
+% timing clock). 
+%
+% During an experiment all times are recorded using a Clock object.  This
+% object is stored by a number of different objects, ensuring that anything
+% that records a time does so using the same clock.  The Clock object is
+% always stored in an object's Clock property.  The following classes (and
+% their subclasses) use a Clock:
+% 
+% * hw.Window
+% * exp.Experiment (& exp.SignalsExp)
+% * hw.DataLogging
+%
+%% Using the Clock
+% Below are some examples of how to use a Clock object.  |hw.Clock| is an
+% abstract class with each subclass implementing |absoluteTime|.  We will
+% instatiate |hw.ptb.Clock|, Rigbox's default Clock.  This uses the
+% Psychtoolbox function |GetSecs| in its |absoluteTime| method.
+
+clock = hw.ptb.Clock
+%%%
+%  clock = 
+%
+%    Clock with properties:
+%
+%      ReferenceTime: 0
+%%%
+% Timestamps are returned by calling the |now| method, which must return
+% the time in *seconds* since some reference time, as counted by whatever
+% clock the subclass uses:
+
+clock.now()
+%%%
+%   ans =
+% 
+%      1.3128e+06
+
+%%%
+% This class also allows you to 'zero' the reference time at some moment.
+% Time is then counted up from that moment on (and is negative for times
+% before that point). Code that needs to track time can use this class to
+% remain agnostic about what timing clock is acutally used. You could even
+% use this e.g. as a neat way to run an experiment at a different speed.
+
+zero(clock);
+t = clock.now()
+%%%
+%   t =
+% 
+%      3.3180e-04
+
+%%%
+% The Clock class also provides some ways to interconvert timestamps, for
+% instance |fromMatlab| converts from a MATLAB serial date number to the
+% same time but expressed in this clocks reference frame:
+yesterday = now-1;
+t = clock.fromMatlab(yesterday)
+%%%
+%   t =
+% 
+%     -8.6400e+04
+
+%%%
+% There are also |toPtb| and |fromPTB| methods for subclasses that don't
+% use GetSecs.
+
+%% The Experiment Clock
+% When running an experiment via |srv.expServer|, the clock is retrieved
+% via |hw.devices|.  If there is no 'clock' field in your hardware file,
+% an instance of |hw.ptb.Clock| is returned.  If Timeline is enabled, a
+% |hw.TimelineClock| instance is used instead.  For more info, see the
+% <./Timeline.html#23 Timeline guide>.
+%
+% The clock is zero'd as soon as an expRef is received (e.g. when a new
+% experiment is started in mc and the messeage is received by expServer).
+% This happens in |srv.expServer/runExp|.  All experiment times are
+% therefore relative to this moment.
+
+%% Etc.
+% <./index.html Home>
+%
+% Author: Miles Wells
+%
+% v0.1.0
+
+%#ok<*NOPTS,*NASGU>
+##### SOURCE END #####
+--></body></html>

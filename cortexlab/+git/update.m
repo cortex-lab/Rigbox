@@ -1,31 +1,35 @@
 function exitCode = update(scheduled)
 % GIT.UPDATE Pulls latest Rigbox code 
-%   `git.update` pulls the latest code from the remote Rigbox Github 
-%   repository if it is run on a specific day of the week (provided the 
-%   remote code was last fetched over a day ago), or immediately (provided 
-%   the remote code was last fetched over an hour ago), according to 
-%   `scheduled`. If run without an input arg, code is pulled according to 
-%   the `updateSchedule` field in the struct returned by `dat.paths`, or 
-%   immediately if the `updateSchedule` field is not found in `dat.paths`
-%   (provided the remote code was last fetched over an hour ago).
+%   EXITCODE = GIT.UPDATE(SCHEDULED) pulls the latest code from the remote
+%   Rigbox Github repository if it is run on a specific day of the week
+%   (provided the remote code was last fetched over a day ago), or
+%   immediately (provided the remote code was last fetched over an hour
+%   ago), according to `scheduled`. If run without an input arg, code is
+%   pulled according to the `updateSchedule` field in the struct returned
+%   by `dat.paths`, or immediately if the `updateSchedule` field is not
+%   found in `dat.paths` (provided the remote code was last fetched over an
+%   hour ago).
 %   
 %   Inputs:
-%     `scheduled`: an optional input as an integer in the interval [0,7]. 
-%     When 0, the remote code will be pulled provided the last fetch was 
-%     over an hour ago. When in the interval [1,7], code will be pulled on 
-%     a corresponding day according to `weekday` (Sunday=1, Monday=2, ... 
-%     Saturday = 7), provided the last fetch was over a day ago. Code will 
-%     also be pulled if it is not the scheduled day, but the last fetch was 
-%     over a week ago. If scheduled is 0, the function will pull changes 
-%     provided the last fetch was over an hour ago.
+%     scheduled (int|string|char|cellstr): an optional input as an
+%       integer in the interval [-1,7]. When -1 or 'Never', code is never
+%       updated. When 0 or 'Everyday', the remote code will be pulled
+%       provided the last fetch was over an hour ago. When in the interval
+%       [1,7], code will be pulled on a corresponding day according to
+%       weekday (Sunday=1, Monday=2, ... Saturday = 7), provided the last
+%       fetch was over a day ago. Code will also be pulled if it is not the
+%       scheduled day, but the last fetch was over a week ago. If scheduled
+%       is 0, the function will pull changes provided the last fetch was
+%       over an hour ago.  Input may also be string-type input and/or an
+%       array if multiple update days are required.
 %
 %   Outputs:
-%     `exitCode`: An integer in the interval [0,2]. 0 indicates a
-%     successful update of the code. 1 indicates an error running git
-%     commands. 2 indicates successfully returning from the function
-%     without updating the code if the last fetch was within an hour and
-%     `scheduled` == 0, or if the last fetch was within 24 hours and
-%     `scheduled` is an integer in the interval [1,7]).
+%     exitCode: An integer in the interval [0,2]. 0 indicates a
+%       successful update of the code. 1 indicates an error running git
+%       commands. 2 indicates successfully returning from the function
+%       without updating the code if the last fetch was within an hour and
+%       `scheduled` == 0, or if the last fetch was within 24 hours and
+%       `scheduled` is an integer in the interval [1,7]).
 %
 %   Example: Pull remote code immediately, provided last code fetch was 
 %   over an hour ago:
@@ -34,6 +38,10 @@ function exitCode = update(scheduled)
 %   Example: Pull remote code if today is Monday, provided last code fetch
 %   was over a day ago:
 %     git.update(2);
+% 
+%   Example: Pull remote code if today is Wednesday or Friday, provided
+%   last code fetch was over a day ago:
+%     git.update(["Wednesday", "fri"]);
 % 
 % See also DAT.PATHS
 
@@ -47,12 +55,24 @@ assert(~isempty(which('dat.paths')), ...
 % If no input arg, or input arg is not an acceptable value, use 
 % `updateSchedule` in `dat.paths`. If `updateSchedule` is not found, set 
 % `scheduled` to 0.
-if nargin < 1
-  scheduled = getOr(dat.paths, 'updateSchedule', 0);
-elseif ~isnumeric(scheduled) || ~any(0:7 == scheduled)
+if nargin < 1, scheduled = getOr(dat.paths, 'updateSchedule', 0); end
+
+% Validate input.  Must be a number between -1 and 7, or a string/char that
+% matches one of the below days, e.g. 'Mon' or ["Tuesday", "thursday"]
+if isstring(scheduled) || ischar(scheduled) || iscellstr(scheduled)
+  nameMap = [...
+    "Never", "Everyday", "Sunday", ...
+    "Monday", "Tuesday", "Wednesday", ...
+    "Thursday", "Friday", "Saturday"];
+  idx = startsWith(nameMap, scheduled, 'IgnoreCase', true);
+  assert(any(idx), 'Rigbox:git:update:valueError', ...
+    'Unrecognized scheduled value')
+  scheduled = find(idx) - 2; % Convert to day number
+elseif ~isnumeric(scheduled) || ~any(ismember(scheduled, -1:7))
     error('Rigbox:git:update:valueError', ...
         'Input must be integer between 0 and 7')
 end
+
 root = getOr(dat.paths, 'rigbox'); % Rigbox root directory
 
 % Attempt to find date of last fetch
@@ -66,8 +86,8 @@ lastFetch = iff(exist(fetch_head,'file')==2, ...
 % 1. The last fetch was over a week ago.
 % 2. The updates are scheduled for today and not yet fetched today.
 % 3. The updates are daily and the last fetch was over an hour ago.
-fetchDay = scheduled == weekday(now) || scheduled == false;
-minTime = iff(scheduled, iff(fetchDay, 1, 7), 1/24);
+fetchDay = any(scheduled == weekday(now)) || any(scheduled == 0);
+minTime = iff(scheduled ~= 0, iff(fetchDay, 1, 7), 1/24);
 fetched = now-lastFetch < minTime;
 if fetched || ~fetchDay
   exitCode = 2;
@@ -78,7 +98,7 @@ disp('Updating code...')
 % Create Windows system commands for git stashing, initializing submodules,
 % and pulling
 stash = ['stash push -m "stash Rigbox working changes before '... 
-               'scheduled git update"'];
+         'scheduled git update"'];
 stashSubs = 'submodule foreach "git stash push"';
 init = 'submodule update --init';
 pull = 'pull --recurse-submodules --strategy-option=theirs';

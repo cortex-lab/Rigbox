@@ -219,8 +219,13 @@ classdef (SharedTestFixtures={matlab.unittest.fixtures.PathFixture(...
       % Test setting various arrays
       p.set('globalPar', true(testCase.nConditional, 1))
       testCase.verifyTrue(ismember('globalPar', p.GlobalNames))
-      p.set('globalPar', false(1, testCase.nConditional+1))
+      p.set('globalPar', false(1, testCase.nConditional))
       testCase.verifyTrue(ismember('globalPar', p.TrialSpecificNames))
+      
+      % Test parameter validation
+      id = 'Rigbox:exp:Parameters:numTrialConditionsMismatch';
+      ex = @() p.set('globalPar', false(1, testCase.nConditional + 1));
+      testCase.verifyError(ex, id)
     end
   end
   
