@@ -32,7 +32,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   properties (ClassSetupParameter)
     % Alyx base URL.  test is for the main branch, testDev is for the dev
     % code
-    BaseURL = cellsprintf('https://%s.alyx.internationalbrainlab.org', {'test', 'testDev'});
+    BaseURL = {'https://test.alyx.internationalbrainlab.org'};
   end
   
   methods (TestClassSetup)
