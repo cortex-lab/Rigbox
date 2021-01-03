@@ -356,7 +356,7 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.assertTrue(testCase.Panel.AlyxInstance.IsLoggedIn);
       % Check log
       logPanel = findobj(testCase.hPanel, 'Tag', 'Logging Display');
-      testCase.verifyTrue(endsWith(logPanel.String{1}, 'Logged into Alyx successfully as test_user'))
+      testCase.verifyTrue(endsWith(logPanel.String{end}, 'Logged into Alyx successfully as test_user'))
       labels = findobj(testCase.Parent, 'Style', 'text');
       % Check all components enabled
       testCase.verifyEmpty(findobj(testCase.Parent, 'Enable', 'off'))
