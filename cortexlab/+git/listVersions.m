@@ -1,7 +1,6 @@
 function versions = listVersions(repoDir, printToCmd)
-%GIT.LISTVERSIONS todo document
+%GIT.LISTVERSIONS List repository releases
 %  TODO Add support for multiple repos
-%  TODO Add test
 %
 
 % Default repo is Rigbox
