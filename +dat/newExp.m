@@ -34,7 +34,8 @@ end
 
 % check the subject exists in the database
 exists = any(strcmp(dat.listSubjects, subject));
-assert(exists, sprintf('"%s" does not exist', subject));
+errMsg = sprintf('subject "%s" does not exist', subject);
+assert(exists, 'Rigbox:dat:newExp:subjectNotFound', errMsg);
 
 % retrieve list of experiments for subject
 [~, dateList, seqList] = dat.listExps(subject);
@@ -52,11 +53,23 @@ end
 % main repository is the reference location for which experiments exist
 [expPath, expRef] = dat.expPath(subject, floor(expDate), expSeq, 'main');
 % ensure nothing went wrong in making a "unique" ref and path to hold
-assert(~any(file.exists(expPath)), ...
-  sprintf('Something went wrong as experiment folders already exist for "%s".', expRef));
+present = file.exists(expPath);
+assert(~any(present), 'Rigbox:dat:newExp:expFoldersAlreadyExist', ...
+  'The following experiment folder(s) already exist(s) for "%s":\r\t%s', ...
+  expRef, strjoin(expPath(present), '\n\t'))
 
-% now make the folder(s) to hold the new experiment
-assert(all(cellfun(@(p) mkdir(p), expPath)), 'Creating experiment directories failed');
+try
+  % now make the folder(s) to hold the new experiment
+  created = cellfun(@mkdir, expPath);
+  assert(all(created))
+catch
+  % Delete any folders we just created and rethrow error
+  cellfun(@rmdir, expPath(created));  
+  error('Rigbox:dat:newExp:mkdirFailed', ...
+    'Failed to create the following directories:\r\t%s', ...
+    strjoin(expPath(~created), '\n\t'))
+end
+
 
 % if the parameters had an experiment definition function, save a copy in
 % the experiment's folder

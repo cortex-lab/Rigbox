@@ -59,20 +59,20 @@ classdef AlyxPanel < handle
     end
     
     methods
-        function obj = AlyxPanel(parent, active)
+        function obj = AlyxPanel(parent, url)
             % Constructor to build all the UI elements and set callbacks to
             % the relevant functions.  If a handle to parant UI object is
             % not specified, a seperate figure is created.  An optional
             % handle to a logging display panal may be provided, otherwise
-            % one is created. If the active flag is set to false, the panel
-            % is inactive and the instance of Alyx will be set to headless.
-            % The panel defaults to active only if the databaseURL field is
-            % populated in the paths.
+            % one is created. The panel will be rendered inactive and the
+            % instance of Alyx will be set to headless if an empty database
+            % URL is provided, or if no URL is provided and the databaseURL
+            % field is not populated in the paths.
             %
             % See also Alyx
-            
+            noParent = ~nargin || isempty(parent);
             obj.AlyxInstance = Alyx('','');
-            if ~nargin % No parant object: create new figure
+            if noParent % No parant object: create new figure
                 f = figure('Name', 'alyx GUI',...
                     'MenuBar', 'none',...
                     'Toolbar', 'none',...
@@ -91,15 +91,18 @@ classdef AlyxPanel < handle
                 % be set by any other GUI that instantiates this object (e.g.
                 % MControl using this as a panel.
                 obj.NewExpSubject.addlistener('SelectionChanged', @(src, evt)obj.dispWaterReq(src, evt));
+            else
+              % We'll need the figure handle for adding a context menu
+              f = ancestor(parent, 'Figure');
             end
             
             % Check to see if there is a remote database url defined in
             % the paths, if so activate AlyxPanel
             if nargin < 2
               url = char(getOr(dat.paths, 'databaseURL', ''));
-              active = ~isempty(url);
             end
             
+            obj.AlyxInstance.BaseURL = url;
             obj.RootContainer = uix.Panel('Parent', parent, 'Title', 'Alyx');
             alyxbox = uiextras.VBox('Parent', obj.RootContainer);
             
@@ -114,8 +117,8 @@ classdef AlyxPanel < handle
                 'Callback', @(~,~)obj.login);
             loginbox.Widths = [-1 75];
             
-            % If active flag set as false, make Alyx headless
-            if ~active
+            % If URL is empty, make Alyx headless
+            if isempty(url)
                 obj.AlyxInstance.Headless = true;
                 set(obj.LoginButton, 'Enable', 'off')
             end
@@ -195,7 +198,7 @@ classdef AlyxPanel < handle
                 'Enable', 'off',...
                 'Callback', @(~,~)obj.launchSessionURL);
             
-            if ~nargin
+            if noParent
                 % logging message area
                 obj.LoggingDisplay = uicontrol('Parent', parent, 'Style', 'listbox',...
                     'Enable', 'inactive', 'String', {});
@@ -204,6 +207,12 @@ classdef AlyxPanel < handle
                 % Use parent's logging display
                 obj.LoggingDisplay = findobj('Tag', 'Logging Display');
             end
+            obj.log('using database %s', obj.AlyxInstance.BaseURL)
+            % Add context menu for changing database
+            c = uicontextmenu(f);
+            obj.RootContainer.UIContextMenu = c;
+            uimenu(c, 'Label', 'Change database URL', ...
+              'MenuSelectedFcn', @(~,~)obj.changeURL());
         end
         
         function delete(obj)
@@ -299,6 +308,25 @@ classdef AlyxPanel < handle
             % Reable the Subject Selector
             obj.NewExpSubject.UIControl.Enable = 'on';
             obj.dispWaterReq()
+        end
+        
+        function changeURL(obj, url)
+            % Sets the database URL of the AlyxInstance.  When called with
+            % no inputs, the user is prompted to type in a new URL.  If
+            % logged in, the current token is deleted before changing URL
+            % (unless the new URL is identical).
+            current = obj.AlyxInstance.BaseURL;
+            if nargin == 1 % Prompt user for input
+              prompt = sprintf(['Please enter a database URL to connect to.\n'...
+                'This will log you out of the current database.\n']);
+              url = newid(prompt,'Database URL', [1 50], {current});
+            end
+            % Return if user pressed 'Close' or 'x', or url unchanged
+            if isempty(url) || strcmpi(url, current), return, end
+            % Clear current token, if there is one
+            if obj.AlyxInstance.IsLoggedIn, obj.login; end
+            obj.AlyxInstance.BaseURL = url; % Change URL
+            obj.log('using database %s', obj.AlyxInstance.BaseURL)
         end
         
         function giveWater(obj)

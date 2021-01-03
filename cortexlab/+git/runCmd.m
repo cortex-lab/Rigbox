@@ -2,17 +2,18 @@ function [exitCode, cmdOut] = runCmd(cmd, varargin)
 %GIT.RUNCMD runs git commands in MATLAB.
 %
 % Inputs:
-%   `cmd`: A str or cellstr array of git command(s) to run.
-%   `dir`: An optional string name-value paired argument which specifies
-%   the directory in which to run the command (default is `pwd`)
-%   `echo`: An optional boolean name-value paired argument which specifies
-%   whether to display command output on the MATLAB command window (default
-%   is `true`).
+%   cmd: A str or cellstr array of git command(s) to run.
+%   dir: An optional string name-value paired argument which specifies
+%        the directory in which to run the command (default is MATLAB's
+%        working directory).
+%   echo: An optional boolean name-value paired argument which specifies
+%         whether to display command output on the MATLAB command window
+%         (default is true).
 %
 % Outputs:
-%   `exitCode`: A flag array indicating whether each command in `cmd` was 
-%   run succesfully (0) or there was an error (1).
-%   `cmdOut`: A cellstr array of the output of `cmd`.
+%   exitCode: A flag array indicating whether each command was run 
+%             successfully (0) or there was an error (1).
+%   cmdOut: A cellstr array of the output of the command(s).
 %
 % Example: Get the status and log for the git repository in the working 
 % folder, display the commands' outputs in MATLAB, and save the command
@@ -26,6 +27,8 @@ function [exitCode, cmdOut] = runCmd(cmd, varargin)
 %                             'echo', false);
 
 %% set-up 
+singleArg = ischar(cmd) || numel(cmd) > 1; % Unwrap cell output if single cmd
+stringIn = isstring(cmd); % Return like output
 % If `cmd` is a char or cellstr, turn it into a string
 cmd = string(cmd); % Convert to string array
 
@@ -75,4 +78,11 @@ for i = 1:length(cmd)
   else
     [exitCode(i), cmdOut{i}] = system(cmd{i});
   end
+end
+
+% Return output like input
+if stringIn
+  cmdOut = string(cmdOut);
+elseif singleArg
+  cmdOut = cmdOut{1};
 end

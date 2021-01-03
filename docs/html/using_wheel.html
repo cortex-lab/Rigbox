@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Working with wheel data</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-18"><meta name="DC.source" content="using_wheel.m"><style type="text/css">
+      --><title>Working with wheel data</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-30"><meta name="DC.source" content="using_wheel.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Working with wheel data</h1><!--introduction--><p>In the Burgess wheel task a visual stimulus is yoked to LEGO wheel via a rotary encoder.  Below are some things to consider when designing or modifying a wheel task.  For information on setting up the rotary encoder, see <a href="./hardware_config.html#29">Hardware Configuration: DAQ rotary encoder</a>.  For information on wiring a rotary encoder for the Burgess steering wheel task, see the <a href="Burgess_hardware_setup.html">Burgess hardware setup instructions</a> .</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The wheel input in Signals</a></li><li><a href="#2">Load information about the wheel from the hardware file</a></li><li><a href="#3">Load the wheel data</a></li><li><a href="#4">Convert to linear displacement (cm)</a></li><li><a href="#5">Convert to angular displacement (rad)</a></li><li><a href="#6">Convert to angular displacement (RPM)</a></li><li><a href="#7">Convert to angular displacement (deg)</a></li><li><a href="#8">Convert to azimuth (visual degrees)</a></li><li><a href="#9">Notes</a></li><li><a href="#10">Etc.</a></li></ul></div><h2 id="1">The wheel input in Signals</h2><p>There are currently three wheel-related inputs used by the Signals Experiment class.  These can be accessed via a subscripted reference(1) to the 'inputs' argument of an <a href="./glossary.html">experiment definition function (expDef)</a> :</p><div><ol><li>wheel - the raw value of the rotary encoder, polled on every iteration of the main experiment loop.  Each time the rotary encoder moves suffeciently it sends out a pulse.  These are integrated by a counter channel and the output is seen in the wheel signal.  This Signal is zero'd at the beginning of the experiment.</li><li>wheelMM - the wheel movement in units of centimetres linear displacement.  That is the distance the wheel would have rolled along a flat surface. This Signal is zero'd at the beginning of the experiment.</li><li>wheelDeg - the wheel movement in degrees.  This Signal is zero'd at the beginning of the experiment.</li></ol></div><p>The <tt>wheelMM</tt> and <tt>wheelDeg</tt> signals simply map the values of <tt>wheel</tt> through a function based on information found in the hardware file's mouseInput object, namely the 'WheelDiameter' and 'EncoderResolution' properties.</p><h2 id="2">Load information about the wheel from the hardware file</h2><p>For a given experiment you may wish to load the hardware used, and to view the settings for the rotary encoder.  Each experiment, a JSON copy of the hardware file is saved to the <a href="./glossary.html">main repository</a>. This preserves the settings as they were at the time the experiment ran. The below code searches for this JSON file and tries to load it.  If it doesn't exist, the current hardware file is loaded instead.  Some information about the rotary encoder settings are the printed.</p><pre class="codeinput">expRef = <span class="string">'2019-03-28_1_default'</span>; <span class="comment">% Example experiment</span>
+  </style></head><body><div class="content"><h1>Working with wheel data</h1><!--introduction--><p>In the Burgess wheel task a visual stimulus is yoked to LEGO wheel via a rotary encoder.  Below are some things to consider when designing or modifying a wheel task.  For information on setting up the rotary encoder, see <a href="./hardware_config.html#29">Hardware Configuration: DAQ rotary encoder</a>.  For information on wiring a rotary encoder for the Burgess steering wheel task, see the <a href="Burgess_hardware_setup.html">Burgess hardware setup instructions</a> .</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">The wheel input in Signals</a></li><li><a href="#2">Load information about the wheel from the hardware file</a></li><li><a href="#3">Load the wheel data</a></li><li><a href="#4">Convert to linear displacement (cm)</a></li><li><a href="#5">Convert to angular displacement (rad)</a></li><li><a href="#6">Convert to angular displacement (RPM)</a></li><li><a href="#7">Convert to angular displacement (deg)</a></li><li><a href="#8">Convert to azimuth (visual degrees)</a></li><li><a href="#9">Compute velocity and acceleration</a></li><li><a href="#10">Detecting wheel movements</a></li><li><a href="#13">Classifying wheel movements</a></li><li><a href="#14">Event-triggered traces</a></li><li><a href="#15">Notes</a></li><li><a href="#16">Etc.</a></li></ul></div><h2 id="1">The wheel input in Signals</h2><p>There are currently three wheel-related inputs used by the Signals Experiment class.  These can be accessed via a subscripted reference(1) to the 'inputs' argument of an <a href="./glossary.html">experiment definition function (expDef)</a> :</p><div><ol><li>wheel - the raw value of the rotary encoder, polled on every iteration of the main experiment loop.  Each time the rotary encoder moves suffeciently it sends out a pulse.  These are integrated by a counter channel and the output is seen in the wheel signal.  This Signal is zero'd at the beginning of the experiment.</li><li>wheelMM - the wheel movement in units of centimetres linear displacement.  That is the distance the wheel would have rolled along a flat surface. This Signal is zero'd at the beginning of the experiment.</li><li>wheelDeg - the wheel movement in degrees.  This Signal is zero'd at the beginning of the experiment.</li></ol></div><p>The <tt>wheelMM</tt> and <tt>wheelDeg</tt> signals simply map the values of <tt>wheel</tt> through a function based on information found in the hardware file's mouseInput object, namely the 'WheelDiameter' and 'EncoderResolution' properties.</p><h2 id="2">Load information about the wheel from the hardware file</h2><p>For a given experiment you may wish to load the hardware used, and to view the settings for the rotary encoder.  Each experiment, a JSON copy of the hardware file is saved to the <a href="./glossary.html">main repository</a>. This preserves the settings as they were at the time the experiment ran. The below code searches for this JSON file and tries to load it.  If it doesn't exist, the current hardware file is loaded instead.  Some information about the rotary encoder settings are the printed.</p><pre class="codeinput">expRef = <span class="string">'2019-03-28_1_default'</span>; <span class="comment">% Example experiment</span>
 jsonPath = dat.expFilePath(expRef, <span class="string">'hw-info'</span>, <span class="string">'master'</span>, <span class="string">'json'</span>);
 <span class="keyword">if</span> exist(jsonPath, <span class="string">'file'</span>) <span class="comment">% Check is hardware JSON exists</span>
   <span class="comment">% If the JSON file exists load that as the wheel may have sinced changed</span>
@@ -104,23 +104,18 @@ Fs = 1000; <span class="comment">% Frequency to resample at</span>
   <span class="comment">% Correct for over-/underflow</span>
   pos = wheel.correctCounterDiscont(pos);
 <span class="keyword">end</span>
-</pre><h2 id="4">Convert to linear displacement (cm)</h2><p>If the units are in samples (i.e. loaded from inputs.wheel or inputSensorPos), convert to units of centimetres linear displacement. That is the distance the wheel would have rolled along a flat surface.</p><pre class="codeinput">posCM = (rig.mouseInput.MillimetresFactor/10) .* pos; <span class="comment">%#ok&lt;*NASGU&gt;</span>
+</pre><h2 id="4">Convert to linear displacement (cm)</h2><p>If the units are in samples (i.e. loaded from inputs.wheel or inputSensorPos), convert to units of centimetres linear displacement. That is the distance the wheel would have rolled along a flat surface.</p><pre class="codeinput">posCM = (rig.mouseInput.MillimetresFactor/10) .* pos;
 <span class="comment">% or alternatively</span>
 res = rig.mouseInput.EncoderResolution*4; <span class="comment">% Resolution * 4 for '4X' encoders</span>
 D = rig.mouseInput.WheelDiameter/10; <span class="comment">% Converted to cm from mm</span>
 posCM = pos./res * pi * D;
-
-<span class="comment">% The velocity is the derivative of this, so it's the tangential velocity</span>
-<span class="comment">% in cm/sec</span>
-smoothSize = 0.03; <span class="comment">% Gaussian smoothing window</span>
-[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
 </pre><h2 id="5">Convert to angular displacement (rad)</h2><p>For angular displacement / velocity, just divide by the wheel radius</p><pre class="codeinput">posRad = posCM / 0.5*D; <span class="comment">% in radians</span>
 velAng = vel / 0.5*D; <span class="comment">% in rad/sec</span>
 </pre><h2 id="6">Convert to angular displacement (RPM)</h2><p>Convert this to the more intuitive revolutions per minute:</p><pre class="codeinput">RPM = velAng*60 / 2*pi;
 </pre><h2 id="7">Convert to angular displacement (deg)</h2><p>For displacement in degrees:</p><pre class="codeinput">posDeg = rad2deg(posRad);
 velDeg = rad2deg(velAng);
 <span class="comment">% or...</span>
-posDeg = pos / res*360;
+posDeg = pos * res/360;
 </pre><h2 id="8">Convert to azimuth (visual degrees)</h2><p>If you know the response threshold in visual degrees, you can convert this to visual degrees.</p><pre class="codeinput">thresh = 35; <span class="comment">% visual degrees azimuth</span>
 <span class="comment">% Position relative to interactive on</span>
 pos = pos - pos(1);
@@ -130,7 +125,41 @@ dist = diff([pos(1) pos(end)]);
 <span class="comment">% 1]</span>
 posAzi = (pos/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
 velAzi = (vel/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
-</pre><h2 id="9">Notes</h2><p>(1) e.g. 'inputs.foo'.  This is know as dot notation.  More info <a href="https://uk.mathworks.com/help/matlab/ref/subsref.html">here</a> .</p><h2 id="10">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><h2 id="9">Compute velocity and acceleration</h2><p>To compute the velocity we take the derivative of the position, convolving with a Gaussian smoothing window to remove large jumps between samples.</p><p>The position samples should be evenly sampled at a given rate (Fs).  See section on loading the wheel data for more info.</p><p>The units of the window are in seconds, and the Rigbox <tt>wheel.velocity.npy</tt> ALF file is extracted using one of 0.03 seconds. Naturally, The velocity units are the derivitive of the position units, so if the input units are in linear cm, the output would be the tangential velocity in cm/sec.  Likewise the acceleration units would be cm/sec^2.</p><p>NB: The outputs are both column arrays (Nx1)</p><pre class="codeinput">smoothSize = 0.03; <span class="comment">% Gaussian smoothing window</span>
+[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
+</pre><h2 id="10">Detecting wheel movements</h2><p>The <tt>wheel</tt> package contains functions for detecting and classifying movements.  The wheel detection algorithm looks for sufficiently large changes in position over a given amount of time.</p><p>The default position threshold parameters are in samples and were chosen for data from a 1024 resolution rotary encoder acquired with 4X encoding.</p><p>A description of the algorithm and parameters can be found in the function help.  The defaults are those used in the extraction of the wheelMoves ALF file.</p><pre class="codeinput">help <span class="string">wheel.findWheelMoves3</span>
+
+<span class="comment">% Load some test data</span>
+[onsets, offsets, displacement, peakVelTimes, peakAmps] = <span class="keyword">...</span>
+  findWheelMoves3(pos, t, Fs, <span class="string">'makePlots'</span>, true);
+</pre><pre>  [onsets, offsets, s, peakVelTimes, peakAmps] = findWheelMoves3(pos, t, Fs, params)</pre><pre>  Algorithm: for each point, is there &gt; posThresh max movement in the
+  next tThresh seconds. If there is, then that tThresh window is part of a
+  movement. Merge small gaps. Now for every time you go from not-moving to
+  moving, jump ahead by tThresh and look backwards in time until you find a
+  point that's very close to the starting point (different by &lt;
+  posThreshOnset). Finally, drop movements that are too brief.</pre><pre>  Required Inputs:
+    pos : an array of wheel positions
+    t : an array of wheel sample timestamps
+    Fs : the sampling frequency used for linear interpolation</pre><pre>  Optional Parameters (may be struct or name-value pairs):
+    posThresh = 8 : if position changes by less than this
+    tThresh = 0.2 : over at least this much time, then it is a quiescent period
+    minGap = 0.1 : any movements that have this little time between the end
+      of one and the start of the next, we'll join them
+    posThreshOnset = 1.5 : a lower threshold, used when finding exact onset times.
+    minDur = 0.05 : seconds, movements shorter than this are dropped.
+    makePlots = false : plot position and velocity showing detected movements.
+    batchSize = 10000 : compute in batches of this size.  The larger the
+      matrix the higher the memory use, but not by much.  Must be &gt;= length(pos).</pre><pre>  Outputs:
+    onsets : an array of detected movement onset times
+    offsets : an array of detected movement offset times
+    displacement : the total displacement of each movement
+    peakVelTimes : the time of peak velocity for each detected movement
+    peakAmplitude : the absolute maximum amplitude of each detected
+      movement, relative to onset position.</pre><p><img vspace="5" hspace="5" src="./images/wheelMoves_example.png" alt=""> </p><h2 id="13">Classifying wheel movements</h2><p>Wheel movements may be classified in a somewhat task-agnostic way using <tt>wheel.findWheelMoves</tt>.  This function determines the response thresholds empirically, given the interactive start times and response times.</p><div><ul><li>`intStartTime` is the time that interactive period started</li><li>`respTime` is the choiceworld-defined response time</li><li>`resp` is the response type (1, 2, or 3). Typically, 1 is for 'choose left' responses, 2 for 'choose right', and 3 for 'no-go' or timeout trials.</li></ul></div><p>Returned is an array of movement labels - values of 0-3.  The extracted ALF file <tt>wheelMoves.type.csv</tt> encodes these values with the following labels:</p><div><ul><li>(0) other - A movment that was not sufficiently large enough to reach threshold</li><li>(1) CW - A clockwise wheel movement that reached threshold</li><li>(2) CCW - A counter-clockwise wheel movement that reached threshold</li><li>(3) flinch - A movement that reached both thresholds in quick succession</li></ul></div><pre class="codeinput">moveType = wheel.classifyWheelMoves(<span class="keyword">...</span>
+  t, pos, moveOnsets, moveOffsets, intStartTime, respTime, resp);
+</pre><h2 id="14">Event-triggered traces</h2><p><tt>wheel.eventTrigAvgAllTraces</tt> returns the mean and standard deviation of the wheel positions ('data') around each of the timestamps in 'events'.</p><p>This function differs from <tt>eventTrigAvg</tt> in that it will return you all snippets of the data around the events, rather than just the average and standard deviation. This makes it slower, and it can only work with one data trace at a time.</p><p>Inputs:</p><div><ol><li>data [1xN] - Continuous data trace(s) (e.g. LFP, eye position), N   samples</li><li>events [1xE] - List of E timestamps, in seconds</li><li>window [1x2] - Times, in seconds, relative to the events that you're   interested in. For example, to average data from 50ms prior to 200ms   after each event, use window = [-0.05 0.2]</li><li>Fs - Sampling frequency of data</li></ol></div><pre class="codeinput">[trace, stdev, allTraces] = wheel.eventTrigAvgAllTraces(data, events, window, Fs);
+</pre><h2 id="15">Notes</h2><p>(1) e.g. 'inputs.foo'.  This is know as dot notation.  More info <a href="https://uk.mathworks.com/help/matlab/ref/subsref.html">here</a>.</p><h2 id="16">Etc.</h2><p>Author: Miles Wells</p><p>v1.0.1</p><pre class="codeinput"><span class="comment">%#ok&lt;*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Working with wheel data
 % In the Burgess wheel task a visual stimulus is yoked to LEGO wheel via
@@ -219,16 +248,11 @@ end
 % If the units are in samples (i.e. loaded from inputs.wheel or
 % inputSensorPos), convert to units of centimetres linear displacement.
 % That is the distance the wheel would have rolled along a flat surface.
-posCM = (rig.mouseInput.MillimetresFactor/10) .* pos; %#ok<*NASGU>
+posCM = (rig.mouseInput.MillimetresFactor/10) .* pos; 
 % or alternatively
 res = rig.mouseInput.EncoderResolution*4; % Resolution * 4 for '4X' encoders
 D = rig.mouseInput.WheelDiameter/10; % Converted to cm from mm
 posCM = pos./res * pi * D;
-
-% The velocity is the derivative of this, so it's the tangential velocity
-% in cm/sec
-smoothSize = 0.03; % Gaussian smoothing window
-[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
 
 %% Convert to angular displacement (rad)
 % For angular displacement / velocity, just divide by the wheel radius
@@ -244,7 +268,7 @@ RPM = velAng*60 / 2*pi;
 posDeg = rad2deg(posRad);
 velDeg = rad2deg(velAng);
 % or...
-posDeg = pos / res*360;
+posDeg = pos * res/360;
 
 %% Convert to azimuth (visual degrees)
 % If you know the response threshold in visual degrees, you can convert
@@ -259,14 +283,134 @@ dist = diff([pos(1) pos(end)]);
 posAzi = (pos/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
 velAzi = (vel/abs(dist) * thresh) - (sign(dist) * sign(correct) * thresh);
 
+%% Compute velocity and acceleration
+% To compute the velocity we take the derivative of the position,
+% convolving with a Gaussian smoothing window to remove large jumps between
+% samples.  
+%
+% The position samples should be evenly sampled at a given rate (Fs).  See
+% section on loading the wheel data for more info.
+%
+% The units of the window are in seconds, and the Rigbox
+% |wheel.velocity.npy| ALF file is extracted using one of 0.03 seconds.
+% Naturally, The velocity units are the derivitive of the position units,
+% so if the input units are in linear cm, the output would be the
+% tangential velocity in cm/sec.  Likewise the acceleration units would be
+% cm/sec^2.
+%
+% NB: The outputs are both column arrays (Nx1)
+smoothSize = 0.03; % Gaussian smoothing window
+[vel, acc] = wheel.computeVelocity2(pos, smoothSize, Fs);
+
+%% Detecting wheel movements
+% The |wheel| package contains functions for detecting and classifying
+% movements.  The wheel detection algorithm looks for sufficiently large
+% changes in position over a given amount of time.
+% 
+% The default position threshold parameters are in samples and were chosen
+% for data from a 1024 resolution rotary encoder acquired with 4X encoding.
+%
+% A description of the algorithm and parameters can be found in the
+% function help.  The defaults are those used in the extraction of the
+% wheelMoves ALF file.
+help wheel.findWheelMoves3
+
+% Load some test data
+[onsets, offsets, displacement, peakVelTimes, peakAmps] = ...
+  findWheelMoves3(pos, t, Fs, 'makePlots', true);
+
+%%%
+%    [onsets, offsets, s, peakVelTimes, peakAmps] = findWheelMoves3(pos, t, Fs, params)
+%  
+%    Algorithm: for each point, is there > posThresh max movement in the
+%    next tThresh seconds. If there is, then that tThresh window is part of a
+%    movement. Merge small gaps. Now for every time you go from not-moving to
+%    moving, jump ahead by tThresh and look backwards in time until you find a
+%    point that's very close to the starting point (different by <
+%    posThreshOnset). Finally, drop movements that are too brief.
+%   
+%    Required Inputs:
+%      pos : an array of wheel positions
+%      t : an array of wheel sample timestamps 
+%      Fs : the sampling frequency used for linear interpolation
+%  
+%    Optional Parameters (may be struct or name-value pairs): 
+%      posThresh = 8 : if position changes by less than this
+%      tThresh = 0.2 : over at least this much time, then it is a quiescent period
+%      minGap = 0.1 : any movements that have this little time between the end 
+%        of one and the start of the next, we'll join them
+%      posThreshOnset = 1.5 : a lower threshold, used when finding exact onset times.     
+%      minDur = 0.05 : seconds, movements shorter than this are dropped.
+%      makePlots = false : plot position and velocity showing detected movements.
+%      batchSize = 10000 : compute in batches of this size.  The larger the 
+%        matrix the higher the memory use, but not by much.  Must be >= length(pos).
+%  
+%    Outputs:
+%      onsets : an array of detected movement onset times
+%      offsets : an array of detected movement offset times
+%      displacement : the total displacement of each movement
+%      peakVelTimes : the time of peak velocity for each detected movement
+%      peakAmplitude : the absolute maximum amplitude of each detected 
+%        movement, relative to onset position.
+%%%
+% 
+% <<./images/wheelMoves_example.png>>
+% 
+
+%% Classifying wheel movements
+% Wheel movements may be classified in a somewhat task-agnostic way using
+% |wheel.findWheelMoves|.  This function determines the response thresholds
+% empirically, given the interactive start times and response times.
+%
+% * `intStartTime` is the time that interactive period started
+% * `respTime` is the choiceworld-defined response time
+% * `resp` is the response type (1, 2, or 3). Typically, 1 is for 'choose
+% left' responses, 2 for 'choose right', and 3 for 'no-go' or timeout
+% trials.
+%
+% Returned is an array of movement labels - values of 0-3.  The extracted
+% ALF file |wheelMoves.type.csv| encodes these values with the following
+% labels:
+% 
+% * (0) other - A movment that was not sufficiently large enough to reach
+% threshold
+% * (1) CW - A clockwise wheel movement that reached threshold
+% * (2) CCW - A counter-clockwise wheel movement that reached threshold
+% * (3) flinch - A movement that reached both thresholds in quick succession
+%
+moveType = wheel.classifyWheelMoves(...
+  t, pos, moveOnsets, moveOffsets, intStartTime, respTime, resp);
+
+%% Event-triggered traces
+% |wheel.eventTrigAvgAllTraces| returns the mean and standard deviation of
+% the wheel positions ('data') around each of the timestamps in 'events'.
+%
+% This function differs from |eventTrigAvg| in that it will return you all
+% snippets of the data around the events, rather than just the average and
+% standard deviation. This makes it slower, and it can only work with one
+% data trace at a time. 
+%
+% Inputs:   
+%
+% # data [1xN] - Continuous data trace(s) (e.g. LFP, eye position), N
+%   samples
+% # events [1xE] - List of E timestamps, in seconds
+% # window [1x2] - Times, in seconds, relative to the events that you're
+%   interested in. For example, to average data from 50ms prior to 200ms
+%   after each event, use window = [-0.05 0.2]
+% # Fs - Sampling frequency of data
+%
+[trace, stdev, allTraces] = wheel.eventTrigAvgAllTraces(data, events, window, Fs);
+
 %% Notes
 % (1) e.g. 'inputs.foo'.  This is know as dot notation.  More info
-% <https://uk.mathworks.com/help/matlab/ref/subsref.html here> .
+% <https://uk.mathworks.com/help/matlab/ref/subsref.html here>.
 
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.0.1
 
+%#ok<*NASGU>
 ##### SOURCE END #####
 --></body></html>

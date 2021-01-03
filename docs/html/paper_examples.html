@@ -1,0 +1,135 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Running the paper examples</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-19"><meta name="DC.source" content="paper_examples.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Running the paper examples</h1><!--introduction--><p>This guide provides up-to-date steps for running the examples provided in the <a href="https://www.biorxiv.org/content/10.1101/672204v3">Rigbox paper</a>(1). Before starting, ensure Rigbox has been installed following the <a href="./install.html">installation guide</a>.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Add examples to search path</a></li><li><a href="#2">Example 1 - The Ringach Experiment</a></li><li><a href="#3">Run Example 1</a></li><li><a href="#4">Example 2 - Signals Pong</a></li><li><a href="#5">Run Example 2</a></li><li><a href="#6">References</a></li></ul></div><h2 id="1">Add examples to search path</h2><p>To ensure that these examples are in your MATLAB search path, run the following code:</p><pre class="codeinput">rigbox = fileparts(which(<span class="string">'addRigboxPaths'</span>)); <span class="comment">% Location of Rigbox folder</span>
+addpath(fullfile(rigbox, <span class="string">'signals'</span>, <span class="string">'docs'</span>, <span class="string">'examples'</span>)) <span class="comment">% Add examples to path</span>
+</pre><h2 id="2">Example 1 - The Ringach Experiment</h2><p>Our first example of a human-interactive Signals experiment is a script that recreates a psychophysics experiment to study the mechanisms that underlie the discrimination of a visual stimulus(2). In this experiment, the observer looks at visual gratings that change rapidly and randomly in orientation and phase. The gratings change so rapidly that they summate in the visual system, and the observer tends to perceive two or three of them as superimposed. The task of the observer is to hit the 'ctrl' key whenever the grating's orientation is vertical. At key press, the probability of detection is plotted as a function of stimulus orientation in the recent past. Typically, this exposes a center-surround type of organization, with orientations near vertical eliciting responses, but orientations further away suppressing responses.</p><p><img vspace="5" hspace="5" width="500" src="./images/Fig3_ringachGratingHistogram.png" alt=""> </p><h2 id="3">Run Example 1</h2><p>To view the first example, simply run the <tt>signals/docs/examples/ringach98.m</tt> file.  To start the experiment, click the 'Play' button.  When finished, simply close the figure.</p><pre class="codeinput">ringach98 <span class="comment">% Run the experiment</span>
+</pre><h2 id="4">Example 2 - Signals Pong</h2><p>A second human-interactive Signals experiment contained in the Rigbox repository is an exp def which runs the classic computer game, Pong. The signal which sets the player's paddle position is mapped to the optical mouse. The epoch structure is set so that a trial ends on a score, and the experiment ends when either the player or cpu reaches a target score.</p><p><img vspace="5" hspace="5" width="500" src="./images/Fig6-pong.png" alt=""> </p><h2 id="5">Run Example 2</h2><p>To run Pong, simply call <tt>eui.SignalsTest</tt> in MATLAB and select <tt>signalsPong.m</tt>, or run the below code.  To play, click the 'Start' button.  When finished, click the 'Stop' button and close the figure.</p><pre class="codeinput">eui.SignalsTest(<span class="string">'signalsPong'</span>);
+</pre><h2 id="6">References</h2><div><ol><li>Bhagat J, Wells MJ, et al.  (2019) Rigbox: an Open-Source Toolbox for Probing Neurons and Behavior. bioRxiv 672204</li><li>Ringach DL (1998) Tuning of orientation detectors in human vision. Vision Res 38, 963-972.</li></ol></div><p>Authors: Jai Bhagat, Matteo Caranini, Miles Wells</p><p>v1.0.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Running the paper examples
+% This guide provides up-to-date steps for running the examples provided in
+% the <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>(1).
+% Before starting, ensure Rigbox has been installed following the
+% <./install.html installation guide>.
+
+%% Add examples to search path
+% To ensure that these examples are in your MATLAB search path, run the
+% following code:
+rigbox = fileparts(which('addRigboxPaths')); % Location of Rigbox folder
+addpath(fullfile(rigbox, 'signals', 'docs', 'examples')) % Add examples to path
+
+%% Example 1 - The Ringach Experiment
+% Our first example of a human-interactive Signals experiment is a script
+% that recreates a psychophysics experiment to study the mechanisms that
+% underlie the discrimination of a visual stimulus(2). In this experiment,
+% the observer looks at visual gratings that change rapidly and randomly in
+% orientation and phase. The gratings change so rapidly that they summate
+% in the visual system, and the observer tends to perceive two or three of
+% them as superimposed. The task of the observer is to hit the 'ctrl' key
+% whenever the grating's orientation is vertical. At key press, the
+% probability of detection is plotted as a function of stimulus orientation
+% in the recent past. Typically, this exposes a center-surround type of
+% organization, with orientations near vertical eliciting responses, but
+% orientations further away suppressing responses.
+% 
+% <<./images/Fig3_ringachGratingHistogram.png>>
+
+%%% Run Example 1
+% To view the first example, simply run the
+% |signals/docs/examples/ringach98.m| file.  To start the experiment, click
+% the 'Play' button.  When finished, simply close the figure.
+ringach98 % Run the experiment
+
+%% Example 2 - Signals Pong
+% A second human-interactive Signals experiment contained in the Rigbox
+% repository is an exp def which runs the classic computer game, Pong. The
+% signal which sets the player's paddle position is mapped to the optical
+% mouse. The epoch structure is set so that a trial ends on a score, and
+% the experiment ends when either the player or cpu reaches a target score.
+% 
+% <<./images/Fig6-pong.png>>
+
+%%% Run Example 2
+% To run Pong, simply call |eui.SignalsTest| in MATLAB and select
+% |signalsPong.m|, or run the below code.  To play, click the 'Start'
+% button.  When finished, click the 'Stop' button and close the figure.
+eui.SignalsTest('signalsPong');
+
+%% References
+% # Bhagat J, Wells MJ, et al.  (2019) Rigbox: an Open-Source Toolbox for
+% Probing Neurons and Behavior. bioRxiv 672204
+% # Ringach DL (1998) Tuning of orientation detectors in human vision.
+% Vision Res 38, 963-972.
+%
+% Authors: Jai Bhagat, Matteo Caranini, Miles Wells
+%
+% v1.0.0
+
+##### SOURCE END #####
+--></body></html>

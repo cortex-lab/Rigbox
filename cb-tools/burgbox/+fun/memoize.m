@@ -24,10 +24,12 @@ function f = memoize(fun, keyfun)
 %   wrapping function does is cache the returned args, it does not recreate
 %   'side effects' that occur inside your function.
 %
-%   Note that since each set of arguments passed is used to compare with
+%   Note 1: since each set of arguments passed is used to compare with
 %   entries in a lookup table, wrapping functions that you pass large
 %   arrays might be very slow. Every element of your array will need to be
 %   compared to each in the lookup table when checking the cache.
+%
+%   Note 2: MATLAB added a memoize function in 2017a
 %
 % Part of Burgbox
 

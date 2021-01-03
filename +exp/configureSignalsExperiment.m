@@ -1,6 +1,39 @@
 function e = configureSignalsExperiment(paramStruct, rig)
-%UNTITLED13 Summary of this function goes here
-%   Detailed explanation goes here
+%exp.configureSignalsExperiment Setup Signals Experiment class
+%   Instantiate the exp.SignalsExp class and configure the object.
+%   Subclasses may be instantiated here using the type parameter.
+%
+%   Inputs:
+%     paramStruct : a SignalsExp parameter structure
+%     rig : a structure of rig hardware objects returned by hw.devices)
+%
+%   Output:
+%     e : a SignalsExp object
+%
+%   Example:
+%     rig = hw.devices;
+%     rig.stimWindow.open();
+%     pars = exp.inferParameters(@choiceWorld);
+%     e = exp.configureSignalsExperiment(pars, rig);
+%     e.run([]);
+%
+% See also exp.configureFilmExperiment, exp.configureChoiceExperiment
+
+%% Set the background colour
+if isfield(rig, 'stimWindow') && rig.stimWindow.IsOpen
+  % If the 'bgColour' parameter is defined use that value, otherwise use
+  % the current background colour
+  bgColour = getOr(paramStruct, 'bgColour', rig.stimWindow.BackgroundColour);
+  fullRange = rig.stimWindow.ColourRange;
+  assert(numel(bgColour) < 5, ...
+    'Rigbox:exp:configureSignalsExperiment:bgColourSize', ...
+    'background colour must be 1, 3 or 4 elements and cannot vary by trial')
+  % Normalize by available colour range based on current pixel depth.  This
+  % is nearly always 0-255 and sometimes 0-1 but technically it could be
+  % any positive number
+  rig.stimWindow.BackgroundColour = (bgColour / 255) * fullRange;
+  paramStruct.bgColour = rig.stimWindow.BackgroundColour(:);
+end
 
 %% Create the experiment object
 e = exp.SignalsExp(paramStruct, rig);

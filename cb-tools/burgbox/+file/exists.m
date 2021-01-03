@@ -8,7 +8,7 @@ function b = exists(path)
 % Part of Burgbox
 
 % 2013-07 CB created
-
+path = convertStringsToChars(path);
 existfun = @(p) isdir(p) || numel(dir(p)) == 1;
 
 if iscellstr(path)

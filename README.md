@@ -1,7 +1,7 @@
 ----------
 # Rigbox
-![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fcoverage%2Frigbox%2Fmaster)
-![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fsilent-zebra-36.tunnel.datahub.at%2Fstatus%2Frigbox%2Fmaster)
+![Coverage badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fcoverage%2Frigbox%2Fmaster)
+![Build status badge](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Frigbox.hooks.internationalbrainlab.org%2Fstatus%2Frigbox%2Fmaster)
 
 Rigbox is a high-performance, open-source MATLAB toolbox for managing behavioral neuroscience experiments. Rigbox's main goals are to simplify hardware/software interfacing, behavioral task design, and visual and auditory stimuli presentation. Additionally, Rigbox can time-align datastreams from multiple sources and communicate with a remote database to manage experiment data. Rigbox is mostly object-oriented and highly modular, which simplifies the process of designing experiments. For detailed information, see [the publication](https://www.biorxiv.org/content/10.1101/672204v3). 
 
@@ -74,7 +74,7 @@ If you experience a bug or have a feature request, please report it via [github 
 
 Rigbox was created by [Chris Burgess](https://github.com/dendritic/) in 2013, initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel). It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
 
-Please cite [the Rigbox publication](https://www.biorxiv.org/content/10.1101/672204v3) appropriately in publications which use Rigbox to run behavioral tasks and/or acquire data.
+Please cite [the Rigbox publication](http://dx.doi.org/10.1523/ENEURO.0406-19.2020) appropriately in publications which use Rigbox to run behavioral tasks and/or acquire data.
 
 ## Acknowledgements
 

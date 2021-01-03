@@ -1,7 +1,3 @@
-After installing Rigbox, we recommend reading the files below in the given order for setting up and customizing Rigbox on a new rig.
-
-- `paths_config.m` - configure the paths that Rigbox will use.
-- `paths_template.m` - an example paths file that Rigbox will use.
-- `hardware_config.m` - configure hardware on SC.
-- `websocket_config.m` - set up communication between MC and SC.
-- `Burgess_setup.m` - (optional) configure reasonable defaults for running the [Burgess Steering Wheel Task](https://www.ncbi.nlm.nih.gov/pubmed/28877482).
+# Rigbox Setup
+Instructions and documentation for setting up Rigbox can be found at http://cortex-lab.github.io/Rigbox/.
+A local version of this Website is located in docs/html/index.html 

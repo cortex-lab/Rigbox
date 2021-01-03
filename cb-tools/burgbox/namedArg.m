@@ -8,7 +8,8 @@ function [present, value, idx] = namedArg(args, name)
 
 % 2014-02 CB created
 
-idx = find(cellfun(@(a) strcmpi(a, name), args), 1);
+matches = @(s) (ischar(s) || isStringScalar(s)) && strcmpi(s, name);
+idx = find(cellfun(matches, args), 1);
 if ~isempty(idx)
   present = true;
   value = args{idx + 1};
