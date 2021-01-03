@@ -74,7 +74,7 @@ If you experience a bug or have a feature request, please report it via [github 
 
 Rigbox was created by [Chris Burgess](https://github.com/dendritic/) in 2013, initially developed to probe mouse behavior for the [Steering Wheel Setup](https://www.ucl.ac.uk/cortexlab/tools/wheel). It is now maintained and developed by Miles Wells (miles.wells@ucl.ac.uk), Jai Bhagat (j.bhagat@ucl.ac.uk) and a number of others at [CortexLab](https://www.ucl.ac.uk/cortexlab). See also the full list of [contributors](https://github.com/cortex-lab/Rigbox/graphs/contributors).
 
-Please cite [the Rigbox publication](https://www.biorxiv.org/content/10.1101/672204v3) appropriately in publications which use Rigbox to run behavioral tasks and/or acquire data.
+Please cite [the Rigbox publication](http://dx.doi.org/10.1523/ENEURO.0406-19.2020) appropriately in publications which use Rigbox to run behavioral tasks and/or acquire data.
 
 ## Acknowledgements
 
