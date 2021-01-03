@@ -12,7 +12,24 @@ This file contains a curated, chronologically ordered list of notable changes ma
 - fixed typo in calibration_test that meant parameter default was used `d58408e` 2020-02-03
 - removed redundant cellfun call in dat.listSubjects and brought dat.newExp back in line with Alyx.newExp `ee35ed3` 2020-02-14
 - zeroing of devices in exp.SignalsExp now occurs within init, in line with exp.Experiment `3ba222f` 2020-03-13
-
+- Experiments can now be started by calling expServer with an expRef.
+- Command output type now matches input type in git.runCmd
+- Fixed value unassigned error when no lag in `asyncFlipEnd`
+- Fixed uniform output error when inputs non-scalar in `namedArg` function
+- Fixed uniform output error when default value a cell or string in `pick` function
+- Input arg 'field' may now be a string array in `getOr` function
+- Informative error thrown if PsychToolbox is likely not set up
+- Removed unnecessary cellfun call in dat.listSubjects
+- More informative error messages and IDs; now local exp folder is removed if remote folder creation fails
+- Zeroing of input devices now happens during initialization in signals, closer to experiment start
+- The RigName property is now used in SignalsExp, in line with exp.Experiment behaviour
+- The update day may now be a char, cellstr, or string array, and the 'updateSchedule' field of |dat.paths| may be set to -1/'never' to turn off updates
+- Pressing 'h' key in expServer will display the keyboard shortcuts.  
+- The calibration plot will now be displayed on the screen.
+- Stimulus window background colour can now be set with a 'bgColor' field in the parameter struct
+- New +git functions display Rigbox versions and allow you to switch between them
+- Warning instead of error when no stereo output device found in eui.SignalsTest
+- A huge amount of refactoring, especially of the expServer; new tests and documentation
 
 ## [2.5.0]
 
