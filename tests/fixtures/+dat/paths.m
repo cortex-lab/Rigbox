@@ -26,7 +26,6 @@ p.rigbox = fileparts(which('addRigboxPaths'));
 p.localRepository = fullfile(p.rigbox, 'tests', 'fixtures', 'local');
 p.localAlyxQueue = fullfile(p.rigbox, 'tests', 'fixtures', 'alyxQ');
 p.databaseURL = 'https://test.alyx.internationalbrainlab.org';
-p.gitExe = 'C:\Program Files\Git\cmd\git.exe';
 p.updateSchedule = -1; % Never pull code
 
 % Under the new system of having data grouped by mouse

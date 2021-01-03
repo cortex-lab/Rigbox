@@ -1,23 +1,18 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
-    matlab.unittest.fixtures.PathFixture('../../fixtures'),...
-    matlab.unittest.fixtures.PathFixture(['../../fixtures' filesep 'util'])})... 
-    switchVersion_test < matlab.unittest.TestCase
+    matlab.unittest.fixtures.PathFixture('../../fixtures')})... 
+    switchVersion_test < GitTestCase
   %SWITCHVERSION_TEST contains unit tests for git.switchVersion
     
   properties (Access = protected)
     % Tags list for testing system command parse
     Tags = {'2.0', '2.1', '2.3.1', '2.4.0', 'v2.0', 'v2.2.1'}
   end
-    
+
   methods (TestMethodSetup)
-    function setMocks(testCase)
-      % SETMOCKS Map some outputs for calls to functions used by function
+    function setupMock(testCase)
+      % setupMock Map some outputs for calls to functions used by function
       %  Using these mocks we can simulate the result of system commands to
       %  control the output
-      TF = setTestFlag(true); % Suppress out-of-test warnings
-      % Clear up on teardown
-      testCase.addTeardown(@setTestFlag, TF)
-      testCase.applyFixture(ClearTestCache)
       % Set the system command output
       out = [strjoin(testCase.Tags, '\n') newline];
       system('*', {0, out}); % Set all commands to return success
@@ -53,13 +48,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
       testCase.verifyWarningFree(@() git.switchVersion('latest')); % git pull expected
       
       % Verify error on update to latest
-      in = sprintf('"%s" checkout origin/master', getOr(dat.paths, 'gitExe'));
+      in = sprintf('"%s" checkout origin/master', strtrim(testCase.GitEXE));
       system(in, {1, 'fail'}); % Update to latest fails
       testCase.verifyError(@() git.switchVersion('latest'), ...
         'Rigbox:git:switchVersion:failedToUpdate')
       
       % Verify unknown version warning
-      in = sprintf('"%s" describe --tags', getOr(dat.paths, 'gitExe'));
+      in = sprintf('"%s" describe --tags', strtrim(testCase.GitEXE));
       system(in, {1, ''}); % Update to latest fails
       testCase.verifyWarning(@() git.switchVersion('prev'), ...
         'Rigbox:git:switchVersion:versionUnknown')

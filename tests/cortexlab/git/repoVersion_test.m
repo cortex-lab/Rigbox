@@ -1,12 +1,13 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
-    matlab.unittest.fixtures.PathFixture('../../fixtures'),...
-    matlab.unittest.fixtures.PathFixture(['../../fixtures' filesep 'util'])})... 
-    repoVersion_test < matlab.unittest.TestCase
+    matlab.unittest.fixtures.PathFixture('../../fixtures')})...
+    repoVersion_test < GitTestCase
   %REPOVERSION_TEST contains unit tests for git.repoVersion
   
   properties
     % A char array for non-git directory
     Badrepo = 'C:/'
+    % The path to Git executable
+%     GitEXE char
   end
   
   properties (TestParameter)
@@ -15,19 +16,21 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
     % Expected output given tag parameter
     Expected = {'2.0.0', '1.0.3', '2.4.0'}
   end
-    
-  methods (TestMethodSetup)
-    function setMocks(testCase)
-      % SETMOCKS Map some outputs for calls to functions used by function
-      %  Using these mocks we can simulate the result of system commands to
-      %  control the output
-      TF = setTestFlag(true); % Suppress out-of-test warnings
-      % Clear up on teardown
-      testCase.addTeardown(@setTestFlag, TF)
-      testCase.applyFixture(ClearTestCache)
-    end
-  end
   
+%   methods (TestClassSetup)
+%       function setup(testCase)
+%           % SETUP Store Git location and add fixture to mock system command
+%           if isempty(testCase.GitEXE)
+%             [failed, testCase.GitEXE] = system('where git');
+%             assert(~failed)
+%           end
+%           assert(file.exists(strtrim(testCase.GitEXE)))
+%           import matlab.unittest.fixtures.PathFixture
+%           addFolder = ['../../fixtures' filesep 'util'];
+%           testCase.applyFixture(PathFixture(addFolder));
+%       end
+%   end
+%     
   methods (Test, ParameterCombination = 'sequential')    
     function testVersion(testCase, Tag, Expected)
       % Set the system command output

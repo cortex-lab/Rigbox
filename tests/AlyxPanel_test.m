@@ -128,13 +128,13 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
   
   methods (TestClassTeardown)
     function restoreFigures(testCase)
-      set(0,'DefaultFigureVisible',testCase.FigureVisibleDefault);
+      set(0, 'DefaultFigureVisible', testCase.FigureVisibleDefault);
       close(testCase.hPanel)
       delete(testCase.Panel)
       % Double check no figures left
       figHandles = findobj('Type', 'figure');
       if ~isempty(figHandles)
-        idx = cellfun(@(n)any(strcmp(n, testCase.Subjects)),{figHandles.Name});
+        idx = cellfun(@(n) any(strcmp(n, testCase.Subjects)), {figHandles.Name});
         close(figHandles(idx))
       end
       % Remove directories

@@ -99,7 +99,6 @@ classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
         'localRepository';
         'localAlyxQueue';
         'databaseURL';
-        'gitExe';
         'updateSchedule';
         'mainRepository';
         'globalConfig';
