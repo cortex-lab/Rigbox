@@ -1,28 +1,29 @@
-%% Rigbox Documentation
-% Welcome to Rigbox's online docs.  Here you can
+%% Rigging Toolbox Documentation
+% Welcome to the main Rigging Toolbox (Rigbox) documentation.  Here you can
 % find detailed documentation and guides on how to set up Rigbox, including
 % writing new experiments, setting up recording devices, running
-% experiments, and processing the resulting data.
+% experiments and processing the resulting data.
 % 
 % For instructions on how to run the examples from the
-% <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>, see
+% <http://dx.doi.org/10.1523/ENEURO.0406-19.2020 Rigbox paper>, see
 % <./paper_examples.html this guide>.
 
 %% Installing Rigbox
 % Below are some instructions for installing Rigbox. There are two guides,
-% the first is a thorough guide for users unfamiliar with MATLAB and Git.
+% the first is a thorough guide for users unfarmilliar with MATLAB and Git.
 % The second is for 'power users' who have a basic understanding of these
 % things.
 % 
-% # <./detailed_installation.html Detailed installation instructions>
-% # <https://github.com/cortex-lab/Rigbox#installation Installing
+% # <./install.html Detailed install instructions>
+% # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
 % for power users>
+% # <./updating_code.html Updating the code>
 % 
 
 %% Setting up experiments
-% Below is a set of steps for setting up Rigbox (after installation) in 
-% order to run a full experiment. To run test/example experiments, see 
-% <./paper_examples.html here.>
+% Below is a set of steps for setting up a full experiment in Rigbox.  A
+% full experiment being one where you record quality, reliable data that
+% gets saved into the <./glossary.html main experiment repository>.
 % 
 % Briefly, before you can run a full experiment you must 1) set up your
 % paths so that Rigbox knows from where to load rig settings and
@@ -34,12 +35,12 @@
 % # <./hardware_config.html How to configure hardware on the stimulus computer>
 % # <./websocket_config.html Setting up communication between the stimulus computer and MC>
 % # <./using_single_rig.html Setting up |mc| and |srv.expServer| on the same computer>
-% # <./Burgess_hardware_setup.html Burgess steering wheel task: hardware setup instructions> 
-% # <./Burgess_setup.html Burgess steering wheel task: software setup instructions>
+% # <./Burgess_hardware_setup.html Setting up hardware for the Burgess steering wheel task> 
+% # <./Burgess_setup.html Configuring harware for the Burgess steering wheel task>
 
 %% Running full experiments
 % Before you can run a complete experiment, you must set up Rigbox (see
-% above section).  Once this is done, you can follow the below
+% above section).  Once this is done there you can follow on of the below
 % sections to run a full experiment.
 
 %% Creating experiments
@@ -91,10 +92,6 @@
 % 
 % * <./using_dat_package.html The Data Package> - How to query data locations
 % and log experiments using the |+dat| package.
-% * <./SignalsPrimer.html How Signals works> - An in-depth guide to how
-% Signals works.  This shows you how to work with Signals outside of the
-% <Glossary.html Experiment Framework> and gives demonstrations of all
-% Signals methods ( |scan|, etc.)  
 % * <./Parameters.html Parameters> - How to create and edit
 % experiment parameters.
 % * <./AlyxMatlabPrimer.html Alyx> - How to interact with an Alyx database
@@ -111,6 +108,8 @@
 % * <./glossary.html Glossary of Rigbox terminology>
 % * <./using_visual_stimuli.html Details of the Signals viewing model>
 % * <./contributing.html How to edit the documentation>
+% * <./release_notes_v260.html v2.6.0 release notes>
+% * <./release_notes_v270.html v2.7.0 release notes>
 %
 
 %% Etc.

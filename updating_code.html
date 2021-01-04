@@ -1,0 +1,212 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Updating Rigbox</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-01-04"><meta name="DC.source" content="updating_code.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Updating Rigbox</h1><!--introduction--><p>This guide contains infomation on how to update Rigbox and how to switch back to older versions.  Updates can either be done automatically via Git or manually.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Before you update</a></li><li><a href="#2">Finding the current version</a></li><li><a href="#3">Automatic updating</a></li><li><a href="#4">Updating manually via Git</a></li><li><a href="#5">Switching between releases</a></li><li><a href="#6">Updating without Git</a></li><li><a href="#7">Etc.</a></li></ul></div><h2 id="1">Before you update</h2><p>It's often useful to read the <a href="index.html#8">release notes</a> or CHANGELOG. The former provides an overview of all changes, including a 'major changes' section which details the changes that may affect your analysis code or how experiments are run.  For instance changes to function names and signature are considered major changes.</p><p>Note that you will always be able to go back to previous releases (more below).</p><h2 id="2">Finding the current version</h2><p>The current version can be found by running <tt>git.repoVersion</tt> in MATLAB if you installed Rigbox via Git, otherwise the CHANGELOG file will tell you what version of Rigbox you're currently using.</p><h2 id="3">Automatic updating</h2><p>Update checks can be made when running either <tt>mc</tt> or <tt>srv.expServer</tt>. The 'updateSchedule' field in your <tt>dat.paths</tt> file determines when new code may be pulled from the master (most stable) branch.  Options include weekdays (e.g. 'Monday'), 'Never' (to never update), and 'Everyday' (to update every day).  String or cell arrays can be used to update on multiple days:</p><pre>% Check for updates on Mondays and Fridays
+p.updateSchedule = ["Monday", "Friday"];</pre><p>When updateSchedule is set for a particular day, the code is fetched on the day given, or if the code hasn't been fetched in over a week.  If the code has already been fetched for that day it won't be fetched again until the next scheduled day.  When updateSchedule is set to 'everyday', the code is fetched at most once an hour.</p><p><b>NB</b>: This requires Rigbox to be installed via Git (instructions can be found <a href="./install.html">here</a>).  The location of the Git Bash executable should be set in the 'gitExe' field in the <tt>dat.paths</tt> file.  The default path can be found in the <a href="../scripts/paths_template.m">paths_template</a>:</p><pre class="language-matlab"><span class="comment">% Location of git for automatic updates</span>
+p.gitExe = <span class="string">'C:\Program Files\Git\cmd\git.exe'</span>;
+</pre><h2 id="4">Updating manually via Git</h2><p>You can check for updates (and download them) by running <tt>git.update</tt> in the MATLAB command window.</p><p>To do this directly in Git:</p><div><ol><li>Open Git Bash</li><li>Change directory by typing <tt>cd</tt> and the path to your main Rigbox folder.  You can use a tilda as shorthand for C:/Users/&lt;username&gt;, e.g. <tt>cd ~/Documents/Github/Rigbox</tt></li><li>Type <tt>git pull --recurse-submodules</tt>.  The recurse flag ensures that signals, alyx-matlab, etc. are also updated.</li><li>Check the end of the message.  Ensure you don't see this messgae:</li></ol></div><pre>CONFLICT (content): Merge conflict in path/to/example_file.m
+Automatic merge failed; fix conflicts and then commit the result.</pre><p>This message means that there was a local change to the code which can't be merged with the recent remote changes.  If you're happy to discard your local changes you can run this command:</p><pre>git reset --hard origin/master
+git pull --recurse-submodules</pre><p>This resets the code to the current remote master branch state.  The second line ensures that the other modules are updates too.</p><h2 id="5">Switching between releases</h2><p>On the all releases are tagged with a version number.  The most recent version, including patches, is on the master (stable) branch and can be updated by following the instructions in the previous section.</p><p>To go back to a previous release version first list the versions available:</p><pre class="language-matlab">git.listVersions;
+</pre><p>To switch to one of the available versions run the following in the MATLAB command window:</p><pre class="language-matlab">git.switchVersion(<span class="string">'2.4.0'</span>); <span class="comment">% Switch to version 2.4.0</span>
+git.switchVersion(<span class="string">'latest'</span>); <span class="comment">% Switch to latest version</span>
+git.switchVersion(<span class="string">'previous'</span>); <span class="comment">% Switch to the previous version</span>
+git.switchVersion(2.3); <span class="comment">% Switch to the most recently patched version 2.3</span>
+</pre><p>In Git Bash this can be done with the following command:</p><pre>git checkout tags/version 2.1</pre><p><b>NB</b>: Once you've switched to a specific version, the code will no longer update.</p><p>If you believe that the most recent commit on the master branch has caused a problem, either switch to the previous version (see above) or revert the most recent change with the following command in Git Bash:</p><pre>git reset --hard master@{"10 minutes ago"}</pre><p><b>NB</b>: By reverting the code in this way, the code will still update at the next scheduled time.</p><h2 id="6">Updating without Git</h2><p>You can download the source code for the most recent version manually:</p><div><ol><li>navigate to the <a href="https://github.com/cortex-lab/Rigbox/">Rigbox GitHub repository Webpage</a></li><li>click the green button on the right-hand side that says 'Clone or download'</li><li>in the pop-up balloon click on 'Download ZIP'</li><li>replace the previous code with the code extracted from the zip file</li></ol></div><p>To download a previous version:</p><div><ol><li>go to <a href="https://github.com/cortex-lab/Rigbox/releases">https://github.com/cortex-lab/Rigbox/releases</a></li><li>under the release you wish to download, click the 'Assets' dropdown and download the Source code zip file</li><li>replace the previous code with the code extracted from the zip file</li></ol></div><h2 id="7">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.0</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Updating Rigbox
+% This guide contains infomation on how to update Rigbox and how to switch
+% back to older versions.  Updates can either be done automatically via Git
+% or manually.
+
+%% Before you update
+% It's often useful to read the <index.html#8 release notes> or CHANGELOG.
+% The former provides an overview of all changes, including a 'major
+% changes' section which details the changes that may affect your analysis
+% code or how experiments are run.  For instance changes to function names
+% and signature are considered major changes.
+%
+% Note that you will always be able to go back to previous releases (more
+% below).
+
+%% Finding the current version
+% The current version can be found by running |git.repoVersion| in MATLAB
+% if you installed Rigbox via Git, otherwise the CHANGELOG file will tell
+% you what version of Rigbox you're currently using.
+
+%% Automatic updating
+% Update checks can be made when running either |mc| or |srv.expServer|.
+% The 'updateSchedule' field in your |dat.paths| file determines when new
+% code may be pulled from the master (most stable) branch.  Options include
+% weekdays (e.g. 'Monday'), 'Never' (to never update), and 'Everyday' (to
+% update every day).  String or cell arrays can be used to update on
+% multiple days:
+%
+%  % Check for updates on Mondays and Fridays
+%  p.updateSchedule = ["Monday", "Friday"];
+%
+% When updateSchedule is set for a particular day, the code is fetched on
+% the day given, or if the code hasn't been fetched in over a week.  If the
+% code has already been fetched for that day it won't be fetched again
+% until the next scheduled day.  When updateSchedule is set to 'everyday',
+% the code is fetched at most once an hour.
+%
+% *NB*: This requires Rigbox to be installed via Git (instructions can be
+% found <./install.html here>).  The location of the Git Bash executable
+% should be set in the 'gitExe' field in the |dat.paths| file.  The default
+% path can be found in the <../scripts/paths_template.m paths_template>:
+%
+%   % Location of git for automatic updates
+%   p.gitExe = 'C:\Program Files\Git\cmd\git.exe'; 
+%
+
+%% Updating manually via Git
+% You can check for updates (and download them) by running |git.update| in
+% the MATLAB command window.  
+%
+% To do this directly in Git:
+% 
+% # Open Git Bash
+% # Change directory by typing |cd| and the path to your main Rigbox
+% folder.  You can use a tilda as shorthand for C:/Users/<username>, e.g. 
+% |cd ~/Documents/Github/Rigbox|
+% # Type |git pull REPLACE_WITH_DASH_DASHrecurse-submodules|.  The recurse flag ensures that
+% signals, alyx-matlab, etc. are also updated.
+% # Check the end of the message.  Ensure you don't see this messgae:
+%
+%  CONFLICT (content): Merge conflict in path/to/example_file.m
+%  Automatic merge failed; fix conflicts and then commit the result.
+% 
+% This message means that there was a local change to the code which can't
+% be merged with the recent remote changes.  If you're happy to discard
+% your local changes you can run this command:
+%
+%  git reset REPLACE_WITH_DASH_DASHhard origin/master
+%  git pull REPLACE_WITH_DASH_DASHrecurse-submodules
+%
+% This resets the code to the current remote master branch state.  The
+% second line ensures that the other modules are updates too.
+
+%% Switching between releases
+% On the all releases are tagged with a version number.  The most recent
+% version, including patches, is on the master (stable) branch and can be
+% updated by following the instructions in the previous section.
+%
+% To go back to a previous release version first list the versions
+% available:
+%
+%   git.listVersions;
+%
+% To switch to one of the available versions run the following in the
+% MATLAB command window:
+%
+%   git.switchVersion('2.4.0'); % Switch to version 2.4.0
+%   git.switchVersion('latest'); % Switch to latest version
+%   git.switchVersion('previous'); % Switch to the previous version
+%   git.switchVersion(2.3); % Switch to the most recently patched version 2.3
+%
+% In Git Bash this can be done with the following command:
+%
+%  git checkout tags/version 2.1
+%
+% *NB*: Once you've switched to a specific version, the code will no longer
+% update.
+% 
+% If you believe that the most recent commit on the master branch has
+% caused a problem, either switch to the previous version (see above) or
+% revert the most recent change with the following command in Git Bash:
+%
+%  git reset REPLACE_WITH_DASH_DASHhard master@{"10 minutes ago"}
+%
+% *NB*: By reverting the code in this way, the code will still update
+% at the next scheduled time.
+
+%% Updating without Git
+% You can download the source code for the most recent version manually:
+% 
+% # navigate to the <https://github.com/cortex-lab/Rigbox/ Rigbox GitHub
+% repository Webpage>
+% # click the green button on the right-hand side that says 'Clone or
+% download'
+% # in the pop-up balloon click on 'Download ZIP'
+% # replace the previous code with the code extracted from the zip file
+% 
+% To download a previous version:
+%
+% # go to <https://github.com/cortex-lab/Rigbox/releases>
+% # under the release you wish to download, click the 'Assets' dropdown and
+% download the Source code zip file
+% # replace the previous code with the code extracted from the zip file
+%
+
+%% Etc.
+% Author: Miles Wells
+%
+% v1.1.0
+
+##### SOURCE END #####
+--></body></html>

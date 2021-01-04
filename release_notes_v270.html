@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Release Notes v2.7.0</h1><!--introduction--><p>Below is a short explanation of changes made to this version.  For a brief list of changes, see the <a href="https://github.com/cortex-lab/Rigbox/blob/master/CHANGELOG.md">CHANGELOG</a>.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Rigbox</a></li><li><a href="#2">signals</a></li><li><a href="#3">alyx-matlab</a></li><li><a href="#4">wheelAnalysis</a></li></ul></div><h2 id="1">Rigbox</h2><p><b>Major changes</b></p><div><ul><li><tt>exp.MovieWorld</tt> - A new Experiment class designed for parameterizing passive movie presentation experiments</li></ul></div><p><b>Documentaion</b></p><p>The following functions and classes are now documented:</p><p>*</p><p>Updates to guides:</p><p>*</p><p><b>Bug fixes</b></p><p>*</p><p><b>Enhancements</b></p><p>*</p><p><b>Tests</b></p><p>*</p><h2 id="2">signals</h2><h2 id="3">alyx-matlab</h2><p><b>Major changes</b></p><p>*</p><p><b>Documentaion</b></p><p>The following functions and classes are now documented:</p><p>*</p><p>Updates to guides:</p><p>*</p><p><b>Bug fixes</b></p><p>*</p><p><b>Enhancements</b></p><p>*</p><p><b>Tests</b></p><p>*</p><h2 id="4">wheelAnalysis</h2><p><b>Major changes</b></p><div><ul><li><tt>wheel.findWheelMoves3</tt> - Renamed to wheel.findWheelMoves.  Other numbered functions have been removed.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+  </style></head><body><div class="content"><h1>Release Notes v2.7.0</h1><!--introduction--><p>Below is a short explanation of changes made to this version.  For a brief list of changes, see the <a href="https://github.com/cortex-lab/Rigbox/blob/master/CHANGELOG.md">CHANGELOG</a>.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Rigbox</a></li><li><a href="#2">signals</a></li><li><a href="#3">alyx-matlab</a></li><li><a href="#4">wheelAnalysis</a></li></ul></div><h2 id="1">Rigbox</h2><p><b>Major changes</b></p><div><ul><li><tt>exp.MovieWorld</tt> - A new Experiment class designed for parameterizing passive movie presentation experiments</li></ul></div><p><b>Documentaion</b></p><p>The following functions and classes are now documented:</p><div><ul><li><tt>git.listVersions</tt></li></ul></div><p>Updates to guides:</p><p>*</p><p><b>Bug fixes</b></p><div><ul><li><tt>fixFiles</tt> - Fixed error when calling with 'changed'.</li></ul></div><p><b>Enhancements</b></p><div><ul><li><tt>git.listVersions</tt> - Now fetches the remote repository before listing the tags so list is always up-to-date.  Also nothing is returned if no output arg is defined but printed to the command by default.</li></ul></div><p><b>Tests</b></p><p>*</p><h2 id="2">signals</h2><h2 id="3">alyx-matlab</h2><p><b>Major changes</b></p><p>*</p><p><b>Documentaion</b></p><p>The following functions and classes are now documented:</p><p>*</p><p>Updates to guides:</p><p>*</p><p><b>Bug fixes</b></p><p>*</p><p><b>Enhancements</b></p><p>*</p><p><b>Tests</b></p><p>*</p><h2 id="4">wheelAnalysis</h2><p><b>Major changes</b></p><div><ul><li><tt>wheel.findWheelMoves3</tt> - Renamed to wheel.findWheelMoves.  Other numbered functions have been removed.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Release Notes v2.7.0
 % Below is a short explanation of changes made to this version.  For a
@@ -85,7 +85,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 %
 % The following functions and classes are now documented:
 % 
-% * 
+% * |git.listVersions|
 % 
 % Updates to guides:
 % 
@@ -94,12 +94,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 %
 % *Bug fixes*
 % 
-% *  
+% * |fixFiles| - Fixed error when calling with 'changed'.
 %
 %
 % *Enhancements*
 %
-% * 
+% * |git.listVersions| - Now fetches the remote repository before listing
+% the tags so list is always up-to-date.  Also nothing is returned if no
+% output arg is defined but printed to the command by default.
 %
 % *Tests*
 %

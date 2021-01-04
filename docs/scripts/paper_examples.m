@@ -1,6 +1,6 @@
 %% Running the paper examples
 % This guide provides up-to-date steps for running the examples provided in
-% the <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>(1).
+% the <http://dx.doi.org/10.1523/ENEURO.0406-19.2020 Rigbox paper>(1).
 % Before starting, ensure Rigbox has been installed following the
 % <./install.html installation guide>.
 
@@ -48,11 +48,11 @@ ringach98 % Run the experiment
 eui.SignalsTest('signalsPong');
 
 %% References
-% # Bhagat J, Wells MJ, et al.  (2019) Rigbox: an Open-Source Toolbox for
-% Probing Neurons and Behavior. bioRxiv 672204
+% # Bhagat J, Wells MJ, et al.  (2020) Rigbox: an Open-Source Toolbox for
+% Probing Neurons and Behavior. eNeuro 7(4).
 % # Ringach DL (1998) Tuning of orientation detectors in human vision.
 % Vision Res 38, 963-972.
 %
 % Authors: Jai Bhagat, Matteo Caranini, Miles Wells
 %
-% v1.0.0
+% v1.1.0
