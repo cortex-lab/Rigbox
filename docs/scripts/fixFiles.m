@@ -345,7 +345,7 @@ if iscell(dirPaths) || (isstring(dirPaths) && ~isStringScalar(dirPaths))
 else
   [exitCode, cmdOut] = git.runCmd('status', 'dir', dirPaths, 'echo', false);
   assert(exitCode == 0)
-  cmdOut = strsplit(cmdOut{:}, newline);
+  cmdOut = strsplit(cmdOut, newline);
   changedFiles = regexp(cmdOut, '(?<=^\t.*)\w*.m$', 'match');
 end
 changedFiles = rmEmpty(cellflat(changedFiles));

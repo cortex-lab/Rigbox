@@ -24,7 +24,7 @@
 %
 % *Bug fixes*
 % 
-% *  
+% * |fixFiles| - Fixed error when calling with 'changed'.
 %
 %
 % *Enhancements*
