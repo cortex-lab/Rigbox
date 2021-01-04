@@ -4,7 +4,8 @@ This file contains a curated, chronologically ordered list of notable changes ma
 
 ## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) [2.6.1]
 
-- PATCH: Scrubbed repository of old files.  Slimmed down from >>100MB to < 5MB
+- PATCH: Scrubbed repository of old files.  Slimmed down from >>100MB to < 5KB
+- HOTFIX: Tests fix in signals repo
 
 ## [2.6.0]
 
