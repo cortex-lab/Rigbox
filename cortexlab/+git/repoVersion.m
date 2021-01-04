@@ -1,6 +1,6 @@
 function v = repoVersion(repoDir)
 % GIT.REPOVERSION Returns repository's current version
-%   Return the semanic version of the specified Git repository.
+%   Return the semantic version of the specified Git repository.
 %
 %   Inputs:
 %     repoDir (char) : The directory of the git repository to return
