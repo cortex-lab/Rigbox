@@ -247,7 +247,7 @@
 % * |Alyx.newExp| - Fix for multiple base sessions being created
 %
 % *Enhancements*
-
+%
 % * |Alyx.newExp| - Asserts that subject exists and that new experiment
 % folder was created.
 %                 - A more informative error for subject folder mismatches
