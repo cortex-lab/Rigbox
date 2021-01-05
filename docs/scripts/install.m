@@ -22,7 +22,7 @@
 % Rigbox requires the following software to work properly:
 % 
 % * Windows Operating System (7 or later, 64-bit)
-% * MATLAB (2018b or later, also known as version 9.5)
+% * MATLAB (2018b - 2019b, also known as version 9.5 - 9.7)
 % * Visual C++ Redistributable Packages for Visual Studio 2013 & 2015-2019
 % (_free_)
 % * The MATLAB Data Acquisition Toolbox
@@ -154,5 +154,5 @@
 %% Etc.
 % Authors: Jai Bhagat, Matteo Caranini, Miles Wells
 %
-% v0.1.0
+% v0.2.0
 %

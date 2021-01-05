@@ -26,7 +26,7 @@ Below are the **minimum** computer software dependencies that must be installed 
 
 * OS: 64 Bit Windows 10
 * Libraries: Visual C++ Redistributable Packages for Visual Studio [2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) & [2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)
-* MATLAB: [2018b or later](mathworks.com/downloads/), including the Data Acquisition Toolbox
+* MATLAB: [2018b - 2019b](mathworks.com/downloads/) (inclusive), including the Data Acquisition Toolbox
 * Community MATLAB toolboxes:
 	* [GUI Layout Toolbox](https://uk.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox) (v2 or later)
 	* [Psychophysics Toolbox](http://psychtoolbox.org/download.html#Windows) (v3 or later)
