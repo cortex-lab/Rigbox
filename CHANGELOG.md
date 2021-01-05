@@ -1,8 +1,43 @@
 # Changelog
 
-Starting after Rigbox 2.2.0, this file contains a curated, chronologically ordered list of notable changes made to the master branch. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. This changelog is based on [keep a changelog](https://keepachangelog.com)
+This file contains a curated, chronologically ordered list of notable changes made to the master branch since the release of Rigbox 2.2.0. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. The versioning numbering used is [SemVer](http://semver.org/). This changelog is based on [keep a changelog](https://keepachangelog.com).
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) 2.5.0
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) [2.6.2]
+
+- PATCH: Scrubbed repository of old files.  Slimmed down from >>100MB to < 5KB
+- HOTFIX: Tests fix in signals repo
+- HOTFIX: Corrected compatible MATLAB versions in documentation (not compatible with >2019b)
+
+## [2.6.0]
+
+- A huge amount of refactoring, especially of the expServer; new tests and documentation
+- Experiments can now be started by calling expServer with an expRef.
+- Command output type now matches input type in git.runCmd
+- Fixed value unassigned error when no lag in `asyncFlipEnd`
+- Fixed uniform output error when inputs non-scalar in `namedArg` function
+- Fixed uniform output error when default value a cell or string in `pick` function
+- Input arg 'field' may now be a string array in `getOr` function
+- Informative error thrown if PsychToolbox is likely not set up
+- Removed unnecessary cellfun call in dat.listSubjects
+- More informative error messages and IDs; now local exp folder is removed if remote folder creation fails
+- Zeroing of input devices now happens during initialization in signals, closer to experiment start
+- The RigName property is now used in SignalsExp, in line with exp.Experiment behaviour
+- The update day may now be a char, cellstr, or string array, and the 'updateSchedule' field of |dat.paths| may be set to -1/'never' to turn off updates
+- Pressing 'h' key in expServer will display the keyboard shortcuts.  
+- The calibration plot will now be displayed on the screen.
+- Stimulus window background colour can now be set with a 'bgColor' field in the parameter struct
+- New +git functions display Rigbox versions and allow you to switch between them
+- Warning instead of error when no stereo output device found in eui.SignalsTest
+- exp.Parameters class has been fully documented and some code refactored `4d3f3f2` 2020-02-03
+- there is now more informative error message in the hw.ptb.Window contructor, reminding users to install PTB `a251845` 2020-02-03
+- a test was added for the 'distribute' function `92e5a40` 2020-02-03 
+- hw.findDevice was renamed to hw.testAudioOutputDevices and documentation regarding this function was added to hardware_config `244e93c` 2020-02-03
+- refactoring of hw.devices, including documentation, use of 'useDaq' flag and choosing lowest latancy audio device by default `477b4e8` 2020-02-03
+- fixed typo in calibration_test that meant parameter default was used `d58408e` 2020-02-03
+- removed redundant cellfun call in dat.listSubjects and brought dat.newExp back in line with Alyx.newExp `ee35ed3` 2020-02-14
+- zeroing of devices in exp.SignalsExp now occurs within init, in line with exp.Experiment `3ba222f` 2020-03-13
+
+## [2.5.0]
 
 - new alyx instance now requested robustly when not logged in during SignalsExp
 - expStop event now logged has missing value when last trial over, even when expStop defined in def fun
@@ -28,7 +63,7 @@ Starting after Rigbox 2.2.0, this file contains a curated, chronologically order
 - added FormatLabels flag to eui.SignalsExpPanel `c5794a8` 2020-02-03
 - HOTFIX Bugfix in signals for versions >2016b & <2018b
 
-## [2.4.1]
+## [2.4.1](https://github.com/cortex-lab/Rigbox/releases/tag/2.4.0)
 
 - patch to readme linking to most up-to-date documentation `4ff1a21` 2019-09-16
 - updates to `+git` package and its tests `5841dd6` 2019-09-24
