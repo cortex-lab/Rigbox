@@ -35,12 +35,13 @@
 %
 % *Tests*
 %
-% * 
+% * AlyxPanel_test - No more infinit loops when headless, no fatal asserts
+% in setup method
 %
 
 %% signals
 
-%% alyx-matlab
+%% alyx-matlab v2.6
 % *Major changes*
 % 
 % * 
@@ -57,7 +58,8 @@
 % 
 % *Bug fixes*
 % 
-% *
+% * |Alyx/login| - No more infinit loop when server unreachable; moves into
+% headless state
 %
 % *Enhancements*
 %
