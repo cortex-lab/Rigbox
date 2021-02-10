@@ -156,17 +156,20 @@ classdef DaqController < handle
           % to the default value
           reset(obj);
         end
+        % Explicitly flush the queue by calling release.  This addresses a
+        % 2017 bug where the queue wasn't automatically flushed.
+        obj.DaqSession.release;
         channelNames = obj.ChannelNames(1:n);
         analogueChannelsIdx = obj.AnalogueChannelsIdx(1:n);
         if any(analogueChannelsIdx)&&any(any(values(:,analogueChannelsIdx)~=0))
           queue(obj, channelNames(analogueChannelsIdx), waveforms(analogueChannelsIdx));
           if foreground
             startForeground(obj.DaqSession);
+            readyWait(obj);
+            obj.DaqSession.release;
           else
             startBackground(obj.DaqSession);
           end
-          readyWait(obj);
-          obj.DaqSession.release;
         elseif any(~analogueChannelsIdx)
             waveforms = waveforms(~analogueChannelsIdx);
             for n = 1:length(waveforms)
