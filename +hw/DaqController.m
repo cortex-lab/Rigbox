@@ -184,7 +184,10 @@ classdef DaqController < handle
     end
     
     function v = get.AnalogueChannelsIdx(obj)
-      v = cellfun(@(ch) any(lower(ch=='a')), obj.DaqChannelIds);
+      % Returns a logical array with true if the channel is analogue.  
+      % Analogue channels are identifies as containing the letter 'a', e.g.
+      % ao1.
+      v = cellfun(@(ch) any(lower(ch) == 'a'), obj.DaqChannelIds);
     end
     
     function v = get.Value(obj)
