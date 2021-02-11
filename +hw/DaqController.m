@@ -107,24 +107,12 @@ classdef DaqController < handle
       % command(channels, values)
       % sends command signals to each channel carrying each value.
       % 'channels' is a cell array of strings with each channel name, and
-      % value is
+      % value is the input value for that channel's signal generator.
       %
       % command(values)
       % sends command signals to all channels carrying each value
       %
-      % [CHANNEL,INDEX] = addAnalogInputChannel(...)
-      % addAnalogInputChannel optionally returns CHANNEL, which is an
-      % object representing the channel that was added.  It also
-      % returns INDEX, which is the index into the Channels array
-      % where the channel was added.
-      %
-      % Example:
-      %     s = daq.createSession('ni');
-      %     s.addAnalogInputChannel('cDAQ1Mod1', 'ai0', 'Voltage');
-      %     s.startForeground();
-      %
-      % See also addAnalogOutputChannel, removeChannel,
-      % daq.getDevices
+      % See also hw.ControlSignalGenerator
       values = varargin{1};
       if ischar(varargin{end})
         switch varargin{end}

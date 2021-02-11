@@ -159,7 +159,12 @@ classdef SignalsExp < handle
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
       obj.LayersByStim = containers.Map;
       obj.Inputs = sig.Registry(clockFun);
-      obj.Outputs = sig.Registry(clockFun);
+      obj.Outputs = sig.Output(rig.daqController, clockFun);
+      if ~any(strcmp('reward', rig.daqController.ChannelNames))
+        % Map 'reward' output to first DAQ channel in list
+        chans = cellstr(rig.daqController.ChannelNames);
+        multiplex(obj.Outputs, 'reward', chans(1))
+      end
       obj.Visual = StructRef;
       obj.Audio = audstream.Registry(rig.audioDevices);
       obj.Events = sig.Registry(clockFun);
@@ -249,24 +254,6 @@ classdef SignalsExp < handle
       obj.Wheel = rig.mouseInput;
       if isfield(rig, 'lickDetector')
         obj.LickDetector = rig.lickDetector;
-      end
-      if ~isempty(obj.DaqController.SignalGenerators)
-          outputNames = fieldnames(obj.Outputs); % Get list of all outputs specified in expDef function
-          for m = 1:length(outputNames)
-              id = find(strcmp(outputNames{m},...
-                  obj.DaqController.ChannelNames)); % Find matching channel from rig hardware file
-              if id % if the output is present, create callback 
-                  obj.Listeners = [obj.Listeners
-                    obj.Outputs.(outputNames{m}).onValue(@(v)obj.DaqController.command([zeros(size(v,1),id-1) v])) % pad value with zeros in order to output to correct channel
-                    obj.Outputs.(outputNames{m}).onValue(@(v)fprintf('delivering output of %.2f\n',v))
-                    ];   
-              elseif strcmp(outputNames{m}, 'reward') % special case; rewardValve is always first signals generator in list 
-                  obj.Listeners = [obj.Listeners
-                    obj.Outputs.reward.onValue(@(v)obj.DaqController.command(v))
-                    obj.Outputs.reward.onValue(@(v)fprintf('delivering reward of %.2f\n', v))
-                    ];   
-              end
-          end
       end
     end
 
@@ -663,7 +650,7 @@ classdef SignalsExp < handle
       %inputs
       obj.Data.inputs = logs(obj.Inputs);
       %outputs
-      obj.Data.outputs = logs(obj.Outputs);
+      obj.Data.outputs = cleanup(obj.Outputs);
       %audio
 %       obj.Data.audio = logs(audio);
       
