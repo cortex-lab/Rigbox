@@ -92,6 +92,9 @@ classdef DaqControllerParallel < handle
         
         function set_ports(obj, outputName, output)
             
+          
+            assert(~isempty(obj.DaqSessions), 'No daq sessions found. Have you run createDaqChannels?');
+            
             % bypasses the signalgenerator, and sends output directly to 
             % the ports associated with outputName. 
             
