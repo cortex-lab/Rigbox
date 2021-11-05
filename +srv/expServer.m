@@ -175,11 +175,11 @@ while running
     % check for reward pulse
     if firstPress(rewardPulseKey1) > 0
         log('Delivering default reward');
-        rig.daqController.command('reward', [3,0]);
+        rig.daqController.command('reward', [1.5,0]);
     end
     if firstPress(rewardPulseKey2) > 0
         log('Delivering default reward');
-        rig.daqController.command('reward', [0,3]);
+        rig.daqController.command('reward', [0,1.5]);
     end
     
     % check for reward calibration
