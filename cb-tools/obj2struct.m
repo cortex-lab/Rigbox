@@ -32,6 +32,9 @@ if isobject(obj)
         if startsWith(class(obj.(names{i})),'daq.ni.')
           % Do not attempt to save ni daq sessions of channels
           s.(names{i}) = [];
+        elseif isa(obj.(names{i}), 'matlab.lang.OnOffSwitchState')
+          % Cast to boolean
+          s.(names{i}) = logical(obj.(names{i}));
         else % Recurse
           s.(names{i}) = obj2struct(obj.(names{i}));
         end

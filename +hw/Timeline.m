@@ -490,11 +490,6 @@ classdef Timeline < handle
             % save tl to all paths
             superSave(obj.Data.savePaths, struct('Timeline', obj.Data));
             
-            %  write hardware info to a JSON file for compatibility with database
-            fid = fopen(fullfile(fileparts(obj.Data.savePaths{2}), 'TimelineHW.json'), 'w');
-            fprintf(fid, '%s', jsonencode(obj.Data.hw));
-            fclose(fid);
-            
             % save each recorded vector into the correct format in Timeline
             % timebase for Alyx and optionally into universal timebase if
             % conversion is provided. TODO: Make timelineToALF a class method
