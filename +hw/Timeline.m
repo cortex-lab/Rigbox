@@ -494,8 +494,8 @@ classdef Timeline < handle
             % timebase for Alyx and optionally into universal timebase if
             % conversion is provided. TODO: Make timelineToALF a class method
             if exist('+alf/timelineToALF','file') && exist('writeNPY','file')
-                alf.timelineToALF(obj.Data, [],...
-                    fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master')))
+              saveAlf = fun.partial(alf.timelineToALF, obj.Data, []);
+              mapToCell(saveAlf, dat.expFilePath(obj.Data.expRef, 'timeline'));
             else
                 warning('did not write files into alf format. Check that alyx-matlab and npy-matlab repositories are in path');
             end
