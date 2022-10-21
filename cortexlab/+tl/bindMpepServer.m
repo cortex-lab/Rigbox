@@ -27,11 +27,13 @@ livePlotKey = KbName('p');
 listeners = struct(...
   'socket',...
     {pnet('udpsocket', mpepListenPort),...  %mpep listening socket
-     pnet('udpsocket', 9999)},...           %ball listening socket
+     pnet('udpsocket', 9999),...            %ball listening socket
+     pnet('udpsocket', 9998)},...           %ibl listening socket
   'callback',...
     {@processMpep,... % special mpep message handling function
-     @nop},...        % do nothing special for ball messages
-  'name', {'mpep' 'ball'});
+     @nop,... % do nothing special for ball messages
+     @processIBL},... % IBL message handling function
+  'name', {'mpep' 'ball', 'ibl'});
 log('Bound UDP sockets');
 
 tls.close = @closeConns;
@@ -113,6 +115,119 @@ tls.tlObj = tlObj;
 %       end
       pnet(listener.socket, 'write', msg);
       pnet(listener.socket, 'writepacket', ipstr, port);
+    end
+  end
+
+  function processIBL(listener, msg)
+    % PROCESSIBL Parse messages from IBL rig Communicator
+    %   Expects msg to be an JSON array where the first element is an
+    %   integer corresponding to an io.ExpSignal enumeration.
+    %
+    %   All unsolicited messages are immediately echo'd as confirmation of
+    %   receipt. When an additional message is sent in response, we expect
+    %   the remote host to echo it, however this is not essential.
+    %
+    % See also io.ExpSignal
+
+    persistent lastSent % the last send message for processing echoes
+   
+    function respond(signal, varargin)
+      % RESPOND Send a message to the remote host
+      %   Send a JSON response to remote host. The message is assigned to
+      %   lastSent so that the echo will be recognised as such.
+      %
+      %   For respond('EXPSTART', 2022-01-01_1_subject, NaN) the JSON
+      %   message would be: '[20, "2022-01-01_1_subject", null]'.
+      signal = io.ExpSignal(signal); % validate
+      response = jsonencode([{int8(signal)}, varargin]);
+      pnet(listener.socket, 'write', response);
+      lastSent = response;
+      pnet(listener.socket, 'writepacket', ipstr, port);
+    end
+ 
+    % Retrieve remote host IP for logging
+    [ip, port] = pnet(listener.socket, 'gethost');
+    ip = num2cell(ip);
+    ipstr = sprintf('%i.%i.%i.%i', ip{:});
+    
+    % Check if message is an echo of a previously sent message
+    if isequal(msg, lastSent)
+      log('%s: confirmation received from %s:%i', listener.name, ipstr, port);
+      return % do nothing
+    end
+    
+    log('%s: ''%s'' from %s:%i', listener.name, msg, ipstr, port);
+    % Echo as confirmation of receipt
+    pnet(listener.socket, 'write', msg);
+    pnet(listener.socket, 'writepacket', ipstr, port);
+    
+    % parse the message
+    % Example parsed message: {[20];'2022-01-01_1_subject';[]}
+    try
+      info = jsondecode(msg);
+      signal = info{1};
+      data = info(2:end);
+      signal = io.ExpSignal(signal);
+    catch err  % Failed to parse message
+      respond(io.ExpSignal.EXPINTERRUPT, err.message)
+    end
+      
+    switch signal
+      case 'EXPINIT'
+        % Experiment is initializing.
+        respond(signal, data) % nothing to do; just send initialized signal
+      case 'EXPSTART'
+        % Experiment has begun.
+        try
+          expRef = data{:};
+          tls.start(expRef, tls.AlyxInstance);
+          assert(tls.IsRunning)
+          respond(signal, expRef, NaN) % Let server know we've started
+        catch err
+          repond(io.ExpSignal.EXPINTERRUPT, err)
+        end
+      case {'EXPEND', 'EXPINTERRUPT'}
+        % Experiment has stopped or interrupt received.
+        tls.stop();
+        assert(~tls.IsRunning)
+        respond(signal) % Let server know we've stopped
+      case 'EXPCLEANUP'
+        % Experiment cleanup begun.
+        ...
+      case 'EXPSTATUS'
+        % Experiment status.
+        ...
+      case 'EXPINFO'
+        % Experiment info, including task protocol start and end.
+        ...
+      case 'ALYX'
+        % Alyx token.
+        if numel(rmEmpty(data)) == 0
+          % Send token
+          ai = tls.AlyxInstance;
+          if ai.IsLoggedIn
+            token = struct(ai.User, struct('token', struct(ai).Token));
+            respond(signal, ai.BaseURL, token)
+          else
+            respond(signal, NaN, struct)
+          end
+        else
+          % Install token
+          [base_url, token] = data{:};
+          user = first(fieldnames(token));
+          aiObj = struct(...
+            'BaseURL', base_url,...
+            'Token', token.(user).token,...
+            'User', user,...
+            'QueueDir', Alyx('','').QueueDir,...
+            'SessionURL', Alyx('','').SessionURL...
+          );
+          ai = Alyx.loadobj(aiObj);
+          assert(ai.IsLoggedIn)
+          tls.AlyxInstance = ai;
+        end
+      otherwise
+        warning('Unknown signal "%s"', signal)
     end
   end
 
