@@ -199,7 +199,7 @@ classdef Window < hw.Window
       Screen('Preference', 'SuppressAllWarnings', true);
       % setup screen window
       if obj.VirtualFrameBuffer == 'on'
-        PsychImaging('PrepareCpnfiguration')
+        PsychImaging('PrepareConfiguration')
         PsychImaging('AddTask','General','UseVirtualFrameBuffer');
         obj.PtbHandle = PsychImaging('OpenWindow', ...
           obj.ScreenNum, obj.BackgroundColour, obj.OpenBounds, obj.PxDepth);
