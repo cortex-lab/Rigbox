@@ -77,7 +77,7 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
                 error('Unknown valve number')
             end
             
-            volumes = [recent.volumeMicroLitres];
+            volumes = [recent.volumeMicroLitres]
             durations = [recent.durationSecs];
             if ul > max(volumes) || ul < min(volumes)
                 warning('Warning requested delivery of %.1f is outside calibration range',...
