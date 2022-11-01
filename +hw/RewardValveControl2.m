@@ -84,9 +84,9 @@ classdef RewardValveControl2 < hw.ControlSignalGenerator & handle
                     ul);
             end
             
-            % interpolate linearly from this calibration to get the open
-            % time
-            dt = interp1(volumes, durations, ul, 'pchip');
+            % Use a linear fit to get correct valuve open time
+            w = glmfit(volumes, durations);
+            dt = w(1) + w(2)*ul;
             dt = max(dt, 0); % Don't let dt fall below zero
         end
         

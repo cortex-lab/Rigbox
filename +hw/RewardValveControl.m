@@ -37,7 +37,7 @@ classdef RewardValveControl < hw.PulseSwitcher & handle
         warning('Warning requested delivery of %.1f is outside calibration range',...
           ul);
       end
-      dt = interp1(volumes, durations, ul, 'pchip');
+      dt = interp1(volumes, durations, ul, 'linear');
     end
     
     function ul = sizeFromDuration(obj, dt)
@@ -46,7 +46,7 @@ classdef RewardValveControl < hw.PulseSwitcher & handle
       % measured delivery data.
       volumes = [obj.MeasuredDeliveries.volumeMicroLitres];
       durations = [obj.MeasuredDeliveries.durationSecs];
-      ul = interp1(durations, volumes, dt, 'pchip');
+      ul = interp1(durations, volumes, dt, 'linear');
     end
     
     %     function ps = pulseGenerator(obj, nPulses, interval)
