@@ -3,7 +3,7 @@ classdef Window < hw.Window
   %   Detailed explanation goes here
   %
   % Part of Rigbox
-
+  
   % 2012-10 CB created
   
   properties (Dependent)
@@ -27,8 +27,9 @@ classdef Window < hw.Window
     Calibration %Struct containing calibration data
     PtbVerbosity = 2
     PtbSyncTests
+    VirtualFrameBuffer matlab.lang.OnOffSwitchState = 'on'
   end
-
+  
   properties (SetAccess = protected)
     White
     Gray
@@ -113,15 +114,15 @@ classdef Window < hw.Window
     end
     
     function set.DaqVendor(obj, value)
-       obj.pDaqVendor = value;
-       if ~isempty(obj.DaqSession)
-         % update the existing session
-         obj.DaqSession.outputSingleScan(false);
-         % remove previous device, configure new one
-         obj.DaqSession.release();
-         obj.DaqSession = daq.createSession(value);
-         obj.DaqSession.addDigitalChannel(obj.DaqDev, obj.DaqSyncEchoPort, 'OutputOnly');
-       end
+      obj.pDaqVendor = value;
+      if ~isempty(obj.DaqSession)
+        % update the existing session
+        obj.DaqSession.outputSingleScan(false);
+        % remove previous device, configure new one
+        obj.DaqSession.release();
+        obj.DaqSession = daq.createSession(value);
+        obj.DaqSession.addDigitalChannel(obj.DaqDev, obj.DaqSyncEchoPort, 'OutputOnly');
+      end
     end
     
     function value = get.DaqDev(obj)
@@ -129,15 +130,15 @@ classdef Window < hw.Window
     end
     
     function set.DaqDev(obj, value)
-       obj.pDaqDev = value;
-       if ~isempty(obj.DaqSession)
-         % update the existing session
-         obj.DaqSession.outputSingleScan(false);
-         % remove channels associated with previous device and open on new
-         % one
-         obj.DaqSession.removeChannel(1:numel(obj.DaqSession.Channels));
-         obj.DaqSession.addDigitalChannel(value, obj.DaqSyncEchoPort, 'OutputOnly');
-       end
+      obj.pDaqDev = value;
+      if ~isempty(obj.DaqSession)
+        % update the existing session
+        obj.DaqSession.outputSingleScan(false);
+        % remove channels associated with previous device and open on new
+        % one
+        obj.DaqSession.removeChannel(1:numel(obj.DaqSession.Channels));
+        obj.DaqSession.addDigitalChannel(value, obj.DaqSyncEchoPort, 'OutputOnly');
+      end
     end
     
     function value = get.DaqSyncEchoPort(obj)
@@ -145,22 +146,22 @@ classdef Window < hw.Window
     end
     
     function set.DaqSyncEchoPort(obj, value)
-       obj.pDaqSyncEchoPort = value;
-       if ~isempty(obj.DaqSession)
-         % update the existing session
-         obj.DaqSession.outputSingleScan(false);
-         if ~isempty(value)
-           % remove channels associated with previous port and open on new
-           % port
+      obj.pDaqSyncEchoPort = value;
+      if ~isempty(obj.DaqSession)
+        % update the existing session
+        obj.DaqSession.outputSingleScan(false);
+        if ~isempty(value)
+          % remove channels associated with previous port and open on new
+          % port
           obj.DaqSession.removeChannel(1:numel(obj.DaqSession.Channels));
           obj.DaqSession.addDigitalChannel(obj.DaqDev, value, 'OutputOnly');
-         else
-           % an empty port value means don't use the daq, so release the
-           % previous session
-           obj.DaqSession.release();
-           obj.DaqSession = [];
-         end
-       end
+        else
+          % an empty port value means don't use the daq, so release the
+          % previous session
+          obj.DaqSession.release();
+          obj.DaqSession = [];
+        end
+      end
     end
     
     function value = get.BackgroundColour(obj)
@@ -174,12 +175,12 @@ classdef Window < hw.Window
         Screen('FillRect', obj.PtbHandle, colour);
       end
     end
-
+    
     function [oldSrcFactor, oldDestFactor] = setAlphaBlending(obj, srcFactor, destFactor)
       [oldSrcFactor, oldDestFactor] = Screen('BlendFunction', obj.PtbHandle,...
         srcFactor, destFactor);
     end
-
+    
     function open(obj)
       % close a previously open screen window if any
       close(obj);
@@ -197,11 +198,18 @@ classdef Window < hw.Window
       end
       Screen('Preference', 'SuppressAllWarnings', true);
       % setup screen window
-      obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
-        obj.OpenBounds, obj.PxDepth);
+      if obj.VirtualFrameBuffer == 'on'
+        PsychImaging('PrepareCpnfiguration')
+        PsychImaging('AddTask','General','UseVirtualFrameBuffer');
+        obj.PtbHandle = PsychImaging('OpenWindow', ...
+          obj.ScreenNum, obj.BackgroundColour, obj.OpenBounds, obj.PxDepth);
+      else
+        obj.PtbHandle = Screen('OpenWindow', obj.ScreenNum, obj.BackgroundColour,...
+          obj.OpenBounds, obj.PxDepth);
+      end
       obj.PxDepth = Screen('PixelSize', obj.PtbHandle);
       obj.Bounds = Screen('Rect', obj.PtbHandle);
-
+      
       %first flip will be first sync colour in cycle
       obj.NextSyncIdx = 1;
       obj.RefreshInterval = Screen('GetFlipInterval', obj.PtbHandle);
@@ -214,7 +222,7 @@ classdef Window < hw.Window
       else
         fprintf('\nWarning: No gamma calibration available\n');
       end
-
+      
       % setup colour numbers used for drawing
       obj.ColourRange = obj.White - obj.Black;
       obj.Red = [obj.White obj.Black obj.Black];
@@ -228,7 +236,7 @@ classdef Window < hw.Window
         obj.ForegroundColour = obj.White;
       end
     end
-
+    
     function close(obj)
       % close screen resources
       openWins = Screen('Windows');
@@ -251,7 +259,7 @@ classdef Window < hw.Window
         obj.DaqSession = [];
       end
     end
-
+    
     % PTBWindow destructor: clear PTB Screen resources
     function delete(obj)
       close(obj);
@@ -274,7 +282,7 @@ classdef Window < hw.Window
         % update sync echo
         outputSingleScan(obj.DaqSession, mean(col) > 0);
       end
-%       disp('AsyncFlipBegin');
+      %       disp('AsyncFlipBegin');
       if obj.Invalid
         obj.Invalid = false;
         % save the time the window was invalidated for later comparison to
@@ -288,10 +296,10 @@ classdef Window < hw.Window
     
     function [time, invalidFrames, validationLag] = asyncFlipEnd(obj)
       obj.AsyncFlipping = false;
-%       disp('AsyncFlipEnd');
+      %       disp('AsyncFlipEnd');
       vbl = Screen('AsyncFlipEnd', obj.PtbHandle);
       time = vbl;
-
+      
       if isfinite(obj.AsyncFlipTimeInvalidated)
         validationLag = time - obj.AsyncFlipTimeInvalidated;
         % if the lag to validate the Window was two fullrefreshes or more,
@@ -303,15 +311,15 @@ classdef Window < hw.Window
           fprintf('*** (ASYNC) %i FRAME(S) LATE, UPDATE LAG was %gms ***\n',...
             invalidFrames - 1, 1000*validationLag);
         end
-%         fprintf('*** %i FRAME(S), REFRESH LAG was %gms ***\n',...
-%           invalidFrames, 1000*validationLag);
+        %         fprintf('*** %i FRAME(S), REFRESH LAG was %gms ***\n',...
+        %           invalidFrames, 1000*validationLag);
       else
         % if the Window was still valid, just return a lag of zero
         validationLag = 0;
       end
       obj.InvalidationUpdates = {}; % clear invalidation updates list
     end
-
+    
     function [time, invalidFrames, validationLag] = flip(obj, when)
       if nargin < 2
         when = 0;
@@ -334,7 +342,7 @@ classdef Window < hw.Window
       vbl = Screen('Flip', obj.PtbHandle, when);
       time = vbl;
       
-      if obj.Invalid 
+      if obj.Invalid
         validationLag = time - obj.TimeInvalidated;
         obj.Invalid = false;
         % if the lag to validate the Window was more than one refresh, we
@@ -350,11 +358,11 @@ classdef Window < hw.Window
       end
       obj.InvalidationUpdates = {}; % clear invalidation updates list
     end
-
+    
     function clear(obj)
       Screen('FillRect', obj.PtbHandle, obj.BackgroundColour);
     end
-
+    
     function drawTexture(obj, tex, srcRect, destRect, angle, globalAlpha)
       if nargin < 6
         globalAlpha = [];
@@ -370,20 +378,20 @@ classdef Window < hw.Window
       end
       Screen('DrawTextures', obj.PtbHandle, tex, srcRect, destRect, angle, [], globalAlpha);
     end
-
+    
     function fillRect(obj, colour, rect)
       if nargin < 3
         rect = [];
       end
       Screen('FillRect', obj.PtbHandle, colour, rect);
     end
-
+    
     function tex = makeTexture(obj, image)
       tex = Screen('MakeTexture', obj.PtbHandle, image);
       obj.TexList = [obj.TexList tex];
       Screen('PreloadTextures', obj.PtbHandle, tex);
     end
-
+    
     function [nx, ny] = drawText(obj, text, x, y, colour, vSpacing, wrapAt)
       if nargin < 7
         wrapAt = [];
@@ -402,9 +410,9 @@ classdef Window < hw.Window
       end
       [nx, ny] = DrawFormattedText(obj.PtbHandle, text, x, y, colour, wrapAt, [], [],...
         vSpacing);
-%       Screen('DrawText', obj.PtbHandle, text, x, y, colour, [], real(yPosIsBaseline));
+      %       Screen('DrawText', obj.PtbHandle, text, x, y, colour, [], real(yPosIsBaseline));
     end
-
+    
     function deleteTextures(obj)
       if ~isempty(obj.TexList)
         Screen('Close', obj.TexList);
@@ -412,7 +420,7 @@ classdef Window < hw.Window
       end
     end
     
-    function applyCalibration(obj, cal)      
+    function applyCalibration(obj, cal)
       if strcmp(obj.MonitorId, cal.monitorId) && ...
           abs((1/obj.RefreshInterval) - cal.refreshRate)<0.1
         fprintf('\nApplying monitor calibration performed on %s\n',cal.dateTimeStr);
@@ -464,7 +472,7 @@ classdef Window < hw.Window
       
       %% assess the delay between digital and analog
       [xc, lags ] = xcorr(light, clock, 1000, 'coeff');
-%       figure; plot(lags,xc)
+      %       figure; plot(lags,xc)
       [~,imax] = max(xc);
       ishift = lags(imax);
       delay = 1000*ishift/acqRate; % in ms
@@ -509,7 +517,7 @@ classdef Window < hw.Window
       end
       
       %% put all this into a Calibration file and compute inverse gamma table
-      c = calibrationStruct(obj, steps, vv, delay);      
+      c = calibrationStruct(obj, steps, vv, delay);
     end
   end
   
@@ -530,7 +538,7 @@ classdef Window < hw.Window
       c.latency   = delay;
       c.refreshRate   = 1/obj.RefreshInterval;
       
-      %% interpolate to obtain monitorGam  
+      %% interpolate to obtain monitorGam
       rr = yyy(1,:);
       gg = yyy(2,:);
       bb = yyy(3,:);
@@ -553,8 +561,8 @@ classdef Window < hw.Window
       % that pixel depth is 8 bits, so here we carry on with that
       % assumption. The value is the hardware.mat file is not used by PTB
       % anyway (see line 202).
-%       pxDepthPerChannel = obj.PxDepth/4;
-      pxDepthPerChannel = 8; 
+      %       pxDepthPerChannel = obj.PxDepth/4;
+      pxDepthPerChannel = 8;
       
       nguns = size(c.monitorGam,2);
       numEntries = 2^pxDepthPerChannel;
@@ -652,8 +660,8 @@ classdef Window < hw.Window
       nStim = size(colours,1);
       for iStim = 1:nStim
         
-% % %         Screen('FillRect', winPtr, [0 0 0]);
-% % %         Screen('Flip', winPtr);
+        % % %         Screen('FillRect', winPtr, [0 0 0]);
+        % % %         Screen('Flip', winPtr);
         Screen('FillRect', winPtr, colours(iStim,:));
         for iframe = 1:25
           Screen('Flip', winPtr);
@@ -662,7 +670,7 @@ classdef Window < hw.Window
           end
         end
         Screen('FillRect', winPtr, [0 0 0]);
-% % %         Screen('Flip', winPtr);
+        % % %         Screen('Flip', winPtr);
         for iframe = 1:25
           Screen('Flip', winPtr);
           if iframe == 1
