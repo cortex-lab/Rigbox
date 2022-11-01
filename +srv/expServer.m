@@ -412,9 +412,9 @@ ShowCursor();
     function viewCalibration()
         fig = figure; hold on
         plot([rig.daqController.SignalGenerators(1, 1).Calibrations1(end).measuredDeliveries.durationSecs],...
-            [rig.daqController.SignalGenerators(1, 1).Calibrations1(end).measuredDeliveries.volumeMicroLitres])
+            [rig.daqController.SignalGenerators(1, 1).Calibrations1(end).measuredDeliveries.volumeMicroLitres], '.-')
         plot([rig.daqController.SignalGenerators(1, 1).Calibrations2(end).measuredDeliveries.durationSecs],...
-            [rig.daqController.SignalGenerators(1, 1).Calibrations2(end).measuredDeliveries.volumeMicroLitres])
+            [rig.daqController.SignalGenerators(1, 1).Calibrations2(end).measuredDeliveries.volumeMicroLitres],'.-')
         legend({'Left Valve', 'Right Valve'},'location','northwest')
         if isfield(rig.daqController.SignalGenerators(1, 1).Calibrations1(end), 'dateTime')
           title(datestr(rig.daqController.SignalGenerators(1, 1).Calibrations1(end).dateTime))
