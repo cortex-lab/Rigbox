@@ -105,6 +105,8 @@ tls.tlObj = tlObj;
         tlObj.stop(); % stop Timeline
       case 'expinterrupt'
         tlObj.stop(); % stop Timeline
+      otherwise
+        tlObj.record('mpepUDP', msg, 0);
     end
     if ~failed
       %% echo the UDP message back to the sender
