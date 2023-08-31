@@ -390,7 +390,7 @@ daqController.ChannelNames = {'rewardValve'};
 % Define the channel ID to output on
 daqController.DaqChannelIds = {'ai0'};
 % As it is an analogue output, set the AnalogueChannelsIdx to true
-daqController.AnalogueChannelIdx(1) = true;
+daqController.AnalogueChannelsIdx(1) = true;
 % Add a signal generator that will return the correct samples for
 % delivering a reward of a specified volume
 daqController.SignalGenerators(1) = hw.RewardValveControl;
