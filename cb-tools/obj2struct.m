@@ -23,7 +23,7 @@ if isobject(obj)
     end
     s = obj2struct(m);
   else % Normal object
-    s.ClassContructor = class(obj); % Supply class name for loading object
+    s.ClassConstructor = class(obj); % Supply class name for loading object
     names = fieldnames(obj); % Get list of public properties
     for i = 1:length(names)
       if isempty(obj) % Object and therefore all properties are empty
