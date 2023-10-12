@@ -565,6 +565,10 @@ classdef Timeline < handle
                         ch = obj.Sessions('main').addCounterInputChannel(obj.DaqIds, in.daqChannelID, in.measurement);
                         % we assume quadrature encoding (X4) for position measurement
                         ch.EncoderType = 'X4';
+                    case 'Digital'
+                        % in.terminalConfig is usually 'InputOnly' for our purposes of recording inputs
+                        % in.daqChannelID is in the form of e.g. 'Port0/Line5'
+                        obj.Sessions('main').addDigitalChannel(obj.DaqIds, in.daqChannelID, in.terminalConfig);
                 end
                 obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
             end
