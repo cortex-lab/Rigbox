@@ -703,6 +703,11 @@ classdef Timeline < handle
                     % fixing a single 'suture' point
                     yy(end-nSamps+1) = yy(end-nSamps+2);
 
+                elseif strcmp(meas{t}, 'EdgeCount')
+                    % plot the diffs, to avoid runaway signals that squeeze
+                    % everyting else
+                    yy(end-nSamps+1:end) = [0; diff(data(:,t))]*scales(t)+offsets(t);
+        
                 else
                     yy(end-nSamps+1:end) = data(:,t)*scales(t)+offsets(t);
                 end
