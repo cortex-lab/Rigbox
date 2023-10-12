@@ -692,8 +692,15 @@ classdef Timeline < handle
                     % the range and making it impossible to see any of the
                     % other traces. Plus it is probably more useful,
                     % anyway.
-                    yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
-                        gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
+                    
+                    % defining the FIR filter coefficients
+                    b = gausswin(50)./sum(gausswin(50)); 
+                    % filtering with zero-phase filter and then taking a derivative
+                    yy(end-nSamps+2:end) = diff(filtfilt(b, 1, double(data(:,t)))) * ... 
+                        scales(t) + offsets(t);
+                    % fixing a single 'suture' point
+                    yy(end-nSamps+1) = yy(end-nSamps+2);
+
                 else
                     yy(end-nSamps+1:end) = data(:,t)*scales(t)+offsets(t);
                 end
