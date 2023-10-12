@@ -676,23 +676,25 @@ classdef Timeline < handle
             meas = pick({obj.Inputs.measurement}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
             
             for t = 1:length(traces)
-                if strcmp(meas{t}, 'Position')
-                    % if a position sensor (i.e. rotary encoder) scale
-                    % by the first point and allow negative values
-                    if any(data(:,t)>2^31); data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; end
-                    data(:,t) = data(:,t)-data(1,t);
-                end
                 yy = get(traces(end-t+1), 'YData'); % get current data for trace
                 yy(1:end-nSamps) = yy(nSamps+1:end); % add the new chuck for channel
                 % scale and offset the traces
                 if strcmp(meas{t}, 'Position')
+                    % if a position sensor (i.e. rotary encoder) scale
+                    % by the first point and allow negative values
+                    % unwrap the uint32 data to fix the discontinuity around 0
+                    if any(data(:,t)>2^31) 
+                        data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; 
+                    end
+                    data(:,t) = data(:,t)-data(1,t);
+
                     % for position-type inputs, plot velocity (take the
                     % diff, and smooth) rather than absolute. this is
                     % necessary to prevent the value from wandering way off
                     % the range and making it impossible to see any of the
                     % other traces. Plus it is probably more useful,
                     % anyway.
-                    
+
                     % defining the FIR filter coefficients
                     b = gausswin(50)./sum(gausswin(50)); 
                     % filtering with zero-phase filter and then taking a derivative
