@@ -565,6 +565,10 @@ classdef Timeline < handle
                         ch = obj.Sessions('main').addCounterInputChannel(obj.DaqIds, in.daqChannelID, in.measurement);
                         % we assume quadrature encoding (X4) for position measurement
                         ch.EncoderType = 'X4';
+                    case 'Digital'
+                        % in.terminalConfig is usually 'InputOnly' for our purposes of recording inputs
+                        % in.daqChannelID is in the form of e.g. 'Port0/Line5'
+                        obj.Sessions('main').addDigitalChannel(obj.DaqIds, in.daqChannelID, in.terminalConfig);
                 end
                 obj.Inputs(strcmp({obj.Inputs.name}, obj.UseInputs(i))).arrayColumn = i;
             end
@@ -672,24 +676,38 @@ classdef Timeline < handle
             meas = pick({obj.Inputs.measurement}, cellfun(@(x)find(strcmp({obj.Inputs.name}, x),1), obj.UseInputs), 'cell');
             
             for t = 1:length(traces)
-                if strcmp(meas{t}, 'Position')
-                    % if a position sensor (i.e. rotary encoder) scale
-                    % by the first point and allow negative values
-                    if any(data(:,t)>2^31); data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; end
-                    data(:,t) = data(:,t)-data(1,t);
-                end
                 yy = get(traces(end-t+1), 'YData'); % get current data for trace
                 yy(1:end-nSamps) = yy(nSamps+1:end); % add the new chuck for channel
                 % scale and offset the traces
                 if strcmp(meas{t}, 'Position')
+                    % if a position sensor (i.e. rotary encoder) scale
+                    % by the first point and allow negative values
+                    % unwrap the uint32 data to fix the discontinuity around 0
+                    if any(data(:,t)>2^31) 
+                        data(data(:,t)>2^31,t) = data(data(:,t)>2^31,t)-2^32; 
+                    end
+                    data(:,t) = data(:,t)-data(1,t);
+
                     % for position-type inputs, plot velocity (take the
                     % diff, and smooth) rather than absolute. this is
                     % necessary to prevent the value from wandering way off
                     % the range and making it impossible to see any of the
                     % other traces. Plus it is probably more useful,
                     % anyway.
-                    yy(end-nSamps+1:end) = conv(diff([data(1,t); data(:,t)]),...
-                        gausswin(50)./sum(gausswin(50)), 'same') * scales(t) + offsets(t);
+
+                    % defining the FIR filter coefficients
+                    b = gausswin(50)./sum(gausswin(50)); 
+                    % filtering with zero-phase filter and then taking a derivative
+                    yy(end-nSamps+2:end) = diff(filtfilt(b, 1, double(data(:,t)))) * ... 
+                        scales(t) + offsets(t);
+                    % fixing a single 'suture' point
+                    yy(end-nSamps+1) = yy(end-nSamps+2);
+
+                elseif strcmp(meas{t}, 'EdgeCount')
+                    % plot the diffs, to avoid runaway signals that squeeze
+                    % everyting else
+                    yy(end-nSamps+1:end) = [0; diff(data(:,t))]*scales(t)+offsets(t);
+        
                 else
                     yy(end-nSamps+1:end) = data(:,t)*scales(t)+offsets(t);
                 end

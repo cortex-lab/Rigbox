@@ -76,7 +76,15 @@ classdef TLOutputChrono < hw.TLOutput
             x1 = tls.inputSingleScan;
             outputSingleScan(obj.Session, true)
             x2 = tls.inputSingleScan;
-            assert(x1(timeline.Inputs(idx).arrayColumn) < 2.5 && x2(timeline.Inputs(idx).arrayColumn) > 2.5,...
+            switch timeline.Inputs(idx).measurement
+                case 'Voltage'
+                    threshold = 2.5;
+                case 'Digital'
+                    threshold = 0.5;
+                otherwise
+                    threshold = 2.5;
+            end
+            assert(x1(timeline.Inputs(idx).arrayColumn) < threshold && x2(timeline.Inputs(idx).arrayColumn) > threshold,...
                 'The clocking pulse test could not be read back');
             obj.CurrSysTimeTimelineOffset = GetSecs; % to initialize this, will be a bit off but fixed after the first pulse
         end
@@ -116,7 +124,15 @@ classdef TLOutputChrono < hw.TLOutput
             % sample index that this flip is measured is noted First, find
             % the index of the flip in the latest chunk of data
             idx = elementByName(timeline.Inputs, 'chrono');
-            clockChangeIdx = find(sign(event.Data(:,timeline.Inputs(idx).arrayColumn) - 2.5) == obj.NextChronoSign, 1);
+            switch timeline.Inputs(idx).measurement
+                case 'Voltage'
+                    threshold = 2.5;
+                case 'Digital'
+                    threshold = 0.5;
+                otherwise
+                    threshold = 2.5;
+            end
+            clockChangeIdx = find(sign(event.Data(:,timeline.Inputs(idx).arrayColumn) - threshold) == obj.NextChronoSign, 1);
 
             if obj.Verbose
                 fprintf(1, '  CurrOffset=%.2f, LastClock=%.2f\n', ...
