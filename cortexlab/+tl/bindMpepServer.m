@@ -86,6 +86,11 @@ tls.tlObj = tlObj;
         tls.AlyxInstance = ai;
       case 'expstart'
         % create a file path & experiment ref based on experiment info
+        stubsPaths = prepareExperiment(info.expRef, 'timeline', ...
+          'fullPathInSettings', true, 'computerID', 'timeline');
+        tlSavePath = fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master'));
+        assert(tlSavePath == fileparts(stubsPaths{1}), ...
+          'iblrig local data path does not match dat.paths master repo location')
         try % start Timeline
           assert(~tlObj.IsRunning, ...
             'Rigbox:tl:bindMpepServer:timelineAlreadyRunning', ...
@@ -101,6 +106,9 @@ tls.tlObj = tlObj;
         end
       case 'expend'
         tlObj.stop(); % stop Timeline
+        # Touch a flag file to disk for the copy script to find
+        masterSavePath = fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master'));
+        fclose(fopen(fullfile(masterSavePath, 'transfer_me.flag'), 'w'))
       case 'expinterrupt'
         tlObj.stop(); % stop Timeline
     end
