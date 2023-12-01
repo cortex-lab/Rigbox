@@ -88,7 +88,7 @@ tls.tlObj = tlObj;
         % create a file path & experiment ref based on experiment info
         stubsPaths = prepareExperiment(info.expRef, 'timeline', ...
           'fullPathInSettings', true, 'computerID', 'timeline');
-        tlSavePath = fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master'));
+        tlSavePath = fileparts(dat.expFilePath(info.expRef, 'timeline', 'master'));
         assert(tlSavePath == fileparts(stubsPaths{1}), ...
           'iblrig local data path does not match dat.paths master repo location')
         try % start Timeline
@@ -106,9 +106,14 @@ tls.tlObj = tlObj;
         end
       case 'expend'
         tlObj.stop(); % stop Timeline
-        # Touch a flag file to disk for the copy script to find
-        masterSavePath = fileparts(dat.expFilePath(obj.Data.expRef, 'timeline', 'master'));
-        fclose(fopen(fullfile(masterSavePath, 'transfer_me.flag'), 'w'))
+        % Touch a flag file to disk for the copy script to find
+        masterSavePath = fileparts(dat.expFilePath(info.expRef, 'timeline', 'master'));
+        [fID, errmsg] = fopen(fullfile(masterSavePath, 'transfer_me.flag'), 'w');
+        if isempty(errmsg)
+          fclose(fID);
+        else
+          warning('Failed to create transfer flag: %s', errmsg)
+        end
       case 'expinterrupt'
         tlObj.stop(); % stop Timeline
     end
