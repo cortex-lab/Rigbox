@@ -5,7 +5,7 @@
 % experiments and processing the resulting data.
 % 
 % For instructions on how to run the examples from the
-% <http://dx.doi.org/10.1523/ENEURO.0406-19.2020 Rigbox paper>, see
+% <https://www.biorxiv.org/content/10.1101/672204v3 Rigbox paper>, see
 % <./paper_examples.html this guide>.
 
 %% Installing Rigbox
@@ -17,7 +17,7 @@
 % # <./install.html Detailed install instructions>
 % # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
 % for power users>
-% # <./updating_code.html Updating the code>
+% # <./install_Timeline.html Install instructions for using Timeline only>
 % 
 
 %% Setting up experiments
@@ -108,11 +108,9 @@
 % * <./glossary.html Glossary of Rigbox terminology>
 % * <./using_visual_stimuli.html Details of the Signals viewing model>
 % * <./contributing.html How to edit the documentation>
-% * <./release_notes_v260.html v2.6.0 release notes>
-% * <./release_notes_v270.html v2.7.0 release notes>
 %
 
 %% Etc.
 % Author: Miles Wells
 %
-% v0.1.4
+% v0.1.3
