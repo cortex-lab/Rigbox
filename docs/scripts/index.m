@@ -17,6 +17,7 @@
 % # <./install.html Detailed install instructions>
 % # <https://github.com/cortex-lab/Rigbox/blob/master/README.md Installing
 % for power users>
+% # <./install_Timeline.html Install instructions for using Timeline only>
 % 
 
 %% Setting up experiments
