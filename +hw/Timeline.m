@@ -648,6 +648,8 @@ classdef Timeline < handle
             if isempty(obj.Axes)
                 f = figure('Units', 'Normalized');
                 obj.Axes = gca; % store a handle to the axes
+                % ensure underscores in channel names not interpreted as underscores
+                obj.Axes.TickLabelInterpreter = 'none';
                 if isprop(obj, 'FigurePosition') && ~isempty(obj.FigurePosition)
                     set(f, 'Position', obj.FigurePosition); % set the figure position
                 end
