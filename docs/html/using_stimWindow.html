@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Using the Window object</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-30"><meta name="DC.source" content="using_stimWindow.m"><style type="text/css">
+      --><title>Using the Window object</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-13"><meta name="DC.source" content="using_stimWindow.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -78,7 +78,7 @@ stimWindow.flip(); <span class="comment">% Whoa!</span>
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; <span class="comment">% randomised cosine phase</span>
 sigma = 100; <span class="comment">% size of Gaussian window</span>
-thetaCos = pi/2; <span class="comment">% grating orientation</span>
+thetaCos = 90; <span class="comment">% grating orientation</span>
 lambda = 100; <span class="comment">% spatial frequency</span>
 targetImg = vis.gabor(xx, yy, sigma, sigma, lambda, 0, thetaCos, phi);
 blankImg = repmat(stimWindow.Gray, [size(targetImg), 1]);
@@ -105,8 +105,8 @@ stimWindow.drawText(<span class="string">'! What''s up?'</span>, nx, ny, stimWin
 stimWindow.flip;
 </pre><h2 id="6">Closing a window</h2><p>Finally lets clear and close the window:</p><pre class="codeinput">stimWindow.clear
 stimWindow.close
-</pre><h2 id="7">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.4</p><pre class="codeinput"><span class="comment">%#ok&lt;*ASGLU,*NASGU&gt;</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre><h2 id="7">Etc.</h2><p>Author: Miles Wells</p><p>v1.1.3</p><pre class="codeinput"><span class="comment">%#ok&lt;*ASGLU,*NASGU&gt;</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Using the Window object
 % Let's check the Window object is set up correctly and explore some of the
@@ -135,7 +135,7 @@ sz = 1000; % size of texture matrix
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; % randomised cosine phase
 sigma = 100; % size of Gaussian window
-thetaCos = pi/2; % grating orientation
+thetaCos = 90; % grating orientation
 lambda = 100; % spatial frequency
 targetImg = vis.gabor(xx, yy, sigma, sigma, lambda, 0, thetaCos, phi);
 blankImg = repmat(stimWindow.Gray, [size(targetImg), 1]);
@@ -175,7 +175,7 @@ stimWindow.close
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.4
+% v1.1.3
 
 %#ok<*ASGLU,*NASGU>
 ##### SOURCE END #####

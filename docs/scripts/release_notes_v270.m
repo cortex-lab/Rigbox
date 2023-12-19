@@ -15,7 +15,7 @@
 %
 % The following functions and classes are now documented:
 % 
-% * 
+% * |git.listVersions|
 % 
 % Updates to guides:
 % 
@@ -24,12 +24,14 @@
 %
 % *Bug fixes*
 % 
-% *  
+% * |fixFiles| - Fixed error when calling with 'changed'.
 %
 %
 % *Enhancements*
 %
-% * 
+% * |git.listVersions| - Now fetches the remote repository before listing
+% the tags so list is always up-to-date.  Also nothing is returned if no
+% output arg is defined but printed to the command by default.
 %
 % *Tests*
 %

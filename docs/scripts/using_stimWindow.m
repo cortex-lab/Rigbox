@@ -25,7 +25,7 @@ sz = 1000; % size of texture matrix
 [xx, yy] = deal(linspace(-sz/2,sz/2,sz)');
 phi = 2*pi*rand; % randomised cosine phase
 sigma = 100; % size of Gaussian window
-thetaCos = pi/2; % grating orientation
+thetaCos = 90; % grating orientation
 lambda = 100; % spatial frequency
 targetImg = vis.gabor(xx, yy, sigma, sigma, lambda, 0, thetaCos, phi);
 blankImg = repmat(stimWindow.Gray, [size(targetImg), 1]);
@@ -65,6 +65,6 @@ stimWindow.close
 %% Etc.
 % Author: Miles Wells
 %
-% v1.1.4
+% v1.1.3
 
 %#ok<*ASGLU,*NASGU>

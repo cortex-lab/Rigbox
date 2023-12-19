@@ -4,15 +4,19 @@
 % or manually.
 
 %% Before you update
-% It's often useful to read the release notes or CHANGELOG.  The former
-% provides an overview of all changes, including a 'major changes' section
-% which details the changes that may affect your analysis code or how
-% experiments are run.  For instance changes to function names and
-% signature are considered major changes.  
+% It's often useful to read the <index.html#8 release notes> or CHANGELOG.
+% The former provides an overview of all changes, including a 'major
+% changes' section which details the changes that may affect your analysis
+% code or how experiments are run.  For instance changes to function names
+% and signature are considered major changes.
 %
 % Note that you will always be able to go back to previous releases (more
-% below).  The CHANGELOG file will tell you what version of Rigbox you're
-% currently using.
+% below).
+
+%% Finding the current version
+% The current version can be found by running |git.repoVersion| in MATLAB
+% if you installed Rigbox via Git, otherwise the CHANGELOG file will tell
+% you what version of Rigbox you're currently using.
 
 %% Automatic updating
 % Update checks can be made when running either |mc| or |srv.expServer|.
@@ -122,4 +126,4 @@
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.0
+% v1.1.0

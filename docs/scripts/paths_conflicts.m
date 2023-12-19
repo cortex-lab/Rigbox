@@ -79,7 +79,7 @@ ls() % Call MATLAB's builtin ls
 % Another way to avoid these conflicts occuring over time is to reset your
 % paths each time MATLAB starts up.  You can do this by adding the
 % following to <https://uk.mathworks.com/help/matlab/ref/startup.html
-% MATLAB's startup script> (make sure the path locations are correct):
+% MATLAB's startup script>:
 
 disp 'Resetting paths...'
 restoredefaultpath % Restore all paths to factory state
@@ -91,7 +91,6 @@ userDir = winqueryreg('HKEY_CURRENT_USER',...
 % Change these paths to your install locations
 rigbox_path = fullfile(userDir, 'Github', 'rigbox');
 ptb_path = fullfile(userDir, 'PTB', 'Psychtoolbox');
-add_ons = genpath(fullfile(userDir, 'MATLAB', 'Add-Ons'));
 
 % Add Psychtoolbox paths
 disp '...'
@@ -106,9 +105,6 @@ disp 'Adding Rigbox paths...'
 cd(rigbox_path)
 addRigboxPaths('Strict', false)
 
-% Add Add-Ons folder
-addpath(add_ons)
-
 % Return to default working directory
 cd(userpath)
 clear variables
@@ -117,6 +113,6 @@ home % Hide command output history
 %% Etc.
 % Author: Miles Wells
 %
-% v1.0.1
+% v1.0.0
 %
 % <index.html Home> > <./troubleshooting.html Troubleshooting> > Paths Conflicts
