@@ -48,6 +48,19 @@ git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
 `addRigboxPaths()`, OR `addRigboxPaths('SavePaths', false)` if you don't want to save the paths for future MATLAB sessions. 
 (*Note*: Do **not** manually add all Rigbox folders and subfolders to the paths.)
 
+### Lightweight Install of Alyx Panel only
+
+Rigbox is also useful for communicating with the Alyx database directly using a MATLAB GUI that can be opened with: ``eui.AlyxPanel();``. This GUI has fewer requirements than the full Rigbox package, and you may want to install Rigbox for this purpose only (for example, on a computer designated for mouse work and handling). To install Rigbox via Git for this minimum capacity functionality, follow the following instructions:
+
+1. In your git terminal, run:
+```
+git clone --recurse-submodules https://github.com/cortex-lab/Rigbox
+```
+
+2. In MATLAB, navigate to the Rigbox root directory (where Rigbox was cloned), and run: `enableAlyxPanel()`, OR `enableAlyxPanel('SavePaths', false)` if you don't want to save the paths for future MATLAB sessions. (*Note*: Do **not** manually add all Rigbox folders and subfolders to the paths.)
+
+3. You will also have to make sure that the GUI Layout Toolbox is installed from the MATLAB Add-Ons menu and that the ``dat.paths`` file includes the correct url to the Alyx database. 
+
 ## Getting started
 
 To ensure the installation completed successfully, try running the [example experiments from the Rigbox paper](https://cortex-lab.github.io/Rigbox/paper_examples.html).
