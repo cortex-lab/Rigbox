@@ -28,7 +28,7 @@ listeners = struct(...
   'socket',...
     {pnet('udpsocket', mpepListenPort),...  %mpep listening socket
      pnet('udpsocket', 9999),...            %ball listening socket
-     pnet('udpsocket', 9998)},...           %ibl listening socket
+     pnet('udpsocket', 11001)},...           %ibl listening socket
   'callback',...
     {@processMpep,... % special mpep message handling function
      @nop,... % do nothing special for ball messages
@@ -96,6 +96,7 @@ tls.tlObj = tlObj;
           % re-record the UDP event in Timeline since it wasn't started
           % when we tried earlier. Treat it as having arrived at time zero.
           tlObj.record('mpepUDP', msg, 0);
+          tls.expRef = info.expRef;
         catch ex
           % flag up failure so we do not echo the UDP message back below
           failed = true;
@@ -145,7 +146,19 @@ tls.tlObj = tlObj;
       pnet(listener.socket, 'write', response);
       lastSent = response;
       pnet(listener.socket, 'writepacket', ipstr, port);
+      log('%s: sent %s to %s:%i', listener.name, response, ipstr, port);
     end
+    
+    function status = getStatus()
+      % GETSTATUS Get the experiment status from Timeline
+      if tlObj.IsRunning
+        status = io.ExpStatus.RUNNING;
+      else
+        hasRef = ~isempty(pick(tls, 'expRef', 'def', []));
+        status = iff(hasRef, io.ExpStatus.RUNNING, io.ExpStatus.CONNECTED);
+      end
+    end
+
  
     % Retrieve remote host IP for logging
     [ip, port] = pnet(listener.socket, 'gethost');
@@ -171,39 +184,61 @@ tls.tlObj = tlObj;
       data = info(2:end);
       signal = io.ExpSignal(signal);
     catch err  % Failed to parse message
-      respond(io.ExpSignal.EXPINTERRUPT, err.message)
+      respond(0, err.message, signal)
     end
       
     switch signal
       case 'EXPINIT'
         % Experiment is initializing.
-        respond(signal, data) % nothing to do; just send initialized signal
+        r = struct('status', int8(getStatus()));
+        r.exp_ref = iff(tlObj.IsRunning, tls.expRef, data.exp_ref);
+        respond(signal, r) % nothing to do; just send initialized signal
+        tlObj.record(char(signal), msg);
       case 'EXPSTART'
         % Experiment has begun.
-        try
-          expRef = data{:};
-          tls.start(expRef, tls.AlyxInstance);
-          assert(tls.IsRunning)
-          respond(signal, expRef, NaN) % Let server know we've started
-        catch err
-          repond(io.ExpSignal.EXPINTERRUPT, err)
+        if tlObj.IsRunning
+          status = getStatus();
+          respond(signal, tls.expRef, struct('status', int8(status)))
+        else
+          try
+            tls.expRef = data{1};
+            tlObj.start(tls.expRef, tls.AlyxInstance);
+            assert(tlObj.IsRunning)
+            status = getStatus();
+            respond(signal, tls.expRef, struct('status', int8(status))) % Let server know we've started
+          catch err
+            respond(io.ExpSignal.EXPINTERRUPT, err)
+          end
         end
+        tlObj.record(char(signal), msg);
       case {'EXPEND', 'EXPINTERRUPT'}
         % Experiment has stopped or interrupt received.
-        tls.stop();
-        assert(~tls.IsRunning)
-        respond(signal) % Let server know we've stopped
+%         tlObj.stop();
+%         assert(~tlObj.IsRunning)
+        tlObj.record(char(signal), msg);
+        respond(signal, int8(getStatus())) % Let server know we've stopped
       case 'EXPCLEANUP'
         % Experiment cleanup begun.
-        ...
+        tlObj.record(char(signal), msg);
+        status = getStatus();
+        respond(signal, int8(status))  % Do nothing
       case 'EXPSTATUS'
         % Experiment status.
-        ...
+        respond(signal, int8(getStatus()))
       case 'EXPINFO'
         % Experiment info, including task protocol start and end.
-        ...
+        status = getStatus();
+        r = struct('main_sync', true, 'api_version',  '1.0.0', 'status', int8(status));
+        if tlObj.IsRunning
+          r.exp_ref = tls.expRef;
+          if ~strcmp(data.subject_name, dat.parseExpRef(r.exp_ref))
+            warning('Remote behaviour PC has incorrect subject selected')
+          end
+        end
+        respond(signal, int8(status), r)
       case 'ALYX'
         % Alyx token.
+        % TODO Handle case where base_url is sent alone
         if numel(rmEmpty(data)) == 0
           % Send token
           ai = tls.AlyxInstance;
@@ -272,6 +307,7 @@ tls.tlObj = tlObj;
           ai.SessionURL = subsessionURL;
           tls.AlyxInstance = ai;
           tlObj.start(newExpRef, ai);
+          tls.expRef = newExpRef;
         end
         KbQueueFlush;
       elseif firstPress(manualStartKey) && tlObj.IsRunning
