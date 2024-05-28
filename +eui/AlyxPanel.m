@@ -31,6 +31,10 @@ classdef AlyxPanel < handle
     %
     %   2017-03 NS created
     %   2017-10 MW made into class
+    properties
+        MinWeightPct = 0.8 % The red line in weight plots
+    end
+
     properties (SetAccess = private)
         AlyxInstance % An Alyx object to interfacing with the database
         SubjectList % List of active subjects from database
@@ -535,6 +539,7 @@ classdef AlyxPanel < handle
                 obj.log('No weight data found for subject %s', obj.Subject);
                 return
             end
+            ref_weight_pct = wr.zscore_weight_pct + wr.reference_weight_pct;
             weights = [records.weight];
             weights(isnan([records.weighing_at])) = nan;
             expected = [records.expected_weight];
@@ -553,8 +558,8 @@ classdef AlyxPanel < handle
             
             plot(ax, dates, weights, '.-');
             hold(ax, 'on');
-            plot(ax, dates, ((expected-iw)*0.7)+iw, 'r', 'LineWidth', 2.0);
-            plot(ax, dates, ((expected-iw)*0.8)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+            plot(ax, dates, ((expected-iw)*obj.MinWeightPct)+iw, 'r', 'LineWidth', 2.0);
+            plot(ax, dates, ((expected-iw)*ref_weight_pct)+iw, 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
             box(ax, 'off');
             % Change the plot x axis limits
             maxDate = max(dates([records.is_water_restricted]|~isnan(weights)));
@@ -575,8 +580,8 @@ classdef AlyxPanel < handle
                 ax = axes('Parent', plotBox);
                 plot(ax, dates, (weights-iw)./(expected-iw), '.-');
                 hold(ax, 'on');
-                plot(ax, dates, 0.7*ones(size(dates)), 'r', 'LineWidth', 2.0);
-                plot(ax, dates, 0.8*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
+                plot(ax, dates, obj.MinWeightPct*ones(size(dates)), 'r', 'LineWidth', 2.0);
+                plot(ax, dates, ref_weight_pct*ones(size(dates)), 'LineWidth', 2.0, 'Color', [244, 191, 66]/255);
                 box(ax, 'off');
                 xlim(ax, [min(dates) maxDate]);
                 set(ax, 'XTickLabel', arrayfun(@(x)datestr(x, 'dd-mmm'), get(ax, 'XTick'), 'uni', false))
@@ -608,7 +613,7 @@ classdef AlyxPanel < handle
                 dat = horzcat(...
                     arrayfun(@(x)datestr(x), dates', 'uni', false), ...
                     weightsByDate', ...
-                    arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', 0.8*(x-iw)+iw)), expected', 'uni', false), ...
+                    arrayfun(@(x)iff(isnan(x), [], @()sprintf('%.1f', ref_weight_pct*(x-iw)+iw)), expected', 'uni', false), ...
                     weightPctByDate');
                 waterDat = (...
                     num2cell(horzcat([records.given_water_reward]', [records.given_water_supplement]', ...
@@ -618,7 +623,7 @@ classdef AlyxPanel < handle
                 waterDat(~[records.is_water_restricted],[1,3]) = {'ad lib'};
                 dat = horzcat(dat, waterDat);
                 
-                set(histTable, 'ColumnName', {'date', 'meas. weight', '80% weight', 'weight pct', 'water', 'supplement', 'total', 'min water', 'excess'}, ...
+                set(histTable, 'ColumnName', {'date', 'meas. weight', sprintf('%.2g%% weight', ref_weight_pct * 100), 'weight pct', 'water', 'supplement', 'total', 'min water', 'excess'}, ...
                     'Data', dat(end:-1:1,:),...
                     'ColumnEditable', false(1,5));
                 histbox.Widths = [ -1 725];
@@ -687,20 +692,22 @@ classdef AlyxPanel < handle
                     else
                         record = struct();
                     end
+                    % Get weight threshold values from lab endpoint
+                    ref_weight_pct = wr.zscore_weight_pct + wr.reference_weight_pct;
                     weight = iff(isempty(record.weighing_at), NaN, record.weight); % Get today's measured weight
                     water = getOr(record, 'given_water_total', 0); % Get total water given
                     expected_weight = getOr(record, 'expected_weight', NaN);
                     % Set colour based on weight percentage
                     weight_pct = (weight-wr.implant_weight)/(expected_weight-wr.implant_weight);
-                    if weight_pct < 0.7 % Mouse below 70% original weight
+                    if weight_pct < obj.MinWeightPct % Mouse below 80% original weight
                         colour = 'red';
-                        weight_pct = '< 70%';
-                    elseif weight_pct < 0.8 % Mouse below 80% original weight
-                        colour = [0.91, 0.41, 0.17]; % Orange
                         weight_pct = '< 80%';
+                    elseif weight_pct < ref_weight_pct % Mouse below pct threshold of ref weight
+                        colour = [0.91, 0.41, 0.17]; % Orange
+                        weight_pct = sprintf('< %.2g%%', ref_weight_pct * 100);
                     else
-                        colour = 'black'; % Mouse above 80% or no weight measured today
-                        weight_pct = '> 80%';
+                        colour = 'black'; % Mouse above threshold or no weight measured today
+                        weight_pct = sprintf('> %.2g%%', ref_weight_pct * 100);
                     end
                     % Round up water remaining to the near 0.01
                     remainder = obj.round(s(idx).remaining_water, 'up');
