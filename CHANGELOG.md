@@ -2,12 +2,15 @@
 
 This file contains a curated, chronologically ordered list of notable changes made to the master branch since the release of Rigbox 2.2.0. Each bullet point in the list is followed by the accompanying commit hash, and the date of the commit. The versioning numbering used is [SemVer](http://semver.org/). This changelog is based on [keep a changelog](https://keepachangelog.com).
 
-## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) [2.6.5]
+## [Most Recent Commits](https://github.com/cortex-lab/Rigbox/commits/master) [2.6.6]
+
+- HOTFIX: Tests can't run with the real `dat.paths` in R2019b, so `ReposFixture` can't delete real data folders
+
+## [2.6.5]
 
 - HOTFIX: Alyx-MATLAB update
 - HOTFIX: Corrected typo in obj2struct
 - Improved behavior of AlyxPanel when login to data server fails (informative error message, automatic logout)
-- HOTFIX: Tests can't run with the real `dat.paths` in R2019b, so `ReposFixture` can't delete real data folders
 
 ## [2.6.4]
 
