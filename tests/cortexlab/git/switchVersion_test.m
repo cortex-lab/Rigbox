@@ -1,5 +1,5 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
-    matlab.unittest.fixtures.PathFixture('../../fixtures')})... 
+    TestPathsFixture('../../fixtures')})... 
     switchVersion_test < GitTestCase
   %SWITCHVERSION_TEST contains unit tests for git.switchVersion
     

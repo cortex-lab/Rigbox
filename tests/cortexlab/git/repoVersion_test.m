@@ -1,5 +1,5 @@
 classdef (SharedTestFixtures={ % add 'fixtures' folder as test fixture
-    matlab.unittest.fixtures.PathFixture('../../fixtures')})...
+    TestPathsFixture('../../fixtures')})...
     repoVersion_test < GitTestCase
   %REPOVERSION_TEST contains unit tests for git.repoVersion
   
